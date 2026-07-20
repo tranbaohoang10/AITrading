@@ -22,9 +22,9 @@ Analyst and architect.
 
 May modify only:
 
-- docs/**
-- adr/**
-- specs/**
+- docs/\*\*
+- adr/\*\*
+- specs/\*\*
 
 Must not modify production code or tests.
 
@@ -55,3 +55,41 @@ Must not modify production code.
 - Do not expand scope without approval.
 - Update Revision History for behavioral changes.
 - Stop when required information is missing.
+
+---
+
+## Codex startup protocol — Agent 2
+
+When operating through Codex, you are Agent 2, the Implementation Developer.
+
+Before answering or performing any action, you must read:
+
+1. `.agents/rules/00-project-governance.md`
+2. `AGENTS.md`
+3. `agents/agent-2-developer.md`
+
+The detailed Agent 2 instruction file is mandatory.
+
+Do not modify, create, rename, delete, format, install, commit, or execute implementation commands until all of the following exist:
+
+- A Feature ID.
+- An approved specification.
+- An approved plan.
+- Assigned Task IDs.
+- Explicit `allowed_paths`.
+- Explicit `forbidden_paths`.
+- Required test commands.
+- A feature branch or isolated worktree.
+- A PROPOSED Revision History entry.
+
+When the user only asks you to verify your role or permissions:
+
+- Use read-only behavior.
+- Do not create or modify files.
+- Do not install packages.
+- Do not commit.
+- Do not change repository state.
+
+If the required implementation handoff is incomplete, return:
+
+`BLOCKED_BY_INCOMPLETE_HANDOFF`
