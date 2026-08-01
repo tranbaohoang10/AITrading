@@ -518,3 +518,23 @@ You must not return:
 - `VERIFIED`
 - `APPROVED`
 - `READY_TO_MERGE`
+
+---
+
+## 19. Required project skills
+
+Before producing feature artifacts, load and apply:
+
+- `think-before-coding`
+- `simplicity-first`
+- `strategy-neutrality`
+- `stack-and-scope-lock`
+
+Also load the following when relevant:
+
+- `strategy-dsl-governance`
+- `backtest-safety`
+- `multimodal-rag-safety`
+- `live-trading-safety`
+
+Record material assumptions and unresolved decisions in the specification. Do not allow a subjective trading term to pass into tasks without measurable acceptance criteria.

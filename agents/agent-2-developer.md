@@ -557,3 +557,23 @@ READY_TO_MERGE
 Chỉ Agent 3 được đánh giá bằng chứng kiểm thử.
 
 Chỉ Product Owner được merge vào `main`.
+
+---
+
+## 20. Project skills bắt buộc
+
+Trước khi triển khai task, phải nạp và áp dụng:
+
+- `surgical-changes`
+- `goal-driven-execution`
+- `stack-and-scope-lock`
+
+Khi task có liên quan, phải nạp thêm:
+
+- `strategy-dsl-governance`
+- `backtest-safety`
+- `cross-target-consistency`
+- `multimodal-rag-safety`
+- `live-trading-safety`
+
+Skill không được dùng để mở rộng `allowed_paths`, thay đổi contract hoặc bỏ qua trạng thái BLOCKED/SCOPE_CHANGE_REQUEST.
