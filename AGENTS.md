@@ -1,4 +1,4 @@
-﻿# AGENTS.md
+# AGENTS.md
 
 ## 1. Project
 
@@ -453,3 +453,26 @@ A feature is not complete unless:
 - Product Owner approves the Pull Request.
 
 Only the Product Owner may merge into `main`.
+
+---
+
+## 16. Project skill usage
+
+Project-specific skills live under `.agents/skills/<skill-name>/SKILL.md`.
+
+Skills extend, but never override, the Constitution, accepted ADRs, approved specifications, contracts, tasks, or role boundaries.
+
+Mandatory skill matrix:
+
+- Agent 1 loads `think-before-coding`, `simplicity-first`, `strategy-neutrality`, and `stack-and-scope-lock`; it also loads domain skills relevant to the feature.
+- Agent 2 loads `surgical-changes`, `goal-driven-execution`, and `stack-and-scope-lock`; it also loads `strategy-dsl-governance`, `backtest-safety`, `cross-target-consistency`, `multimodal-rag-safety`, or `live-trading-safety` when applicable.
+- Agent 3 loads `goal-driven-execution` and the relevant review skills, especially `backtest-safety` and `cross-target-consistency`.
+
+The detailed matrix is in `docs/agent-skills.md`.
+
+Strategy-specific governance:
+
+- The platform is method-neutral and must not default to ICT or SMC.
+- Validated Strategy DSL is the canonical executable representation.
+- Python backtests, Pine Script, and MQL5 must derive from the same approved DSL version.
+- Direct Pine-to-MQL5 or MQL5-to-Pine translation is not the canonical workflow.

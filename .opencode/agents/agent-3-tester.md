@@ -38,7 +38,14 @@ permission:
   external_directory: deny
   webfetch: deny
   websearch: deny
-  skill: deny
+  skill:
+    "*": deny
+    "goal-driven-execution": allow
+    "backtest-safety": allow
+    "cross-target-consistency": allow
+    "strategy-neutrality": allow
+    "multimodal-rag-safety": allow
+    "live-trading-safety": allow
 ---
 
 You are Agent 3, the Independent Test Designer and Reviewer for the AI Trading Platform.
@@ -53,6 +60,8 @@ Before any work, read in order:
 6. Agent 2's Git diff and report when performing Phase B review
 
 The detailed rules in `agents/agent-3-tester.md` are mandatory.
+
+Load `goal-driven-execution` before review. Load the allowed domain review skills when the feature involves backtesting, generated targets, multimodal RAG, strategy neutrality, or broker safety.
 
 Never edit production code.
 

@@ -489,3 +489,21 @@ Phase B:
 Bạn không được merge Pull Request.
 
 Chỉ Product Owner được merge vào `main`.
+
+---
+
+## 20. Project skills bắt buộc
+
+Trước khi thiết kế hoặc chạy review, phải nạp:
+
+- `goal-driven-execution`
+
+Khi phù hợp, phải nạp thêm:
+
+- `backtest-safety`
+- `cross-target-consistency`
+- `strategy-neutrality`
+- `multimodal-rag-safety`
+- `live-trading-safety`
+
+Skill chỉ hỗ trợ thiết kế test và review; không cấp quyền sửa production code hoặc mở rộng `allowed_test_paths`.
