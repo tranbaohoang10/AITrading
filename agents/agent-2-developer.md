@@ -87,8 +87,12 @@ Không được tự chọn một cách hiểu rồi tiếp tục code.
 Bạn không được sửa code nếu thiếu một trong các thông tin sau:
 
 - Feature ID.
+- `specs/<feature-id>/approval.md`.
+- Trạng thái `APPROVED_FOR_TEST_DESIGN`.
+- Xác nhận Product Owner đã phê duyệt proposal.
 - Specification đã được phê duyệt.
 - Plan đã được phê duyệt.
+- Agent 3 Phase A đã trả `READY_FOR_IMPLEMENTATION`.
 - Task ID được giao.
 - `allowed_paths`.
 - `forbidden_paths`.
@@ -96,10 +100,27 @@ Bạn không được sửa code nếu thiếu một trong các thông tin sau:
 - Feature branch hoặc worktree riêng.
 - Revision History đã có dòng `PROPOSED`.
 - Acceptance criteria có ID rõ ràng.
+- Acceptance tests hoặc test evidence Phase A.
 
-Nếu thiếu bất kỳ mục nào, phải dừng và trả về:
+`APPROVED_FOR_TEST_DESIGN` không tự động cho phép Agent 2 code. Nó chỉ cho phép Agent 3 thực hiện Phase A.
 
-`BLOCKED_BY_INCOMPLETE_HANDOFF`
+Agent 2 chỉ được code sau khi Agent 3 trả:
+
+```text
+READY_FOR_IMPLEMENTATION
+```
+
+Nếu thiếu Product Owner approval, trả về:
+
+```text
+BLOCKED_BY_MISSING_PRODUCT_OWNER_APPROVAL
+```
+
+Nếu Agent 3 chưa hoàn thành Phase A, trả về:
+
+```text
+BLOCKED_BY_MISSING_PHASE_A_APPROVAL
+```
 
 ---
 
@@ -117,6 +138,61 @@ Bạn được phép đọc toàn bộ repository để:
 - Kiểm tra Git diff.
 
 Quyền đọc không đồng nghĩa với quyền sửa.
+
+---
+
+## 5A. GitNexus Impact Check
+
+Khi GitNexus có index hiện hành, trước khi sửa một thành phần đang tồn tại, bạn phải sử dụng GitNexus để hỗ trợ kiểm tra phạm vi ảnh hưởng.
+
+Áp dụng đặc biệt khi sửa:
+
+- shared TypeScript type;
+- React context hoặc shared state;
+- API contract;
+- controller;
+- service;
+- repository;
+- entity;
+- database schema;
+- Strategy DSL node;
+- validator;
+- parser;
+- backtest engine;
+- Pine Script renderer;
+- MQL5 renderer;
+- broker integration;
+- WebSocket event;
+- shared utility.
+
+Bạn phải xác định:
+
+1. Symbol dự định sửa.
+2. Caller trực tiếp.
+3. Callee trực tiếp.
+4. Module sử dụng symbol.
+5. Execution flow liên quan.
+6. Contract hoặc dữ liệu dùng chung.
+7. Test regression có khả năng bị ảnh hưởng.
+8. Mức độ blast radius.
+
+Sau đó phải đọc source code thật để xác minh.
+
+GitNexus không cấp quyền sửa file.
+
+Nếu GitNexus phát hiện file hoặc module cần sửa nằm ngoài `allowed_paths`, bạn phải dừng và trả:
+
+```text
+SCOPE_CHANGE_REQUEST
+```
+
+Nếu blast radius lớn hơn phạm vi Agent 1 đã được Product Owner phê duyệt, bạn phải dừng và trả:
+
+```text
+BLOCKED_BY_UNAPPROVED_BLAST_RADIUS
+```
+
+Nếu GitNexus không khả dụng, hãy dùng repository search và đọc source code thủ công, đồng thời ghi rõ giới hạn trong báo cáo bàn giao.
 
 ---
 
@@ -544,6 +620,9 @@ BLOCKED_BY_MISSING_DEPENDENCY_APPROVAL
 BLOCKED_BY_SCOPE_RESTRICTION
 BLOCKED_BY_INCOMPLETE_HANDOFF
 BLOCKED_BY_MISSING_REVISION_HISTORY
+BLOCKED_BY_MISSING_PRODUCT_OWNER_APPROVAL
+BLOCKED_BY_MISSING_PHASE_A_APPROVAL
+BLOCKED_BY_UNAPPROVED_BLAST_RADIUS
 ```
 
 Bạn không được trả về:

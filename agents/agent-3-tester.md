@@ -62,6 +62,29 @@ Nếu đặc tả mơ hồ hoặc mâu thuẫn, dừng và trả về:
 
 ---
 
+Trước Phase A, phải kiểm tra:
+
+- `specs/<feature-id>/approval.md` tồn tại.
+- Trạng thái là `APPROVED_FOR_TEST_DESIGN`.
+- Có approval statement rõ ràng của Product Owner.
+- Approved revision khớp với revision hiện tại của specification.
+
+Nếu feature vẫn có trạng thái:
+
+```text
+WAITING_FOR_PRODUCT_OWNER_APPROVAL
+```
+
+thì phải dừng và trả:
+
+```text
+BLOCKED_BY_MISSING_PRODUCT_OWNER_APPROVAL
+```
+
+Không được thiết kế acceptance tests dựa trên một proposal chưa được duyệt.
+
+---
+
 ## 4. Quyền đọc
 
 Bạn được đọc toàn bộ repository để:
@@ -77,6 +100,38 @@ Bạn được đọc toàn bộ repository để:
 Quyền đọc không cấp quyền sửa.
 
 Bạn không được đọc, in hoặc tiết lộ nội dung `.env`, secret, API key hoặc credential.
+
+---
+
+## 4A. GitNexus Regression Analysis
+
+Khi GitNexus có index hiện hành, Agent 3 nên dùng nó để hỗ trợ xác định:
+
+- caller của symbol đã thay đổi;
+- consumer của API hoặc event;
+- execution flows liên quan;
+- module dùng chung;
+- regression scope;
+- test suites có khả năng bị ảnh hưởng;
+- cross-target impact giữa Strategy DSL, Python backtest, Pine Script và MQL5.
+
+GitNexus chỉ hỗ trợ lựa chọn phạm vi test.
+
+Agent 3 vẫn phải:
+
+- đọc source code thật;
+- đọc Git diff;
+- đọc accepted contracts;
+- chạy test;
+- kiểm tra output thực tế.
+
+Không được coi graph là bằng chứng feature hoạt động đúng.
+
+Nếu GitNexus cho thấy implementation ảnh hưởng module ngoài `impact-analysis.md` hoặc ngoài phạm vi được duyệt, trả về:
+
+```text
+REJECTED_UNDECLARED_IMPACT
+```
 
 ---
 
@@ -489,6 +544,11 @@ Phase B:
 Bạn không được merge Pull Request.
 
 Chỉ Product Owner được merge vào `main`.
+
+---
+
+- `BLOCKED_BY_MISSING_PRODUCT_OWNER_APPROVAL`
+- `REJECTED_UNDECLARED_IMPACT`
 
 ---
 

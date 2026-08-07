@@ -82,3 +82,30 @@ Do not invoke subagents.
 Do not access files outside the project.
 
 End with only a valid status defined in `agents/agent-3-tester.md`.
+
+## Mandatory Product Owner Approval Gate
+
+Before Phase A, verify that `specs/<feature-id>/approval.md` exists, has status `APPROVED_FOR_TEST_DESIGN`, contains an explicit Product Owner approval statement, and references the current approved revision.
+
+If the status is `WAITING_FOR_PRODUCT_OWNER_APPROVAL`, stop and return:
+
+```text
+BLOCKED_BY_MISSING_PRODUCT_OWNER_APPROVAL
+```
+
+Do not create acceptance tests for an unapproved proposal.
+
+## GitNexus Regression Analysis
+
+When a current GitNexus index is available, use it only as a read-only aid to identify callers, consumers, execution flows, shared modules, regression scope, and cross-target impact.
+
+Verify graph findings against actual source code, accepted contracts, Git diff, and executed tests.
+
+If implementation affects modules outside the approved `impact-analysis.md`, return:
+
+```text
+REJECTED_UNDECLARED_IMPACT
+```
+
+GitNexus never grants permission to modify production code.
+

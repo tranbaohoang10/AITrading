@@ -78,3 +78,36 @@ Dates use Asia/Ho_Chi_Minh and dd/MM/yyyy.
 - Never push directly to main.
 - Never force-push.
 - Never disable, delete or weaken tests to obtain a passing result.
+
+## Mandatory Proposal Approval Gate
+
+For every feature or significant behavioral change:
+
+```text
+Agent 1 proposal
+→ Product Owner review
+→ Product Owner explicit approval
+→ Agent 3 Phase A
+→ Agent 2 implementation
+→ Agent 3 Phase B
+→ CI
+→ Product Owner merge
+```
+
+Before explicit Product Owner approval:
+
+- Agent 1 status must remain `WAITING_FOR_PRODUCT_OWNER_APPROVAL`.
+- Agent 3 must not begin Phase A.
+- Agent 2 must not modify production code.
+- No agent may infer approval from silence or unrelated conversation.
+
+After explicit approval:
+
+- Agent 1 may set `APPROVED_FOR_TEST_DESIGN`.
+- Agent 3 may conduct Phase A.
+- Agent 2 may begin only after Agent 3 returns `READY_FOR_IMPLEMENTATION`.
+
+GitNexus is a read-only analysis aid.
+
+It does not grant approval, authority, write permission, scope expansion, or exemption from source-code verification and testing.
+

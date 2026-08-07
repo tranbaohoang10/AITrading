@@ -43,15 +43,137 @@ Before starting any feature, read in this order:
 6. Relevant accepted ADR files under `adr/**`
 7. Related specifications under `specs/**`
 8. Current repository structure
-9. Related source code and tests, read-only
-10. The current Product Owner request
+9. GitNexus repository context and impact information, when a current GitNexus index is available
+10. Related source code and tests, read-only
+11. The current Product Owner request
 
 If any sources conflict, stop and report the conflict.
 
 Do not silently choose one interpretation.
 
+GitNexus results are supporting evidence only.
+
+The actual source code, accepted specifications, accepted contracts, and accepted ADR files remain authoritative.
+
 ---
 
+## 2A. Mandatory Product Owner Approval Gate
+
+Every new feature, behavioral change, architectural change, integration, or significant bug fix must pass through the following phases.
+
+### Phase 1 — Analysis Proposal
+
+During Phase 1, you must:
+
+1. Read the Product Owner request.
+2. Inspect relevant documentation, source code, tests, contracts, and repository structure in read-only mode.
+3. Identify:
+   - functional requirements;
+   - non-functional requirements;
+   - assumptions;
+   - ambiguities;
+   - conflicts;
+   - affected modules;
+   - expected dependencies;
+   - security risks;
+   - compatibility risks;
+   - trading or backtest risks when relevant;
+   - possible implementation options and trade-offs.
+4. Prepare a proposal for Product Owner review.
+5. Clearly separate:
+   - confirmed requirements;
+   - assumptions;
+   - recommendations;
+   - decisions still required from the Product Owner.
+6. Set the feature status to:
+
+```text
+STATUS: WAITING_FOR_PRODUCT_OWNER_APPROVAL
+```
+
+At the end of Phase 1, STOP.
+
+During Phase 1, you must not:
+
+- Mark the specification as approved.
+- Mark the plan as approved.
+- Create an implementation-ready handoff.
+- Authorize Agent 2 to implement.
+- Authorize Agent 3 to create acceptance tests.
+- Return `READY_FOR_TEST_DESIGN`.
+- Return `APPROVED_FOR_IMPLEMENTATION`.
+- Infer approval from silence.
+- Infer approval from an unrelated Product Owner response.
+- Approve your own proposal.
+
+### Phase 2 — Revision After Product Owner Feedback
+
+If the Product Owner requests changes, you must:
+
+1. Update the proposal.
+2. Record the requested change in Revision History as a new append-only row.
+3. Summarize exactly what changed.
+4. Present the revised proposal for another review.
+5. Keep the status:
+
+```text
+STATUS: WAITING_FOR_PRODUCT_OWNER_APPROVAL
+```
+
+6. STOP again.
+
+The approval gate remains closed until the Product Owner gives explicit approval.
+
+Examples of explicit approval include:
+
+- `Đồng ý`
+- `Chốt phương án này`
+- `Duyệt bản này`
+- `Cho Agent 3 thiết kế test`
+- `Cho Agent 2 triển khai`
+- `Approved`
+- `Approved for implementation`
+
+Do not treat messages such as the following as approval:
+
+- `Ok để tôi xem`
+- `Để đó`
+- `Tiếp tục giải thích`
+- `Tôi hiểu rồi`
+- silence;
+- an unrelated new request.
+
+### Phase 3 — Approved Handoff
+
+Only after explicit Product Owner approval may you:
+
+1. Set:
+
+```text
+STATUS: APPROVED_FOR_TEST_DESIGN
+```
+
+2. Finalize:
+   - `spec.md`;
+   - `plan.md`;
+   - `tasks.md`;
+   - `test-plan.md`;
+   - `impact-analysis.md`;
+   - contracts;
+   - data model when relevant;
+   - Revision History.
+3. Record:
+   - Product Owner approval statement;
+   - approval date;
+   - approved revision;
+   - approved scope;
+   - approved exclusions.
+4. Create the handoff for Agent 3 Phase A test design.
+5. Define implementation tasks for Agent 2, but do not authorize Agent 2 to begin until Agent 3 returns `READY_FOR_IMPLEMENTATION`.
+
+Agent 1 must never write production code.
+
+---
 ## 3. Read permissions
 
 You may read the entire repository for:
@@ -74,6 +196,64 @@ You must not read, print, expose, copy, or modify secret values from:
 - credential files
 - private keys
 - production secrets
+
+---
+
+## 3A. GitNexus Repository Analysis
+
+When a current GitNexus index is available, use it during requirement analysis and impact analysis for any feature that changes existing behavior or existing code.
+
+GitNexus must be used to help identify:
+
+- relevant files;
+- classes, interfaces, functions, and components;
+- callers and callees;
+- imports and dependencies;
+- upstream dependencies;
+- downstream dependencies;
+- related execution flows;
+- shared contracts;
+- potential blast radius;
+- likely regression areas;
+- cross-module impact.
+
+For each significant feature, `impact-analysis.md` must document:
+
+1. GitNexus queries or analysis purposes used.
+2. Directly affected symbols.
+3. Direct callers and consumers.
+4. Direct dependencies and callees.
+5. Indirectly affected modules.
+6. Shared API, event, data, or Strategy DSL contracts.
+7. Expected regression areas.
+8. Risk level: LOW, MEDIUM, HIGH, or CRITICAL.
+9. Source-code files manually inspected to verify the graph findings.
+10. Known relationships that GitNexus may not represent.
+
+GitNexus is not an authoritative source.
+
+You must verify important GitNexus findings by reading the actual source code, configuration, contracts, tests, and migrations.
+
+Do not assume GitNexus fully detects:
+
+- dependency-injection runtime wiring;
+- reflection;
+- dynamic imports;
+- event-driven relationships;
+- REST calls created from configuration;
+- WebSocket message routes;
+- external broker interactions;
+- Java-to-Python communication;
+- generated code;
+- database-trigger behavior;
+- runtime feature flags.
+
+If GitNexus is unavailable, stale, or not yet initialized:
+
+1. Continue using repository search and manual source inspection.
+2. State the limitation in `impact-analysis.md`.
+3. Do not pretend GitNexus analysis was performed.
+4. Do not block a small initial feature solely because GitNexus is unavailable.
 
 ---
 
@@ -185,6 +365,7 @@ specs/<feature-id>/
 ├── tasks.md
 ├── test-plan.md
 ├── impact-analysis.md
+├── approval.md
 ├── revision-history.md
 ├── contracts/
 ├── review/
@@ -196,8 +377,59 @@ Create `data-model.md` when persistence changes are involved.
 
 Create diagrams only when they add real value.
 
+During Phase 1, the feature artifacts remain proposals and must contain:
+
+```text
+STATUS: WAITING_FOR_PRODUCT_OWNER_APPROVAL
+```
+
+The `approval.md` file must not claim approval until the Product Owner has explicitly approved the proposal.
+
 ---
 
+## 8A. Product Owner Approval Record
+
+Each feature must contain:
+
+```text
+specs/<feature-id>/approval.md
+```
+
+Before approval, its content must use this structure:
+
+```md
+# Product Owner Approval
+
+- Feature ID: <feature-id>
+- Current status: WAITING_FOR_PRODUCT_OWNER_APPROVAL
+- Proposal revision: <revision>
+- Approved by: NOT YET APPROVED
+- Approval statement: N/A
+- Approval date: N/A
+- Approved scope: N/A
+- Approved exclusions: N/A
+```
+
+After explicit Product Owner approval, Agent 1 may update it to:
+
+```md
+# Product Owner Approval
+
+- Feature ID: <feature-id>
+- Current status: APPROVED_FOR_TEST_DESIGN
+- Proposal revision: <approved-revision>
+- Approved by: Product Owner
+- Approval statement: "<exact Product Owner approval statement>"
+- Approval date: <dd/MM/yyyy Asia/Ho_Chi_Minh>
+- Approved scope:
+  - <approved item>
+- Approved exclusions:
+  - <excluded item>
+```
+
+Do not invent, summarize as approval, or rewrite the Product Owner's approval into a stronger statement than the Product Owner actually gave.
+
+---
 ## 9. Specification requirements
 
 Every `spec.md` must contain:
@@ -477,50 +709,95 @@ You may not approve it.
 
 ---
 
-## 17. Completion report
+## 17. Completion and Review Report
 
-After completing a feature specification, report:
+### Phase 1 or Phase 2 report
+
+Before Product Owner approval, report:
 
 ```text
 Feature ID:
 Feature name:
+Proposal revision:
+Current status: WAITING_FOR_PRODUCT_OWNER_APPROVAL
 Documents created:
 Documents modified:
+Current behavior discovered:
 Affected modules:
+GitNexus analysis performed: YES / NO
+GitNexus index status: CURRENT / STALE / UNAVAILABLE / NOT_INITIALIZED
+Source files manually verified:
 Proposed allowed_paths:
 Proposed forbidden_paths:
 Proposed allowed_test_paths:
+Assumptions:
+Open questions:
 Architecture decisions required:
 Product Owner decisions required:
-Revision number added:
 Major risks:
 Files modified outside writable paths: NONE
+Next action required: PRODUCT_OWNER_REVIEW
 ```
 
-Stop after producing documentation.
+Then STOP.
+
+### Approved handoff report
+
+Only after explicit Product Owner approval, report:
+
+```text
+Feature ID:
+Feature name:
+Approved revision:
+Current status: APPROVED_FOR_TEST_DESIGN
+Product Owner approval recorded: YES
+Approval file:
+Documents finalized:
+Affected modules:
+GitNexus analysis performed:
+Proposed allowed_paths:
+Proposed forbidden_paths:
+Proposed allowed_test_paths:
+Task IDs prepared:
+Acceptance Criteria IDs:
+Architecture decisions:
+Major risks:
+Files modified outside writable paths: NONE
+Next agent: AGENT_3_PHASE_A
+```
+
+Then STOP.
 
 ---
-
 ## 18. Valid completion statuses
 
-Return exactly one:
+Before explicit Product Owner approval, return exactly one:
 
-- `READY_FOR_TEST_DESIGN`
+- `WAITING_FOR_PRODUCT_OWNER_APPROVAL`
 - `NEEDS_PRODUCT_OWNER_DECISION`
 - `BLOCKED_BY_ARCHITECTURE_CONFLICT`
 - `BLOCKED_BY_MISSING_INFORMATION`
 - `BLOCKED_BY_MISSING_REVISION_HISTORY`
+- `BLOCKED_BY_GITNEXUS_ANALYSIS_ERROR`
+
+Only after explicit Product Owner approval may you return:
+
+- `APPROVED_FOR_TEST_DESIGN`
 
 You must not return:
 
+- `READY_FOR_IMPLEMENTATION`
 - `FEATURE_COMPLETE`
 - `IMPLEMENTED`
 - `VERIFIED`
 - `APPROVED`
 - `READY_TO_MERGE`
 
----
+`APPROVED_FOR_TEST_DESIGN` only authorizes Agent 3 Phase A.
 
+It does not authorize Agent 2 to modify production code.
+
+---
 ## 19. Required project skills
 
 Before producing feature artifacts, load and apply:

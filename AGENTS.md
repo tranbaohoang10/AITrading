@@ -29,6 +29,48 @@ No agent may approve its own work.
 
 ---
 
+## 2A. Mandatory Feature Approval Workflow
+
+Every new feature or significant change must follow this order:
+
+```text
+Product Owner request
+→ Agent 1 analysis proposal
+→ Product Owner review
+→ Agent 1 revision when requested
+→ Product Owner explicit approval
+→ Agent 3 Phase A acceptance-test design
+→ Agent 2 implementation
+→ Agent 3 Phase B independent review
+→ CI
+→ Product Owner Pull Request approval
+→ Product Owner merge
+```
+
+Agent 1 must stop after presenting an analysis proposal.
+
+Before Product Owner approval, the required status is:
+
+```text
+WAITING_FOR_PRODUCT_OWNER_APPROVAL
+```
+
+Agent 1 may only release the feature to Agent 3 after explicit Product Owner approval and after recording:
+
+```text
+APPROVED_FOR_TEST_DESIGN
+```
+
+Agent 2 must not begin implementation merely because Agent 1 finished writing documents, `tasks.md` exists, `plan.md` exists, Agent 1 returned `APPROVED_FOR_TEST_DESIGN`, the Product Owner reviewed without explicitly approving, or GitNexus found the relevant code.
+
+Agent 2 may begin only after:
+
+1. Product Owner approval is recorded.
+2. Agent 3 Phase A returns `READY_FOR_IMPLEMENTATION`.
+3. All implementation handoff requirements are present.
+
+---
+
 ## 3. Fixed technology stack
 
 - Frontend: React + TypeScript + Vite.
@@ -97,6 +139,10 @@ May modify only:
 
 Must not modify production code or tests.
 
+Must not release work to Agent 3 or Agent 2 before explicit Product Owner approval.
+
+GitNexus is an analysis aid and never grants write permission.
+
 ### Agent 2 — Implementation Developer
 
 Primary tool:
@@ -122,6 +168,11 @@ Detailed rules:
 
 - `agents/agent-2-developer.md`
 
+Agent 2 must not:
+
+- Begin implementation before Agent 3 returns `READY_FOR_IMPLEMENTATION`.
+- Treat GitNexus results as permission to modify files outside `allowed_paths`.
+
 ### Agent 3 — Independent Test Designer and Reviewer
 
 Primary tool:
@@ -143,6 +194,14 @@ Must never modify production code.
 Detailed rules:
 
 - `agents/agent-3-tester.md`
+
+---
+
+Agent 3 may use GitNexus to identify regression areas, callers, consumers, and execution flows.
+
+Agent 3 must verify graph findings against actual source code and tests.
+
+GitNexus does not permit Agent 3 to modify production code.
 
 ---
 
@@ -427,6 +486,49 @@ For role-verification requests:
 If test handoff is incomplete, return:
 
 `BLOCKED_BY_INCOMPLETE_TEST_HANDOFF`
+
+---
+
+## 14A. GitNexus Governance
+
+GitNexus may be used by all three agents as a read-only repository analysis aid.
+
+Permitted purposes:
+
+- repository navigation;
+- symbol context;
+- dependency analysis;
+- caller and callee analysis;
+- execution-flow discovery;
+- impact analysis;
+- regression-scope discovery.
+
+GitNexus must not be treated as:
+
+- the source of truth for business requirements;
+- Product Owner approval;
+- write permission;
+- proof that implementation is correct;
+- proof that tests are complete;
+- a replacement for reading source code;
+- a replacement for running tests.
+
+The source-of-truth order remains unchanged.
+
+If GitNexus output conflicts with accepted specifications, accepted contracts, accepted ADRs, or actual source code, stop and report the conflict.
+
+No agent may allow GitNexus initialization or integration to silently overwrite:
+
+- `AGENTS.md`;
+- `.agents/rules/**`;
+- `.agents/agents/**`;
+- `.agents/skills/**`;
+- Agent role files;
+- Constitution;
+- accepted specifications;
+- accepted ADR files.
+
+Any generated modification to governance files must be reviewed by the Product Owner before it is retained.
 
 ---
 
