@@ -65,9 +65,22 @@ def main() -> int:
     try:
         subprocess.run([initdb, "-D", str(data), "-U", "prototype_test", "--auth=scram-sha-256",
                         "--pwfile", str(password_file), "--encoding=UTF8", "--locale=C"], check=True)
+        if os.name != "nt":
+            # Debian packages default to /var/run/postgresql, which the CI runner
+            # does not own. Keep sockets in this cluster's private directory too.
+            socket_directory = str(owned).replace("'", "''")
+            with (data / "postgresql.conf").open("a", encoding="utf-8") as config:
+                config.write(f"\nunix_socket_directories = '{socket_directory}'\n")
         start_attempted = True
-        subprocess.run([pg_ctl, "-D", str(data), "-l", str(owned / "postgres.log"),
-                        "-o", f"-h 127.0.0.1 -p {port}", "-t", "30", "-w", "start"], check=True)
+        try:
+            subprocess.run([pg_ctl, "-D", str(data), "-l", str(owned / "postgres.log"),
+                            "-o", f"-h 127.0.0.1 -p {port}", "-t", "30", "-w", "start"], check=True)
+        except subprocess.CalledProcessError:
+            # Fresh initdb startup only: no application SQL or credentials logged.
+            startup_log = owned / "postgres.log"
+            if startup_log.is_file():
+                print(startup_log.read_text(encoding="utf-8", errors="replace")[-8000:], flush=True)
+            raise
         wrapper = str(ROOT / "backend" / ("gradlew.bat" if os.name == "nt" else "gradlew"))
         command = [wrapper, "--no-daemon", "clean", "test", "bootJar", "dependencyInventory"]
         if args.write_locks:
