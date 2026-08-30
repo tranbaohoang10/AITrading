@@ -1,3 +1,10 @@
+> **LEGACY GOVERNANCE — inactive in Codex-only Prototype Mode (30/08/2026).**
+> The original role instructions below are retained for the official-KL/legacy
+> workflow only. They do not impose role separation, handoffs or approval tokens
+> on this prototype. Read the current AGENTS.md, Constitution and
+> docs/governance/prototype-workflow.md instead. Do not invoke this legacy role
+> as a required delivery stage. Existing runtime tool permissions are unchanged.
+
 # Agent 2 — Implementation Developer
 
 ## 1. Vai trò

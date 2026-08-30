@@ -1,35 +1,26 @@
 ---
 name: "think-before-coding"
-description: "Analyze ambiguity, assumptions, conflicts, and missing decisions before implementation."
-compatibility: "AI Trading Platform; Codex and OpenCode agent-skills format"
+description: "Resolve safe assumptions autonomously and surface only genuine requirement blockers."
+compatibility: "AI Trading Platform"
 metadata:
   project: "ai-trading-platform"
   owner: "product-owner"
 ---
 
-# Think Before Coding
+# Think Before Coding — Autonomous Prototype
 
-## Use this skill when
+1. State the requested outcome and inspect relevant source, tests and documents.
+2. Separate known facts from inferences; record material assumptions.
+3. Resolve ordinary missing details with the simplest safe interpretation and
+   continue without a manual approval gate.
+4. Identify genuine contradictory business requirements that cannot be inferred
+   safely, external credential/service gaps and data-loss risks outside the repo.
+   Exhaust safe local remedies, then report the precise HARD BLOCKER.
+5. For trading rules, require measurable signal, confirmation, execution, exit,
+   risk, timeframe, timezone and candle-boundary definitions.
+6. Keep the current Issue scope, fixed stack and security constraints.
+7. Do not code merely to appear busy; plan concrete verifiable outcomes.
 
-- A requirement is ambiguous, incomplete, contradictory, or domain-sensitive.
-- A trading rule uses subjective wording.
-- A change affects contracts, persistence, security, execution timing, or external integrations.
-
-## Required behavior
-
-1. Restate the requested outcome in one or two sentences.
-2. List assumptions that materially affect implementation.
-3. Identify missing decisions and conflicts with approved artifacts.
-4. Distinguish facts from inferences.
-5. For trading rules, require measurable definitions for signal, confirmation, execution, exit, risk, timeframe, timezone, and bar-close behavior.
-6. Stop with the project-defined BLOCKED status when required information is missing.
-7. Do not code merely to demonstrate progress.
-
-## Output checklist
-
-- Goal
-- Assumptions
-- Ambiguities
-- Relevant constraints
-- Proposed smallest next step
-- Blocking questions or valid completion status
+Output: goal, facts/assumptions, constraints, smallest justified design, test
+evidence plan and any genuine blocker. Do not require Agent 1/3 or owner sign-off
+for routine prototype analysis/design/implementation.

@@ -1,30 +1,39 @@
-# AI Trading Platform — Agent Skill Matrix
+# Skills in AUTONOMOUS CODEX MODE
 
-These project skills extend Spec Kit. They do not replace the Constitution, approved ADRs, specifications, contracts, task lists, or agent role files.
+Codex applies skills by activity in one end-to-end workflow on main.
 
-## Mandatory usage
+| Activity | Skills |
+| --- | --- |
+| Analysis/design | think-before-coding, simplicity-first, strategy-neutrality, stack-and-scope-lock |
+| Implementation/verification | surgical-changes, goal-driven-execution, stack-and-scope-lock |
+| DSL/targets | strategy-dsl-governance, cross-target-consistency |
+| Backtests | backtest-safety |
+| RAG/OCR/documents | multimodal-rag-safety |
+| Explicit broker-related scope | live-trading-safety |
 
-| Agent | Always load before relevant work | Conditional skills |
-|---|---|---|
-| Agent 1 — Analyst/Architect | `think-before-coding`, `simplicity-first`, `strategy-neutrality`, `stack-and-scope-lock` | `strategy-dsl-governance`, `backtest-safety`, `multimodal-rag-safety`, `live-trading-safety` |
-| Agent 2 — Developer | `surgical-changes`, `goal-driven-execution`, `stack-and-scope-lock` | `strategy-dsl-governance`, `backtest-safety`, `cross-target-consistency`, `multimodal-rag-safety`, `live-trading-safety` |
-| Agent 3 — Tester | `goal-driven-execution` | `backtest-safety`, `cross-target-consistency`, `strategy-neutrality`, `multimodal-rag-safety`, `live-trading-safety` |
+The current Constitution and Product Owner autonomous-mode instruction supersede
+old skill requirements for assigned-agent handoffs, owner-approved paths,
+dependency approval, feature branches, PRs or confirmation between steps.
+Codex defines necessary task paths from the Issue, documents decisions and
+maintains scope/AC/test evidence itself. Do not use this to expand the backlog,
+change the fixed stack or weaken domain/security safeguards.
 
-## Precedence
+The four core skills surgical-changes, goal-driven-execution, stack-and-scope-lock
+and think-before-coding are updated for autonomy; their originals are archived.
+References to approved DSL/content or application-user confirmation in domain
+skills are product data/authorization safeguards, not development approval gates.
+Do not remove these safeguards to increase development autonomy.
 
-1. Constitution
-2. Accepted ADR
-3. Approved specification and contracts
-4. Approved task list
-5. AGENTS.md and role instructions
-6. Project skill instructions
+Spec Kit is optional scaffolding. Generic templates/scripts may assume feature
+branches, optional tests or manual questions. Read side effects before use:
+do not run branch-creating scaffolding for autonomous main delivery; author the
+needed documents directly. Complete missing checklists and infer safe details
+instead of asking for routine confirmation. Do not invoke an optional workflow
+that reinstates a retired gate. Existing hooks/tool permissions cannot be bypassed.
 
-If a skill conflicts with a higher source, stop and report the conflict.
+Use maintained tools, install necessary dependencies with documented risk checks,
+and self-fix command failures. Stop only for real hard blockers defined by current
+governance. Do not change sandbox/runtime permissions or repository protections.
 
-## Installation
-
-Copy each folder under `.agents/skills/` into the same path in the repository. The folder name must match the `name` field in `SKILL.md`.
-
-## OpenCode note
-
-OpenCode Agent 3 currently denies the `skill` tool. Change its frontmatter permission from scalar `skill: deny` to a permission map that allows only the review skills required for Agent 3.
+Historical role files and skill snapshots under docs/governance/legacy are
+reference material only; they cannot switch the active mode.

@@ -1,366 +1,215 @@
 # AI Trading Platform Constitution
 
-<!--
-Sync Impact Report
-Version change: 0.0.0 -> 1.0.0
-Ratified: 21/07/2026
-Last amended: 21/07/2026
-Timezone: Asia/Ho_Chi_Minh
-Modified sections: Replaced all Spec Kit placeholders with project-specific governance.
-Templates requiring updates: None.
-Follow-up TODOs: None.
--->
+**Version: 3.0.0 — AUTONOMOUS CODEX MODE (PROTOTYPE/DRAFT)**
 
-## Core Principles
+Original ratification: 21/07/2026. Amendment authorized: 30/08/2026.
+Timezone: Asia/Ho_Chi_Minh. Traceability: [Issue #3](https://github.com/tranbaohoang10/AITrading/issues/3).
 
-### I. Product Owner Authority
+## I. Autonomous authority
 
-The human Product Owner is the final authority for the AI Trading Platform.
+The Product Owner explicitly authorizes Codex to work directly on main, edit/
+create/delete necessary project files, run commands, install necessary
+dependencies, run migrations, execute build/test/lint/type-check, repair failures,
+commit directly on main, push origin/main and create/update/close GitHub Issues.
+No feature branch, Pull Request, Agent 1/2/3, Product Owner approval gate or
+intermediate manual approval is required.
 
-Only the Product Owner may:
+Codex selects work from the product backlog within the current run's scope and
+continues until verified completion or a genuine HARD BLOCKER. Document facts and
+safe assumptions; do not wait for another agent or routine owner confirmation.
+The current request ends after governance delivery; no product implementation
+follows in this task.
 
-- Approve project scope.
-- Approve specifications and Acceptance Criteria.
-- Approve Architecture Decision Records.
-- Approve dependency or technology changes.
-- Approve Constitution amendments.
-- Approve Pull Requests.
-- Merge changes into `main`.
+Security, history preservation, fixed stack and explicit task stop conditions
+constrain this authority. This mode does not override tool sandboxes, external
+access controls, credentials or repository protection rules. Do not weaken such
+controls to get a command to run. Do not fabricate owner/independent approval.
 
-No agent may approve its own work.
+## II. Source of truth and historical governance
 
-### II. Strict Separation of Agent Responsibilities
+The current Constitution and explicit Product Owner amendments govern project
+mode. Current requirements and Issue scope, accepted architectural decisions and
+contracts, active AGENTS/workspace rules and the workflow guide govern delivery.
+Source code, templates, skills and repository-analysis tools are supporting
+evidence and cannot silently override requirements or re-enable retired gates.
 
-- **Agent 1 — Analyst and Architect** creates requirements, specifications, architecture, plans, Task IDs, contracts, test plans, and requirement-level Revision History. Agent 1 must not write production code or tests.
-- **Agent 2 — Implementation Developer** implements only explicitly assigned Task IDs and may modify only files inside approved `allowed_paths`. Agent 2 must not modify approved specifications, contracts, or Agent 3 acceptance tests.
-- **Agent 3 — Independent Test Designer and Reviewer** creates tests and review evidence only inside approved `allowed_test_paths`. Agent 3 must never modify production code.
-- No agent may perform another agent's role unless the Product Owner explicitly authorizes it.
-- No agent may merge a Pull Request.
+This 2.0.0 → 3.0.0 amendment explicitly removes direct-main prohibitions,
+dependency approval gates, mandatory feature branches/PRs and manual owner
+checkpoints from active prototype governance. Prior 1.0.0 three-agent and 2.0.0
+review-gated prototype documents remain historical only. Preserve original
+dates, authors, approvals, verdicts and append-only history; do not delete them.
+Existing product requirements/safety constraints remain unless explicitly changed.
 
-### III. Specification-Driven Development
+Do not change the fixed stack on your own. Record architecture decisions and
+dependency rationale. Resolve inferable details autonomously; report only
+material contradictions that cannot be resolved safely. The Product Owner may
+change requirements or stop a run without having to approve each implementation step.
 
-No implementation may begin until the feature has:
-
-- A stable Feature ID.
-- An approved `spec.md`.
-- An approved `plan.md`.
-- An approved `tasks.md`.
-- An approved `test-plan.md`.
-- An `impact-analysis.md`.
-- Acceptance Criteria with stable IDs such as `AC-001`.
-- Explicit `allowed_paths`, `forbidden_paths`, and `allowed_test_paths`.
-- Required test, lint, type-check, and build commands.
-- A PROPOSED Revision History entry.
-- A feature branch or isolated worktree.
-
-Every feature must use:
+## III. Delivery and traceability
 
 ```text
-specs/<feature-id>/
-├── spec.md
-├── plan.md
-├── tasks.md
-├── test-plan.md
-├── impact-analysis.md
-├── revision-history.md
-├── contracts/
-├── review/
-├── defects/
-└── test-evidence/
+Product backlog → select feature → create and describe GitHub Issue
+→ work directly on main → CNPM documentation → implementation
+→ separate test Markdown → automated functional tests
+→ integration/regression tests → security tests
+→ self-fix until PASS → commit → push origin/main
+→ update/close Issue when Definition of Done is met → next feature
 ```
 
-`data-model.md` is required when persistence changes are involved.
+The next-feature step applies only within the authorized run; a task-specific
+stop wins. Governance Issue #3 ends this run.
 
-### IV. Test-First and Independent Verification
+Every feature requires its own real GitHub Issue before code. The Issue contains
+goal, scope, Use Case, Acceptance Criteria, UI requirements if applicable,
+Data/ERD impact, Security requirements, Test requirements and Definition of Done.
 
-Agent 3 must design Phase A acceptance tests before Agent 2 implements the feature.
+Significant business functions require Use Case, detailed Use Case Description,
+Acceptance Criteria, Sequence Diagram, relevant Class Diagram, Data/ERD impact,
+UI documentation when applicable and a separate Test Case Markdown.
+Do not invent UML for tiny UI operations without a business use case.
+All features still need traceable tests and security applicability analysis.
+Use `docs/governance/prototype-workflow.md` for the artifact contract.
 
-New tests must initially fail for the expected missing-feature reason, not because of invalid test syntax or a broken test environment.
+## IV. Stack, dependencies and migrations
 
-After implementation, Agent 3 must independently verify:
+Fixed stack:
+- React + TypeScript + Vite.
+- Spring Boot + Java 21.
+- Gradle Kotlin DSL.
+- PostgreSQL.
+- Flyway.
+- Python when needed for backtest/AI.
 
-- Acceptance tests.
-- Unit tests.
-- Integration tests.
-- Contract tests.
-- Regression tests.
-- Build.
-- Lint.
-- Type checking.
-- Security.
-- Scope compliance.
-- Revision History.
-- Trading and backtest correctness when relevant.
+Maven and `pom.xml` are forbidden. Backend tests/builds use the Gradle Wrapper.
+Do not bypass Spring Boot authorization/business boundaries through Python.
+Codex may choose/install necessary compatible dependencies without a separate
+approval gate; record need, version, license, security/compatibility assessment,
+lockfile changes and tests. Avoid speculative dependencies and silent stack changes.
+Future RAG may use OpenDataLoader PDF, Spring AI and pgvector within requirements.
 
-Tests must never be:
+Codex may create and run needed migrations within safe project/test scope.
+Never rewrite/delete/reorder applied migrations. Use new migrations, validate
+compatibility and recovery, and test with disposable data. Risk of irreversible
+data loss outside the repository is a HARD BLOCKER. Do not infer permission to
+modify production data or live broker accounts from prototype autonomy.
 
-- Deleted.
-- Skipped.
-- Disabled.
-- Renamed to avoid test discovery.
-- Weakened.
-- Given reduced assertions.
-- Changed merely to make incorrect implementation pass.
+No credit/payment implementation in the current phase.
 
-### V. Append-Only Revision History
+## V. Security-first and verification
 
-Every feature addition, update, deletion, restoration, rollback, security change, API change, database change, or behavioral fix must be recorded in:
+Security is the highest product requirement. Design authorization/resource
+ownership, input validation, safe data handling and abuse resistance into each
+feature before calling it complete.
 
-- `specs/<feature-id>/revision-history.md`
-- `docs/revision-history/index.md`
+Assess and test where applicable: broken access control, IDOR/BOLA,
+authentication bypass, privilege escalation, SQL/injection, XSS, CSRF, SSRF,
+path traversal, unsafe file upload, mass assignment, token/session abuse, replay,
+brute force, rate limiting, sensitive-data exposure, secret leakage, dependency
+vulnerability, security misconfiguration, race conditions and audit/logging.
 
-Revision History is append-only.
+Password storage uses modern adaptive password hashing, preferably Argon2id when
+appropriate, with unique salts and documented resource parameters. Never use
+plaintext, reversible encryption, MD5 or plain SHA-256 to store passwords.
+Use maintained cryptographic libraries and safe verification; do not invent crypto.
 
-Existing rows must never be deleted, rewritten, renumbered, or have their date or performer changed.
+Every feature has its own test Markdown. Cover all reasonable applicable cases:
+happy path, validation, null/empty, boundary, edge cases, incorrect format,
+duplicate data, invalid state, authentication, authorization, missing permissions,
+database/API/AI-provider failure, timeout, network interruption, concurrency,
+race conditions, duplicate requests, integration, regression and security.
+Link tests to ACs. Specify steps, expected/actual outcomes, commands and evidence.
+N/A requires technical justification; unavailable required checks are not N/A.
 
-Corrections require a new row.
+Execute relevant functional/integration/regression/security tests and affected
+build/lint/type-check. Verify UI visually where relevant; mock/DOM tests are not
+proof of real integrations or visual layout. If a check fails, diagnose, fix,
+rerun and repeat until PASS or a real HARD BLOCKER. Do not cap this loop at an
+arbitrary attempt count and declare success. Do not weaken/delete tests or disable
+security checks to obtain PASS. Record requirement-driven test updates honestly.
 
-Revision dates use:
+Hard blockers include missing external credentials that cannot be created,
+unavailable third-party services, business contradictions that cannot be inferred
+safely, or data-loss risk outside the repository. Exhaust safe local remedies,
+record exact evidence and stop only the affected work. Never mark failed or
+unverified required behavior DONE or close its Issue.
 
-- Timezone: `Asia/Ho_Chi_Minh`
-- Format: `dd/MM/yyyy`
+Never commit secrets, API keys, passwords, private keys, production connection
+strings or `.env`/`.env.*`. Keep credentials/private data out of logs and outputs.
+Use synthetic data and authorized local/test targets for security tests.
+Do not attack third-party systems or real accounts without explicit authorization.
 
-Responsibilities:
+## VI. AI, DSL and product integrity
 
-- Agent 1 appends `PROPOSED`.
-- Agent 2 appends `IMPLEMENTED`.
-- Agent 3 verifies the history in its review report.
-- Only the Product Owner or an explicitly approved automation may record final verification.
+Strategy DSL is central and method-neutral: no default ICT/SMC bias. Represent
+Dow Theory, Wyckoff, trendlines, price action, ICT, SMC, RSI, EMA, SMA and
+custom/hybrid strategies through neutral measurable components. Python backtests,
+Pine Script and MQL5 derive from the same versioned validated DSL.
+Direct Pine↔MQL5 translation is not the canonical workflow.
 
-## Technology and Architecture Governance
+Application AI emits validated DSL or structured JSON only. Validate schema,
+allowed operations, parameter/resource bounds and authorization. Never execute
+untrusted code or scripts from user/PDF/OCR/retrieved data or application-LLM
+output. This restriction does not prohibit Codex's authorized development work.
+OpenDataLoader PDF is a parser only. User RAG reads authorized sources; admin RAG
+creates change proposals, not unrestricted code/database modifications.
 
-### VI. Fixed Technology Stack
+Define backtest OHLCV, timeframe, signal/confirmation/execution timing, pivots,
+warm-up, timezone/candle boundaries, look-ahead prevention and repainting.
+Specify capital, costs, spread/slippage, sizing/risk/leverage, entries/exits,
+SL/TP same-candle ambiguity, gaps, missing/duplicate candles, sessions and
+pyramiding. Require determinism and cross-target consistency. Never promise
+profit or future prediction accuracy from historical performance.
 
-The approved stack is:
+Retain the product requirements in `docs/product-requirements.md`: natural
+trading/fintech UI centered on charts/data, persistent private multi-conversation
+AI Chat and Trading Journal analysis. These are requirements, not claims that
+their implementations exist. Do not start them during governance Issue #3.
 
-- Frontend: React + TypeScript + Vite.
-- Backend: Spring Boot + Java 21.
-- Build system: Gradle Kotlin DSL.
-- Database: PostgreSQL.
-- Database migrations: Flyway.
-- Future RAG: OpenDataLoader PDF + Spring AI + pgvector.
+## VII. Git, completion and rollback
 
-Rules:
+Work, commit and push directly on main; no branch or PR is required. Before
+editing inspect status, branch and origin. Preserve unrelated changes. Before
+committing review full/staged diff, file scope, secrets and diff --check.
+Do not include unrelated product commits when delivering governance.
 
-- Maven is forbidden.
-- `pom.xml` is forbidden.
-- Backend build and test commands must use the Gradle Wrapper.
-- Technology changes require a PROPOSED ADR and explicit Product Owner approval.
-
-### VII. Database and Migration Integrity
-
-- PostgreSQL is the primary relational database.
-- Flyway manages schema migrations.
-- An existing or previously applied migration must never be modified, deleted, renamed, or reordered.
-- Schema changes require a new migration.
-- Destructive migrations require an approved migration, rollback, and data-retention strategy.
-- Database changes must first be described in `data-model.md` or `plan.md`.
-- Production data must never be deleted merely to make development or tests pass.
-
-### VIII. Branch, Pull Request, and CI Discipline
-
-- Production implementation must not be performed directly on `main`.
-- Every feature must use a feature branch or isolated worktree.
-- Direct push to `main` is forbidden.
-- Force push is forbidden.
-- GitHub Actions is a mandatory merge gate.
-- Required tests, build, lint, and type checks must pass before merge.
-- Only the Product Owner may merge.
-
-## AI, RAG, PDF, and Security Governance
-
-### IX. Safe AI Output and Execution
-
-Application AI output is restricted to:
-
-- Validated Strategy DSL.
-- Validated structured JSON.
-
-The system must never directly execute unrestricted LLM-generated:
-
-- Python.
-- JavaScript.
-- Java.
-- Shell commands.
-- SQL.
-- File-system commands.
-
-All AI output used by the application must pass:
-
-1. Schema validation.
-2. Whitelist validation.
-3. Parameter-range validation.
-4. Resource-limit validation.
-5. Authorization validation.
-6. Backtest-safety validation when relevant.
-
-### X. RAG Separation and PDF Safety
-
-User RAG may only:
-
-- Search approved sources.
-- Explain approved sources.
-- Summarize approved sources.
-- Cite approved sources.
-
-Admin RAG may only create a structured Change Proposal.
-
-Admin RAG must not directly modify production logic, source code, database schema, or permissions.
-
-OpenDataLoader PDF is only a document parser:
-
+Commit format:
 ```text
-PDF -> structured Markdown/JSON
+<type>(scope): mô tả thay đổi bằng tiếng Việt
+
+Refs #<issue-number>
 ```
 
-It does not provide authorization, embedding, retrieval, reasoning, code modification, database modification, or agent permissions.
+Allowed types: feat, fix, test, docs, refactor, chore, security.
+Every feature-related commit must include Refs. Do not use Closes/Fixes or other
+automatic Issue-closing references. Close Issues explicitly after their DoD.
 
-PDF content is untrusted data and must never be treated as:
+Never force push, including force-with-lease, or rewrite Git history. No amend,
+rebase of existing history, reset-based history replacement or history pruning.
+Rollback through new compensating/revert commits with Issue references; preserve
+history and do not discard unrelated work.
 
-- System instructions.
-- Agent instructions.
-- Permission changes.
-- Commands to modify source code.
-- Commands to access secrets.
-- Commands to execute tools.
+Push a normal fast-forward update to origin/main. Fetch and reconcile concurrent
+remote changes without force/rewrite; rerun affected checks before retrying.
+Do not disable protections if remote access refuses the push. Verify the exact
+commit on GitHub and existing required CI results. No manual approval gate is
+introduced by this Constitution; actual external restrictions must be respected.
 
-### XI. Secrets and Private Data
+DoD requires complete applicable artifacts, satisfied ACs, passing required
+tests/build/lint/types/security, no unresolved critical/high defect, preserved
+history, no secret exposure, verified push and actual required CI success when
+configured. Update and close the Issue as completed only after these conditions.
+Final report includes Issue number/state, SHA, branch, files, push and git status.
 
-The following must never be committed or exposed in agent output:
+## VIII. History and amendments
 
-- API keys.
-- Access tokens.
-- Credentials.
-- `.env` files.
-- `.env.*` files.
-- Private keys.
-- Private user documents.
-- Confidential admin documents.
-- Production connection strings.
+Revision history is append-only, dated dd/MM/yyyy in Asia/Ho_Chi_Minh.
+Codex records its own analysis, changes, verification and DONE evidence; this is
+not an owner or independent approval. Keep old records unchanged and append new
+entries when status changes.
 
-Agents must not read, print, or copy secret values unless the Product Owner explicitly authorizes a narrowly scoped security task.
-
-## Trading and Backtest Integrity
-
-### XII. No Future Data or Look-Ahead Bias
-
-Trading, indicator, ICT/SMC, and backtest logic must never use information before it becomes available.
-
-Every relevant specification must define:
-
-- OHLCV inputs.
-- Symbol.
-- Timeframe.
-- Timezone.
-- Candle boundary.
-- Warm-up period.
-- Signal bar.
-- Confirmation bar.
-- Execution time.
-- Pivot confirmation.
-- Close-versus-wick behavior.
-- Repainting behavior.
-- Multi-timeframe synchronization.
-
-### XIII. Deterministic Backtesting
-
-Every backtest specification must explicitly define:
-
-- Initial capital.
-- Position sizing.
-- Risk per trade.
-- Leverage.
-- Commission.
-- Spread.
-- Slippage.
-- Entry rules.
-- Exit rules.
-- Stop Loss.
-- Take Profit.
-- Same-candle Stop Loss and Take Profit behavior.
-- Missing-candle handling.
-- Duplicate-candle handling.
-- Gap handling.
-- Pyramiding behavior.
-- Session and timezone behavior.
-
-Identical input data and configuration must produce identical output.
-
-Historical backtest performance must never be presented as guaranteed future profit.
-
-## Definition of Done
-
-### XIV. Mandatory Completion Gate
-
-A feature is not complete unless:
-
-- Specification is approved.
-- Acceptance Criteria have stable IDs.
-- PROPOSED Revision History exists.
-- Agent 3 Phase A tests exist.
-- Agent 2 implementation is complete.
-- IMPLEMENTED Revision History exists.
-- Targeted tests pass.
-- Regression tests pass.
-- Contract tests pass when relevant.
-- Integration tests pass when relevant.
-- Build passes.
-- Lint passes.
-- Type checking passes.
-- No scope violation exists.
-- No test tampering exists.
-- No unresolved CRITICAL or HIGH defect exists.
-- Security checks pass.
-- Trading and backtest checks pass when relevant.
-- Revision History matches the Git diff.
-- Agent 3 approves the evidence for the CI gate.
-- GitHub Actions pass.
-- Product Owner approves the Pull Request.
-
-Only the Product Owner may merge into `main`.
-
-## Governance and Amendments
-
-### XV. Constitution Supremacy
-
-This Constitution is the highest project-level source of truth.
-
-If this Constitution conflicts with:
-
-- Agent instructions.
-- Informal prompts.
-- Plans.
-- Tasks.
-- Implementation shortcuts.
-- Tool defaults.
-
-the Constitution prevails unless the Product Owner explicitly approves a Constitution amendment.
-
-### XVI. Amendment Procedure
-
-A Constitution amendment requires:
-
-1. A formal amendment proposal.
-2. The reason for the change.
-3. The impact on existing specifications, contracts, tests, and workflows.
-4. A semantic version change.
-5. Explicit Product Owner approval.
-6. Updated ratification or amendment metadata.
-7. A Revision History entry.
-
-Semantic versioning rules:
-
-- **MAJOR**: Backward-incompatible governance or responsibility changes.
-- **MINOR**: New principles or materially expanded governance.
-- **PATCH**: Clarifications that do not change meaning.
-
-Agent 1 may propose an amendment.
-
-No agent may approve it.
-
----
-
-**Version**: 1.0.0  
-**Ratified**: 21/07/2026  
-**Last Amended**: 21/07/2026  
-**Timezone**: Asia/Ho_Chi_Minh
+Preserve prior governance in `docs/governance/legacy/`. Constitution 3.0.0 records
+the current explicit owner amendment, not retrospective approval of older
+proposals. Future changes must respect the fixed stack, safety and current
+requirements; no old approval token can block ordinary prototype delivery.
+See `docs/governance/autonomous-migration.md` and
+`docs/governance/autonomous-test-cases.md` for Issue #3 evidence.

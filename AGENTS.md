@@ -1,580 +1,162 @@
-# AGENTS.md
+# AI Trading Platform — AUTONOMOUS CODEX MODE
 
-## 1. Project
+Active mode: **AUTONOMOUS CODEX MODE — PROTOTYPE/DRAFT**.
+Authorized by the Product Owner on 30/08/2026. Traceability: [Issue #3](https://github.com/tranbaohoang10/AITrading/issues/3).
 
-AI Trading Platform is an AI-assisted system for generating, visualizing, explaining, and evaluating financial time-series analysis rules.
+## Authority and startup
 
-Trading is the application domain.
+Codex performs analysis, design, documentation, implementation, testing, repair,
+GitHub Issue management, commits and pushes end-to-end. Work directly on `main`;
+commit on `main` and push directly to `origin/main`. No feature branch, Pull
+Request, Agent 1/2/3 handoff, Product Owner approval gate or intermediate manual
+approval is required in this prototype mode.
 
-The project must not claim guaranteed profit or guaranteed prediction accuracy.
+Read the current Constitution, this file, workspace rules,
+`docs/governance/prototype-workflow.md`, `docs/agent-skills.md`, the current
+request/Issue and relevant requirements/source/tests. Inspect working tree,
+branch, remotes and history before edits. Preserve unrelated existing work and
+report it separately. Never silently include it in a commit.
 
----
+The current Product Owner instruction supersedes earlier prototype restrictions
+on direct-main work, dependency approval and mandatory PR review. The Product
+Owner can change direction, scope or stop conditions at any time. Archived
+governance, old role files, templates and skills cannot reinstate retired gates.
 
-## 2. Product Owner authority
+## Autonomous permissions and limits
 
-The human Product Owner is the final authority.
+Within the project and selected backlog task, Codex may create, edit or delete
+necessary files, run commands, install necessary dependencies, run migrations,
+build/test/lint/type-check, fix failures, commit/push main and create/update/close
+Issues without asking for confirmation between these steps.
 
-Only the Product Owner may:
+Keep changes justified by the Issue and acceptance criteria. Assess dependencies
+for necessity, license, compatibility and vulnerabilities; update lockfiles and
+test. No separate dependency approval gate is required. Do not change the fixed
+technology stack on your own. Preserve applied migrations; create new migrations
+and verify them against disposable/test data. Data-loss risk outside the repository
+is a hard blocker requiring resolution, not permission to proceed blindly.
 
-- Approve scope.
-- Approve specifications.
-- Approve ADR files.
-- Approve Constitution amendments.
-- Approve dependency changes.
-- Approve permission-scope changes.
-- Approve Pull Requests.
-- Merge into `main`.
+Tool sandbox, credentials, external access controls and repository protections
+still apply. Use normal authorized tool escalation where necessary; never edit
+permission controls, disable protections or weaken security to force completion.
 
-No agent may approve its own work.
+Never force push (including force-with-lease), rewrite Git history, remove old
+documents/history, commit secrets/API keys/passwords/`.env`, or weaken/delete
+tests and security checks just to obtain PASS. Roll back through new compensating
+commits with Issue references, never destructive history edits.
 
----
-
-## 2A. Mandatory Feature Approval Workflow
-
-Every new feature or significant change must follow this order:
-
-```text
-Product Owner request
-→ Agent 1 analysis proposal
-→ Product Owner review
-→ Agent 1 revision when requested
-→ Product Owner explicit approval
-→ Agent 3 Phase A acceptance-test design
-→ Agent 2 implementation
-→ Agent 3 Phase B independent review
-→ CI
-→ Product Owner Pull Request approval
-→ Product Owner merge
-```
-
-Agent 1 must stop after presenting an analysis proposal.
-
-Before Product Owner approval, the required status is:
+## Workflow
 
 ```text
-WAITING_FOR_PRODUCT_OWNER_APPROVAL
+Product backlog
+→ select next feature
+→ create GitHub Issue with full requirements
+→ work directly on main
+→ CNPM documentation
+→ implementation
+→ separate test Markdown
+→ automated functional tests
+→ integration/regression tests
+→ security tests
+→ diagnose and fix until PASS
+→ commit
+→ push origin/main
+→ update/close Issue after Definition of Done
+→ next feature within the authorized run
 ```
 
-Agent 1 may only release the feature to Agent 3 after explicit Product Owner approval and after recording:
+Every feature has an actual Issue before code and its own Markdown test file.
+Use Case, Use Case Description, Acceptance Criteria, Sequence Diagram, relevant
+Class Diagram, Data/ERD impact and UI documentation are required for significant
+business functions. Tiny UI-only changes do not require artificial UML.
+Security requirements and Definition of Done must be explicit.
+See the workflow guide for Issue fields, test coverage and evidence.
+
+The current governance task **stops after publishing governance and closing
+Issue #3**. Do not start a product feature in this task. For later backlog runs,
+continue autonomously within the run's scope and stop conditions.
+
+## Failure handling
+
+If code/test/build fails: diagnose → fix the cause → rerun → repeat until PASS
+or a genuine HARD BLOCKER. Missing local setup, recoverable errors and incomplete
+documents are work to do, not reasons to request routine approval.
+
+Hard blockers include unavailable external credentials that cannot be created,
+unavailable third-party services, conflicting business requirements that cannot
+be inferred safely, and risk of data loss outside the repository. Resolve what
+is safely possible first; report evidence and the exact external requirement.
+Do not call incomplete/failed verification DONE or close its Issue.
+
+## Fixed stack and product constraints
+
+- React + TypeScript + Vite.
+- Spring Boot + Java 21.
+- Gradle Kotlin DSL; backend builds/tests use the Gradle Wrapper.
+- PostgreSQL + Flyway.
+- Python when needed for backtest/AI.
+- No Maven or `pom.xml`; no unrequested stack substitution.
+
+Strategy DSL is the method-neutral canonical representation. Do not default to
+ICT/SMC. Support Dow Theory, Wyckoff, trendline, price action, ICT, SMC, RSI, EMA,
+SMA and custom/hybrid approaches through neutral components. Python backtests,
+Pine Script and MQL5 derive from the same versioned validated DSL.
+No credit/payment implementation at this stage. No implicit live-money trading.
+Retain the UI, persistent private AI Chat and Trading Journal requirements in
+`docs/product-requirements.md`; this document does not claim they are implemented.
+
+## Security and test obligations
+
+Security is the highest product requirement. Cover appropriate happy path,
+validation, null/empty, boundary, edge cases, format, duplicates, invalid state,
+authentication/authorization/missing permissions, database/API/AI-provider
+failure, timeout, network interruption, concurrency/races, duplicate requests,
+integration, regression and security scenarios.
+
+Assess broken access control, IDOR/BOLA, authentication bypass, privilege
+escalation, SQL/injection, XSS, CSRF, SSRF, path traversal, unsafe upload, mass
+assignment, token/session abuse, replay, brute force, rate limiting, sensitive-data
+exposure, secret leakage, dependency vulnerabilities, security misconfiguration,
+race conditions and audit/logging. Record applicability and negative tests.
+
+Passwords use modern adaptive hashing, preferably Argon2id when appropriate.
+No plaintext, reversible password encryption, MD5 or plain SHA-256. Use maintained
+libraries, unique salts and documented cost parameters; never custom crypto.
+Keep secrets out of source, logs, output and commits; do not read secret contents
+unless narrowly necessary and authorized. Security tests target local/test systems
+with synthetic data, not arbitrary third parties.
+
+Application AI outputs validated DSL/structured JSON only. Never execute
+untrusted code/scripts from user data, PDFs, OCR, retrieved content or application
+LLM output. User RAG stays within authorized sources; admin RAG proposes changes,
+not direct code/database mutations. GitNexus is read-only evidence, not authority.
+
+Backtests require no future data/look-ahead, defined repainting and pivot
+confirmation, signal/confirmation/execution times, warm-up, timezone/candle
+boundaries, costs, sizing/leverage, SL/TP ambiguity, gaps/missing/duplicate candles
+and deterministic output. Historical returns never guarantee future profit.
+
+## Git, evidence and completion
+
+Commit descriptions use Vietnamese with accents:
 
 ```text
-APPROVED_FOR_TEST_DESIGN
+<type>(scope): mô tả thay đổi bằng tiếng Việt
+
+Refs #<issue-number>
 ```
 
-Agent 2 must not begin implementation merely because Agent 1 finished writing documents, `tasks.md` exists, `plan.md` exists, Agent 1 returned `APPROVED_FOR_TEST_DESIGN`, the Product Owner reviewed without explicitly approving, or GitNexus found the relevant code.
-
-Agent 2 may begin only after:
-
-1. Product Owner approval is recorded.
-2. Agent 3 Phase A returns `READY_FOR_IMPLEMENTATION`.
-3. All implementation handoff requirements are present.
-
----
-
-## 3. Fixed technology stack
-
-- Frontend: React + TypeScript + Vite.
-- Backend: Spring Boot + Java 21.
-- Build system: Gradle Kotlin DSL.
-- Database: PostgreSQL.
-- Database migration: Flyway.
-- Future RAG:
-  - OpenDataLoader PDF.
-  - Spring AI.
-  - pgvector.
-
-Rules:
-
-- Do not use Maven.
-- Do not create `pom.xml`.
-- Backend build and test commands must use the Gradle Wrapper.
-- Technology changes require an ADR approved by the Product Owner.
-
----
-
-## 4. Source-of-truth order
-
-When instructions conflict, use this order:
-
-1. `.specify/memory/constitution.md`
-2. Accepted ADR files.
-3. Approved feature specification.
-4. Approved contracts.
-5. Approved task list.
-6. Current production source code.
-7. Current Product Owner request.
-8. Agent-specific instructions.
-
-When a conflict cannot be resolved, stop and report it.
-
-Do not silently choose one interpretation.
-
----
-
-## 5. Agent separation
-
-### Agent 1 — Analyst and Architect
-
-Primary tool:
-
-- Antigravity with Gemini.
-
-Responsibilities:
-
-- Requirements analysis.
-- Architecture.
-- Specifications.
-- Plans.
-- Tasks.
-- Contracts.
-- Test planning.
-- Requirement-level Revision History.
-
-May modify only:
-
-- `docs/**`
-- `adr/**`
-- `specs/**`
-- `.specify/memory/constitution.md`
-
-Must not modify production code or tests.
-
-Must not release work to Agent 3 or Agent 2 before explicit Product Owner approval.
-
-GitNexus is an analysis aid and never grants write permission.
-
-### Agent 2 — Implementation Developer
-
-Primary tool:
-
-- Codex.
-
-Responsibilities:
-
-- Implement only approved Task IDs.
-- Modify only approved `allowed_paths`.
-- Run implementation and regression checks.
-- Append `IMPLEMENTED` Revision History entries.
-
-Must not:
-
-- Modify specifications.
-- Modify accepted contracts.
-- Modify Agent 3 acceptance tests.
-- Work directly on `main`.
-- Approve or merge its own work.
-
-Detailed rules:
-
-- `agents/agent-2-developer.md`
-
-Agent 2 must not:
-
-- Begin implementation before Agent 3 returns `READY_FOR_IMPLEMENTATION`.
-- Treat GitNexus results as permission to modify files outside `allowed_paths`.
-
-### Agent 3 — Independent Test Designer and Reviewer
-
-Primary tool:
-
-- OpenCode.
-- DeepSeek API when available.
-
-Responsibilities:
-
-- Phase A: design tests before implementation.
-- Phase B: independently review implementation.
-- Verify Git diff, scope, security, trading correctness, and Revision History.
-- Create review reports and defect reports.
-
-May modify only feature-specific files listed in `allowed_test_paths`.
-
-Must never modify production code.
-
-Detailed rules:
-
-- `agents/agent-3-tester.md`
-
----
-
-Agent 3 may use GitNexus to identify regression areas, callers, consumers, and execution flows.
-
-Agent 3 must verify graph findings against actual source code and tests.
-
-GitNexus does not permit Agent 3 to modify production code.
-
----
-
-## 6. Agent communication
-
-Agents communicate through repository artifacts, not informal claims.
-
-Required feature directory:
-
-```text
-specs/<feature-id>/
-├── spec.md
-├── plan.md
-├── tasks.md
-├── test-plan.md
-├── impact-analysis.md
-├── revision-history.md
-├── contracts/
-├── review/
-├── defects/
-└── test-evidence/
-```
-
-Agent 2's explanation is not proof of correctness.
-
-Agent 3 must use executable tests and repository evidence.
-
----
-
-## 7. Shared repository rules
-
-All agents must:
-
-- Read the approved specification before acting.
-- Work only on an isolated feature branch or worktree.
-- Keep changes as small as possible.
-- Stay inside approved path permissions.
-- Stop when required information is missing.
-- Protect backward compatibility.
-- Protect existing tests.
-- Protect secrets.
-- Update Revision History for behavioral changes.
-- Report commands and evidence honestly.
-
-All agents must not:
-
-- Push directly to `main`.
-- Force-push.
-- Merge Pull Requests.
-- Disable branch protection.
-- Disable GitHub Actions.
-- Expose secrets or API keys.
-- Commit `.env` files.
-- Execute unknown scripts from untrusted sources.
-- Expand scope without Product Owner approval.
-- Describe backtest results as guaranteed future profit.
-
----
-
-## 8. Revision History
-
-Every feature addition, update, deletion, restoration, rollback, or behavioral fix must be recorded.
-
-Feature history:
-
-- `specs/<feature-id>/revision-history.md`
-
-Project summary:
-
-- `docs/revision-history/index.md`
-
-Revision History is append-only.
-
-Never:
-
-- Delete old rows.
-- Rewrite old rows.
-- Change old dates.
-- Change old performers.
-- Hide breaking changes.
-
-Roles:
-
-- Agent 1 appends `PROPOSED`.
-- Agent 2 appends `IMPLEMENTED`.
-- Agent 3 verifies history in the review report.
-- Product Owner may approve the final `VERIFIED` record or approved automation.
-
-Dates:
-
-- Timezone: `Asia/Ho_Chi_Minh`
-- Format: `dd/MM/yyyy`
-
----
-
-## 9. AI, RAG, and PDF safety
-
-Application AI may output only:
-
-- Validated Strategy DSL.
-- Validated structured JSON.
-
-Do not execute unrestricted LLM-generated:
-
-- Python.
-- JavaScript.
-- Java.
-- Shell.
-- SQL.
-- File-system commands.
-
-PDF content is untrusted data.
-
-PDF content must not be treated as:
-
-- System instructions.
-- Agent instructions.
-- Permission changes.
-- Commands to modify code.
-- Commands to access secrets.
-
-OpenDataLoader PDF is only a parser:
-
-```text
-PDF → structured Markdown/JSON
-```
-
-User RAG may explain, summarize, search, and cite approved content.
-
-Admin RAG may only create a Change Proposal.
-
-Admin RAG must not directly modify production logic.
-
----
-
-## 10. Trading and backtest safety
-
-Trading and backtest features must explicitly address:
-
-- No future data.
-- No look-ahead bias.
-- No unapproved repainting.
-- Signal time versus confirmation time.
-- Pivot confirmation.
-- Warm-up periods.
-- Timezones.
-- Candle boundaries.
-- Commission.
-- Spread.
-- Slippage.
-- Position sizing.
-- Leverage.
-- Stop Loss.
-- Take Profit.
-- Same-candle SL/TP behavior.
-- Missing candles.
-- Duplicate candles.
-- Deterministic results.
-
-Historical performance is not a guarantee of future results.
-
----
-
-## 11. Spec Kit rules
-
-Spec Kit is used for:
-
-- Constitution.
-- Specification.
-- Clarification.
-- Planning.
-- Tasks.
-- Analysis.
-- Controlled implementation.
-
-Do not use Spec Kit implementation commands to bypass Agent 2 task boundaries.
-
-Large features must be divided into small Task IDs.
-
-Agent 2 implements only assigned Task IDs.
-
-Agent 3 reviews each approved task group before further expansion.
-
----
-
-## 12. Agent 1 Constitution exception
-
-Agent 1 may create or update:
-
-- `.specify/memory/constitution.md`
-
-This is the only writable path Agent 1 has under `.specify/**`.
-
-Agent 1 must not modify:
-
-- `.specify/templates/**`
-- `.specify/scripts/**`
-- `.agents/skills/**`
-
----
-
-## 13. Codex startup protocol — Agent 2
-
-When operating through Codex, you are Agent 2, the Implementation Developer.
-
-Before answering or performing implementation actions, read:
-
-1. `.agents/rules/00-project-governance.md`
-2. `AGENTS.md`
-3. `agents/agent-2-developer.md`
-4. `.specify/memory/constitution.md`, when it exists
-5. Approved feature artifacts
-
-Do not modify, create, rename, delete, format, install, commit, or execute implementation commands until all of the following exist:
-
-- Feature ID.
-- Approved specification.
-- Approved plan.
-- Assigned Task IDs.
-- Explicit `allowed_paths`.
-- Explicit `forbidden_paths`.
-- Required test commands.
-- Feature branch or isolated worktree.
-- PROPOSED Revision History entry.
-- Acceptance Criteria IDs.
-
-For role-verification requests:
-
-- Use read-only behavior.
-- Do not create or modify files.
-- Do not install packages.
-- Do not commit.
-- Do not change repository state.
-
-If implementation handoff is incomplete, return:
-
-`BLOCKED_BY_INCOMPLETE_HANDOFF`
-
----
-
-## 14. OpenCode startup protocol — Agent 3
-
-When operating through the OpenCode custom agent `agent-3-tester`, you are Agent 3, the Independent Test Designer and Reviewer.
-
-Before designing tests or reviewing implementation, read:
-
-1. `.agents/rules/00-project-governance.md`
-2. `AGENTS.md`
-3. `agents/agent-3-tester.md`
-4. `.specify/memory/constitution.md`, when it exists
-5. Approved feature artifacts
-
-Agent 3 must never modify production code.
-
-Agent 3 may write only approved feature-specific test files and review evidence inside `allowed_test_paths`.
-
-Agent 3 must not create tests if the handoff lacks:
-
-- Feature ID.
-- Approved acceptance criteria.
-- Approved test plan.
-- `allowed_test_paths`.
-- Required test commands.
-
-Agent 3 must not:
-
-- Commit.
-- Push.
-- Merge.
-- Install dependencies.
-- Modify specifications.
-- Modify accepted contracts.
-- Modify migrations.
-- Rewrite Revision History.
-- Fix production code.
-
-For role-verification requests:
-
-- Use read-only behavior.
-- Do not change repository state.
-
-If test handoff is incomplete, return:
-
-`BLOCKED_BY_INCOMPLETE_TEST_HANDOFF`
-
----
-
-## 14A. GitNexus Governance
-
-GitNexus may be used by all three agents as a read-only repository analysis aid.
-
-Permitted purposes:
-
-- repository navigation;
-- symbol context;
-- dependency analysis;
-- caller and callee analysis;
-- execution-flow discovery;
-- impact analysis;
-- regression-scope discovery.
-
-GitNexus must not be treated as:
-
-- the source of truth for business requirements;
-- Product Owner approval;
-- write permission;
-- proof that implementation is correct;
-- proof that tests are complete;
-- a replacement for reading source code;
-- a replacement for running tests.
-
-The source-of-truth order remains unchanged.
-
-If GitNexus output conflicts with accepted specifications, accepted contracts, accepted ADRs, or actual source code, stop and report the conflict.
-
-No agent may allow GitNexus initialization or integration to silently overwrite:
-
-- `AGENTS.md`;
-- `.agents/rules/**`;
-- `.agents/agents/**`;
-- `.agents/skills/**`;
-- Agent role files;
-- Constitution;
-- accepted specifications;
-- accepted ADR files.
-
-Any generated modification to governance files must be reviewed by the Product Owner before it is retained.
-
----
-
-## 15. Definition of Done
-
-A feature is not complete unless:
-
-- Specification is approved.
-- PROPOSED Revision History exists.
-- Acceptance criteria have IDs.
-- Phase A tests are designed.
-- Implementation is complete.
-- IMPLEMENTED Revision History exists.
-- Targeted tests pass.
-- Regression tests pass.
-- Build passes.
-- Lint and type-check pass.
-- No scope violation exists.
-- No test tampering exists.
-- Security checks pass.
-- Trading/backtest checks pass when relevant.
-- Agent 3 review passes.
-- GitHub Actions pass.
-- Product Owner approves the Pull Request.
-
-Only the Product Owner may merge into `main`.
-
----
-
-## 16. Project skill usage
-
-Project-specific skills live under `.agents/skills/<skill-name>/SKILL.md`.
-
-Skills extend, but never override, the Constitution, accepted ADRs, approved specifications, contracts, tasks, or role boundaries.
-
-Mandatory skill matrix:
-
-- Agent 1 loads `think-before-coding`, `simplicity-first`, `strategy-neutrality`, and `stack-and-scope-lock`; it also loads domain skills relevant to the feature.
-- Agent 2 loads `surgical-changes`, `goal-driven-execution`, and `stack-and-scope-lock`; it also loads `strategy-dsl-governance`, `backtest-safety`, `cross-target-consistency`, `multimodal-rag-safety`, or `live-trading-safety` when applicable.
-- Agent 3 loads `goal-driven-execution` and the relevant review skills, especially `backtest-safety` and `cross-target-consistency`.
-
-The detailed matrix is in `docs/agent-skills.md`.
-
-Strategy-specific governance:
-
-- The platform is method-neutral and must not default to ICT or SMC.
-- Validated Strategy DSL is the canonical executable representation.
-- Python backtests, Pine Script, and MQL5 must derive from the same approved DSL version.
-- Direct Pine-to-MQL5 or MQL5-to-Pine translation is not the canonical workflow.
+Types: `feat`, `fix`, `test`, `docs`, `refactor`, `chore`, `security`.
+Every feature-related commit requires `Refs #<issue-number>`.
+Do not use `Closes #` or `Fixes #`, or other automatic closing references.
+Only close an Issue explicitly after its Definition of Done is met.
+
+Before commit inspect status, complete diff, diff --check and staged scope.
+Run relevant build/lint/type/test/security checks and fix failures. Push only a
+normal fast-forward update, verify the exact SHA on GitHub, and inspect existing
+required CI results. Do not disable CI/protections when they block a push.
+
+Maintain append-only revision history dated dd/MM/yyyy in Asia/Ho_Chi_Minh.
+Record facts, commands, exit codes, applicability and limitations. DONE is
+Codex's evidence-backed completion, not a claim of independent or owner approval.
+Report Issue number/state, commit SHA, branch, files, push result and final status.

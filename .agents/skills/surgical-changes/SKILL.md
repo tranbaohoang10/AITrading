@@ -1,28 +1,29 @@
 ---
 name: "surgical-changes"
-description: "Modify only approved paths and avoid unrelated refactors, cleanup, or scope expansion."
-compatibility: "AI Trading Platform; Codex and OpenCode agent-skills format"
+description: "Keep autonomous project changes within the current Issue and preserve unrelated work."
+compatibility: "AI Trading Platform"
 metadata:
   project: "ai-trading-platform"
   owner: "product-owner"
 ---
 
-# Surgical Changes
+# Surgical Changes — Autonomous Prototype
 
-## Goal
+Work directly on main under the current Constitution. No assigned-agent handoff
+or manual path approval is required. Derive necessary paths from the Issue and
+ACs; record them before editing and keep the change small.
 
-Make the minimum safe change inside the approved task boundary.
+- Preserve unrelated pre-existing changes, old documents and revision history.
+- Maintain accepted product behavior/contracts unless current requirements change
+  them; document justified changes and regression impact.
+- Never rewrite applied migrations or weaken tests to hide failures.
+- Do not add unrelated cleanup, speculative features or stack changes.
+- If another file is necessary for the same task, inspect it, document the reason
+  and proceed within scope; do not create a routine SCOPE_CHANGE_REQUEST gate.
+- Resolve safe assumptions yourself; report only genuine hard blockers.
+- Inspect git status, full/staged diff and diff --check before commit.
+- Correct only your own accidental edits; never discard someone else's work.
+- Report exact changed paths, Issue number, ACs, checks and limitations.
 
-## Rules
-
-- Modify only files inside `allowed_paths`.
-- Treat `forbidden_paths`, approved contracts, specifications, migrations, and Agent 3 acceptance tests as immutable.
-- Do not perform unrelated cleanup, renaming, formatting, dependency upgrades, or refactoring.
-- Preserve existing style and public behavior unless the specification explicitly changes them.
-- If an additional file is genuinely required, stop and return `SCOPE_CHANGE_REQUEST` with the path, reason, impact, and proposed tests.
-- Review `git diff --name-only` and `git diff` before completion.
-- Revert accidental out-of-scope edits rather than justifying them afterward.
-
-## Evidence
-
-Report changed files, why each was changed, and the approved Task ID that authorized it.
+Prior Agent 3 test ownership restrictions are legacy. Codex may maintain tests
+and design end-to-end, but cannot alter expected results to conceal defects.
