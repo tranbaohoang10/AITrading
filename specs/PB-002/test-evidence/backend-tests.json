@@ -1,0 +1,16 @@
+{
+  "tests": "8",
+  "failures": "0",
+  "errors": "0",
+  "skipped": "0",
+  "cases": [
+    "databaseMigrationAndRepeatValidationAreRealAndIdempotent()",
+    "healthHasMinimalJsonAndSecurityHeaders()",
+    "allPrivateRoutesAndGeneratedLoginAreDeniedWithoutHtmlOrRequestEcho()",
+    "unsafeMethodsRemainCsrfProtectedAndUnsupportedMethodsDoNotBypassSecurity()",
+    "forgedIdentityRequestIdAndCorsOriginAreNotTrusted()",
+    "maliciousPathIsRejectedAndIgnoredQueryCannotExecuteSql()",
+    "databaseExceptionDetailsAreNeverInHealthResponse()",
+    "actualDatabaseOutageReturns503AndRestartRestoresReadinessWithoutRemigration()"
+  ]
+}

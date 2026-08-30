@@ -1,0 +1,19 @@
+name: aitrading-prototype
+services:
+  db:
+    image: postgres:17.11
+    environment:
+      POSTGRES_DB: aitrading
+      POSTGRES_USER: aitrading
+      POSTGRES_PASSWORD: ${AITRADING_DB_PASSWORD:?Set a unique local database password in your shell}
+    ports:
+      - "127.0.0.1:${AITRADING_DB_PORT:-55432}:5432"
+    volumes:
+      - prototype-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aitrading -d aitrading"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  prototype-db:

@@ -68,3 +68,31 @@ npm audit --audit-level=high
 Keep the dev server local. Branding is centralized in frontend/src/brand.ts.
 The fixed backend/Python stack remains planned in the backlog; no substitute
 backend or production readiness is implied by the frontend demo.
+
+## Backend foundation (PB-002, implementation in progress)
+
+Java21 is required; use backend/gradlew or backend/gradlew.bat for all backend
+commands. Gradle distribution checksum is pinned. No global Gradle/Maven needed.
+
+Run real isolated DB tests from the repository root with installed PostgreSQL
+binaries (Windows default: C:/Program Files/PostgreSQL/17/bin; otherwise set
+AITRADING_TEST_PG_BIN). The harness creates its own cluster under ignored tmp/,
+uses random credentials, runs Wrapper tests/build and stops only that cluster:
+
+```powershell
+$env:JAVA_HOME = 'C:\Program Files\Java\jdk-21'
+python scripts/test_backend.py
+python scripts/check_dependencies.py backend/build/reports/dependencies.txt backend/build/reports/dependency-audit.json
+```
+
+For a persistent local developer DB, optionally use docker compose up -d db after
+setting a unique AITRADING_DB_PASSWORD in your shell. No .env file is required or
+committed. Set AITRADING_DB_URL to jdbc:postgresql://127.0.0.1:55432/aitrading and
+AITRADING_DB_USER to aitrading, then run backend/gradlew.bat bootRun. Keep the password
+in environment only; never paste it into Issues/logs. The API binds 127.0.0.1:8080.
+GET /api/health reports DB readiness; other endpoints default-deny.
+
+Stop local DB with docker compose stop db; do not delete its volume if data matters.
+Applied Flyway migrations are never edited/reset. Test clusters are retained under
+tmp/ after shutdown for diagnosis; they are never committed. Actual verification
+and limitations live in specs/PB-002/test-cases.md, not inferred from setup commands.

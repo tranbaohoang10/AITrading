@@ -1,0 +1,101 @@
+"""Run Gradle integration tests against an owned temporary PostgreSQL cluster.
+
+Never use an existing DB URL, service or production data. No third-party Python
+dependency required. Generated credentials stay in child environment/ignored tmp.
+"""
+from __future__ import annotations
+
+import argparse
+import os
+from pathlib import Path
+import secrets
+import shutil
+import socket
+import subprocess
+import sys
+import tempfile
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def postgres_bin() -> Path:
+    configured = os.environ.get("AITRADING_TEST_PG_BIN")
+    if configured:
+        candidate = Path(configured).resolve()
+    elif os.name == "nt":
+        candidate = Path("C:/Program Files/PostgreSQL/17/bin")
+    else:
+        executable = shutil.which("pg_config")
+        if not executable:
+            raise RuntimeError("Install PostgreSQL binaries or set AITRADING_TEST_PG_BIN")
+        candidate = Path(subprocess.check_output([executable, "--bindir"], text=True).strip())
+    if not (candidate / ("initdb.exe" if os.name == "nt" else "initdb")).is_file():
+        raise RuntimeError("PostgreSQL initdb was not found at configured path")
+    return candidate
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--write-locks", action="store_true")
+    args = parser.parse_args()
+    binaries = postgres_bin()
+    task_tmp = ROOT / "tmp"
+    task_tmp.mkdir(exist_ok=True)
+    owned = Path(tempfile.mkdtemp(prefix="pg-test-", dir=task_tmp)).resolve()
+    if not owned.is_relative_to(task_tmp.resolve()):
+        raise RuntimeError("Test cluster is outside project tmp")
+    data = owned / "data"
+    password_file = owned / "password"
+    secret = secrets.token_urlsafe(36)
+    password_file.write_text(secret, encoding="utf-8")
+    if os.name != "nt":
+        password_file.chmod(0o600)
+    suffix = ".exe" if os.name == "nt" else ""
+    initdb, pg_ctl = str(binaries / ("initdb" + suffix)), str(binaries / ("pg_ctl" + suffix))
+    with socket.socket() as reservation:
+        reservation.bind(("127.0.0.1", 0))
+        port = reservation.getsockname()[1]
+    env = os.environ.copy()
+    # Override, never reuse caller-supplied database credentials or URLs.
+    env.update(AITRADING_DB_URL=f"jdbc:postgresql://127.0.0.1:{port}/postgres",
+               AITRADING_DB_USER="prototype_test", AITRADING_DB_PASSWORD=secret,
+               AITRADING_TEST_CLUSTER=str(data), AITRADING_TEST_PG_CTL=pg_ctl,
+               AITRADING_TEST_DB_PORT=str(port))
+    start_attempted = False
+    try:
+        subprocess.run([initdb, "-D", str(data), "-U", "prototype_test", "--auth=scram-sha-256",
+                        "--pwfile", str(password_file), "--encoding=UTF8", "--locale=C"], check=True)
+        start_attempted = True
+        subprocess.run([pg_ctl, "-D", str(data), "-l", str(owned / "postgres.log"),
+                        "-o", f"-h 127.0.0.1 -p {port}", "-t", "30", "-w", "start"], check=True)
+        wrapper = str(ROOT / "backend" / ("gradlew.bat" if os.name == "nt" else "gradlew"))
+        command = [wrapper, "--no-daemon", "clean", "test", "bootJar", "dependencyInventory"]
+        if args.write_locks:
+            command.append("--write-locks")
+        return subprocess.run(command, cwd=ROOT / "backend", env=env, check=False).returncode
+    finally:
+        try:
+            if start_attempted:
+                stop_owned_cluster(pg_ctl, data)
+        finally:
+            password_file.unlink(missing_ok=True)
+            # Retain ignored cluster/logs for diagnosis; never recursively delete user data.
+            print(f"Owned test data retained at {owned}; credentials file removed", flush=True)
+
+
+def stop_owned_cluster(pg_ctl: str, data: Path) -> None:
+    """A failed start can leave a server alive. Never report PASS on failed cleanup."""
+    status_command = [pg_ctl, "-D", str(data), "status"]
+    status = subprocess.run(status_command, capture_output=True, timeout=15).returncode
+    if status == 3:  # pg_ctl: cluster exists, server is not running
+        return
+    if status != 0:
+        raise RuntimeError("Cannot establish owned test cluster status; inspect ignored test logs")
+    subprocess.run([pg_ctl, "-D", str(data), "-m", "fast", "-t", "30", "-w", "stop"],
+                   check=True, timeout=45)
+    if subprocess.run(status_command, capture_output=True, timeout=15).returncode != 3:
+        raise RuntimeError("Owned test database shutdown was not verified")
+
+
+if __name__ == "__main__":
+    sys.exit(main())
