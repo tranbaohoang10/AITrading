@@ -42,3 +42,29 @@ Governance [Issue #3](https://github.com/tranbaohoang10/AITrading/issues/3) chan
 documents only and ends after commit/push verification and Issue closure.
 It does not merge the existing product work from `feature/mvp-ui` or start the
 next feature.
+
+## Autonomous product build
+
+The subsequent Product Owner request starts continuous product work. The durable
+[master backlog](docs/product-backlog.md), [execution state](docs/execution-state.md)
+and [CNPM index](docs/cnpm-index.md) track that run separately from governance #3.
+
+The frontend foundation is recovered from feature/mvp-ui with provenance in
+[PB-001](specs/PB-001/spec.md). It currently demonstrates responsive workspace,
+read-only sample scripts and labelled synthetic chat/backtest data. It does **not**
+yet implement a connected AI provider, authentication, persistence or real backtests.
+
+From frontend/ with Node 22.12+ (verified Node 24.8.0) and npm:
+
+```powershell
+npm ci --ignore-scripts
+npm run dev -- --host 127.0.0.1
+npm run lint
+npm run build
+npm test
+npm audit --audit-level=high
+```
+
+Keep the dev server local. Branding is centralized in frontend/src/brand.ts.
+The fixed backend/Python stack remains planned in the backlog; no substitute
+backend or production readiness is implied by the frontend demo.

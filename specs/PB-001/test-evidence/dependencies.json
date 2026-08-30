@@ -1,0 +1,120 @@
+{
+  "node": "v24.8.0",
+  "packages": [
+    {
+      "name": "react",
+      "version": "19.2.8",
+      "license": "MIT",
+      "engines": {
+        "node": ">=0.10.0"
+      }
+    },
+    {
+      "name": "react-dom",
+      "version": "19.2.8",
+      "license": "MIT"
+    },
+    {
+      "name": "@eslint/js",
+      "version": "9.39.5",
+      "license": "MIT",
+      "engines": {
+        "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+      }
+    },
+    {
+      "name": "@tailwindcss/vite",
+      "version": "4.3.3",
+      "license": "MIT"
+    },
+    {
+      "name": "@testing-library/jest-dom",
+      "version": "6.9.1",
+      "license": "MIT",
+      "engines": {
+        "node": ">=14",
+        "npm": ">=6",
+        "yarn": ">=1"
+      }
+    },
+    {
+      "name": "@testing-library/react",
+      "version": "16.3.2",
+      "license": "MIT",
+      "engines": {
+        "node": ">=18"
+      }
+    },
+    {
+      "name": "@types/react",
+      "version": "19.2.18",
+      "license": "MIT"
+    },
+    {
+      "name": "@types/react-dom",
+      "version": "19.2.4",
+      "license": "MIT"
+    },
+    {
+      "name": "@vitejs/plugin-react",
+      "version": "5.2.0",
+      "license": "MIT",
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    {
+      "name": "eslint",
+      "version": "9.39.5",
+      "license": "MIT",
+      "engines": {
+        "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+      }
+    },
+    {
+      "name": "jsdom",
+      "version": "26.1.0",
+      "license": "MIT",
+      "engines": {
+        "node": ">=18"
+      }
+    },
+    {
+      "name": "tailwindcss",
+      "version": "4.3.3",
+      "license": "MIT"
+    },
+    {
+      "name": "typescript",
+      "version": "5.8.3",
+      "license": "Apache-2.0",
+      "engines": {
+        "node": ">=14.17"
+      }
+    },
+    {
+      "name": "typescript-eslint",
+      "version": "8.66.0",
+      "license": "MIT",
+      "engines": {
+        "node": "^18.18.0 || ^20.9.0 || >=21.1.0"
+      }
+    },
+    {
+      "name": "vite",
+      "version": "7.3.6",
+      "license": "MIT",
+      "engines": {
+        "node": "^20.19.0 || >=22.12.0"
+      }
+    },
+    {
+      "name": "vitest",
+      "version": "3.2.7",
+      "license": "MIT",
+      "engines": {
+        "node": "^18.0.0 || ^20.0.0 || >=22.0.0"
+      }
+    }
+  ]
+}
