@@ -150,7 +150,7 @@ secrets in research prompts. Provider/context generation follows PB-008.
 
 PB-004 delivery: cc99d4d, Actions33350972824 PASS, Issue #7 completed.
 
-## Neutral Strategy DSL (PB-005, verification in progress)
+## Neutral Strategy DSL (PB-005 delivered)
 
 Authenticated API: GET /api/dsl/schema and /api/dsl/capabilities; POST
 /api/dsl/validate with application/json and the session's X-CSRF-TOKEN. The POST
@@ -168,3 +168,29 @@ PB-007 will provide owned draft/version storage and UI. No new dependency or mig
 
 Run `python scripts/check_dsl_fixtures.py` to verify canonical bytes/hash independently;
 the ordinary backend test harness also runs DSL unit and real authenticated HTTP tests.
+
+PB-005 delivery:28a68e0, Actions33352803357 PASS, Issue #8 completed.
+
+## Private market data (PB-006)
+
+The authenticated Chart now displays persisted OHLCV, not the old sample chart.
+Use Import CSV to upload a UTF-8 `.csv` file or paste its contents, choose symbol,
+timeframe and provenance, then explicitly import. Load synthetic sample only fills
+the form; it is labelled SYNTHETIC and is not a market feed. User uploads remain
+unverified sources. No external URL is fetched.
+
+The exact header is `timestamp,open,high,low,close,volume`. Use increasing UTC
+timestamps such as `2024-01-01T00:00:00Z`, aligned to the selected timeframe, and
+closed historical candles. Prices are positive plain decimals with up to8 decimal
+places; volume is nonnegative. Limits:1MiB CSV,5000 rows,50 datasets/account.
+Invalid/duplicate/out-of-order candles reject the entire import. Gaps are counted
+and shown, never filled. See [CSV contract](specs/PB-006/design.md) for exact limits.
+
+Select a saved dataset, inspect exact OHLC/volume/time, use Older/Newer windows and
+50/100/200bar sizes. The inspection slider supports arrows, Home and End. Metadata
+includes raw CSV and canonical data SHA256 fingerprints; neither certifies source
+authenticity. After a failed uncertain import, Retry retains the same request ID
+and payload. Delete requires confirmation and permanently removes only that owned
+dataset and its candles. Strategy/backtest execution remains separate future work.
+
+Test evidence and publication status: [PB-006](specs/PB-006/test-evidence/results.md).

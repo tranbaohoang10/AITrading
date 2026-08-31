@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/me", "/api/auth/profile", "/api/auth/password").authenticated()
                         .requestMatchers("/api/conversations", "/api/conversations/**").authenticated()
                         .requestMatchers("/api/dsl/schema", "/api/dsl/capabilities", "/api/dsl/validate").authenticated()
+                        .requestMatchers("/api/datasets", "/api/datasets/**").authenticated()
                         .anyRequest().denyAll())
                 .csrf(Customizer.withDefaults())
                 .addFilterBefore(new AuthInputFilter(new HashSet<>(Arrays.asList(origins.split(",")))), CsrfFilter.class)

@@ -59,3 +59,11 @@ checkpoint); Markdown links/fences pass, git diff --check passes; limited GitHub
 private-key signature scan finds0. This is not a comprehensive secret scanner.
 No changes to existing product tests, frontend source, lockfiles or migrations.
 No known unresolved defect in this scope; GitHub delivery remains required.
+
+## Delivery verified — 31/08/2026
+
+Commit28a68e02b6a74c883f3dd31b87951cceaea5be07, normal fast-forward push verified
+by ls-remote and GitHub API. Actions33352803357 completed/success on exact SHA,
+both jobs PASS. Downloaded JUnit56/0/0/0 and OSV118passed. Issue8 CLOSED/completed:
+https://github.com/tranbaohoang10/AITrading/issues/8#issuecomment-5473210114 .
+DSL-12 and T07 delivery now PASS/complete; prior pending statements are historical.

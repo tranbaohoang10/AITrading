@@ -1,7 +1,7 @@
 export type UserProfile = { id: string; email: string; displayName: string }
 
 export class ApiError extends Error {
-  constructor(public status: number) {
+  constructor(public status: number, public response?: Response) {
     super(status === 429 ? 'Too many attempts. Please wait 15 minutes before trying again.'
       : status === 401 ? 'Unable to authenticate. Check your credentials or sign in again.'
         : status === 404 ? 'This resource no longer exists or is not available to your account.'
@@ -20,7 +20,7 @@ export async function request(path: string, options: RequestInit = {}): Promise<
   } catch {
     throw new Error('Cannot reach the service. Check your connection and retry.')
   }
-  if (!result.ok) throw new ApiError(result.status)
+  if (!result.ok) throw new ApiError(result.status, result)
   return result
 }
 

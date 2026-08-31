@@ -5,6 +5,36 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+LATEST PB-006: local verification complete:74 backend/71 frontend/6 verifier/6
+canonical PASS, lint/build/audits PASS. Real browser desktop/tablet/mobile, API
+restart, exact OHLC/hash, paging/window/keyboard, delete/cancel and A/B isolation
+PASS after documented fixes. All owned APIs/DBs stopped, final pg-test-f2dbltft
+credentials removed. Vite94064 remains; browser signed out and viewport reset.
+Needs scoped commit/push/actualCI and Issue9 completion; no PB-006 commit yet.
+Then PB-007 next READY. Full required backlog goal remains active.
+
+LATEST PB-006 / Issue9: spec/design/test plan before code; CSV parser/V4/owned APIs
+and authenticated real SVG chart/import implemented. Parser7 tests PASS. First
+full backend72tests had9 market API failures (rate bucket purpose+hash exceeded
+existing VARCHAR80). Fixed only new purpose names to data-import/data-delete/
+data-read; full72tests then PASS, owned pg-test-wa_6xeja stopped/password removed.
+Added maximum5000-row API/read-delete-rate and independent Python hash assertions
+after that run: final73backend tests still need execution. Frontend71tests plus
+lint/type/build PASS; first new UI test had unsupported asymmetric toHaveValue
+matcher, replaced by exact before/after CSV equality, then passed. Original tests
+retained; only foundation expected migration advances3→4 with V1–V3 validation.
+Actual browser testing now starts: existing browser/chatTab id1 at127.0.0.1:5173,
+API harness40784 owns pg-test-h_lcd63w, JavaPID10452. stop-api/restart-api sentinels
+supported; API alive, never kill user PG service. Vite94064 still served page.
+Need browser/responsive/restart/isolation, finalfulltest/audit/diff, publication/CI
+and Issue9 closure before PB-007. No PB-006 commit yet; all work remains local.
+
+LATEST: PB-005 DONE at28a68e02b6a74c883f3dd31b87951cceaea5be07, push and
+GitHub SHA verified; CI33352803357 both jobs PASS, downloaded JUnit56/0/0/0,
+OSV118passed; Issue8 CLOSED/completed. Working tree clean after delivery.
+PB-006 Issue9 created before code, spec exists; design/test plan next. Goal remains
+full required prototype backlog. Earlier checkpoints below are historical.
+
 LATEST CURRENT: PB-005 / Issue8 implemented, final local56backend/57frontend/
 6verifier/6canonical checks PASS; builds/lint/audits pass, no migration/dependency/UI
 change. Schema validation only, not a runtime engine. Local test clusters stopped,

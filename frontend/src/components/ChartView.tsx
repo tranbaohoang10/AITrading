@@ -1,3 +1,6 @@
+import { useMarket } from '../market/MarketContext'
+import { DatasetChart } from '../market/DatasetChart'
+
 const candles = [
   { x: 45, open: 128, close: 108, high: 94, low: 141, up: true },
   { x: 86, open: 109, close: 120, high: 101, low: 134, up: false },
@@ -16,6 +19,10 @@ const candles = [
 ]
 
 export function ChartView() {
+  return useMarket() ? <DatasetChart /> : <DemoChart />
+}
+
+function DemoChart() {
   return (
     <section aria-label="Chart" data-testid="chart-view" className="flex h-full min-h-0 flex-col">
       <div data-testid="chart-toolbar" className="flex flex-wrap items-center gap-2 border-b border-slate-800 px-4 py-3">

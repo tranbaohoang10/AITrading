@@ -5,6 +5,7 @@ import { ChartView } from './ChartView'
 import { CodeViewer } from './CodeViewer'
 import { Icon } from './Icon'
 import { TradesView } from './TradesView'
+import { useMarket } from '../market/MarketContext'
 
 const tabs: Array<{ id: WorkspaceTab; label: string }> = [
   { id: 'chart', label: 'Chart' },
@@ -16,6 +17,7 @@ const tabs: Array<{ id: WorkspaceTab; label: string }> = [
 ]
 
 export function TradingWorkspace({ mode }: { mode: ViewportMode }) {
+  const market = useMarket()
   const { activeTab, setActiveTab, strategyDsl, pineScript, mql5, backtestStatus, runBacktest } = useTrading()
 
   const content = (() => {
@@ -32,10 +34,10 @@ export function TradingWorkspace({ mode }: { mode: ViewportMode }) {
   return (
     <main aria-label="Trading Workspace" data-testid="trading-workspace" className="flex h-full min-w-0 flex-1 flex-col bg-slate-950">
       <header className="flex min-h-16 items-center justify-between gap-3 border-b border-slate-800 px-4">
-        <div className="min-w-0"><p className="truncate text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Workspace / BTCUSDT</p><h1 className="sr-only">AI Trading Platform</h1></div>
+        <div className="min-w-0"><p className="truncate text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Workspace / {market ? market.selected?.symbol ?? 'Market data' : 'BTCUSDT'}</p><h1 className="sr-only">AI Trading Platform</h1></div>
         <div className="flex items-center gap-3">
-          <span className="hidden items-center gap-2 text-xs text-slate-500 sm:flex"><span className="h-2 w-2 rounded-sm bg-emerald-400" aria-hidden="true" />Mock data ready</span>
-          <button type="button" onClick={runBacktest} disabled={backtestStatus === 'loading'} className="flex min-h-10 items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-400/10 px-3 text-sm font-semibold text-emerald-300 hover:bg-emerald-400/20 focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-wait disabled:opacity-60">
+          <span className="hidden items-center gap-2 text-xs text-slate-500 sm:flex"><span className="h-2 w-2 rounded-sm bg-slate-400" aria-hidden="true" />{market ? 'Private research' : 'Mock data ready'}</span>
+          <button type="button" onClick={runBacktest} disabled={!!market || backtestStatus === 'loading'} title={market ? 'Backtest engine is not connected yet' : undefined} className="flex min-h-10 items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-400/10 px-3 text-sm font-semibold text-emerald-300 hover:bg-emerald-400/20 focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-60">
             <Icon name="play" className="h-4 w-4" />{backtestStatus === 'loading' ? 'Running…' : 'Backtest'}
           </button>
         </div>

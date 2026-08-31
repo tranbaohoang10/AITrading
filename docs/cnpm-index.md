@@ -15,3 +15,7 @@ hold sequence/class/data diagrams; test-cases are separate per feature.
 | 7. GUI/UI | Per-feature design plus real browser screenshots and state evidence |
 | 8. Overall Class Diagram | docs/architecture.md derived from implemented classes; feature class diagrams |
 | 9. ERD | docs/architecture.md reconciled against Flyway migrations and actual constraints |
+
+31/08/2026: PB-006 adds owned CSV import/chart use cases, sequence/class/ERD for
+V4 and real desktop/mobile/tablet/browser-restart evidence in specs/PB-006.
+PB-005 schema-only delivery has no new ERD entity or UI screenshot requirement.
