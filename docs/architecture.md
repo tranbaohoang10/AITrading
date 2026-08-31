@@ -128,3 +128,20 @@ BacktestStore reads bounded candle windows from V7 input_json only after current
 credential/owner/state checks. Source deletion does not change these bars. No new
 ERD entity/migration/dependency or Python accounting change. Sequence/class/UI and
 threat/test contracts: specs/PB-012/design.md and test-cases.md.
+
+PB-013 adds JournalController→JournalService and additive V8 journal_entry/
+journal_write. User lock→owned entry→version/dedup→atomic data+fingerprint ledger
+serializes writes and quotas. Ledger stores hashes/version only; no hidden note
+copies. Account/entry deletion cascades; dataset_id is non-cascading provenance.
+BigDecimal computes exact manual linear gross/net and owner+currency+activity-time
+queries group closed exit/open entry in explicit IANA local days, including DST.
+All unsafe journal requests bind X-Workspace-User to the authenticated principal;
+stale browser sessions cannot transfer a draft into another account at write time.
+
+JournalProvider resides inside the identity-keyed authenticated subtree and holds
+draft/report/selection through responsive navigation. Exact uncertain intents,
+version conflicts, discard/delete confirmation, per-read epochs and server-user
+verification protect UI state. JournalWorkspace reuses CandleChart with its own
+owned source, never the global selected market. At most10×500 candle scan locates
+the100-bar window by actual time through gaps. Source deletion preserves monetary
+values but removes chart access. Sequence/class/ERD: specs/PB-013/design.md.

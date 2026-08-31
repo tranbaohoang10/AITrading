@@ -228,3 +228,31 @@ Evidence in specs/PB-012/test-evidence. Next: inspect/stage exact scope, commit
 Refs14+13 (includes PB-011 completion checkpoint), normal push, exact GitHub SHA
 and actual CI, close14 only if PASS. Then PB-013 is the next independent READY
 P1 feature. PB-008 remains BLOCKED#12; no provider key/smoke and no DONE claim.
+
+## 31/08/2026 — PB-012 delivered / PB-013 selected
+
+PB-012 commit493b737bf8c28950df10c3667b837dd35f77aff5 verified on GitHub main.
+Normal push, CI33368826001 both SUCCESS, artifact123backend/OSV118 and actual
+131frontend log verified. Issue14 CLOSED/COMPLETED comment5475264704. No unrelated
+pre-existing work included. PB-013 Issue15 created before its code; Trading Journal
+placeholder only exists so far. Design defines manual linear trades, exact settled
+currency P&L, exit-time recognition/timezone grouping and optional owned dataset.
+Continue independently of blocked AI. All owned API/PG test processes stopped.
+
+## 31/08/2026 — PB-013 local verification complete, publication next
+
+Issue15 OPEN, main493b737 base. V8/private manual journal, exact currency-separated
+P&L/local-day reports, responsive saved chart, version/idempotency/quotas implemented.
+Final137backend/149frontend/40Python/6verifier/6canonical/6UI-fixture PASS; lint/type/
+build/JavaOSV118/npm0 PASS. Actual browser widths1600/900/390 and persistedv2 after
+JVMrestart, deleted source preservesnet17. Final API includes X-Workspace-User
+precondition: A's write accepted; A draft after tab2 signs in B rejected, B empty.
+All owned API/PG clusters stopped (yvwfpmn5,7rdf7m4d,jp_si9yd,v3esd0q7), credentials
+removed, test accounts signed out; Vite may remain. No protected mvp-ui file touched.
+
+Next: inspect complete/staged diff, normal Vietnamese Refs15+14 commit/push, exact
+GitHub SHA/required CI and Issue15 completed only after PASS. Security review also
+found older resource APIs still use unbound shared-session requests; add a focused
+P0 follow-up before optional export work, without reimplementing DONE features.
+PB-008 stays BLOCKED#12 on actual project AI credentials/smoke; independent work
+continues. No final-readiness or all-backlog completion claim.

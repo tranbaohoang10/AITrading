@@ -110,3 +110,14 @@ Existing123backend/40Python/security audits remain unchanged and PASS.
 The final error-path guard discards an unverified job before any follow-up read;
 26 targeted backtest tests and production build/lint rerun. Both synthetic browser
 accounts signed out; owned xq_as13o API/PG stopped exit0 and credential file removed.
+
+### Publication complete
+
+Normal push bcdeaff..493b737. Exact origin/main and GitHub commits/main SHA:
+493b737bf8c28950df10c3667b837dd35f77aff5.44files,3535insertions,10deletions;
+full/staged scope+diff check and protected blobs/migrations/engine/locks PASS.
+CI33368826001 frontend/backend SUCCESS. Actual frontend log131PASS/audit0;
+downloaded backend artifact123tests/0failures/errors/skips and OSV118 PASS. CI's
+Python and regenerated UI fixture checks PASS. Issue14 CLOSED/COMPLETED,
+comment5475264704. Working tree clean after push. PB-013 Issue15 created next.
+RES-T10 publication requirement now PASS. This does not close blocked PB-008.

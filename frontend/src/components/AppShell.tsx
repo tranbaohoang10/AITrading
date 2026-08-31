@@ -17,6 +17,8 @@ import { Modal } from './Modal'
 import { AccountView } from '../auth/AccountView'
 import { useStrategy } from '../strategy/StrategyContext'
 import { StrategyEditor } from '../strategy/StrategyEditor'
+import { useJournal } from '../journal/JournalContext'
+import { JournalWorkspace } from '../journal/JournalWorkspace'
 
 const mobileTitles: Record<MobileView, string> = {
   'ai-chat': 'AI Chat', chart: 'Chart', 'strategy-dsl': 'Strategy DSL', 'pine-script': 'Pine Script', mql5: 'MQL5',
@@ -120,6 +122,7 @@ export function AppShell() {
 function MobileContent({ view }: { view: MobileView }) {
   const { strategyDsl, pineScript, mql5 } = useTrading()
   const strategy = useStrategy()
+  const journal = useJournal()
   if (strategy && ['strategy-dsl', 'my-code', 'strategies'].includes(view)) return <StrategyEditor />
   switch (view) {
     case 'ai-chat': return <AiChat />
@@ -130,7 +133,7 @@ function MobileContent({ view }: { view: MobileView }) {
     case 'backtest-results': return <BacktestResults />
     case 'trades': return <TradesView mode="mobile" />
     case 'my-code': return <PlaceholderView title="My Code" />
-    case 'trading-journal': return <PlaceholderView title="Trading Journal" />
+    case 'trading-journal': return journal ? <JournalWorkspace /> : <PlaceholderView title="Trading Journal" />
     case 'strategies': return <PlaceholderView title="Strategies" />
     case 'settings': return <PlaceholderView title="Settings" />
     case 'account': return <AccountView />

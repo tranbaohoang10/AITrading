@@ -41,3 +41,9 @@ source change or new screenshot requirement; real web integration remains PB-012
 frozen-candle API and real metrics/trades/event visualizations. V7 ERD is reused;
 no new table. Detailed tests, actual engine UI fixtures and real responsive browser
 evidence are in specs/PB-012. This does not claim AI/provider work is complete.
+
+31/08/2026: PB-013 adds manual owned journal CRUD and day/month/range P&L use cases,
+sequence/class/V8 ERD, exact accounting/timezone conventions, responsive UI and
+separate detailed cases. Real PostgreSQL arithmetic/concurrency/security tests and
+browser restart/source-deletion evidence live in specs/PB-013. AI/NLP evaluation
+is PB-014; this feature does not score reasons or submit broker orders.

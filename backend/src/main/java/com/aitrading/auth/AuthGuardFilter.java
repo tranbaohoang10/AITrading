@@ -55,6 +55,16 @@ public class AuthGuardFilter extends OncePerRequestFilter {
                 boolean start="POST".equals(request.getMethod())&&(path.equals("/api/backtests")||path.endsWith("/retry"));
                 allowed=allowed&&limits.allow(read?"job-read":start?"job-start":"job-mutate",user.id().toString(),read?300:start?10:30);
             }
+            if (user != null && (path.equals("/api/journal") || path.startsWith("/api/journal/"))) {
+                boolean read=java.util.Set.of("GET","HEAD","OPTIONS").contains(request.getMethod());
+                // A shared browser session can change in another tab. A stale
+                // workspace must not write its private draft into the new account.
+                if (!read && !user.id().toString().equals(request.getHeader("X-Workspace-User"))) {
+                    ApiErrors.write(request,response,401,ApiErrors.Code.UNAUTHORIZED);
+                    return;
+                }
+                allowed=allowed&&limits.allow(read?"journal-read":"journal-write",user.id().toString(),read?300:60);
+            }
             if ("GET".equals(request.getMethod()) && path.equals("/api/auth/csrf"))
                 allowed = limits.allow("csrf-ip", request.getRemoteAddr(), 120);
             if ("POST".equals(request.getMethod())) {

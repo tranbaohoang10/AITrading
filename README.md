@@ -342,3 +342,40 @@ used inside the authenticated backtest panes. No live trading or AI execution.
 See [PB-012 design](specs/PB-012/design.md) and [test cases](specs/PB-012/test-cases.md).
 `python scripts/backtest_ui_fixtures.py --check` reconciles six synthetic UI fixtures
 with the real unchanged engine and hand-calculated outcomes; CI runs this check.
+
+### Trading Journal (PB-013)
+
+Open Trading Journal to record private manual linear trades. Enter a symbol,
+timeframe, settlement unit (for example USD), LONG/SHORT, actual quantity, prices,
+fees, ISO UTC entry/exit timestamps and an entry reason. OPEN has no exit and is
+not realized. CLOSED requires exit>=entry. Save explicitly; records support
+versioned edits, guarded draft replacement and confirmed deletion. Amounts are
+decimal strings with up to8 fractional places, bounded to1e12; no price rounding,
+implicit leverage multiplier, inverse-contract model, FX or broker-order execution.
+
+Gross=(exit−entry)×quantity×direction; net=gross−entryFee−exitFee. Both fees are
+recognized on exit with the closed trade. Reports select one settlement unit and
+an explicit IANA timezone, current/previous/next month or inclusive YYYY-MM-DD
+range of1–366days. Daily values include zero days; open counts refer to entries in
+the range, not portfolio positions. Concurrent changes require refreshing the
+paged report. Notes/entry reason remain private text; no AI quality score yet.
+
+An optional owned dataset must match symbol/timeframe. Its actual candles appear
+beside the saved trade on wide screens and below it on narrow screens. Gaps remain
+visible; candles do not verify manual fills. Deleting the source preserves the
+journal and makes its chart unavailable; unlink/replace it before editing again.
+
+API: GET `/api/journal`, `/api/journal/summary` with `from,to,zone,currency`;
+GET `/api/journal/{id}`; POST root/ID with `{requestId,expectedVersion,entry}`;
+DELETE ID with `{expectedVersion}`. Unsafe requests require fresh CSRF and
+`X-Workspace-User` matching the authenticated account, not a caller-chosen owner.
+Missing/mismatched workspace identity returns401 before any journal write. Up to
+500entries/account,100accepted writes/entry,20default/50max list page; read300 and
+write60/account/15min. Source/record IDs never grant access. No dependency added.
+
+On an uncertain save, keep the tab open and retry the same frozen request. Replay
+returns its applied version plus the latest current entry, not stale private note
+history. After a page reload inspect saved records before issuing a new intent;
+request identity is intentionally not persisted in browser storage. Explicit
+deletion removes ledger metadata too: do not reuse requests for a deleted entry.
+See [design](specs/PB-013/design.md) and [test cases](specs/PB-013/test-cases.md).

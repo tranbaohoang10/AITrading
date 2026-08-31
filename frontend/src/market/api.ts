@@ -40,6 +40,11 @@ export async function listDatasets(cursor?: string): Promise<{ items: Dataset[];
   if (!Array.isArray(v.items) || v.items.length > 20) throw invalid()
   return { items: v.items.map(dataset), nextCursor: v.nextCursor === null ? null : text(v.nextCursor) }
 }
+export async function getDataset(key: string): Promise<Dataset> {
+  const result = dataset(await (await request(`/datasets/${id(key)}`)).json())
+  if (result.id !== key) throw invalid()
+  return result
+}
 export async function candles(selected: Dataset, limit: number, start?: number): Promise<CandlePage> {
   const v = object(await (await request(`/datasets/${id(selected.id)}/candles?limit=${integer(limit, 1, 500)}${start === undefined ? '' : `&start=${integer(start, 0, selected.candleCount)}`}`)).json())
   const meta = dataset(v.dataset), from = integer(v.start, 0, meta.candleCount), total = integer(v.total, 1, 5000)

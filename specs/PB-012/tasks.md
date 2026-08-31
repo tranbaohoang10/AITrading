@@ -6,5 +6,5 @@
 - [x] Wire explicit setup/history/lifecycle and exact result/chart/trade views.
 - [x] Add meaningful automated response/state/race/financial edge tests.
 - [x] Run real responsive browser journey, regression/build/audits and fix failures.
-- [ ] Inspect full/staged diff, preserve protected files, commit/push/verify CI.
-- [ ] Close Issue completed, checkpoint and select next READY feature.
+- [x] Inspect full/staged diff, preserve protected files, commit/push/verify CI.
+- [x] Close Issue completed, checkpoint and select next READY feature.

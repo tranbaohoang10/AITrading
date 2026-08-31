@@ -1,0 +1,178 @@
+- complementary "Global navigation":
+  - generic "AI Trading": AT
+  - navigation "Primary":
+    - button "Workspace":
+    - button "AI Strategy":
+    - button "Backtest":
+    - button "My Code":
+    - button "Trading Journal":
+    - button "Strategies":
+  - button "Settings":
+  - button "Account":
+- region "AI Chat":
+  - heading "Quant / Research conversations" [level=2]
+  - paragraph: Private saved messages · AI requests are always explicit
+  - button "New Chat"
+  - button "Refresh list"
+  - paragraph: No conversations yet. Start a New Chat.
+  - navigation "Saved conversations"
+  - generic: Select a conversation or start a New Chat. Messages are saved to your account; strategy generation will be connected separately.
+  - region "AI provider controls":
+    - button "Check AI availability"
+    - generic: Provider availability not checked.
+    - paragraph: Ask AI sends up to 20 recent saved messages from this conversation to the configured provider. Provider retention policies apply. Do not include secrets. Research output may be wrong; no trades are executed.
+    - button "Ask AI" [disabled]
+- separator "Resize AI Chat"
+- region "Private Trading Journal":
+  - heading "Trading Journal" [level=1]
+  - paragraph: Private manual trade records · no broker orders or AI scoring
+  - button "New journal entry"
+  - button "Refresh journal"
+  - form "Journal report filters":
+    - button "Previous month"
+    - button "Current month"
+    - button "Next month"
+    - text: From date
+    - textbox "From date":
+      - /placeholder: YYYY-MM-DD
+      - text: 2024-01-01
+    - text: Through date
+    - textbox "Through date":
+      - /placeholder: YYYY-MM-DD
+      - text: 2024-01-03
+    - text: Settlement unit
+    - textbox "Report settlement unit": USD
+    - text: Report timezone
+    - combobox "Report timezone": UTC
+    - button "Apply range"
+    - paragraph: Dates use YYYY-MM-DD, inclusive, within 2000–2100; maximum 366 days per report.
+  - paragraph: Realized P&L and both fees are recognized when a CLOSED trade exits, in the selected timezone. OPEN records and their fees are excluded until close. One settlement unit at a time; no FX conversion, unrealized P&L or account-equity claim.
+  - paragraph: "Report: 2024-01-01 → 2024-01-03 · UTC · USD"
+  - generic "Realized journal totals":
+    - term: Net P&L
+    - definition: 17 USD
+    - term: Gross P&L
+    - definition: 20 USD
+    - term: Realized fees
+    - definition: 3 USD
+    - term: Closed / open in range
+    - definition: 1 / 0
+    - term: "Wins / losses / breakeven:"
+    - definition: 1 / 0 / 0
+  - generic "Daily P&L calendar"
+  - generic "Daily realized P&L":
+    - time: 2024-01-01
+    - paragraph: 17 USD
+    - paragraph: 1 closed
+    - time: 2024-01-02
+    - paragraph: 0 USD
+    - paragraph: No closed trades
+    - time: 2024-01-03
+    - paragraph: 0 USD
+    - paragraph: No closed trades
+  - region "Journal entries in report":
+    - heading "Entries in report range" [level=2]
+    - paragraph: "Closed: exit date · Open: entry date. Refresh after concurrent edits to update this paged view."
+    - button "Open journal TEST_USD 5cce86a1-6e55-4ae5-bdeb-35f13f0886f2" [pressed]:
+      - generic: TEST_USD · LONG · CLOSED
+      - generic: 2024-01-01T03:00:00Z · v2
+      - generic: 17 USD
+  - form "Manual journal entry":
+    - heading "Edit manual entry · v2" [level=2]
+    - text: Symbol
+    - textbox "Symbol":
+      - /placeholder: TEST_USD
+      - text: TEST_USD
+    - text: Timeframe
+    - combobox "Journal timeframe":
+      - option "1m"
+      - option "5m"
+      - option "15m"
+      - option "30m"
+      - option "1h" [selected]
+      - option "4h"
+      - option "1d"
+    - text: Trade settlement unit
+    - textbox "Trade settlement unit":
+      - /placeholder: USD
+      - text: USD
+    - text: Direction
+    - combobox "Trade direction":
+      - option "LONG" [selected]
+      - option "SHORT"
+    - text: State
+    - combobox "Trade state":
+      - option "OPEN"
+      - option "CLOSED" [selected]
+    - text: Quantity
+    - textbox "Quantity":
+      - /placeholder: Actual exposure
+      - text: "2"
+    - text: Entry price
+    - textbox "Entry price": "100"
+    - text: Entry fee
+    - textbox "Entry fee": "1"
+    - text: Entry time · UTC
+    - textbox "Entry time · UTC":
+      - /placeholder: 2024-01-01T01:00:00Z
+      - text: 2024-01-01T01:00:00Z
+    - generic: ISO UTC with Z, including seconds; optional 1–3 fractional second digits. No local timezone conversion.
+    - text: Exit price
+    - textbox "Exit price": "110"
+    - text: Exit fee
+    - textbox "Exit fee": "2"
+    - text: Exit time · UTC
+    - textbox "Exit time · UTC":
+      - /placeholder: 2024-01-01T01:00:00Z
+      - text: 2024-01-01T03:00:00Z
+    - generic: ISO UTC with Z, including seconds; optional 1–3 fractional second digits. No local timezone conversion.
+    - paragraph: "Linear trades: gross=(exit−entry) × quantity × direction; net=gross−fees. Amounts use up to 8 decimal places, maximum 1e12. No leverage multiplier or inverse-contract calculation."
+    - text: Entry reason
+    - textbox "Entry reason": Confirmed price breakout after the candle closed. <script>inert</script>
+    - generic: Required · up to 2000 UTF-8 bytes. Quality is not scored in this feature.
+    - text: Notes
+    - textbox "Journal notes": Saved browser update, v2. Synthetic manual trade; net 17 USD.
+    - generic: Optional · up to 4000 UTF-8 bytes.
+    - text: Linked owned chart
+    - combobox "Linked owned chart":
+      - option "No chart link"
+      - option "PB013 journal context · SYNTHETIC" [selected]
+    - button "Save journal entry" [disabled]
+    - button "Delete journal entry"
+  - complementary "Saved journal chart context":
+    - heading "Saved trade · chart context" [level=2]
+    - paragraph: Entry 5cce86a1-6e55-4ae5-bdeb-35f13f0886f2 · v2
+    - generic "Saved journal P&L":
+      - term: Gross P&L
+      - definition: "20"
+      - term: Net P&L · USD
+      - definition: "17"
+    - paragraph: PB013 journal context · SYNTHETIC · 1h · gaps 1
+    - img "TEST_USD imported candlesticks, 3 candles in UTC":
+      - generic: "117"
+      - generic: "109.75"
+      - generic: "102.5"
+      - generic: "95.25"
+      - generic: "88"
+      - generic: 01-01 00:00
+      - generic: 01-01 03:00
+    - button "Previous candle"
+    - text: Inspect candle
+    - slider "Candle index": "2"
+    - button "Next candle" [disabled]
+    - generic "Selected candle values":
+      - term: Candle open time · UTC
+      - definition: 2024-01-01T03:00:00Z
+      - term: open
+      - definition: "110"
+      - term: high
+      - definition: "115"
+      - term: low
+      - definition: "100"
+      - term: close
+      - definition: "108"
+      - term: volume
+      - definition: "3"
+    - button "Earlier chart window" [disabled]
+    - button "Later chart window" [disabled]
+    - paragraph: Linked source is context only; manual times and prices are not verified fills.

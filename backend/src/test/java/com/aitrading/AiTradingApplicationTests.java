@@ -56,8 +56,8 @@ class AiTradingApplicationTests {
     void databaseMigrationAndRepeatValidationAreRealAndIdempotent() {
         assertThat(jdbc.queryForObject("SELECT version()", String.class)).startsWith("PostgreSQL");
         assertThat(jdbc.queryForObject("SHOW timezone", String.class)).isEqualTo("UTC");
-        // PB-011 adds V7; historical V1–V6 remain untouched and must still validate.
-        assertThat(flyway.info().current().getVersion().toString()).isEqualTo("7");
+        // PB-013 adds V8; historical V1–V7 remain untouched and must still validate.
+        assertThat(flyway.info().current().getVersion().toString()).isEqualTo("8");
         flyway.validate();
         assertThat(flyway.migrate().migrationsExecuted).isZero();
         assertThat(jdbc.queryForObject("SELECT count(*) FROM trading.flyway_schema_history WHERE success", Integer.class)).isGreaterThanOrEqualTo(1);
