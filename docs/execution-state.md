@@ -401,3 +401,18 @@ restart/browser, scope, publication and CI remain required. No product DONE clai
 ## 31/08/2026 — PB-024 local verification complete
 
 Final174backend/192frontend/44Python PASS; verifier/canonical/UI fixtures6each, JavaOSV118/npm0. Frontend concurrent repeat had3 pre-existing 5s timeouts; unchanged isolated rerun192PASS. No test/config disabled. Actual browser1600/900/390 and stale-A/B isolation; final exact-source API25336→25212/PGb2my_5ah restart PASS. All owned API/PG stopped/password removed; temporary browser viewport reset and synthetic users signed out. PB024 Issue19 requires scoped commit/push/exactCI then completed closure. PB008/015/016 blockers unchanged. Next independent READY after PB024 is PB022 in-app notifications; full backlog goal remains active.
+
+
+## 31/08/2026 — PB-024 first CI failed, correction in progress
+
+Main d622f2d64e91582ee9deb2f4d092bce8d077a450 pushed/verified; CI33392333477
+frontend PASS, backend174/1failure in foundation immediate readiness after actual
+PostgreSQL restart(503 vs200). All11 new audit tests PASS. Issue19 remains OPEN.
+Updated only foundation test to existing15s bounded auth-recovery contract, with
+safe intermediate503/UUID, exact200 UP and unchanged Flyway validation/no migration.
+No production/security/timeout configuration changed. Full backend recovery run
+in tmp/pb024-backend-recovery.log, then scoped correction commit/exactCI required.
+PB022 only has ignored tmp/pb022-issue.md draft and source analysis; no Issue/code.
+Do not call PB024 DONE or start PB022 implementation until current CI verified.
+
+PB024 corrective local174backend/193frontend PASS. Added audit-only fixed JSON error mapping for malformed success/account responses with regression test. Backend production untouched. All owned APIs/PG stopped. Next scoped corrective commit/push then exactCI, keep Issue19 open until verified; PB022 no code.

@@ -72,3 +72,19 @@ UTF-8, JSON, Markdown fences/local links and git diff --check passed. This is a
 focused review, not an exhaustive secret scanner or independent security audit.
 Staged diff must match this exact list before commit; local DoD174/192/44 PASS,
 actual restart/browser verified. Exact remote SHA/CI checked after normal push.
+
+## Corrective checkpoint after first CI
+
+First commit remains d622f2d, no history rewrite. Corrective diff8existing files,
+no new paths; cumulative PB024 scope remains42 unique files. Foundation test
+now checks bounded15s recovery, audit UI hides native malformed-JSON snippets,
+new redaction test and evidence updated. Local174backend/193frontend PASS.
+
+- `backend/src/test/java/com/aitrading/AiTradingApplicationTests.java`
+- `docs/execution-state.md`
+- `frontend/src/audit/Audit.test.tsx`
+- `frontend/src/audit/api.ts`
+- `specs/PB-024/revision-history.md`
+- `specs/PB-024/test-evidence/results.md`
+- `specs/PB-024/test-evidence/verification.json`
+- `specs/PB-024/test-evidence/change-scope.md`

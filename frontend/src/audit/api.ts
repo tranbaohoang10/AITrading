@@ -1,4 +1,4 @@
-import { currentUser, privateRequest } from '../auth/api'
+import { ApiError, currentUser, privateRequest } from '../auth/api'
 
 export type AuditEvent = { id: string; occurredAt: string; requestId: string; category: string; operation: string; method: string; httpStatus: number | null; resourceId: string | null; errorCode: string | null }
 export type AuditPage = { items: AuditEvent[]; nextCursor: string | null }
@@ -48,7 +48,11 @@ export async function loadActivity(accountId: string, before?: string): Promise<
   const bytes = new Uint8Array(size)
   let offset = 0
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length }
-  const page = parsePage(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)), before)
-  if ((await currentUser(accountId)).id !== accountId) throw invalid()
+  let input: unknown
+  try { input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) }
+  catch { throw invalid() } // Native parse errors may quote response contents.
+  const page = parsePage(input, before)
+  try { if ((await currentUser(accountId)).id !== accountId) throw invalid() }
+  catch (failure) { if (failure instanceof ApiError) throw failure; throw invalid() }
   return page
 }

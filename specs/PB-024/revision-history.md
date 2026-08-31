@@ -11,3 +11,11 @@
  17128→5288 verified. Frontend192 initiallyPASS, concurrent repeat3 existing
   5s timeouts requires unchanged isolated rerun. No tests disabled. All owned
   test clusters so far stopped/password removed; final smoke/publication pending.
+
+- 31/08/2026: Publishedd622f2d; CI33392333477 frontend PASS/backend174 with1
+  failure at foundation immediate post-PG-restart health assertion(503 vs200).
+  All11 audit tests PASS. Align foundation test with existing bounded15s auth
+  recovery contract, assert safe intermediate503/UUID then exactUP and no migration.
+  Production untouched; corrective full regression/CI pending, Issue19 not closed.
+
+- 31/08/2026: Additional audit-only transport fix hides native malformed-JSON snippets,7frontend audit tests. Corrective174backend/193frontend/build/lint PASS; y5k1dw_f stopped/password removed. Publish normal compensating commit, never amend first commit; verify fresh CI before closing19.

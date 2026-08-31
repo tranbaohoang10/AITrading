@@ -8,7 +8,7 @@
   },
   "newAuditIntegrationTests": 11,
   "frontend": {
-    "tests": 192,
+    "tests": 193,
     "failures": 0,
     "isolatedRetry": true,
     "unchangedTimeouts": true
@@ -71,5 +71,18 @@
     },
     "logoutThenPrivateAccessDenied": true
   },
-  "publicationAndCi": "PENDING"
+  "publicationAndCi": "PENDING",
+  "newAuditFrontendTests": 7,
+  "correction": {
+    "firstCommit": "d622f2d64e91582ee9deb2f4d092bce8d077a450",
+    "firstCi": 33392333477,
+    "firstCiResult": "FAILED: foundation immediate post-PG-restart health assertion",
+    "boundedRecoverySeconds": 15,
+    "backendTests": 174,
+    "backendFailures": 0,
+    "frontendTests": 193,
+    "frontendFailures": 0,
+    "nativeJsonErrorRedaction": true,
+    "correctedCi": "PENDING"
+  }
 }

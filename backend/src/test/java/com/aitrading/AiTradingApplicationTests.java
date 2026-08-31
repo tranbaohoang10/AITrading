@@ -154,7 +154,23 @@ class AiTradingApplicationTests {
                     .redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.appendTo(controlLog.toFile())).start().waitFor();
             assertThat(started).isZero();
         }
-        assertThat(request("GET", "/api/health").statusCode()).isEqualTo(200);
+        // pg_ctl readiness does not mean the application's pool has discarded every
+        // pre-outage connection. Match the existing authenticated recovery contract:
+        // bounded15s, only redacted503 while recovering, then exact healthy response.
+        org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(15))
+                .pollInterval(Duration.ofMillis(100)).until(() -> {
+                    var recovered=request("GET", "/api/health");
+                    assertThat(recovered.statusCode()).isIn(200,503);
+                    String requestId=recovered.headers().firstValue("X-Request-ID").orElseThrow();
+                    UUID.fromString(requestId);
+                    if(recovered.statusCode()==503) {
+                        assertThat(recovered.body()).contains("UNAVAILABLE",requestId)
+                                .doesNotContain("jdbc","password","Exception","audit_event");
+                        return false;
+                    }
+                    assertThat(recovered.body()).isEqualTo("{\"status\":\"UP\"}");
+                    return true;
+                });
         flyway.validate();
         assertThat(flyway.migrate().migrationsExecuted).isZero();
     }

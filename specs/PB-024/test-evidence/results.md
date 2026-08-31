@@ -95,3 +95,28 @@ Same tests/assertions/5000ms limits, no source/test/config changes between runs.
 This supports machine contention as the timeout cause; keep the failed run visible.
 
 Final exact source restart smoke: owned b2my_5ah, Java25336→25212, exit0; identical audit page/session across observed down/up. See restart-smoke-final.json. Synthetic user signed out; harness stopped/password removed. All required local verification PASS; publication/CI still required.
+
+## First publication and CI recovery correction
+
+Commitd622f2d64e91582ee9deb2f4d092bce8d077a450 pushed normally; local/origin/GitHub
+main match; clean tree. [CI33392333477](https://github.com/tranbaohoang10/AITrading/actions/runs/33392333477)
+frontend PASS; backend174 tests/1failure. Downloaded artifact shows foundation
+outage test's first request after pg_ctl restart returned safe503 instead of its
+immediate200 expectation. All11 audit tests passed. PostgreSQL process readiness
+is not a guarantee the application pool has recovered all old connections.
+
+Correction keeps production code unchanged. Foundation readiness test now follows
+the existing AuthenticationTests recovery contract: at most15s, only redacted503
+with matching server UUID while recovering, then exact200 UP; Flyway validation
+and zero-remigration assertion remain. Any other status/leak or failure to recover
+still fails. No test skipped, no global timeout increased, no exception ignored.
+Full backend rerun and corrected commit's exact CI remain required. Issue19 stays
+OPEN; PB022 has only an ignored Issue draft, no feature code started.
+
+Additional scoped review found native JSON.parse errors can quote malformed200
+response contents in UI error text. Audit transport now maps malformed audit or
+account-discovery JSON to a fixed error while preserving HTTP ApiError401 handling.
+New wire-response test covers both secret-like malformed bodies. No success path,
+ownership or database behavior changed. Full frontend regression required again.
+
+Corrective final verification:174backend/0fail/error/skip, buildSUCCESS3m12 on y5k1dw_f (stopped/password removed);193frontend/23files PASS31.43s, lint/build0. Includes7audit UI/transport tests. No dependencies/backend production changes after prior browser/restart proof; only frontend malformed-response error redaction and bounded readiness test. Exact corrected CI still required.

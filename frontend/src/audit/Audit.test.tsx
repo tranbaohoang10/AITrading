@@ -78,3 +78,11 @@ it('bounds wire bytes, rejects bad cursors before network and rechecks owner aft
   await expect(loadActivity(a.id)).rejects.toThrow('Invalid activity')
   await expect(loadActivity(a.id)).rejects.toThrow('Invalid activity')
 })
+
+it('never exposes malformed success-body contents through native JSON error messages', async () => {
+  const network = vi.fn().mockResolvedValueOnce(new Response('<private-response-secret>'))
+    .mockResolvedValueOnce(response({ items: [event()], nextCursor: null }))
+    .mockResolvedValueOnce(new Response('<private-account-secret>'))
+  vi.stubGlobal('fetch', network)
+  for (let i = 0; i < 2; i++) await expect(loadActivity(a.id)).rejects.toThrow('Invalid activity response. Please reload.')
+})
