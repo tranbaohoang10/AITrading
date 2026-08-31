@@ -1,4 +1,4 @@
-# PB-008 tasks â€” Issue #12
+# PB-008 tasks — Issue #12
 
 - [x] Read requirements/current source/docs; create Issue before code; CNPM/test design.
 - [x] Fixed provider/config/HTTP bounds/strict response boundary and stub tests.

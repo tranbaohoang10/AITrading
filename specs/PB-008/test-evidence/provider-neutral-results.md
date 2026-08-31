@@ -1,4 +1,4 @@
-# PB-008 provider-neutral evidence â€” 31/08/2026
+# PB-008 provider-neutral evidence — 31/08/2026
 
 Issue #12; baseline main761f3b47e692be69b4c81aa619cbbf4f03d42e88.
 This is the current Gemini amendment; original OpenAI evidence stays historical.
@@ -10,8 +10,8 @@ No real-provider result is inferred from a loopback fixture or UI mock.
 | --- | --- |
 | Java21 Wrapper compileTestJava | Exit0; production and contract tests compile |
 | `python scripts/test_backend.py`, first run | Exit0;208 tests,0 failures/errors/skips; OpenAI8 + API13, Gemini7 + API15, selection3 |
-| Same command after adding V12â†’V13 upgrade test | Exit1;209 tests,1 failure,0 errors/skips. Upgrade test PASS; existing MarketApiTests maximum5000-row import returned503 instead of200 while a separate smoke API was starting |
-| Final isolated backend run (`tmp/pb008-neutral-backend-serial.log`) | Exit0;209 tests,0 failures/errors/skips; all original market-data assertions and new V12â†’V13 upgrade PASS; no production/assertion/timeout change |
+| Same command after adding V12→V13 upgrade test | Exit1;209 tests,1 failure,0 errors/skips. Upgrade test PASS; existing MarketApiTests maximum5000-row import returned503 instead of200 while a separate smoke API was starting |
+| Final isolated backend run (`tmp/pb008-neutral-backend-serial.log`) | Exit0;209 tests,0 failures/errors/skips; all original market-data assertions and new V12→V13 upgrade PASS; no production/assertion/timeout change |
 | `npm run lint` and `npm run build` | Exit0 each; TypeScript/Vite build PASS |
 | `npm test -- --reporter=default --reporter=json --outputFile=../tmp/pb008-neutral-frontend.json` | Exit0;24 files,209 tests PASS, including25 AI parser/component cases |
 | `python -m unittest discover -s python/tests -v` | Exit0;44 PASS |
@@ -22,7 +22,7 @@ No real-provider result is inferred from a loopback fixture or UI mock.
 | `python scripts/check_dependencies.py backend/build/reports/dependencies.txt tmp/pb008-neutral-dependency-audit.json` | Exit0;118 resolved Java artifacts,0 OSV findings |
 | `python scripts/smoke_ai.py --owned tmp/pg-test-svz1l_cn --report specs/PB-008/test-evidence/provider-neutral-local-smoke.json` | Exit0;actual HTTP/PG, disabled Gemini, two synthetic owners, expected-account/CSRF denial, no assistant fabrication, persistent session/messages across actual JVM restart |
 
-Actual smoke JVM15044â†’23588, same owned database; the script observed API down/up,
+Actual smoke JVM15044→23588, same owned database; the script observed API down/up,
 then compared exact persisted messages/session/capabilities. Both synthetic API
 accounts signed out. API and owned PG stopped, generated password file removed.
 This smoke used `--serve` with AI=false, selector=gemini and both real keys removed
@@ -30,14 +30,14 @@ from the child environment. `--serve` builds/serves; it is not a test-suite resu
 
 Actual browser: new synthetic local account, New Chat, save synthetic message,
 explicit availability check, disabled Ask AI and Gemini data-use warning; saved
-message recovered after page reload. Screenshots inspected at1600Ã—900 and390Ã—844:
+message recovered after page reload. Screenshots inspected at1600×900 and390×844:
 `gemini-unconfigured-desktop.png`, `gemini-unconfigured-mobile.png`. No assistant
 or API key shown. Browser account signed out and viewport reset. Configured Gemini
 success/failure/races are component/contract tests, **not** a real browser AI reply.
 
 ## Traceability and security assessment
 
-GP01â€“04: AiProviderConfigurationTests/GeminiProviderTests cover exact startup
+GP01–04: AiProviderConfigurationTests/GeminiProviderTests cover exact startup
 selection/default/disabled/invalid configuration, no OpenAI-key fallback, fixed
 official destination/model segment and header-only synthetic key, wire roles and
 closed schema, whole-body timeout/interruption/byte cap,401/403/429/408/504/5xx/
@@ -45,7 +45,7 @@ redirect/wrong MIME/disconnect, strict UTF8/duplicate/unknown JSON, missing/mult
 candidates, refusal/incomplete/thought/tool/non-text output and decoded key echo.
 OpenAI's original8 tests still run through the shared trusted transport/protocol.
 
-GP05â€“06: GeminiAiApiTests inherits all13 original HTTP/PostgreSQL tests without
+GP05–06: GeminiAiApiTests inherits all13 original HTTP/PostgreSQL tests without
 removing assertions, plus provider-history switching and capability/binding tests.
 Ownership, credential revocation, CSRF/origin, mass assignment, bounded context/
 hashes, quotas, concurrent starts/cancel/stale context and expired leases remain
@@ -158,7 +158,7 @@ owned test clusters stopped and generated password files removed.
 
 31/08/2026 Issue12 updated: https://github.com/tranbaohoang10/AITrading/issues/12#issuecomment-5479932799 ; remains OPEN. No commit/push; final main and GitHub SHA761f3b47e692be69b4c81aa619cbbf4f03d42e88. Working tree:21 modified +17 untracked task paths, index empty.
 
-## 31/08/2026 â€” real Gemini smoke attempted; requested model unavailable
+## 31/08/2026 — real Gemini smoke attempted; requested model unavailable
 
 PO confirmed secure key setup and authorized real synthetic smoke. Presence-only:
 Process=false,User=true,Machine=false. Passed the Windows User key directly to the
@@ -204,7 +204,7 @@ No alternate-model request or key/IAM/billing mutation was performed.
 
 31/08/2026 blocker receipt: Issue12 comment5480129340 updated, remains OPEN. Final main761f3b47e692be69b4c81aa619cbbf4f03d42e88;21 modified +18 untracked, empty index, no commit/push. New path for this resume: specs/PB-008/test-evidence/gemini-real-smoke-attempt.json. Actual-key equality scan across39 task files found no key.
 
-## 31/08/2026 â€” PO-approved Gemini3.5Flash revision
+## 31/08/2026 — PO-approved Gemini3.5Flash revision
 
 Issue12 comment5480218688 records the approval before implementation. Model
 default is confined to AiProviderConfiguration, explicit model override retained,
@@ -234,7 +234,7 @@ model and intermediate-test results are preserved; no old CI certifies this dirt
 revision. Real3.5Flash smoke/publication remain pending at this checkpoint.
 
 
-## 31/08/2026 â€” Gemini3.5Flash real smoke PASS
+## 31/08/2026 — Gemini3.5Flash real smoke PASS
 
 Command: `python scripts/smoke_ai.py --owned tmp/pg-test-hw_1oqqh --report
 specs/PB-008/test-evidence/gemini35-real-smoke.json --real-gemini --model gemini-3.5-flash`
@@ -243,12 +243,12 @@ production strict adapter accepted both structured answers; DB stores exactly tw
 assistant messages, both attempts SUCCEEDED/provider gemini/model3.5Flash. Context
 hashes independently match exact saved context (one then three messages), no
 same-owner/other-owner decoy inclusion, owner/binding/CSRF checks denied, replay
-unchanged before/after actual API12520â†’14444 restart. Four target messages remain
+unchanged before/after actual API12520→14444 restart. Four target messages remain
 identical; six messages total include two untouched decoys. Synthetic API accounts
 signed out. No key in stored messages or API/harness/smoke logs by exact comparison.
 No raw response, message text, account credentials or key included in reports.
 
-GP01â€“09 / AI01â€“11 functional and security evidence now PASS; publication/exactSHA/
+GP01–09 / AI01–11 functional and security evidence now PASS; publication/exactSHA/
 CI remains pending. The earlier2.5Flash404 and transient fixture-cleanup failure
 are retained, not rewritten as successes. No dependency/stack/security relaxation.
 
@@ -299,3 +299,16 @@ Exact publication scope:
 - specs/PB-008/test-evidence/provider-neutral-local-smoke.json
 - specs/PB-008/test-evidence/provider-neutral-results.md
 - specs/PB-008/test-evidence/results.md
+
+31/08/2026 delivery receipt: feature commit
+a38c83d1a4a9a3524d4fa70df78c6a00d2c6ac42 pushed normally to origin/main and exact
+GitHub branch SHA verified. Actions33408544142 both jobs SUCCESS. Downloaded
+backend-verification artifact confirms211 JUnit tests,0 failures/errors/skips and
+118 Java dependencies with0 OSV findings. No real key is available/required in CI;
+the separate synthetic real-provider smoke above certifies that external path.
+
+Post-push inspection found Windows default-decoding punctuation corruption in
+three Markdown files. Restored UTF-8 punctuation only, verified all historical
+backlog rows outside PB008 against baseline761f3b4; no source/test change. Publish
+this correction as a new commit, never rewrite feature history. Final Issue
+closure/backlog DONE awaits correction delivery verification.
