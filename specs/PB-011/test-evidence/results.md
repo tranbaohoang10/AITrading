@@ -100,3 +100,12 @@ only in the owned database; Git evidence uses synthetic fixtures.
 Pending final local evidence, scope/diff checks, normal main push/exact SHA and
 actual CI. No Issue completion until all DoD conditions pass. PB-008 Issue12
 remains blocked on external AI key/smoke and is not made DONE by this delivery.
+
+31/08/2026 code delivery: bfebd5fd93fdb9c61268c665a8ab50ec52a4f861 normal-pushed
+72ff79e..bfebd5f; ls-remote/GitHub API SHA agree. CI33365234612 backend/frontend
+success; downloaded JUnit122/0/0/0 and OSV118PASS verified. Actual Linux log confirms
+40Python tests including real CPU/memory enforcement PASS in3.307s. No skipped
+Linux resource check claimed as Windows no-child verification; Windows no-child
+was exercised locally. Scope34files and diff checks PASS after removing one
+trailing blank line. Subsequent documentation-only commit completes per-case
+precondition/input/steps/actual evidence fields; final CI confirmation pending.
