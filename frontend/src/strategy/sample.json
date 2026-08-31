@@ -1,0 +1,49 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "Neutral price research",
+  "labels": [
+    "price action"
+  ],
+  "market": {
+    "symbol": "BTC_USDT",
+    "timeframe": "1h",
+    "timezone": "UTC"
+  },
+  "indicators": [],
+  "rules": {
+    "longEntry": {
+      "kind": "compare",
+      "op": "gt",
+      "left": {
+        "kind": "series",
+        "field": "close",
+        "lag": 0
+      },
+      "right": {
+        "kind": "series",
+        "field": "open",
+        "lag": 0
+      }
+    },
+    "shortEntry": null,
+    "longExit": null,
+    "shortExit": null
+  },
+  "risk": {
+    "initialCapital": 10000,
+    "allocationPct": 10,
+    "leverage": 1,
+    "stopLossPct": 2,
+    "takeProfitPct": 4
+  },
+  "execution": {
+    "signal": "bar_close",
+    "fill": "next_bar_open",
+    "sameBarExit": "stop_first",
+    "missingCandles": "reject",
+    "maxPositions": 1,
+    "commissionBps": 5,
+    "spreadBps": 2,
+    "slippageBps": 1
+  }
+}

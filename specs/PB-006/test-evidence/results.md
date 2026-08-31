@@ -113,3 +113,12 @@ read sees either a complete25-candle snapshot or404, deletes return204/404, othe
 user dataset survives. DATA-08 now PASS. Exact JUnit names in backend-tests.json.
 Owned pg-test-f2dbltft stopped and generated credential file removed. DATA-01–11
 PASS; DATA-12 local checks PASS, publication/CI still pending.
+
+## Delivery verified — 31/08/2026
+
+Commit7c7c1983e0d783278fa9dc338a606bc61ec46167 normally pushed to main; GitHub API
+and ls-remote exactSHA confirmed. Actual CI33355769629 success, both jobs PASS;
+downloaded artifact JUnit74/0/0/0, OSV118passed. Issue9 CLOSED/completed, comment
+https://github.com/tranbaohoang10/AITrading/issues/9#issuecomment-5473556927 .
+DATA-12 and T07 now PASS, all DoD met. Scoped44file review and limited signature
+scan0, git diff --check PASS; status clean after push. Next PB-007 Issue10 created.

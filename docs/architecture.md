@@ -1,6 +1,6 @@
 # Prototype architecture and CNPM physical view
 
-Status: PB-001–PB-005 delivered; PB-006 market datasets implemented, verification in progress. Diagrams distinguish
+Status: PB-001–PB-006 delivered; PB-007 strategy revisions implemented, verification in progress. Diagrams distinguish
 current boundaries from future modules. No AI/trading runtime is claimed yet.
 
 PB-004 adds owner-scoped conversation/message APIs and additive FlywayV3. JDBC
@@ -39,6 +39,8 @@ flowchart TB
   Researcher --> DSL([Validate neutral Strategy DSL draft])
   Researcher --> Market([Import and inspect private OHLCV datasets])
   Researcher --> DeleteMarket([Delete own dataset with confirmation])
+  Researcher --> Strategy([Edit and save own draft or validated strategy revisions])
+  Researcher --> History([Inspect immutable history and restore as new revision])
   Operator((Developer/operator)) --> Start([Start local API and isolated DB tests])
   Operator --> Ready([Inspect minimal readiness])
 ```
@@ -71,3 +73,13 @@ Only POST /api/datasets/import accepts2MiB JSON; existing limits remain unchange
 Native React/SVG converts decimal strings only for geometry and retains exact
 values for inspection. No provider, runtime interpreter or new dependency added.
 Detailed sequence/class/ERD and data contract: specs/PB-006/design.md.
+
+PB-007 adds StrategyController → StrategyService → DslValidator and V5 strategy /
+strategy_revision. Only strategy current pointer advances; saved revision rows stay
+immutable. Owner/credential locks protect quota/idempotency and optimistic revision
+checks. DRAFT text is bounded inert data; VALIDATED rows contain server-derived
+canonical DSL/hash/schema/validator/minimumBars. Every current/history read is owned.
+StrategyProvider lives under keyed identity and keeps editor state across responsive
+renderers; no browser storage. Native JSON editor and real DatasetChart share a
+workspace but no database binding; future jobs explicitly select version+dataset.
+No provider/runtime/export/dependency change. Full diagrams: specs/PB-007/design.md.

@@ -33,6 +33,10 @@ public class AuthGuardFilter extends OncePerRequestFilter {
             boolean allowed = true;
             if (user != null && path.startsWith("/api/dsl/"))
                 allowed = limits.allow("dsl-user", user.id().toString(), 120);
+            if (user != null && (path.equals("/api/strategies") || path.startsWith("/api/strategies/"))) {
+                boolean read = java.util.Set.of("GET", "HEAD", "OPTIONS").contains(request.getMethod());
+                allowed = limits.allow(read ? "str-read" : "str-write", user.id().toString(), read ? 300 : 60);
+            }
             if (user != null && (path.equals("/api/datasets") || path.startsWith("/api/datasets/"))) {
                 if ("POST".equals(request.getMethod())) allowed = limits.allow("data-import", user.id().toString(), 10);
                 else if ("DELETE".equals(request.getMethod())) allowed = limits.allow("data-delete", user.id().toString(), 30);

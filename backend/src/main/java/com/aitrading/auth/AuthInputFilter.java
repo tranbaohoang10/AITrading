@@ -29,6 +29,9 @@ public class AuthInputFilter extends OncePerRequestFilter {
                 ? com.aitrading.dsl.DslValidator.MAX_BYTES : MAX_BODY;
         if (request.getMethod().equals("POST") && request.getRequestURI().equals("/api/datasets/import"))
             maxBody = com.aitrading.market.MarketCsvParser.MAX_IMPORT_BYTES;
+        if (request.getMethod().equals("POST") && (request.getRequestURI().equals("/api/strategies")
+                || request.getRequestURI().matches("/api/strategies/[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/versions")))
+            maxBody = com.aitrading.strategy.StrategyService.MAX_BODY;
         if (request.getContentLengthLong() > maxBody) {
             ApiErrors.write(request, response, 413, ApiErrors.Code.INVALID_REQUEST); return;
         }

@@ -19,3 +19,6 @@ hold sequence/class/data diagrams; test-cases are separate per feature.
 31/08/2026: PB-006 adds owned CSV import/chart use cases, sequence/class/ERD for
 V4 and real desktop/mobile/tablet/browser-restart evidence in specs/PB-006.
 PB-005 schema-only delivery has no new ERD entity or UI screenshot requirement.
+
+31/08/2026: PB-007 adds private strategy/history use cases and V5 ERD/sequence/class
+diagrams, My Script editor and browser responsive/restart/conflict evidence.

@@ -15,6 +15,8 @@ import { TradingWorkspace } from './TradingWorkspace'
 import { brand } from '../brand'
 import { Modal } from './Modal'
 import { AccountView } from '../auth/AccountView'
+import { useStrategy } from '../strategy/StrategyContext'
+import { StrategyEditor } from '../strategy/StrategyEditor'
 
 const mobileTitles: Record<MobileView, string> = {
   'ai-chat': 'AI Chat', chart: 'Chart', 'strategy-dsl': 'Strategy DSL', 'pine-script': 'Pine Script', mql5: 'MQL5',
@@ -117,6 +119,8 @@ export function AppShell() {
 
 function MobileContent({ view }: { view: MobileView }) {
   const { strategyDsl, pineScript, mql5 } = useTrading()
+  const strategy = useStrategy()
+  if (strategy && ['strategy-dsl', 'my-code', 'strategies'].includes(view)) return <StrategyEditor />
   switch (view) {
     case 'ai-chat': return <AiChat />
     case 'chart': return <ChartView />

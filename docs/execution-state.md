@@ -5,6 +5,36 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+LATEST PB-007: final local84backend/88frontend/6verifier/6canonical PASS, lint/types/
+build/audits PASS. Actual browser1600/900/390, draft/validate/history, two-tab409,
+restart hash, confirmed deletion and A/B isolation complete. All owned API/DBs
+stopped; last pg-test-eq1si3jo credentials removed. Browser signed out, active
+viewport reset; Vite94064 still local. Need scoped commit/push/exactSHA/actualCI
+and Issue10 completed, then PB-010. No PB-007 commit yet; goal full backlog.
+
+LATEST PB-007 Issue10: backend/source V5 and strategy revision API implemented.
+Full backend84 PASS after fixing ambiguous Timestamp wildcard import; later quota
+race test strengthened at revision99, final run still required. Frontend87 PASS
+(last55258) after fixing Testing Library option/provider fixture and stale selector
+metadata found by actual two-tab browser conflict. Browser tests in progress:
+API harness43524 owns pg-test-ywf3l31_, PID2568, Vite94064. Existing chatTab id1
+1600x1000 A revision6 VALIDATED clean; second strategyConflictTab (new browser tab)
+currently resized900x900 with A revision4 and unsaved title 'Unsaved mobile retention'.
+Viewport helper affects active second tab now. No cookies/storage read. A local
+strategy.browser.a@example.test synthetic account. Both share test session.
+Browser verified draft r2 invalid validated-save rejected, r3 valid, second tabr4
+save causes first-tab409 retainsdraft/cancel; reload fixedselector. Historyr2 copy
+createsr5 DRAFT, copyr4 createsr6 VALIDATED, hash93552dae78712326cabe76cb51e828c0336984e2ba5e75bbe381331a872f84dd.
+Synthetic DEMO_USD360 chart mismatches BTC_USDT strategy explicitly. Need finish
+mobile/tablet/restarthash/Bisolation/delete, stop owned API, final84tests/audits,
+docs/evidence, commit/push/CI/close10, then PB-010. PB-007 uncommitted.
+
+LATEST: PB-006 DONE at7c7c1983e0d783278fa9dc338a606bc61ec46167. Exact GitHub SHA
+and actual CI33355769629 verified; JUnit74/0/0/0, OSV118PASS, Issue9 completed.
+PB-007 Issue10 created before code; design/test plan begins now. Goal is full
+required backlog, not just this feature. All owned API/DB stopped; Vite94064
+remains, browser signed out/reset. Preserve previous checkpoints as history.
+
 LATEST PB-006: local verification complete:74 backend/71 frontend/6 verifier/6
 canonical PASS, lint/build/audits PASS. Real browser desktop/tablet/mobile, API
 restart, exact OHLC/hash, paging/window/keyboard, delete/cancel and A/B isolation

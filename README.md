@@ -164,7 +164,7 @@ Schema1.0.0 and [design/indicator semantics](specs/PB-005/design.md) define clos
 next-open execution, confirmed pivots, typed measurable rules, risk and resource
 bounds. [Neutral fixtures](backend/src/test/resources/dsl) are synthetic examples,
 not profitable-strategy recommendations. Existing mock DSL is deliberately rejected.
-PB-007 will provide owned draft/version storage and UI. No new dependency or migration.
+PB-007 provides owned draft/version storage and UI below. PB-005 itself added no dependency or migration.
 
 Run `python scripts/check_dsl_fixtures.py` to verify canonical bytes/hash independently;
 the ordinary backend test harness also runs DSL unit and real authenticated HTTP tests.
@@ -194,3 +194,29 @@ and payload. Delete requires confirmation and permanently removes only that owne
 dataset and its candles. Strategy/backtest execution remains separate future work.
 
 Test evidence and publication status: [PB-006](specs/PB-006/test-evidence/results.md).
+
+PB-006 delivery:7c7c198, Actions33355769629 PASS, Issue #9 completed.
+
+## My Script and saved strategy revisions (PB-007)
+
+After signing in, open Strategy DSL, My Code or Strategies. New strategy creates
+an empty owned DRAFT. Edit title/JSON, then Save draft to preserve incomplete text,
+or Save validated revision to revalidate and save canonical DSL metadata. Validate
+alone makes no database change. A VALIDATED revision is not a backtest result or
+a guarantee that future runtimes support it. No code is executed in this editor.
+
+Every save creates an immutable revision. History previews are read-only; Use
+revision in editor copies old text into current edits and a later save creates
+a new revision. Unsaved edits persist across tabs and responsive navigation, not
+across signout or a forced page reload. Replacing dirty edits asks confirmation.
+Concurrent stale saves fail with409 and keep local text. Reload current revision
+requires explicit discard when dirty. On uncertain outcomes, Retry keeps the
+original request ID/payload; do not refresh away pending work.
+
+Limits:100 strategies/account,100 revisions/strategy,64KiB UTF-8 draft,120-character
+title; read300/write60 requests/account/15min. Deletion requires confirmation and
+matching revision, removes only that strategy/history, and keeps datasets/chat.
+Chart context is beside the editor on wide screens, or Show chart/Show editor on
+smaller screens. Symbol/timeframe mismatch with saved validated strategy is explicit.
+Selecting a chart dataset does not bind it to a strategy or start backtesting.
+See [design](specs/PB-007/design.md) and [test evidence](specs/PB-007/test-evidence/results.md).
