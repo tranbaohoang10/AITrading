@@ -14,6 +14,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import time
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -37,6 +38,7 @@ def postgres_bin() -> Path:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--write-locks", action="store_true")
+    parser.add_argument("--serve", action="store_true", help="Build and serve the API on loopback8080 with a disposable DB; not a test run")
     args = parser.parse_args()
     binaries = postgres_bin()
     task_tmp = ROOT / "tmp"
@@ -82,10 +84,13 @@ def main() -> int:
                 print(startup_log.read_text(encoding="utf-8", errors="replace")[-8000:], flush=True)
             raise
         wrapper = str(ROOT / "backend" / ("gradlew.bat" if os.name == "nt" else "gradlew"))
-        command = [wrapper, "--no-daemon", "clean", "test", "bootJar", "dependencyInventory"]
+        command = [wrapper, "--no-daemon", "bootJar"] if args.serve else [wrapper, "--no-daemon", "clean", "test", "bootJar", "dependencyInventory"]
         if args.write_locks:
             command.append("--write-locks")
-        return subprocess.run(command, cwd=ROOT / "backend", env=env, check=False).returncode
+        result = subprocess.run(command, cwd=ROOT / "backend", env=env, check=False).returncode
+        if result != 0 or not args.serve:
+            return result
+        return serve_owned_api(env, owned)
     finally:
         try:
             if start_attempted:
@@ -108,6 +113,45 @@ def stop_owned_cluster(pg_ctl: str, data: Path) -> None:
                    check=True, timeout=45)
     if subprocess.run(status_command, capture_output=True, timeout=15).returncode != 3:
         raise RuntimeError("Owned test database shutdown was not verified")
+
+
+def serve_owned_api(env: dict[str, str], owned: Path) -> int:
+    """Local browser-test mode; terminate only the child process created here."""
+    env.update(AITRADING_BIND_ADDRESS="127.0.0.1", AITRADING_PORT="8080")
+    java = str(Path(env["JAVA_HOME"]) / "bin" / ("java.exe" if os.name == "nt" else "java"))
+    stop = owned / "stop-api"
+    restart = owned / "restart-api"
+    log_path = owned / "api.log"
+    with log_path.open("w", encoding="utf-8") as log:
+        def launch():
+            return subprocess.Popen([java, "-jar", str(ROOT / "backend/build/libs/api-0.0.1-SNAPSHOT.jar")],
+                                    env=env, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT,
+                                    creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
+
+        def terminate(child):
+            if child.poll() is None:
+                child.terminate()
+                try:
+                    child.wait(timeout=15)
+                except subprocess.TimeoutExpired:
+                    child.kill()
+                    child.wait(timeout=10)
+
+        app = launch()
+        print(f"Browser-test API process {app.pid}; log {log_path}; create {stop} to stop or {restart} to restart API", flush=True)
+        try:
+            while app.poll() is None:
+                if stop.exists():
+                    return 0
+                if restart.exists():
+                    restart.unlink()
+                    terminate(app)
+                    app = launch()
+                    print(f"Browser-test API restarted as process {app.pid}; same owned database", flush=True)
+                time.sleep(0.25)
+            return app.returncode
+        finally:
+            terminate(app)
 
 
 if __name__ == "__main__":

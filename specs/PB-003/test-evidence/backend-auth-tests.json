@@ -1,0 +1,42 @@
+[
+  {
+    "suite": "com.aitrading.AiTradingApplicationTests",
+    "tests": "8",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "cases": [
+      "databaseMigrationAndRepeatValidationAreRealAndIdempotent()",
+      "healthHasMinimalJsonAndSecurityHeaders()",
+      "allPrivateRoutesAndGeneratedLoginAreDeniedWithoutHtmlOrRequestEcho()",
+      "unsafeMethodsRemainCsrfProtectedAndUnsupportedMethodsDoNotBypassSecurity()",
+      "forgedIdentityRequestIdAndCorsOriginAreNotTrusted()",
+      "maliciousPathIsRejectedAndIgnoredQueryCannotExecuteSql()",
+      "databaseExceptionDetailsAreNeverInHealthResponse()",
+      "actualDatabaseOutageReturns503AndRestartRestoresReadinessWithoutRemigration()"
+    ]
+  },
+  {
+    "suite": "com.aitrading.AuthenticationTests",
+    "tests": "14",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "cases": [
+      "csrfSessionCreationIsAlsoIpLimited()",
+      "profileCannotSelectOrChangeAnotherUserAndUnknownFieldsAreRejected()",
+      "invalidCredentialsAndCsrfNeverAuthenticate()",
+      "registrationRejectsInvalidNullBoundaryAndMassAssignmentFields()",
+      "logoutExpiryAndForgedCookieAreDenied()",
+      "staleCredentialSnapshotCannotOverwritePasswordOrAuthorizeRacedLogin()",
+      "concurrentRegistrationCreatesExactlyOneUser()",
+      "httpsSessionCookieUsesSecureHttpOnlyAndSameSiteWithoutDomain()",
+      "registrationUsesDistinctArgon2idSaltsAndGenericDuplicateAcknowledgement()",
+      "passwordChangeRequiresCurrentPasswordAndRevokesAllSessions()",
+      "authenticatedRequestFailsClosedDuringActualDatabaseOutageAndRecovers()",
+      "atomicThrottleAllowsOnlyLimitAndDoesNotTrustForwardedIp()",
+      "loginRotatesSessionAndCsrfAndDoesNotSerializePasswords()",
+      "oversizedMalformedAmbiguousAndForeignOriginRequestsFailSafely()"
+    ]
+  }
+]

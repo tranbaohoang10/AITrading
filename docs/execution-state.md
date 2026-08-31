@@ -9,8 +9,24 @@ re-review records protected. No product file changed before master backlog creat
 
 PB-001 / Issue #4 delivered and CLOSED/completed. GitHub main verified at
 9fb15300ba47ecf52e8ed7f54e23e1e940689e20; 49 files; clean status after push.
-Current action: PB-002 / Issue #5 local verification complete; publish and verify
-actual Actions before closing. Installed Java21 found
+PB-002 / Issue #5 delivered and CLOSED/completed. Main at6bb886f998120e9d20918be9a1c6ca750d75cd7f;
+Actions33319918002 succeeded both jobs (UbuntuPG16), downloaded JUnit8/0/0/0.
+Current action: PB-003 / Issue #6 local verification complete; commit/push and verify
+actual CI before closing. NOT DONE until publication succeeds.
+CNPM/design/test MD created before code. Backend adds Spring Session JDBC/Argon2id,
+user/version ownership, atomic throttle, bounded strict JSON/form, auth APIs;
+React entrypoint now gated with real forms/account/session restore. No AI/backtest
+business changes. Original10 frontend tests unchanged; all40 frontend tests/lint/
+build pass. Final backend run22 tests (14 auth +8 foundation) passed, plus6 verifier
+tests. Strict JSON/HTTPS-cookie/authenticated-DB-outage checks pass; fixed numeric
+coercion and transaction exception errors without changing expected results.
+Actual browser Alpha/Beta journeys and API restart persistence passed, viewport
+reset. All owned API/DB harnesses stopped; Vite dev server session31425 remains
+on127.0.0.1:5173. OSV118 packages no findings; new licenses include a Session POM
+label discrepancy, resolved against actual JAR and upstream tagged Apache2 text.
+Documentation/evidence in specs/PB-003. Need verified CI/push before closing6.
+Next PB-004. Do not lose the full backlog objective after a feature checkpoint.
+Installed Java21 found
 at C:/Program Files/Java/jdk-21. Docker daemon unavailable; use installed PostgreSQL
 17.11 binaries for a new test cluster under tmp/, never the existing user service.
 Spring4.1.1/Gradle9.7.1 official scaffold and wrapper integrity verified. First
@@ -18,10 +34,11 @@ compile-test attempt failed on an AssertJ Optional assertion; corrected and reru
 Windows test restart log locking fixed; 8 backend tests and locked clean build pass.
 6 verifier fault tests and 27 frontend regressions/lint/build pass. OSV scans all112
 Java dependencies with no findings; npm audit zero. Dependency licenses recorded.
-Last owned cluster pg-test-umgx5g5b stopped and password file removed; no live
-test process remains. The brief governance-only re-verification changed Issue #3,
+Last completed auth cluster pg-test-3ljfigib stopped and password file removed.
+Recheck live handles before resuming; do not infer test status from this file.
+The brief governance-only re-verification changed Issue #3,
 not these product files. The active goal continues the full product build.
-Do not label PB-002 done until tests, dependency audit, push and actual CI pass.
+PB-002's local/CI/publication checks are complete; historical failures retained in its evidence.
 
 PB-001 has 27 passing tests, lint/build/audit and actual browser checks. npm ci
 restored dependencies; nanoid patched for the high advisory. Dev server started

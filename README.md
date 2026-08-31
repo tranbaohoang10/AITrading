@@ -52,7 +52,8 @@ and [CNPM index](docs/cnpm-index.md) track that run separately from governance #
 The frontend foundation is recovered from feature/mvp-ui with provenance in
 [PB-001](specs/PB-001/spec.md). It currently demonstrates responsive workspace,
 read-only sample scripts and labelled synthetic chat/backtest data. It does **not**
-yet implement a connected AI provider, authentication, persistence or real backtests.
+yet implement a connected AI provider, persistent research content or real backtests.
+PB-003 adds real authentication/account persistence around that demo workspace.
 
 From frontend/ with Node 22.12+ (verified Node 24.8.0) and npm:
 
@@ -66,10 +67,10 @@ npm audit --audit-level=high
 ```
 
 Keep the dev server local. Branding is centralized in frontend/src/brand.ts.
-The fixed backend/Python stack remains planned in the backlog; no substitute
-backend or production readiness is implied by the frontend demo.
+The Java/PostgreSQL backend is implemented below; Python backtest/AI work remains
+in the backlog. No production readiness is implied by the frontend demo.
 
-## Backend foundation (PB-002, implementation in progress)
+## Backend foundation (PB-002 delivered)
 
 Java21 is required; use backend/gradlew or backend/gradlew.bat for all backend
 commands. Gradle distribution checksum is pinned. No global Gradle/Maven needed.
@@ -90,9 +91,41 @@ setting a unique AITRADING_DB_PASSWORD in your shell. No .env file is required o
 committed. Set AITRADING_DB_URL to jdbc:postgresql://127.0.0.1:55432/aitrading and
 AITRADING_DB_USER to aitrading, then run backend/gradlew.bat bootRun. Keep the password
 in environment only; never paste it into Issues/logs. The API binds 127.0.0.1:8080.
-GET /api/health reports DB readiness; other endpoints default-deny.
+GET /api/health reports DB readiness; unimplemented endpoints default-deny.
 
 Stop local DB with docker compose stop db; do not delete its volume if data matters.
 Applied Flyway migrations are never edited/reset. Test clusters are retained under
 tmp/ after shutdown for diagnosis; they are never committed. Actual verification
 and limitations live in specs/PB-002/test-cases.md, not inferred from setup commands.
+
+## Authentication (PB-003, verification in progress)
+
+The real UI entrypoint requires a server-verified account. Start the API on
+loopback8080 and Vite on127.0.0.1:5173; /api is proxied to the backend. Register a
+synthetic/local account, then sign in. Email is a normalized login identifier;
+this prototype does not verify mailbox ownership or provide email password reset.
+Never reuse a real service password for testing. Passwords are Argon2id-hashed;
+sessions live server-side in PostgreSQL with HttpOnly/SameSite cookies and CSRF.
+Use Account in desktop/mobile navigation to edit your name, change password or
+sign out. Password change revokes all sessions and requires signing in again.
+Chat/trading views remain clearly labelled demos until their own backlog delivery.
+
+For a completely disposable browser-test workspace, with installed PostgreSQL
+binaries and JAVA_HOME pointing to Java21, run from repository root:
+
+```text
+python scripts/test_backend.py --serve
+```
+
+This mode builds/serves, **does not run tests**. Run npm run dev in frontend in a
+separate terminal. The harness prints an owned tmp/pg-test-... directory and API
+PID. Create the printed stop-api file to stop only that API and DB; create the
+printed restart-api file to restart only that API against the same test database.
+No production/user database is used. Test passwords stay in the process environment
+and ignored temporary file, removed on shutdown; do not paste them in Issues.
+Ordinary integration verification remains python scripts/test_backend.py.
+
+For deployment beyond this local machine, provide TLS at a trusted endpoint,
+Secure cookies and an explicit AITRADING_ALLOWED_ORIGINS value. Forwarding headers
+are not trusted by default; do not expose the development proxy or HTTP API publicly.
+The current feature is not a production identity/security certification.

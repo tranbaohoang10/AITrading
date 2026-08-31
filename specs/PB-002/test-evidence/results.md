@@ -38,3 +38,16 @@ because the Docker daemon was unavailable. Native PostgreSQL integration was
 tested directly. CI uses PostgreSQL 16 on Ubuntu and remains unverified until its
 actual run succeeds. Vulnerability scans are time-specific public-advisory checks,
 not proof that all flaws or OS/JDK binary vulnerabilities are absent.
+
+## Published verification
+
+Implementation commit90e3fbc and fix6bb886f are on GitHub main. CI run
+[33319918002](https://github.com/tranbaohoang10/AITrading/actions/runs/33319918002)
+completed/success at exact SHA6bb886f998120e9d20918be9a1c6ca750d75cd7f.
+Both jobs succeeded; downloaded JUnit artifact confirms8 tests,0 failures/errors/skips.
+Ubuntu PostgreSQL16 startup/restart/cleanup, locked build,6 verifier tests,
+frontend regressions/audit and OSV112 packages passed. Initial run33319826155 failed
+at pg_ctl startup; configuring Unix sockets inside the owned runner directory fixed
+it. No tests/checks were removed. Final staged diff --check exit0; selected credential
+patterns zero matches; protected mvp-ui/governance paths absent from the patch.
+Issue#5 updated and CLOSED/completed with delivery evidence. PB-002 DoD achieved.

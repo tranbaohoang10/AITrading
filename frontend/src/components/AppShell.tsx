@@ -14,6 +14,7 @@ import { TradesView } from './TradesView'
 import { TradingWorkspace } from './TradingWorkspace'
 import { brand } from '../brand'
 import { Modal } from './Modal'
+import { AccountView } from '../auth/AccountView'
 
 const mobileTitles: Record<MobileView, string> = {
   'ai-chat': 'AI Chat', chart: 'Chart', 'strategy-dsl': 'Strategy DSL', 'pine-script': 'Pine Script', mql5: 'MQL5',
@@ -128,6 +129,6 @@ function MobileContent({ view }: { view: MobileView }) {
     case 'trading-journal': return <PlaceholderView title="Trading Journal" />
     case 'strategies': return <PlaceholderView title="Strategies" />
     case 'settings': return <PlaceholderView title="Settings" />
-    case 'account': return <PlaceholderView title="Account" />
+    case 'account': return <AccountView />
   }
 }

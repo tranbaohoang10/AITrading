@@ -1,0 +1,61 @@
+package com.aitrading.auth;
+
+import com.aitrading.api.ApiErrors;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.transaction.TransactionException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+/** Added only to Spring Security's chain, after CSRF and before login processing. */
+public class AuthGuardFilter extends OncePerRequestFilter {
+    private final UserRepository users;
+    private final AuthRateLimiter limits;
+    public AuthGuardFilter(UserRepository users, AuthRateLimiter limits) { this.users = users; this.limits = limits; }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException {
+        try {
+            var authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserPrincipal user = authentication != null && authentication.getPrincipal() instanceof UserPrincipal principal ? principal : null;
+            if (user != null && !users.current(user)) {
+                if (request.getSession(false) != null) request.getSession(false).invalidate();
+                SecurityContextHolder.clearContext();
+                ApiErrors.write(request, response, 401, ApiErrors.Code.UNAUTHORIZED);
+                return;
+            }
+            String path = request.getRequestURI();
+            boolean allowed = true;
+            if ("GET".equals(request.getMethod()) && path.equals("/api/auth/csrf"))
+                allowed = limits.allow("csrf-ip", request.getRemoteAddr(), 120);
+            if ("POST".equals(request.getMethod())) {
+                if (path.equals("/api/auth/register")) allowed = limits.allow("register-ip", request.getRemoteAddr(), 10);
+                if (path.equals("/api/auth/login")) {
+                    String email = UserRepository.normalizeEmail(request.getParameter("email"));
+                    String password = request.getParameter("password");
+                    if (email.length() > 254 || password == null || password.length() > 128 || password.isEmpty()) {
+                        ApiErrors.write(request, response, 401, ApiErrors.Code.UNAUTHORIZED);
+                        return;
+                    }
+                    allowed = limits.allow("login-ip", request.getRemoteAddr(), 30)
+                            && limits.allow("login-email", email, 10);
+                }
+                if (path.equals("/api/auth/password") && user != null)
+                    allowed = limits.allow("password-user", user.id().toString(), 10);
+            }
+            if (!allowed) {
+                response.setHeader("Retry-After", Long.toString(AuthRateLimiter.WINDOW_SECONDS));
+                ApiErrors.write(request, response, 429, ApiErrors.Code.RATE_LIMITED);
+                return;
+            }
+            chain.doFilter(request, response);
+        } catch (DataAccessException | TransactionException unavailable) {
+            ApiErrors.write(request, response, 503, ApiErrors.Code.UNAVAILABLE);
+        }
+    }
+}
