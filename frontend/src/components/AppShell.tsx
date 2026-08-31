@@ -19,6 +19,7 @@ import { useStrategy } from '../strategy/StrategyContext'
 import { StrategyEditor } from '../strategy/StrategyEditor'
 import { useJournal } from '../journal/JournalContext'
 import { JournalWorkspace } from '../journal/JournalWorkspace'
+import { PineWorkspace } from '../pine/PineWorkspace'
 
 const mobileTitles: Record<MobileView, string> = {
   'ai-chat': 'AI Chat', chart: 'Chart', 'strategy-dsl': 'Strategy DSL', 'pine-script': 'Pine Script', mql5: 'MQL5',
@@ -128,7 +129,7 @@ function MobileContent({ view }: { view: MobileView }) {
     case 'ai-chat': return <AiChat />
     case 'chart': return <ChartView />
     case 'strategy-dsl': return <CodeViewer title="Strategy DSL" language="JSON · validated mock structure" code={strategyDsl} />
-    case 'pine-script': return <CodeViewer title="Pine Script" language="Pine Script · read-only mock" code={pineScript} />
+    case 'pine-script': return strategy ? <PineWorkspace /> : <CodeViewer title="Pine Script" language="Pine Script · read-only mock" code={pineScript} />
     case 'mql5': return <CodeViewer title="MQL5" language="MQL5 · read-only mock" code={mql5} />
     case 'backtest-results': return <BacktestResults />
     case 'trades': return <TradesView mode="mobile" />

@@ -1,0 +1,157 @@
+// Trusted runtime; generated constants/expressions follow this section.
+// Research simulator only. No native Strategy Tester, orders, alerts or profit guarantee.
+// Pine binary floats are not Python Decimal34. Near-threshold rules may diverge.
+f_at(array<float> values, int lag) =>
+    int at = array.size(values) - 1 - lag
+    at < 0 ? na : array.get(values, at)
+
+f_text(float value) =>
+    na(value) ? "null" : str.tostring(value, "0.################")
+
+// Modes: 0 SMA, 1 EMA, 2 Wilder, 3 highest, 4 lowest.
+f_smooth(array<float> values, int period, int mode, float previous) =>
+    float result = na
+    if array.size(values) >= period
+        float total = 0.0
+        float extreme = f_at(values, 0)
+        bool defined = true
+        for offset = 0 to period - 1
+            float value = f_at(values, offset)
+            defined := defined and not na(value)
+            total += value
+            extreme := mode == 3 ? math.max(extreme, value) : math.min(extreme, value)
+        if defined
+            float alpha = mode == 1 ? 2.0 / (period + 1) : 1.0 / period
+            result := mode >= 3 ? extreme : mode == 0 or na(previous) ? total / period : previous + alpha * (f_at(values, 0) - previous)
+    result
+
+f_pivot(array<float> values, int left, int right, bool highPivot) =>
+    float result = na
+    if array.size(values) >= left + right + 1
+        float candidate = f_at(values, right)
+        bool valid = true
+        for offset = 0 to left + right
+            if offset != right
+                valid := valid and (highPivot ? candidate > f_at(values, offset) : candidate < f_at(values, offset))
+        if valid
+            result := candidate
+    result
+
+// Tri-state truth: -1 undefined, 0 false, 1 true.
+f_not(int value) =>
+    value == -1 ? -1 : 1 - value
+f_all(int a, int b) =>
+    a == 0 or b == 0 ? 0 : a == -1 or b == -1 ? -1 : 1
+f_any(int a, int b) =>
+    a == 1 or b == 1 ? 1 : a == -1 or b == -1 ? -1 : 0
+f_compare(float a, float b, int op) =>
+    bool answer = switch op
+        0 => a > b
+        1 => a >= b
+        2 => a < b
+        3 => a <= b
+        4 => a == b
+        => a != b
+    na(a) or na(b) ? -1 : answer ? 1 : 0
+f_cross(float a, float b, float beforeA, float beforeB, bool above) =>
+    bool answer = above ? a > b and beforeA <= beforeB : a < b and beforeA >= beforeB
+    na(a) or na(b) or na(beforeA) or na(beforeB) ? -1 : answer ? 1 : 0
+
+type Simulation
+    float balance
+    float equity
+    int side = 0
+    int pending = 0
+    int signalBar = -1
+    float entryPrice = na
+    float quantity = 0.0
+    float stopPrice = na
+    float targetPrice = na
+    float entryFee = 0.0
+    int entrySide = 0
+    float entryFill = na
+    float entryCost = na
+    int entrySignalBar = -1
+    int exitSide = 0
+    float exitFill = na
+    float exitCost = na
+    int exitReason = 0
+    int exitSignalBar = -1
+    float closedNet = na
+    int signal = 0
+    int skip = 0
+    int skipOpen = 0
+
+f_fill(float raw, bool buy, float adverse) =>
+    raw * (buy ? 1.0 + adverse : 1.0 - adverse)
+
+method closePosition(Simulation s, float raw, int reason, float adverse, float commission) =>
+    float price = f_fill(raw, s.side == -1, adverse)
+    float fee = price * s.quantity * commission
+    float gross = (price - s.entryPrice) * s.quantity * s.side
+    s.balance += gross - fee
+    s.exitSide := s.side
+    s.exitFill := price
+    s.exitCost := fee
+    s.exitReason := reason
+    s.closedNet := gross - s.entryFee - fee
+    s.side := 0
+
+// Pending actions: 1 long entry, -1 short entry, 2 exit. Exit reasons: 1 rule, 2 stop, 3 target.
+method openBar(Simulation s, float o, float h, float l, float c, float allocation, float leverage, float stopPct, float targetPct, float adverse, float commission) =>
+    s.entrySide := 0
+    s.entryFill := na
+    s.entryCost := na
+    s.entrySignalBar := -1
+    s.exitSide := 0
+    s.exitFill := na
+    s.exitCost := na
+    s.exitReason := 0
+    s.exitSignalBar := -1
+    s.closedNet := na
+    s.signal := 0
+    s.skip := 0
+    s.skipOpen := 0
+    int order = s.pending
+    s.pending := 0
+    if order == 2
+        s.exitSignalBar := s.signalBar
+        s.closePosition(o, 1, adverse, commission)
+    else if order != 0
+        if s.balance <= 0
+            s.skipOpen := 1
+        else
+            s.side := order
+            s.entryPrice := f_fill(o, order == 1, adverse)
+            s.quantity := s.balance * allocation / 100.0 * leverage / s.entryPrice
+            s.entryFee := s.entryPrice * s.quantity * commission
+            s.balance -= s.entryFee
+            s.stopPrice := s.entryPrice * (1.0 - order * stopPct / 100.0)
+            s.targetPrice := s.entryPrice * (1.0 + order * targetPct / 100.0)
+            s.entrySide := order
+            s.entryFill := s.entryPrice
+            s.entryCost := s.entryFee
+            s.entrySignalBar := s.signalBar
+    if s.side != 0
+        bool hitStop = s.side == 1 ? l <= s.stopPrice : h >= s.stopPrice
+        bool hitTarget = s.side == 1 ? h >= s.targetPrice : l <= s.targetPrice
+        if hitStop
+            float raw = s.side == 1 ? math.min(o, s.stopPrice) : math.max(o, s.stopPrice)
+            s.closePosition(raw, 2, adverse, commission)
+        else if hitTarget
+            s.closePosition(s.targetPrice, 3, adverse, commission)
+    s.equity := s.balance + (s.side == 0 ? 0.0 : (c - s.entryPrice) * s.quantity * s.side)
+
+method closeBar(Simulation s, int index, int longEntry, int shortEntry, int longExit, int shortExit) =>
+    if s.side != 0
+        if (s.side == 1 ? longExit : shortExit) == 1
+            s.pending := 2
+    else if longEntry == 1 and shortEntry == 1
+        s.skip := 2
+    else if longEntry == 1 or shortEntry == 1
+        s.pending := longEntry == 1 ? 1 : -1
+    if s.pending != 0
+        s.signalBar := index
+        s.signal := s.pending
+
+// END TRUSTED RUNTIME

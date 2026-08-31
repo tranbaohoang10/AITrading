@@ -1,0 +1,66 @@
+[
+  {
+    "name": "causal-all-indicators",
+    "dslHash": "9e09b51a58583846b6d5926f6fedb62c5682b0b7d980588affa97a3166984816",
+    "exportCodeHash": "840a140b82f516d44db0e58bb7f8fa49345b9662d1ed6ed15554b0424cafcf47",
+    "targetFixtureHash": "535b352e14f3071dd883079f05f2fe3c09b107a186cf3fadcf67c0616dc0c677",
+    "targetStatus": "NOT_RUN",
+    "bars": 24
+  },
+  {
+    "name": "costs-both-hit-gap",
+    "dslHash": "7aff31ee33bad0a64a6f34e5a6a4dac910a200430e6de824427ffda73351f269",
+    "exportCodeHash": "03b76060b56c2a8979558bc93cbfc5a2bba7624358ca6b632177a7b771e92f9b",
+    "targetFixtureHash": "dd03b4c3aa75c04424ac15babd097bed5fd2c8d9a2e10719650a7943c6cfcbf1",
+    "targetStatus": "NOT_RUN",
+    "bars": 6
+  },
+  {
+    "name": "hand-next-open",
+    "dslHash": "8825cf036ac8b2cbe9e231daf95704edda7c3644b4bf04fc6c4be01a7ae63658",
+    "exportCodeHash": "07d5bae80f9b1a6214942e60e09d5b3670d64f1747db2ae955578dc0d7685341",
+    "targetFixtureHash": "61b6f44cad60882ee6822a5be89aa7fbd84e6d58d6ae65f6099f093cc17a07c7",
+    "targetStatus": "NOT_RUN",
+    "bars": 4
+  },
+  {
+    "name": "long-target-cap",
+    "dslHash": "29ed41f1c086ad3b0fb7a9e639303bab98e1965ac9b2da10601ae268a3a59030",
+    "exportCodeHash": "4abfb7414599dd0116ce0f2df6c7f7aac0e45285585c99b9614185f1896408f8",
+    "targetFixtureHash": "0b872e1ff5020a619fa0c3bb7c9bf15d4821c81c87fe6df93999b2aa956b28a4",
+    "targetStatus": "NOT_RUN",
+    "bars": 3
+  },
+  {
+    "name": "nonpositive-equity",
+    "dslHash": "7eaa36c5eb0c33730c067e7f9b96aedce563324526744237a3c2646131034d13",
+    "exportCodeHash": "01e13b992ea29193b2ec986c51fd103b0b9d9af4ed1280436998e2d1a3aa87a2",
+    "targetFixtureHash": "5698188dda44a5a2fe2286328690532376ee0c7ccd37e59f8db65c1aaebc8160",
+    "targetStatus": "NOT_RUN",
+    "bars": 4
+  },
+  {
+    "name": "rule-exit-before-barriers",
+    "dslHash": "0ac226620d3c129ad3fc3785d9113210cf5c015bcbbc91b40b274fdf7b52e4f5",
+    "exportCodeHash": "81d393ecfd317e4ebc7c0c0ba0679c35c8d7ea2690b43a75f12dc02b45d8dfef",
+    "targetFixtureHash": "899600adcb2f567496eaa8837bebcc7f66acbeb237d2e537f923a5ceccf9ff25",
+    "targetStatus": "NOT_RUN",
+    "bars": 3
+  },
+  {
+    "name": "short-target-cap",
+    "dslHash": "a3d0981dc6c3c0cdee283b16eac4324eb77b8efae9441129b8c886d9dc50491b",
+    "exportCodeHash": "89e2da2e3661f44c4d27b71671aadc8aa234a877aa509d77fb3efcd19fa13dbf",
+    "targetFixtureHash": "362b17203018292b56c82db63fe313c79d85b6e5a5c4cc950e355e5112082188",
+    "targetStatus": "NOT_RUN",
+    "bars": 3
+  },
+  {
+    "name": "simultaneous-entries",
+    "dslHash": "5ef9115bd998f5813b8576c4d48e4604c6d11e287b1aad2845fec22e9fdbd00d",
+    "exportCodeHash": "ce5c8572e99e259328eaaf572476ec49abb8422fbd4e389037f44c6c880f3bad",
+    "targetFixtureHash": "181915d5241b6cda3dae5190ffeb72cdf24e8e69ba41e4d901865e05925b2361",
+    "targetStatus": "NOT_RUN",
+    "bars": 4
+  }
+]

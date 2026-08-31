@@ -5,5 +5,5 @@
 - [x] Bind private API requests to captured account and enforce before access.
 - [x] Preserve authentication bootstrap, safe logout, retries and old contracts.
 - [x] Run meaningful multi-user/unit/HTTP/browser/regression/security checks.
-- [ ] Inspect exact scope, commit/push main, verify GitHub SHA/CI and close completed.
-- [ ] Checkpoint and continue next READY backlog item.
+- [x] Inspect exact scope, commit/push main, verify GitHub SHA/CI and close completed.
+- [x] Checkpoint and continue next READY backlog item.

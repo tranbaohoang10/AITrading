@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "synthetic": true,
+  "realHttpPostgres": true,
+  "actualApiDownUpObserved": true,
+  "sessionAndArtifactSurvivedRestart": true,
+  "idempotentReplayBeforeAndAfterRestart": true,
+  "sourceDeleteRemovesExport": true,
+  "dslHash": "93552dae78712326cabe76cb51e828c0336984e2ba5e75bbe381331a872f84dd",
+  "codeHash": "d2cde463dd62a729898b4f611e8b7675ab30061f0669fa8ec007ed7d4f6d33f1",
+  "generatorVersion": "pine-research-1.0.0",
+  "officialPineRuntime": "NOT_RUN"
+}

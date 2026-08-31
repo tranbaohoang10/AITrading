@@ -9,6 +9,7 @@ import { useMarket } from '../market/MarketContext'
 import { useStrategy } from '../strategy/StrategyContext'
 import { StrategyEditor } from '../strategy/StrategyEditor'
 import { useBacktest } from '../backtest/BacktestContext'
+import { PineWorkspace } from '../pine/PineWorkspace'
 
 const tabs: Array<{ id: WorkspaceTab; label: string }> = [
   { id: 'chart', label: 'Chart' },
@@ -29,7 +30,7 @@ export function TradingWorkspace({ mode }: { mode: ViewportMode }) {
     switch (activeTab) {
       case 'chart': return <ChartView />
       case 'strategy-dsl': return strategy ? <StrategyEditor /> : <CodeViewer title="Strategy DSL" language="JSON · validated mock structure" code={strategyDsl} />
-      case 'pine-script': return <CodeViewer title="Pine Script" language="Pine Script · read-only mock" code={pineScript} />
+      case 'pine-script': return strategy ? <PineWorkspace /> : <CodeViewer title="Pine Script" language="Pine Script · read-only mock" code={pineScript} />
       case 'mql5': return <CodeViewer title="MQL5" language="MQL5 · read-only mock" code={mql5} />
       case 'backtest-results': return <BacktestResults />
       case 'trades': return <TradesView mode={mode} />

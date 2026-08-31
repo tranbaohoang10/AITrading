@@ -394,3 +394,40 @@ history. After a page reload inspect saved records before issuing a new intent;
 request identity is intentionally not persisted in browser storage. Explicit
 deletion removes ledger metadata too: do not reuse requests for a deleted entry.
 See [design](specs/PB-013/design.md) and [test cases](specs/PB-013/test-cases.md).
+
+## PB-015 — experimental Pine research export
+
+Select a saved **VALIDATED** strategy in Strategy DSL, then open **Pine Script**.
+Generate the saved revision to create a private immutable artifact, inspect its
+DSL/code SHA256 and generator/schema versions, and copy or download plain `.pine`
+source. Unsaved edits are excluded and retained. DRAFT/unsupported input fails
+explicitly; the authenticated view never substitutes mock Pine code.
+
+The generated Pine v6 program is a **research indicator with its own closed-bar
+simulator**, not native Strategy Tester or live order routing. It preserves the
+DSL's intended next-open, stop-first, percentage-cost and sizing formulas instead
+of silently mapping to a different broker emulator. It contains no strategy orders,
+alerts or external symbol requests. Pine floats and comparison rounding differ
+from Python Decimal34; near-threshold signals can diverge. Identical market data
+and event-level validation are necessary; historical results never guarantee profit.
+
+**Official Pine compilation/runtime is currently unverified**: TradingView's
+anonymous Add to chart requires sign-in. The UI/source explicitly say experimental;
+Issue17 cannot be completed based on local Java/Python/source tests. Synthetic
+target scripts and the exact remaining procedure are in
+[target validation](specs/PB-015/test-evidence/target-validation.md).
+
+Target bounds:16 indicators, period/lag<=200, pivot left/right<=100, warm-up<=4500,
+128KiB code and an exact contiguous window of1–5000 closed candles. In Pine inputs,
+confirm the chart ticker mapping and set UTC start/end-exclusive (the initial
+2024 window is an example). Use a standard chart and matching DSL timeframe;
+misaligned dates, incomplete history, gaps, invalid OHLCV or nonstandard candles
+are rejected. Native chart data may differ from the platform's imported CSV.
+
+API: GET/POST `/api/strategies/{id}/versions/{revision}/pine`; POST accepts `{}`
+only. Both enforce owner/session/expected-account; POST also requires CSRF. A
+retry returns the same artifact for that revision/generator even after newer
+revisions are saved. Up to100 artifacts/account; existing strategy rates apply
+(300 reads/60 writes per15min). Deleting the strategy cascades its artifacts.
+V9 adds the artifact table; no existing migration/dependency/stack change.
+See [design](specs/PB-015/design.md) and [test cases](specs/PB-015/test-cases.md).

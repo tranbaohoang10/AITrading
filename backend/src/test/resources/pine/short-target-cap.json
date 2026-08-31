@@ -1,0 +1,297 @@
+{
+  "request": {
+    "protocolVersion": "1.0.0",
+    "dsl": {
+      "schemaVersion": "1.0.0",
+      "name": "Neutral price research",
+      "labels": [
+        "price action"
+      ],
+      "market": {
+        "symbol": "BTC_USDT",
+        "timeframe": "1h",
+        "timezone": "UTC"
+      },
+      "indicators": [],
+      "rules": {
+        "longEntry": null,
+        "shortEntry": {
+          "kind": "compare",
+          "op": "gt",
+          "left": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "right": {
+            "kind": "constant",
+            "value": 0
+          }
+        },
+        "longExit": null,
+        "shortExit": null
+      },
+      "risk": {
+        "initialCapital": 1000,
+        "allocationPct": 100,
+        "leverage": 1,
+        "stopLossPct": 50,
+        "takeProfitPct": 50
+      },
+      "execution": {
+        "signal": "bar_close",
+        "fill": "next_bar_open",
+        "sameBarExit": "stop_first",
+        "missingCandles": "reject",
+        "maxPositions": 1,
+        "commissionBps": 0,
+        "spreadBps": 0,
+        "slippageBps": 0
+      }
+    },
+    "dataset": {
+      "symbol": "BTC_USDT",
+      "timeframe": "1h",
+      "timezone": "UTC",
+      "sourceType": "SYNTHETIC",
+      "closedThrough": "2030-01-01T00:00:00Z",
+      "candles": [
+        {
+          "timestamp": "2024-01-01T00:00:00Z",
+          "open": "100",
+          "high": "100",
+          "low": "100",
+          "close": "100",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T01:00:00Z",
+          "open": "100",
+          "high": "100",
+          "low": "100",
+          "close": "100",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T02:00:00Z",
+          "open": "25",
+          "high": "30",
+          "low": "20",
+          "close": "25",
+          "volume": "10"
+        }
+      ]
+    }
+  },
+  "reference": {
+    "bars": [
+      {
+        "index": 0,
+        "openTime": "2024-01-01T00:00:00Z",
+        "closeTime": "2024-01-01T01:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": null,
+          "shortEntry": true,
+          "longExit": null,
+          "shortExit": null
+        },
+        "balance": "1000",
+        "unrealizedGross": "0",
+        "equity": "1000",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 1,
+        "openTime": "2024-01-01T01:00:00Z",
+        "closeTime": "2024-01-01T02:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": null,
+          "shortEntry": true,
+          "longExit": null,
+          "shortExit": null
+        },
+        "balance": "1000",
+        "unrealizedGross": "0",
+        "equity": "1000",
+        "drawdownPct": "0",
+        "positionSide": "short"
+      },
+      {
+        "index": 2,
+        "openTime": "2024-01-01T02:00:00Z",
+        "closeTime": "2024-01-01T03:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": null,
+          "shortEntry": true,
+          "longExit": null,
+          "shortExit": null
+        },
+        "balance": "1500",
+        "unrealizedGross": "0",
+        "equity": "1500",
+        "drawdownPct": "0",
+        "positionSide": null
+      }
+    ],
+    "events": [
+      {
+        "id": 1,
+        "kind": "SIGNAL",
+        "barIndex": 0,
+        "action": "ENTRY",
+        "side": "short",
+        "signalBar": 0,
+        "signalTime": "2024-01-01T01:00:00Z",
+        "confirmationTime": "2024-01-01T01:00:00Z"
+      },
+      {
+        "id": 2,
+        "kind": "ENTRY",
+        "barIndex": 1,
+        "side": "short",
+        "rawPrice": "100",
+        "price": "100",
+        "quantity": "10",
+        "fee": "0",
+        "executionTime": "2024-01-01T01:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 0,
+        "signalTime": "2024-01-01T01:00:00Z"
+      },
+      {
+        "id": 3,
+        "kind": "EXIT",
+        "barIndex": 2,
+        "side": "short",
+        "rawPrice": "50",
+        "price": "50",
+        "quantity": "10",
+        "fee": "0",
+        "reason": "TAKE_PROFIT",
+        "executionTime": null,
+        "timePrecision": "BAR_INTERVAL",
+        "barOpenTime": "2024-01-01T02:00:00Z",
+        "barCloseTime": "2024-01-01T03:00:00Z",
+        "signalBar": null,
+        "signalTime": null
+      },
+      {
+        "id": 4,
+        "kind": "SIGNAL",
+        "barIndex": 2,
+        "action": "ENTRY",
+        "side": "short",
+        "signalBar": 2,
+        "signalTime": "2024-01-01T03:00:00Z",
+        "confirmationTime": "2024-01-01T03:00:00Z"
+      }
+    ],
+    "trades": [
+      {
+        "side": "short",
+        "direction": -1,
+        "entryEventId": 2,
+        "entryBar": 1,
+        "entryTime": "2024-01-01T01:00:00Z",
+        "signalBar": 0,
+        "signalTime": "2024-01-01T01:00:00Z",
+        "entryPrice": "100",
+        "quantity": "10",
+        "margin": "1000",
+        "entryNotional": "1000",
+        "entryFee": "0",
+        "stopPrice": "150",
+        "takeProfitPrice": "50",
+        "exitEventId": 3,
+        "exitBar": 2,
+        "exitPrice": "50",
+        "exitFee": "0",
+        "exitReason": "TAKE_PROFIT",
+        "exitTime": null,
+        "exitTimePrecision": "BAR_INTERVAL",
+        "grossPnl": "500",
+        "netPnl": "500"
+      }
+    ],
+    "openPosition": null,
+    "termination": {
+      "reason": "DATASET_END",
+      "cancelledOrder": {
+        "action": "ENTRY",
+        "side": "short",
+        "signalBar": 2,
+        "signalTime": "2024-01-01T03:00:00Z"
+      }
+    },
+    "metrics": {
+      "initialCapital": "1000",
+      "finalBalance": "1500",
+      "finalEquity": "1500",
+      "netProfit": "500",
+      "returnPct": "50",
+      "closedNetPnl": "500",
+      "totalFees": "0",
+      "maxDrawdownPct": "0",
+      "closedTrades": 1,
+      "winningTrades": 1,
+      "losingTrades": 0,
+      "breakevenTrades": 0,
+      "winRatePct": "100",
+      "profitFactor": null
+    },
+    "runCard": {
+      "engineVersion": "1.0.0",
+      "protocolVersion": "1.0.0",
+      "schemaVersion": "1.0.0",
+      "validatorVersion": "1.0.0",
+      "canonicalization": "aitrading-canonical-1",
+      "dataFormat": "ohlcv-v1",
+      "decimalPolicy": "decimal34-half-even-v1",
+      "dslHash": "a3d0981dc6c3c0cdee283b16eac4324eb77b8efae9441129b8c886d9dc50491b",
+      "canonicalDsl": "{\"execution\":{\"commissionBps\":0,\"fill\":\"next_bar_open\",\"maxPositions\":1,\"missingCandles\":\"reject\",\"sameBarExit\":\"stop_first\",\"signal\":\"bar_close\",\"slippageBps\":0,\"spreadBps\":0},\"indicators\":[],\"labels\":[\"price action\"],\"market\":{\"symbol\":\"BTC_USDT\",\"timeframe\":\"1h\",\"timezone\":\"UTC\"},\"name\":\"Neutral price research\",\"risk\":{\"allocationPct\":100,\"initialCapital\":1000,\"leverage\":1,\"stopLossPct\":50,\"takeProfitPct\":50},\"rules\":{\"longEntry\":null,\"longExit\":null,\"shortEntry\":{\"kind\":\"compare\",\"left\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"op\":\"gt\",\"right\":{\"kind\":\"constant\",\"value\":0}},\"shortExit\":null},\"schemaVersion\":\"1.0.0\"}",
+      "minimumBars": 1,
+      "dataset": {
+        "symbol": "BTC_USDT",
+        "timeframe": "1h",
+        "timezone": "UTC",
+        "sourceType": "SYNTHETIC",
+        "closedThrough": "2030-01-01T00:00:00Z",
+        "dataHash": "8b034ce571babf5562395ea50253a7542f40130e8833499f914786e69224a5b9",
+        "count": 3,
+        "start": "2024-01-01T00:00:00Z",
+        "end": "2024-01-01T02:00:00Z",
+        "sourceVerified": false
+      },
+      "inputHash": "1d9e65d1572dfa7029a14962dd8500804c6c65fdd5c45d351d317698f1a5bf6e",
+      "policy": {
+        "signal": "bar_close",
+        "fill": "next_bar_open",
+        "sameBarExit": "stop_first",
+        "missingCandles": "reject",
+        "maxPositions": "1",
+        "commissionBps": "0",
+        "spreadBps": "0",
+        "slippageBps": "0"
+      },
+      "limitations": [
+        "Unverified research data; historical results do not guarantee profit.",
+        "No funding, liquidation, broker tick/lot or live-order simulation.",
+        "Protective execution time is only known within its candle."
+      ]
+    },
+    "resultHash": "59554531bcd21b678b82e271da7603739b7b32343d3adf98d6bee1550a894e86"
+  },
+  "targetStatus": "NOT_RUN_OFFICIAL_PINE_REQUIRES_LOGIN",
+  "numericTolerance": {
+    "absolute": "0.00000001",
+    "relative": "0.000000000001"
+  },
+  "eventPolicy": "Exact bar/side/reason/signal/confirmation identity; no numeric tolerance on event decisions."
+}

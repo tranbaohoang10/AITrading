@@ -288,3 +288,45 @@ Then select PB-015 (highest-priority remaining independent READY by dependencies
 PB-008 stays blocked#12 for real project provider credentials/smoke; no reuse of
 Codex credentials and no claim the entire backlog is complete. Protected old
 mvp-ui blobs unchanged and outside new commit.
+
+## 31/08/2026 — PB-027 delivered; PB-015 selected
+
+PB-027 commit7e741be780a94ce0279ecaa198a6460c1a73181b verified on local/main,
+origin/main and GitHub after normal push. CI33376664265 SUCCESS; actual frontend
+166PASS log and backend141/0/0/0 + OSV118 artifact verified. Issue16 CLOSED /
+COMPLETED, comment5476292888. Tree clean after delivery. No protected old mvp-ui
+re-review file included. All owned API/PG stopped and password files removed.
+
+PB-015 Issue17 created before code. Implement versioned owned Pine v6 research
+export, with custom closed-bar simulator to retain DSL stop-first/cost semantics;
+never label native Strategy Tester or live orders equivalent. Actual TradingView
+Pine Editor opens anonymously, but Add to chart on its default script opens Sign
+in; no target compilation/runtime result available. PO notified to sign in using
+a test account if available, no credential collection or bypass. Continue local
+work and independent READY items; keep target validation unverified if absent.
+PB-008 remains OPEN/BLOCKED#12 for actual project AI credentials/smoke.
+
+## 31/08/2026 — PB-015 local verification complete; target remains blocked
+
+Issue17 created before code, main7e741be base. V9 immutable owned Pine artifact,
+versioned trusted generator and real saved-revision Pine UI implemented. Export
+is explicitly experimental research indicator/custom closed-bar simulator, not
+native Strategy Tester or orders. Local final152backend/176frontend/42Python,
+6verifier/6canonical/6UI-fixtures, lint/build and JavaOSV118/npm0 PASS. Eight
+Python event/indicator reference inputs and generated target assertion scripts
+are prepared; they are NOT official Pine runtime results.
+
+Actual browser1600/900/390, draft preservation, copy/download action, A/B stale
+export rejection with B session intact; HTTP/PG/JVM28620→100 restart and identical
+artifact replay/hash PASS. All owned API/PG clusters stopped/password removed
+(8wsy9x48,cw8rn3p2,fro0ib21,uzok1g_4,e9ly9pae,wuagvpgl). Last full regression is
+tmp/pb015-backend-final.log on wuagvpgl; no test disabled. Synthetic browser users
+signed out. Vite may remain. Protected mvp-ui files untouched.
+
+Next: exact scope/diff/staged checks, normal Vietnamese Refs17+16 commit/push,
+verify exact GitHub main SHA and required CI. Keep Issue17 OPEN/BLOCKED because
+anonymous TradingView Add to chart requires sign-in, notified PO without password
+collection/bypass. Do not call PB-015 DONE or infer event parity from source/tests.
+After safe checkpoint select PB-016, the next independent READY feature. PB-008
+remains OPEN/BLOCKED#12 for project AI credentials/real-provider smoke. Full goal
+remains active; no all-backlog completion claim.

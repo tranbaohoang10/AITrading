@@ -1,0 +1,341 @@
+{
+  "request": {
+    "protocolVersion": "1.0.0",
+    "dsl": {
+      "schemaVersion": "1.0.0",
+      "name": "Neutral price research",
+      "labels": [
+        "price action"
+      ],
+      "market": {
+        "symbol": "BTC_USDT",
+        "timeframe": "1h",
+        "timezone": "UTC"
+      },
+      "indicators": [],
+      "rules": {
+        "longEntry": null,
+        "shortEntry": {
+          "kind": "compare",
+          "op": "gt",
+          "left": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "right": {
+            "kind": "constant",
+            "value": 0
+          }
+        },
+        "longExit": null,
+        "shortExit": null
+      },
+      "risk": {
+        "initialCapital": 1000,
+        "allocationPct": 100,
+        "leverage": 10,
+        "stopLossPct": 5,
+        "takeProfitPct": 10
+      },
+      "execution": {
+        "signal": "bar_close",
+        "fill": "next_bar_open",
+        "sameBarExit": "stop_first",
+        "missingCandles": "reject",
+        "maxPositions": 1,
+        "commissionBps": 0,
+        "spreadBps": 0,
+        "slippageBps": 0
+      }
+    },
+    "dataset": {
+      "symbol": "BTC_USDT",
+      "timeframe": "1h",
+      "timezone": "UTC",
+      "sourceType": "SYNTHETIC",
+      "closedThrough": "2030-01-01T00:00:00Z",
+      "candles": [
+        {
+          "timestamp": "2024-01-01T00:00:00Z",
+          "open": "100",
+          "high": "100",
+          "low": "100",
+          "close": "100",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T01:00:00Z",
+          "open": "100",
+          "high": "100",
+          "low": "100",
+          "close": "100",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T02:00:00Z",
+          "open": "1000",
+          "high": "1000",
+          "low": "1000",
+          "close": "1000",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T03:00:00Z",
+          "open": "1000",
+          "high": "1000",
+          "low": "1000",
+          "close": "1000",
+          "volume": "10"
+        }
+      ]
+    }
+  },
+  "reference": {
+    "bars": [
+      {
+        "index": 0,
+        "openTime": "2024-01-01T00:00:00Z",
+        "closeTime": "2024-01-01T01:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": null,
+          "shortEntry": true,
+          "longExit": null,
+          "shortExit": null
+        },
+        "balance": "1000",
+        "unrealizedGross": "0",
+        "equity": "1000",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 1,
+        "openTime": "2024-01-01T01:00:00Z",
+        "closeTime": "2024-01-01T02:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": null,
+          "shortEntry": true,
+          "longExit": null,
+          "shortExit": null
+        },
+        "balance": "1000",
+        "unrealizedGross": "0",
+        "equity": "1000",
+        "drawdownPct": "0",
+        "positionSide": "short"
+      },
+      {
+        "index": 2,
+        "openTime": "2024-01-01T02:00:00Z",
+        "closeTime": "2024-01-01T03:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": null,
+          "shortEntry": true,
+          "longExit": null,
+          "shortExit": null
+        },
+        "balance": "-89000",
+        "unrealizedGross": "0",
+        "equity": "-89000",
+        "drawdownPct": "9000",
+        "positionSide": null
+      },
+      {
+        "index": 3,
+        "openTime": "2024-01-01T03:00:00Z",
+        "closeTime": "2024-01-01T04:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": null,
+          "shortEntry": true,
+          "longExit": null,
+          "shortExit": null
+        },
+        "balance": "-89000",
+        "unrealizedGross": "0",
+        "equity": "-89000",
+        "drawdownPct": "9000",
+        "positionSide": null
+      }
+    ],
+    "events": [
+      {
+        "id": 1,
+        "kind": "SIGNAL",
+        "barIndex": 0,
+        "action": "ENTRY",
+        "side": "short",
+        "signalBar": 0,
+        "signalTime": "2024-01-01T01:00:00Z",
+        "confirmationTime": "2024-01-01T01:00:00Z"
+      },
+      {
+        "id": 2,
+        "kind": "ENTRY",
+        "barIndex": 1,
+        "side": "short",
+        "rawPrice": "100",
+        "price": "100",
+        "quantity": "100",
+        "fee": "0",
+        "executionTime": "2024-01-01T01:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 0,
+        "signalTime": "2024-01-01T01:00:00Z"
+      },
+      {
+        "id": 3,
+        "kind": "EXIT",
+        "barIndex": 2,
+        "side": "short",
+        "rawPrice": "1000",
+        "price": "1000",
+        "quantity": "100",
+        "fee": "0",
+        "reason": "STOP_LOSS",
+        "executionTime": null,
+        "timePrecision": "BAR_INTERVAL",
+        "barOpenTime": "2024-01-01T02:00:00Z",
+        "barCloseTime": "2024-01-01T03:00:00Z",
+        "signalBar": null,
+        "signalTime": null
+      },
+      {
+        "id": 4,
+        "kind": "SIGNAL",
+        "barIndex": 2,
+        "action": "ENTRY",
+        "side": "short",
+        "signalBar": 2,
+        "signalTime": "2024-01-01T03:00:00Z",
+        "confirmationTime": "2024-01-01T03:00:00Z"
+      },
+      {
+        "id": 5,
+        "kind": "SKIP",
+        "barIndex": 3,
+        "reason": "NONPOSITIVE_EQUITY",
+        "signalBar": 2,
+        "signalTime": "2024-01-01T03:00:00Z"
+      },
+      {
+        "id": 6,
+        "kind": "SIGNAL",
+        "barIndex": 3,
+        "action": "ENTRY",
+        "side": "short",
+        "signalBar": 3,
+        "signalTime": "2024-01-01T04:00:00Z",
+        "confirmationTime": "2024-01-01T04:00:00Z"
+      }
+    ],
+    "trades": [
+      {
+        "side": "short",
+        "direction": -1,
+        "entryEventId": 2,
+        "entryBar": 1,
+        "entryTime": "2024-01-01T01:00:00Z",
+        "signalBar": 0,
+        "signalTime": "2024-01-01T01:00:00Z",
+        "entryPrice": "100",
+        "quantity": "100",
+        "margin": "1000",
+        "entryNotional": "10000",
+        "entryFee": "0",
+        "stopPrice": "105",
+        "takeProfitPrice": "90",
+        "exitEventId": 3,
+        "exitBar": 2,
+        "exitPrice": "1000",
+        "exitFee": "0",
+        "exitReason": "STOP_LOSS",
+        "exitTime": null,
+        "exitTimePrecision": "BAR_INTERVAL",
+        "grossPnl": "-90000",
+        "netPnl": "-90000"
+      }
+    ],
+    "openPosition": null,
+    "termination": {
+      "reason": "DATASET_END",
+      "cancelledOrder": {
+        "action": "ENTRY",
+        "side": "short",
+        "signalBar": 3,
+        "signalTime": "2024-01-01T04:00:00Z"
+      }
+    },
+    "metrics": {
+      "initialCapital": "1000",
+      "finalBalance": "-89000",
+      "finalEquity": "-89000",
+      "netProfit": "-90000",
+      "returnPct": "-9000",
+      "closedNetPnl": "-90000",
+      "totalFees": "0",
+      "maxDrawdownPct": "9000",
+      "closedTrades": 1,
+      "winningTrades": 0,
+      "losingTrades": 1,
+      "breakevenTrades": 0,
+      "winRatePct": "0",
+      "profitFactor": "0"
+    },
+    "runCard": {
+      "engineVersion": "1.0.0",
+      "protocolVersion": "1.0.0",
+      "schemaVersion": "1.0.0",
+      "validatorVersion": "1.0.0",
+      "canonicalization": "aitrading-canonical-1",
+      "dataFormat": "ohlcv-v1",
+      "decimalPolicy": "decimal34-half-even-v1",
+      "dslHash": "7eaa36c5eb0c33730c067e7f9b96aedce563324526744237a3c2646131034d13",
+      "canonicalDsl": "{\"execution\":{\"commissionBps\":0,\"fill\":\"next_bar_open\",\"maxPositions\":1,\"missingCandles\":\"reject\",\"sameBarExit\":\"stop_first\",\"signal\":\"bar_close\",\"slippageBps\":0,\"spreadBps\":0},\"indicators\":[],\"labels\":[\"price action\"],\"market\":{\"symbol\":\"BTC_USDT\",\"timeframe\":\"1h\",\"timezone\":\"UTC\"},\"name\":\"Neutral price research\",\"risk\":{\"allocationPct\":100,\"initialCapital\":1000,\"leverage\":10,\"stopLossPct\":5,\"takeProfitPct\":10},\"rules\":{\"longEntry\":null,\"longExit\":null,\"shortEntry\":{\"kind\":\"compare\",\"left\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"op\":\"gt\",\"right\":{\"kind\":\"constant\",\"value\":0}},\"shortExit\":null},\"schemaVersion\":\"1.0.0\"}",
+      "minimumBars": 1,
+      "dataset": {
+        "symbol": "BTC_USDT",
+        "timeframe": "1h",
+        "timezone": "UTC",
+        "sourceType": "SYNTHETIC",
+        "closedThrough": "2030-01-01T00:00:00Z",
+        "dataHash": "0ad08905446d7ff0c74fb8ed154352b23d7b2730460d59b49b8e2b452c48f0ba",
+        "count": 4,
+        "start": "2024-01-01T00:00:00Z",
+        "end": "2024-01-01T03:00:00Z",
+        "sourceVerified": false
+      },
+      "inputHash": "65f958654476c7877c883c74381fbf7f7440e4274b7e28b5d2889484539111ad",
+      "policy": {
+        "signal": "bar_close",
+        "fill": "next_bar_open",
+        "sameBarExit": "stop_first",
+        "missingCandles": "reject",
+        "maxPositions": "1",
+        "commissionBps": "0",
+        "spreadBps": "0",
+        "slippageBps": "0"
+      },
+      "limitations": [
+        "Unverified research data; historical results do not guarantee profit.",
+        "No funding, liquidation, broker tick/lot or live-order simulation.",
+        "Protective execution time is only known within its candle."
+      ]
+    },
+    "resultHash": "964b09a573539834825b9cfc00ba4023f1da6a0ade627631bdd3b452bfbd596d"
+  },
+  "targetStatus": "NOT_RUN_OFFICIAL_PINE_REQUIRES_LOGIN",
+  "numericTolerance": {
+    "absolute": "0.00000001",
+    "relative": "0.000000000001"
+  },
+  "eventPolicy": "Exact bar/side/reason/signal/confirmation identity; no numeric tolerance on event decisions."
+}

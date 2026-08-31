@@ -1,0 +1,6 @@
+- banner:
+  - button "Open navigation" [active]:
+  - paragraph: AI Trading
+  - heading "Pine Script" [level=1]
+- main:
+  - generic: Select a saved strategy in Strategy DSL to export Pine Script.

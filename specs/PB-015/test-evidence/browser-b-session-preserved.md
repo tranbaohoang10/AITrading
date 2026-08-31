@@ -1,0 +1,20 @@
+- banner:
+  - button "Open navigation" [active]:
+  - paragraph: AI Trading
+  - heading "Account" [level=1]
+- main:
+  - region "Account":
+    - heading "Account" [level=2]
+    - paragraph: pb015-b@example.test
+    - paragraph: Pine Browser B
+    - text: Display name
+    - textbox "Display name": Pine Browser B
+    - button "Save display name"
+    - heading "Change password" [level=3]
+    - paragraph: All sessions will end. Sign in again with your new password.
+    - text: Current password
+    - textbox "Current password"
+    - text: New password
+    - textbox "New password"
+    - button "Change password"
+    - button "Sign out"

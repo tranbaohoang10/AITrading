@@ -1,0 +1,1836 @@
+{
+  "request": {
+    "protocolVersion": "1.0.0",
+    "dsl": {
+      "schemaVersion": "1.0.0",
+      "name": "Neutral price research",
+      "labels": [
+        "price action"
+      ],
+      "market": {
+        "symbol": "BTC_USDT",
+        "timeframe": "1h",
+        "timezone": "UTC"
+      },
+      "indicators": [
+        {
+          "id": "trend",
+          "type": "TRENDLINE",
+          "pivotRef": "ph"
+        },
+        {
+          "id": "ph",
+          "type": "PIVOT_HIGH",
+          "left": 1,
+          "right": 1
+        },
+        {
+          "id": "pl",
+          "type": "PIVOT_LOW",
+          "left": 1,
+          "right": 1
+        },
+        {
+          "id": "atr",
+          "type": "ATR",
+          "period": 3
+        },
+        {
+          "id": "sma",
+          "type": "SMA",
+          "source": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "period": 3
+        },
+        {
+          "id": "ema",
+          "type": "EMA",
+          "source": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "period": 3
+        },
+        {
+          "id": "rsi",
+          "type": "RSI",
+          "source": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "period": 3
+        },
+        {
+          "id": "highest",
+          "type": "HIGHEST",
+          "source": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "period": 3
+        },
+        {
+          "id": "lowest",
+          "type": "LOWEST",
+          "source": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "period": 3
+        },
+        {
+          "id": "nested",
+          "type": "EMA",
+          "source": {
+            "kind": "indicator",
+            "id": "sma",
+            "lag": 1
+          },
+          "period": 2
+        }
+      ],
+      "rules": {
+        "longEntry": {
+          "kind": "any",
+          "children": [
+            {
+              "kind": "cross",
+              "direction": "above",
+              "left": {
+                "kind": "series",
+                "field": "close",
+                "lag": 0
+              },
+              "right": {
+                "kind": "indicator",
+                "id": "sma",
+                "lag": 0
+              }
+            },
+            {
+              "kind": "all",
+              "children": [
+                {
+                  "kind": "compare",
+                  "op": "lt",
+                  "left": {
+                    "kind": "indicator",
+                    "id": "rsi",
+                    "lag": 0
+                  },
+                  "right": {
+                    "kind": "constant",
+                    "value": 30
+                  }
+                },
+                {
+                  "kind": "not",
+                  "child": {
+                    "kind": "compare",
+                    "op": "gt",
+                    "left": {
+                      "kind": "indicator",
+                      "id": "trend",
+                      "lag": 0
+                    },
+                    "right": {
+                      "kind": "series",
+                      "field": "close",
+                      "lag": 0
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "shortEntry": null,
+        "longExit": {
+          "kind": "not",
+          "child": {
+            "kind": "compare",
+            "op": "gte",
+            "left": {
+              "kind": "series",
+              "field": "close",
+              "lag": 0
+            },
+            "right": {
+              "kind": "indicator",
+              "id": "ema",
+              "lag": 0
+            }
+          }
+        },
+        "shortExit": null
+      },
+      "risk": {
+        "initialCapital": 1000,
+        "allocationPct": 100,
+        "leverage": 1,
+        "stopLossPct": 50,
+        "takeProfitPct": 100
+      },
+      "execution": {
+        "signal": "bar_close",
+        "fill": "next_bar_open",
+        "sameBarExit": "stop_first",
+        "missingCandles": "reject",
+        "maxPositions": 1,
+        "commissionBps": 0,
+        "spreadBps": 0,
+        "slippageBps": 0
+      }
+    },
+    "dataset": {
+      "symbol": "BTC_USDT",
+      "timeframe": "1h",
+      "timezone": "UTC",
+      "sourceType": "SYNTHETIC",
+      "closedThrough": "2030-01-01T00:00:00Z",
+      "candles": [
+        {
+          "timestamp": "2024-01-01T00:00:00Z",
+          "open": "100",
+          "high": "101",
+          "low": "99",
+          "close": "100",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T01:00:00Z",
+          "open": "103",
+          "high": "104",
+          "low": "102",
+          "close": "103",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T02:00:00Z",
+          "open": "99",
+          "high": "100",
+          "low": "98",
+          "close": "99",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T03:00:00Z",
+          "open": "104",
+          "high": "105",
+          "low": "103",
+          "close": "104",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T04:00:00Z",
+          "open": "98",
+          "high": "99",
+          "low": "97",
+          "close": "98",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T05:00:00Z",
+          "open": "105",
+          "high": "106",
+          "low": "104",
+          "close": "105",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T06:00:00Z",
+          "open": "105",
+          "high": "106",
+          "low": "104",
+          "close": "105",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T07:00:00Z",
+          "open": "97",
+          "high": "98",
+          "low": "96",
+          "close": "97",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T08:00:00Z",
+          "open": "108",
+          "high": "109",
+          "low": "107",
+          "close": "108",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T09:00:00Z",
+          "open": "96",
+          "high": "97",
+          "low": "95",
+          "close": "96",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T10:00:00Z",
+          "open": "110",
+          "high": "111",
+          "low": "109",
+          "close": "110",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T11:00:00Z",
+          "open": "99",
+          "high": "100",
+          "low": "98",
+          "close": "99",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T12:00:00Z",
+          "open": "113",
+          "high": "114",
+          "low": "112",
+          "close": "113",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T13:00:00Z",
+          "open": "100",
+          "high": "101",
+          "low": "99",
+          "close": "100",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T14:00:00Z",
+          "open": "115",
+          "high": "116",
+          "low": "114",
+          "close": "115",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T15:00:00Z",
+          "open": "101",
+          "high": "102",
+          "low": "100",
+          "close": "101",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T16:00:00Z",
+          "open": "104",
+          "high": "105",
+          "low": "103",
+          "close": "104",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T17:00:00Z",
+          "open": "102",
+          "high": "103",
+          "low": "101",
+          "close": "102",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T18:00:00Z",
+          "open": "100",
+          "high": "101",
+          "low": "99",
+          "close": "100",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T19:00:00Z",
+          "open": "99",
+          "high": "100",
+          "low": "98",
+          "close": "99",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T20:00:00Z",
+          "open": "103",
+          "high": "104",
+          "low": "102",
+          "close": "103",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T21:00:00Z",
+          "open": "106",
+          "high": "107",
+          "low": "105",
+          "close": "106",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T22:00:00Z",
+          "open": "102",
+          "high": "103",
+          "low": "101",
+          "close": "102",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T23:00:00Z",
+          "open": "108",
+          "high": "109",
+          "low": "107",
+          "close": "108",
+          "volume": "10"
+        }
+      ]
+    }
+  },
+  "reference": {
+    "bars": [
+      {
+        "index": 0,
+        "openTime": "2024-01-01T00:00:00Z",
+        "closeTime": "2024-01-01T01:00:00Z",
+        "indicators": {
+          "ph": null,
+          "trend": null,
+          "pl": null,
+          "atr": null,
+          "sma": null,
+          "ema": null,
+          "rsi": null,
+          "highest": null,
+          "lowest": null,
+          "nested": null
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": null
+        },
+        "rules": {
+          "longEntry": null,
+          "shortEntry": null,
+          "longExit": null,
+          "shortExit": null
+        },
+        "balance": "1000",
+        "unrealizedGross": "0",
+        "equity": "1000",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 1,
+        "openTime": "2024-01-01T01:00:00Z",
+        "closeTime": "2024-01-01T02:00:00Z",
+        "indicators": {
+          "ph": null,
+          "trend": null,
+          "pl": null,
+          "atr": null,
+          "sma": null,
+          "ema": null,
+          "rsi": null,
+          "highest": null,
+          "lowest": null,
+          "nested": null
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": null
+        },
+        "rules": {
+          "longEntry": null,
+          "shortEntry": null,
+          "longExit": null,
+          "shortExit": null
+        },
+        "balance": "1000",
+        "unrealizedGross": "0",
+        "equity": "1000",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 2,
+        "openTime": "2024-01-01T02:00:00Z",
+        "closeTime": "2024-01-01T03:00:00Z",
+        "indicators": {
+          "ph": "104",
+          "trend": null,
+          "pl": null,
+          "atr": null,
+          "sma": "100.6666666666666666666666666666667",
+          "ema": "100.6666666666666666666666666666667",
+          "rsi": null,
+          "highest": "103",
+          "lowest": "99",
+          "nested": null
+        },
+        "pivotConfirmations": {
+          "ph": {
+            "originalIndex": 1,
+            "price": "104"
+          },
+          "pl": null
+        },
+        "rules": {
+          "longEntry": null,
+          "shortEntry": null,
+          "longExit": true,
+          "shortExit": null
+        },
+        "balance": "1000",
+        "unrealizedGross": "0",
+        "equity": "1000",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 3,
+        "openTime": "2024-01-01T03:00:00Z",
+        "closeTime": "2024-01-01T04:00:00Z",
+        "indicators": {
+          "ph": "104",
+          "trend": null,
+          "pl": "98",
+          "atr": "5",
+          "sma": "102",
+          "ema": "102.3333333333333333333333333333334",
+          "rsi": "66.66666666666666666666666666666668",
+          "highest": "104",
+          "lowest": "99",
+          "nested": null
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": {
+            "originalIndex": 2,
+            "price": "98"
+          }
+        },
+        "rules": {
+          "longEntry": true,
+          "shortEntry": null,
+          "longExit": false,
+          "shortExit": null
+        },
+        "balance": "1000",
+        "unrealizedGross": "0",
+        "equity": "1000",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 4,
+        "openTime": "2024-01-01T04:00:00Z",
+        "closeTime": "2024-01-01T05:00:00Z",
+        "indicators": {
+          "ph": "105",
+          "trend": "105.5",
+          "pl": "98",
+          "atr": "5.666666666666666666666666666666667",
+          "sma": "100.3333333333333333333333333333333",
+          "ema": "100.1666666666666666666666666666667",
+          "rsi": "38.09523809523809523809523809523808",
+          "highest": "104",
+          "lowest": "98",
+          "nested": "101.3333333333333333333333333333334"
+        },
+        "pivotConfirmations": {
+          "ph": {
+            "originalIndex": 3,
+            "price": "105"
+          },
+          "pl": null
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": true,
+          "shortExit": null
+        },
+        "balance": "1000",
+        "unrealizedGross": "0",
+        "equity": "1000",
+        "drawdownPct": "0",
+        "positionSide": "long"
+      },
+      {
+        "index": 5,
+        "openTime": "2024-01-01T05:00:00Z",
+        "closeTime": "2024-01-01T06:00:00Z",
+        "indicators": {
+          "ph": "105",
+          "trend": "106",
+          "pl": "97",
+          "atr": "6.444444444444444444444444444444445",
+          "sma": "102.3333333333333333333333333333333",
+          "ema": "102.5833333333333333333333333333334",
+          "rsi": "64.6258503401360544217687074829932",
+          "highest": "105",
+          "lowest": "98",
+          "nested": "100.6666666666666666666666666666667"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": {
+            "originalIndex": 4,
+            "price": "97"
+          }
+        },
+        "rules": {
+          "longEntry": true,
+          "shortEntry": null,
+          "longExit": false,
+          "shortExit": null
+        },
+        "balance": "1071.428571428571428571428571428571",
+        "unrealizedGross": "0",
+        "equity": "1071.428571428571428571428571428571",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 6,
+        "openTime": "2024-01-01T06:00:00Z",
+        "closeTime": "2024-01-01T07:00:00Z",
+        "indicators": {
+          "ph": "105",
+          "trend": "106.5",
+          "pl": "97",
+          "atr": "4.962962962962962962962962962962963",
+          "sma": "102.6666666666666666666666666666667",
+          "ema": "103.7916666666666666666666666666667",
+          "rsi": "64.62585034013605442176870748299319",
+          "highest": "105",
+          "lowest": "98",
+          "nested": "101.7777777777777777777777777777778"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": null
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": false,
+          "shortExit": null
+        },
+        "balance": "1071.428571428571428571428571428571",
+        "unrealizedGross": "0",
+        "equity": "1071.428571428571428571428571428571",
+        "drawdownPct": "0",
+        "positionSide": "long"
+      },
+      {
+        "index": 7,
+        "openTime": "2024-01-01T07:00:00Z",
+        "closeTime": "2024-01-01T08:00:00Z",
+        "indicators": {
+          "ph": "105",
+          "trend": "107",
+          "pl": "97",
+          "atr": "6.308641975308641975308641975308642",
+          "sma": "102.3333333333333333333333333333333",
+          "ema": "100.3958333333333333333333333333334",
+          "rsi": "30.74433656957928802588996763754044",
+          "highest": "105",
+          "lowest": "97",
+          "nested": "102.3703703703703703703703703703704"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": null
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": true,
+          "shortExit": null
+        },
+        "balance": "1071.428571428571428571428571428571",
+        "unrealizedGross": "-81.63265306122448979591836734693872",
+        "equity": "989.7959183673469387755102040816323",
+        "drawdownPct": "7.619047619047619047619047619047615",
+        "positionSide": "long"
+      },
+      {
+        "index": 8,
+        "openTime": "2024-01-01T08:00:00Z",
+        "closeTime": "2024-01-01T09:00:00Z",
+        "indicators": {
+          "ph": "105",
+          "trend": "107.5",
+          "pl": "96",
+          "atr": "8.205761316872427983539094650205761",
+          "sma": "103.3333333333333333333333333333333",
+          "ema": "104.1979166666666666666666666666667",
+          "rsi": "66.7249757045675413022351797862002",
+          "highest": "108",
+          "lowest": "97",
+          "nested": "102.3456790123456790123456790123457"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": {
+            "originalIndex": 7,
+            "price": "96"
+          }
+        },
+        "rules": {
+          "longEntry": true,
+          "shortEntry": null,
+          "longExit": false,
+          "shortExit": null
+        },
+        "balance": "1102.040816326530612244897959183673",
+        "unrealizedGross": "0",
+        "equity": "1102.040816326530612244897959183673",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 9,
+        "openTime": "2024-01-01T09:00:00Z",
+        "closeTime": "2024-01-01T10:00:00Z",
+        "indicators": {
+          "ph": "109",
+          "trend": "109.8",
+          "pl": "96",
+          "atr": "9.803840877914951989026063100137174",
+          "sma": "100.3333333333333333333333333333333",
+          "ema": "100.0989583333333333333333333333334",
+          "rsi": "36.06471267990335119235213782960396",
+          "highest": "108",
+          "lowest": "96",
+          "nested": "103.0041152263374485596707818930041"
+        },
+        "pivotConfirmations": {
+          "ph": {
+            "originalIndex": 8,
+            "price": "109"
+          },
+          "pl": null
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": true,
+          "shortExit": null
+        },
+        "balance": "1102.040816326530612244897959183673",
+        "unrealizedGross": "0",
+        "equity": "1102.040816326530612244897959183673",
+        "drawdownPct": "0",
+        "positionSide": "long"
+      },
+      {
+        "index": 10,
+        "openTime": "2024-01-01T10:00:00Z",
+        "closeTime": "2024-01-01T11:00:00Z",
+        "indicators": {
+          "ph": "109",
+          "trend": "110.6",
+          "pl": "95",
+          "atr": "11.53589391860996799268404206675812",
+          "sma": "104.6666666666666666666666666666667",
+          "ema": "105.0494791666666666666666666666667",
+          "rsi": "64.56167933152822662823536262264536",
+          "highest": "110",
+          "lowest": "96",
+          "nested": "101.2235939643347050754458161865569"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": {
+            "originalIndex": 9,
+            "price": "95"
+          }
+        },
+        "rules": {
+          "longEntry": true,
+          "shortEntry": null,
+          "longExit": false,
+          "shortExit": null
+        },
+        "balance": "1262.755102040816326530612244897959",
+        "unrealizedGross": "0",
+        "equity": "1262.755102040816326530612244897959",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 11,
+        "openTime": "2024-01-01T11:00:00Z",
+        "closeTime": "2024-01-01T12:00:00Z",
+        "indicators": {
+          "ph": "111",
+          "trend": "112",
+          "pl": "95",
+          "atr": "11.69059594573997866178936137783875",
+          "sma": "101.6666666666666666666666666666667",
+          "ema": "102.0247395833333333333333333333334",
+          "rsi": "42.32698190008541747192914644563107",
+          "highest": "110",
+          "lowest": "96",
+          "nested": "103.5189757658893461362597165066301"
+        },
+        "pivotConfirmations": {
+          "ph": {
+            "originalIndex": 10,
+            "price": "111"
+          },
+          "pl": null
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": true,
+          "shortExit": null
+        },
+        "balance": "1262.755102040816326530612244897959",
+        "unrealizedGross": "0",
+        "equity": "1262.755102040816326530612244897959",
+        "drawdownPct": "0",
+        "positionSide": "long"
+      },
+      {
+        "index": 12,
+        "openTime": "2024-01-01T12:00:00Z",
+        "closeTime": "2024-01-01T13:00:00Z",
+        "indicators": {
+          "ph": "111",
+          "trend": "113",
+          "pl": "98",
+          "atr": "12.7937306304933191078595742518925",
+          "sma": "107.3333333333333333333333333333333",
+          "ema": "107.5123697916666666666666666666667",
+          "rsi": "65.20441066390280416882593424310473",
+          "highest": "113",
+          "lowest": "99",
+          "nested": "102.2841030330742264898643499466545"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": {
+            "originalIndex": 11,
+            "price": "98"
+          }
+        },
+        "rules": {
+          "longEntry": true,
+          "shortEntry": null,
+          "longExit": false,
+          "shortExit": null
+        },
+        "balance": "1441.326530612244897959183673469388",
+        "unrealizedGross": "0",
+        "equity": "1441.326530612244897959183673469388",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 13,
+        "openTime": "2024-01-01T13:00:00Z",
+        "closeTime": "2024-01-01T14:00:00Z",
+        "indicators": {
+          "ph": "114",
+          "trend": "115.5",
+          "pl": "98",
+          "atr": "13.19582042032887940523971616792833",
+          "sma": "104",
+          "ema": "103.7561848958333333333333333333334",
+          "rsi": "41.99931664253589597018447406278265",
+          "highest": "113",
+          "lowest": "99",
+          "nested": "105.6502565665802977188436722044404"
+        },
+        "pivotConfirmations": {
+          "ph": {
+            "originalIndex": 12,
+            "price": "114"
+          },
+          "pl": null
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": true,
+          "shortExit": null
+        },
+        "balance": "1441.326530612244897959183673469388",
+        "unrealizedGross": "0",
+        "equity": "1441.326530612244897959183673469388",
+        "drawdownPct": "0",
+        "positionSide": "long"
+      },
+      {
+        "index": 14,
+        "openTime": "2024-01-01T14:00:00Z",
+        "closeTime": "2024-01-01T15:00:00Z",
+        "indicators": {
+          "ph": "114",
+          "trend": "117",
+          "pl": "99",
+          "atr": "14.13054694688591960349314411195222",
+          "sma": "109.3333333333333333333333333333333",
+          "ema": "109.3780924479166666666666666666667",
+          "rsi": "64.10737951964934582989239010391182",
+          "highest": "115",
+          "lowest": "100",
+          "nested": "104.5500855221934325729478907348135"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": {
+            "originalIndex": 13,
+            "price": "99"
+          }
+        },
+        "rules": {
+          "longEntry": true,
+          "shortEntry": null,
+          "longExit": false,
+          "shortExit": null
+        },
+        "balance": "1657.525510204081632653061224489796",
+        "unrealizedGross": "0",
+        "equity": "1657.525510204081632653061224489796",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 15,
+        "openTime": "2024-01-01T15:00:00Z",
+        "closeTime": "2024-01-01T16:00:00Z",
+        "indicators": {
+          "ph": "116",
+          "trend": "117",
+          "pl": "99",
+          "atr": "14.42036463125727973566209607463481",
+          "sma": "105.3333333333333333333333333333333",
+          "ema": "105.1890462239583333333333333333334",
+          "rsi": "41.80089280185751274449116785389521",
+          "highest": "115",
+          "lowest": "100",
+          "nested": "107.7389173962866997465381858004934"
+        },
+        "pivotConfirmations": {
+          "ph": {
+            "originalIndex": 14,
+            "price": "116"
+          },
+          "pl": null
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": true,
+          "shortExit": null
+        },
+        "balance": "1657.525510204081632653061224489796",
+        "unrealizedGross": "0",
+        "equity": "1657.525510204081632653061224489796",
+        "drawdownPct": "0",
+        "positionSide": "long"
+      },
+      {
+        "index": 16,
+        "openTime": "2024-01-01T16:00:00Z",
+        "closeTime": "2024-01-01T17:00:00Z",
+        "indicators": {
+          "ph": "116",
+          "trend": "118",
+          "pl": "100",
+          "atr": "10.94690975417151982377473071642321",
+          "sma": "106.6666666666666666666666666666667",
+          "ema": "104.5945231119791666666666666666667",
+          "rsi": "47.65526867491040075554628214162779",
+          "highest": "115",
+          "lowest": "101",
+          "nested": "106.1351946876511221377349508223867"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": {
+            "originalIndex": 15,
+            "price": "100"
+          }
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": true,
+          "shortExit": null
+        },
+        "balance": "1706.758941200242473226914528187513",
+        "unrealizedGross": "0",
+        "equity": "1706.758941200242473226914528187513",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 17,
+        "openTime": "2024-01-01T17:00:00Z",
+        "closeTime": "2024-01-01T18:00:00Z",
+        "indicators": {
+          "ph": "105",
+          "trend": "99.5",
+          "pl": "100",
+          "atr": "8.297939836114346549183153810948807",
+          "sma": "102.3333333333333333333333333333333",
+          "ema": "103.2972615559895833333333333333334",
+          "rsi": "43.29966080196851270913909251866796",
+          "highest": "104",
+          "lowest": "101",
+          "nested": "106.4895093403281518236894280519067"
+        },
+        "pivotConfirmations": {
+          "ph": {
+            "originalIndex": 16,
+            "price": "105"
+          },
+          "pl": null
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": true,
+          "shortExit": null
+        },
+        "balance": "1706.758941200242473226914528187513",
+        "unrealizedGross": "0",
+        "equity": "1706.758941200242473226914528187513",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 18,
+        "openTime": "2024-01-01T18:00:00Z",
+        "closeTime": "2024-01-01T19:00:00Z",
+        "indicators": {
+          "ph": "105",
+          "trend": "94",
+          "pl": "100",
+          "atr": "6.531959890742897699455435873965872",
+          "sma": "102",
+          "ema": "101.6486307779947916666666666666667",
+          "rsi": "38.07911450523792026037644850704686",
+          "highest": "104",
+          "lowest": "100",
+          "nested": "103.7187253356649394967853649061911"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": null
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": true,
+          "shortExit": null
+        },
+        "balance": "1706.758941200242473226914528187513",
+        "unrealizedGross": "0",
+        "equity": "1706.758941200242473226914528187513",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 19,
+        "openTime": "2024-01-01T19:00:00Z",
+        "closeTime": "2024-01-01T20:00:00Z",
+        "indicators": {
+          "ph": "105",
+          "trend": "88.5",
+          "pl": "100",
+          "atr": "5.021306593828598466303623915977248",
+          "sma": "100.3333333333333333333333333333333",
+          "ema": "100.3243153889973958333333333333334",
+          "rsi": "34.92132328511452437901519792276114",
+          "highest": "102",
+          "lowest": "99",
+          "nested": "102.5729084452216464989284549687304"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": null
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": true,
+          "shortExit": null
+        },
+        "balance": "1706.758941200242473226914528187513",
+        "unrealizedGross": "0",
+        "equity": "1706.758941200242473226914528187513",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 20,
+        "openTime": "2024-01-01T20:00:00Z",
+        "closeTime": "2024-01-01T21:00:00Z",
+        "indicators": {
+          "ph": "105",
+          "trend": "83",
+          "pl": "98",
+          "atr": "5.014204395885732310869082610651499",
+          "sma": "100.6666666666666666666666666666667",
+          "ema": "101.6621576944986979166666666666667",
+          "rsi": "56.54360489916240556599584709922882",
+          "highest": "103",
+          "lowest": "99",
+          "nested": "101.0798583706294377218650405451323"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": {
+            "originalIndex": 19,
+            "price": "98"
+          }
+        },
+        "rules": {
+          "longEntry": true,
+          "shortEntry": null,
+          "longExit": false,
+          "shortExit": null
+        },
+        "balance": "1706.758941200242473226914528187513",
+        "unrealizedGross": "0",
+        "equity": "1706.758941200242473226914528187513",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 21,
+        "openTime": "2024-01-01T21:00:00Z",
+        "closeTime": "2024-01-01T22:00:00Z",
+        "indicators": {
+          "ph": "105",
+          "trend": "77.5",
+          "pl": "98",
+          "atr": "4.676136263923821540579388407100999",
+          "sma": "102.6666666666666666666666666666667",
+          "ema": "103.8310788472493489583333333333334",
+          "rsi": "68.36726767497207678010051790075774",
+          "highest": "106",
+          "lowest": "99",
+          "nested": "100.8043972346542570183994579594886"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": null
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": false,
+          "shortExit": null
+        },
+        "balance": "1706.758941200242473226914528187513",
+        "unrealizedGross": "0",
+        "equity": "1706.758941200242473226914528187513",
+        "drawdownPct": "0",
+        "positionSide": "long"
+      },
+      {
+        "index": 22,
+        "openTime": "2024-01-01T22:00:00Z",
+        "closeTime": "2024-01-01T23:00:00Z",
+        "indicators": {
+          "ph": "107",
+          "trend": "107.4",
+          "pl": "98",
+          "atr": "4.784090842615881027052925604733999",
+          "sma": "103.6666666666666666666666666666667",
+          "ema": "102.9155394236246744791666666666667",
+          "rsi": "44.27466863477903035567576036318009",
+          "highest": "106",
+          "lowest": "102",
+          "nested": "102.0459101893291967839109304309407"
+        },
+        "pivotConfirmations": {
+          "ph": {
+            "originalIndex": 21,
+            "price": "107"
+          },
+          "pl": null
+        },
+        "rules": {
+          "longEntry": false,
+          "shortEntry": null,
+          "longExit": true,
+          "shortExit": null
+        },
+        "balance": "1706.758941200242473226914528187513",
+        "unrealizedGross": "-64.40599778114122540478922747877408",
+        "equity": "1642.352943419101247822125300708739",
+        "drawdownPct": "3.773584905660377358490566037735845",
+        "positionSide": "long"
+      },
+      {
+        "index": 23,
+        "openTime": "2024-01-01T23:00:00Z",
+        "closeTime": "2024-01-02T00:00:00Z",
+        "indicators": {
+          "ph": "107",
+          "trend": "107.8",
+          "pl": "101",
+          "atr": "5.522727228410587351368617069822666",
+          "sma": "105.3333333333333333333333333333333",
+          "ema": "105.4577697118123372395833333333334",
+          "rsi": "68.91886995873392213293616895526693",
+          "highest": "108",
+          "lowest": "102",
+          "nested": "103.1264145075541767057480879214247"
+        },
+        "pivotConfirmations": {
+          "ph": null,
+          "pl": {
+            "originalIndex": 22,
+            "price": "101"
+          }
+        },
+        "rules": {
+          "longEntry": true,
+          "shortEntry": null,
+          "longExit": false,
+          "shortExit": null
+        },
+        "balance": "1738.9619400908130859293091419269",
+        "unrealizedGross": "0",
+        "equity": "1738.9619400908130859293091419269",
+        "drawdownPct": "0",
+        "positionSide": null
+      }
+    ],
+    "events": [
+      {
+        "id": 1,
+        "kind": "SIGNAL",
+        "barIndex": 3,
+        "action": "ENTRY",
+        "side": "long",
+        "signalBar": 3,
+        "signalTime": "2024-01-01T04:00:00Z",
+        "confirmationTime": "2024-01-01T04:00:00Z"
+      },
+      {
+        "id": 2,
+        "kind": "ENTRY",
+        "barIndex": 4,
+        "side": "long",
+        "rawPrice": "98",
+        "price": "98",
+        "quantity": "10.20408163265306122448979591836735",
+        "fee": "0",
+        "executionTime": "2024-01-01T04:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 3,
+        "signalTime": "2024-01-01T04:00:00Z"
+      },
+      {
+        "id": 3,
+        "kind": "SIGNAL",
+        "barIndex": 4,
+        "action": "EXIT",
+        "side": "long",
+        "signalBar": 4,
+        "signalTime": "2024-01-01T05:00:00Z",
+        "confirmationTime": "2024-01-01T05:00:00Z"
+      },
+      {
+        "id": 4,
+        "kind": "EXIT",
+        "barIndex": 5,
+        "side": "long",
+        "rawPrice": "105",
+        "price": "105",
+        "quantity": "10.20408163265306122448979591836735",
+        "fee": "0",
+        "reason": "RULE_EXIT",
+        "executionTime": "2024-01-01T05:00:00Z",
+        "timePrecision": "OPEN",
+        "barOpenTime": "2024-01-01T05:00:00Z",
+        "barCloseTime": "2024-01-01T06:00:00Z",
+        "signalBar": 4,
+        "signalTime": "2024-01-01T05:00:00Z"
+      },
+      {
+        "id": 5,
+        "kind": "SIGNAL",
+        "barIndex": 5,
+        "action": "ENTRY",
+        "side": "long",
+        "signalBar": 5,
+        "signalTime": "2024-01-01T06:00:00Z",
+        "confirmationTime": "2024-01-01T06:00:00Z"
+      },
+      {
+        "id": 6,
+        "kind": "ENTRY",
+        "barIndex": 6,
+        "side": "long",
+        "rawPrice": "105",
+        "price": "105",
+        "quantity": "10.20408163265306122448979591836734",
+        "fee": "0",
+        "executionTime": "2024-01-01T06:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 5,
+        "signalTime": "2024-01-01T06:00:00Z"
+      },
+      {
+        "id": 7,
+        "kind": "SIGNAL",
+        "barIndex": 7,
+        "action": "EXIT",
+        "side": "long",
+        "signalBar": 7,
+        "signalTime": "2024-01-01T08:00:00Z",
+        "confirmationTime": "2024-01-01T08:00:00Z"
+      },
+      {
+        "id": 8,
+        "kind": "EXIT",
+        "barIndex": 8,
+        "side": "long",
+        "rawPrice": "108",
+        "price": "108",
+        "quantity": "10.20408163265306122448979591836734",
+        "fee": "0",
+        "reason": "RULE_EXIT",
+        "executionTime": "2024-01-01T08:00:00Z",
+        "timePrecision": "OPEN",
+        "barOpenTime": "2024-01-01T08:00:00Z",
+        "barCloseTime": "2024-01-01T09:00:00Z",
+        "signalBar": 7,
+        "signalTime": "2024-01-01T08:00:00Z"
+      },
+      {
+        "id": 9,
+        "kind": "SIGNAL",
+        "barIndex": 8,
+        "action": "ENTRY",
+        "side": "long",
+        "signalBar": 8,
+        "signalTime": "2024-01-01T09:00:00Z",
+        "confirmationTime": "2024-01-01T09:00:00Z"
+      },
+      {
+        "id": 10,
+        "kind": "ENTRY",
+        "barIndex": 9,
+        "side": "long",
+        "rawPrice": "96",
+        "price": "96",
+        "quantity": "11.47959183673469387755102040816326",
+        "fee": "0",
+        "executionTime": "2024-01-01T09:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 8,
+        "signalTime": "2024-01-01T09:00:00Z"
+      },
+      {
+        "id": 11,
+        "kind": "SIGNAL",
+        "barIndex": 9,
+        "action": "EXIT",
+        "side": "long",
+        "signalBar": 9,
+        "signalTime": "2024-01-01T10:00:00Z",
+        "confirmationTime": "2024-01-01T10:00:00Z"
+      },
+      {
+        "id": 12,
+        "kind": "EXIT",
+        "barIndex": 10,
+        "side": "long",
+        "rawPrice": "110",
+        "price": "110",
+        "quantity": "11.47959183673469387755102040816326",
+        "fee": "0",
+        "reason": "RULE_EXIT",
+        "executionTime": "2024-01-01T10:00:00Z",
+        "timePrecision": "OPEN",
+        "barOpenTime": "2024-01-01T10:00:00Z",
+        "barCloseTime": "2024-01-01T11:00:00Z",
+        "signalBar": 9,
+        "signalTime": "2024-01-01T10:00:00Z"
+      },
+      {
+        "id": 13,
+        "kind": "SIGNAL",
+        "barIndex": 10,
+        "action": "ENTRY",
+        "side": "long",
+        "signalBar": 10,
+        "signalTime": "2024-01-01T11:00:00Z",
+        "confirmationTime": "2024-01-01T11:00:00Z"
+      },
+      {
+        "id": 14,
+        "kind": "ENTRY",
+        "barIndex": 11,
+        "side": "long",
+        "rawPrice": "99",
+        "price": "99",
+        "quantity": "12.75510204081632653061224489795918",
+        "fee": "0",
+        "executionTime": "2024-01-01T11:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 10,
+        "signalTime": "2024-01-01T11:00:00Z"
+      },
+      {
+        "id": 15,
+        "kind": "SIGNAL",
+        "barIndex": 11,
+        "action": "EXIT",
+        "side": "long",
+        "signalBar": 11,
+        "signalTime": "2024-01-01T12:00:00Z",
+        "confirmationTime": "2024-01-01T12:00:00Z"
+      },
+      {
+        "id": 16,
+        "kind": "EXIT",
+        "barIndex": 12,
+        "side": "long",
+        "rawPrice": "113",
+        "price": "113",
+        "quantity": "12.75510204081632653061224489795918",
+        "fee": "0",
+        "reason": "RULE_EXIT",
+        "executionTime": "2024-01-01T12:00:00Z",
+        "timePrecision": "OPEN",
+        "barOpenTime": "2024-01-01T12:00:00Z",
+        "barCloseTime": "2024-01-01T13:00:00Z",
+        "signalBar": 11,
+        "signalTime": "2024-01-01T12:00:00Z"
+      },
+      {
+        "id": 17,
+        "kind": "SIGNAL",
+        "barIndex": 12,
+        "action": "ENTRY",
+        "side": "long",
+        "signalBar": 12,
+        "signalTime": "2024-01-01T13:00:00Z",
+        "confirmationTime": "2024-01-01T13:00:00Z"
+      },
+      {
+        "id": 18,
+        "kind": "ENTRY",
+        "barIndex": 13,
+        "side": "long",
+        "rawPrice": "100",
+        "price": "100",
+        "quantity": "14.41326530612244897959183673469388",
+        "fee": "0",
+        "executionTime": "2024-01-01T13:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 12,
+        "signalTime": "2024-01-01T13:00:00Z"
+      },
+      {
+        "id": 19,
+        "kind": "SIGNAL",
+        "barIndex": 13,
+        "action": "EXIT",
+        "side": "long",
+        "signalBar": 13,
+        "signalTime": "2024-01-01T14:00:00Z",
+        "confirmationTime": "2024-01-01T14:00:00Z"
+      },
+      {
+        "id": 20,
+        "kind": "EXIT",
+        "barIndex": 14,
+        "side": "long",
+        "rawPrice": "115",
+        "price": "115",
+        "quantity": "14.41326530612244897959183673469388",
+        "fee": "0",
+        "reason": "RULE_EXIT",
+        "executionTime": "2024-01-01T14:00:00Z",
+        "timePrecision": "OPEN",
+        "barOpenTime": "2024-01-01T14:00:00Z",
+        "barCloseTime": "2024-01-01T15:00:00Z",
+        "signalBar": 13,
+        "signalTime": "2024-01-01T14:00:00Z"
+      },
+      {
+        "id": 21,
+        "kind": "SIGNAL",
+        "barIndex": 14,
+        "action": "ENTRY",
+        "side": "long",
+        "signalBar": 14,
+        "signalTime": "2024-01-01T15:00:00Z",
+        "confirmationTime": "2024-01-01T15:00:00Z"
+      },
+      {
+        "id": 22,
+        "kind": "ENTRY",
+        "barIndex": 15,
+        "side": "long",
+        "rawPrice": "101",
+        "price": "101",
+        "quantity": "16.41114366538694685795110123257224",
+        "fee": "0",
+        "executionTime": "2024-01-01T15:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 14,
+        "signalTime": "2024-01-01T15:00:00Z"
+      },
+      {
+        "id": 23,
+        "kind": "SIGNAL",
+        "barIndex": 15,
+        "action": "EXIT",
+        "side": "long",
+        "signalBar": 15,
+        "signalTime": "2024-01-01T16:00:00Z",
+        "confirmationTime": "2024-01-01T16:00:00Z"
+      },
+      {
+        "id": 24,
+        "kind": "EXIT",
+        "barIndex": 16,
+        "side": "long",
+        "rawPrice": "104",
+        "price": "104",
+        "quantity": "16.41114366538694685795110123257224",
+        "fee": "0",
+        "reason": "RULE_EXIT",
+        "executionTime": "2024-01-01T16:00:00Z",
+        "timePrecision": "OPEN",
+        "barOpenTime": "2024-01-01T16:00:00Z",
+        "barCloseTime": "2024-01-01T17:00:00Z",
+        "signalBar": 15,
+        "signalTime": "2024-01-01T16:00:00Z"
+      },
+      {
+        "id": 25,
+        "kind": "SIGNAL",
+        "barIndex": 20,
+        "action": "ENTRY",
+        "side": "long",
+        "signalBar": 20,
+        "signalTime": "2024-01-01T21:00:00Z",
+        "confirmationTime": "2024-01-01T21:00:00Z"
+      },
+      {
+        "id": 26,
+        "kind": "ENTRY",
+        "barIndex": 21,
+        "side": "long",
+        "rawPrice": "106",
+        "price": "106",
+        "quantity": "16.10149944528530635119730686969352",
+        "fee": "0",
+        "executionTime": "2024-01-01T21:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 20,
+        "signalTime": "2024-01-01T21:00:00Z"
+      },
+      {
+        "id": 27,
+        "kind": "SIGNAL",
+        "barIndex": 22,
+        "action": "EXIT",
+        "side": "long",
+        "signalBar": 22,
+        "signalTime": "2024-01-01T23:00:00Z",
+        "confirmationTime": "2024-01-01T23:00:00Z"
+      },
+      {
+        "id": 28,
+        "kind": "EXIT",
+        "barIndex": 23,
+        "side": "long",
+        "rawPrice": "108",
+        "price": "108",
+        "quantity": "16.10149944528530635119730686969352",
+        "fee": "0",
+        "reason": "RULE_EXIT",
+        "executionTime": "2024-01-01T23:00:00Z",
+        "timePrecision": "OPEN",
+        "barOpenTime": "2024-01-01T23:00:00Z",
+        "barCloseTime": "2024-01-02T00:00:00Z",
+        "signalBar": 22,
+        "signalTime": "2024-01-01T23:00:00Z"
+      },
+      {
+        "id": 29,
+        "kind": "SIGNAL",
+        "barIndex": 23,
+        "action": "ENTRY",
+        "side": "long",
+        "signalBar": 23,
+        "signalTime": "2024-01-02T00:00:00Z",
+        "confirmationTime": "2024-01-02T00:00:00Z"
+      }
+    ],
+    "trades": [
+      {
+        "side": "long",
+        "direction": 1,
+        "entryEventId": 2,
+        "entryBar": 4,
+        "entryTime": "2024-01-01T04:00:00Z",
+        "signalBar": 3,
+        "signalTime": "2024-01-01T04:00:00Z",
+        "entryPrice": "98",
+        "quantity": "10.20408163265306122448979591836735",
+        "margin": "1000",
+        "entryNotional": "1000",
+        "entryFee": "0",
+        "stopPrice": "49",
+        "takeProfitPrice": "196",
+        "exitEventId": 4,
+        "exitBar": 5,
+        "exitPrice": "105",
+        "exitFee": "0",
+        "exitReason": "RULE_EXIT",
+        "exitTime": "2024-01-01T05:00:00Z",
+        "exitTimePrecision": "OPEN",
+        "grossPnl": "71.42857142857142857142857142857145",
+        "netPnl": "71.42857142857142857142857142857145"
+      },
+      {
+        "side": "long",
+        "direction": 1,
+        "entryEventId": 6,
+        "entryBar": 6,
+        "entryTime": "2024-01-01T06:00:00Z",
+        "signalBar": 5,
+        "signalTime": "2024-01-01T06:00:00Z",
+        "entryPrice": "105",
+        "quantity": "10.20408163265306122448979591836734",
+        "margin": "1071.428571428571428571428571428571",
+        "entryNotional": "1071.428571428571428571428571428571",
+        "entryFee": "0",
+        "stopPrice": "52.5",
+        "takeProfitPrice": "210",
+        "exitEventId": 8,
+        "exitBar": 8,
+        "exitPrice": "108",
+        "exitFee": "0",
+        "exitReason": "RULE_EXIT",
+        "exitTime": "2024-01-01T08:00:00Z",
+        "exitTimePrecision": "OPEN",
+        "grossPnl": "30.61224489795918367346938775510202",
+        "netPnl": "30.61224489795918367346938775510202"
+      },
+      {
+        "side": "long",
+        "direction": 1,
+        "entryEventId": 10,
+        "entryBar": 9,
+        "entryTime": "2024-01-01T09:00:00Z",
+        "signalBar": 8,
+        "signalTime": "2024-01-01T09:00:00Z",
+        "entryPrice": "96",
+        "quantity": "11.47959183673469387755102040816326",
+        "margin": "1102.040816326530612244897959183673",
+        "entryNotional": "1102.040816326530612244897959183673",
+        "entryFee": "0",
+        "stopPrice": "48",
+        "takeProfitPrice": "192",
+        "exitEventId": 12,
+        "exitBar": 10,
+        "exitPrice": "110",
+        "exitFee": "0",
+        "exitReason": "RULE_EXIT",
+        "exitTime": "2024-01-01T10:00:00Z",
+        "exitTimePrecision": "OPEN",
+        "grossPnl": "160.7142857142857142857142857142856",
+        "netPnl": "160.7142857142857142857142857142856"
+      },
+      {
+        "side": "long",
+        "direction": 1,
+        "entryEventId": 14,
+        "entryBar": 11,
+        "entryTime": "2024-01-01T11:00:00Z",
+        "signalBar": 10,
+        "signalTime": "2024-01-01T11:00:00Z",
+        "entryPrice": "99",
+        "quantity": "12.75510204081632653061224489795918",
+        "margin": "1262.755102040816326530612244897959",
+        "entryNotional": "1262.755102040816326530612244897959",
+        "entryFee": "0",
+        "stopPrice": "49.5",
+        "takeProfitPrice": "198",
+        "exitEventId": 16,
+        "exitBar": 12,
+        "exitPrice": "113",
+        "exitFee": "0",
+        "exitReason": "RULE_EXIT",
+        "exitTime": "2024-01-01T12:00:00Z",
+        "exitTimePrecision": "OPEN",
+        "grossPnl": "178.5714285714285714285714285714285",
+        "netPnl": "178.5714285714285714285714285714285"
+      },
+      {
+        "side": "long",
+        "direction": 1,
+        "entryEventId": 18,
+        "entryBar": 13,
+        "entryTime": "2024-01-01T13:00:00Z",
+        "signalBar": 12,
+        "signalTime": "2024-01-01T13:00:00Z",
+        "entryPrice": "100",
+        "quantity": "14.41326530612244897959183673469388",
+        "margin": "1441.326530612244897959183673469388",
+        "entryNotional": "1441.326530612244897959183673469388",
+        "entryFee": "0",
+        "stopPrice": "50",
+        "takeProfitPrice": "200",
+        "exitEventId": 20,
+        "exitBar": 14,
+        "exitPrice": "115",
+        "exitFee": "0",
+        "exitReason": "RULE_EXIT",
+        "exitTime": "2024-01-01T14:00:00Z",
+        "exitTimePrecision": "OPEN",
+        "grossPnl": "216.1989795918367346938775510204082",
+        "netPnl": "216.1989795918367346938775510204082"
+      },
+      {
+        "side": "long",
+        "direction": 1,
+        "entryEventId": 22,
+        "entryBar": 15,
+        "entryTime": "2024-01-01T15:00:00Z",
+        "signalBar": 14,
+        "signalTime": "2024-01-01T15:00:00Z",
+        "entryPrice": "101",
+        "quantity": "16.41114366538694685795110123257224",
+        "margin": "1657.525510204081632653061224489796",
+        "entryNotional": "1657.525510204081632653061224489796",
+        "entryFee": "0",
+        "stopPrice": "50.5",
+        "takeProfitPrice": "202",
+        "exitEventId": 24,
+        "exitBar": 16,
+        "exitPrice": "104",
+        "exitFee": "0",
+        "exitReason": "RULE_EXIT",
+        "exitTime": "2024-01-01T16:00:00Z",
+        "exitTimePrecision": "OPEN",
+        "grossPnl": "49.23343099616084057385330369771672",
+        "netPnl": "49.23343099616084057385330369771672"
+      },
+      {
+        "side": "long",
+        "direction": 1,
+        "entryEventId": 26,
+        "entryBar": 21,
+        "entryTime": "2024-01-01T21:00:00Z",
+        "signalBar": 20,
+        "signalTime": "2024-01-01T21:00:00Z",
+        "entryPrice": "106",
+        "quantity": "16.10149944528530635119730686969352",
+        "margin": "1706.758941200242473226914528187513",
+        "entryNotional": "1706.758941200242473226914528187513",
+        "entryFee": "0",
+        "stopPrice": "53",
+        "takeProfitPrice": "212",
+        "exitEventId": 28,
+        "exitBar": 23,
+        "exitPrice": "108",
+        "exitFee": "0",
+        "exitReason": "RULE_EXIT",
+        "exitTime": "2024-01-01T23:00:00Z",
+        "exitTimePrecision": "OPEN",
+        "grossPnl": "32.20299889057061270239461373938704",
+        "netPnl": "32.20299889057061270239461373938704"
+      }
+    ],
+    "openPosition": null,
+    "termination": {
+      "reason": "DATASET_END",
+      "cancelledOrder": {
+        "action": "ENTRY",
+        "side": "long",
+        "signalBar": 23,
+        "signalTime": "2024-01-02T00:00:00Z"
+      }
+    },
+    "metrics": {
+      "initialCapital": "1000",
+      "finalBalance": "1738.9619400908130859293091419269",
+      "finalEquity": "1738.9619400908130859293091419269",
+      "netProfit": "738.9619400908130859293091419269",
+      "returnPct": "73.89619400908130859293091419269",
+      "closedNetPnl": "738.9619400908130859293091419268995",
+      "totalFees": "0",
+      "maxDrawdownPct": "7.619047619047619047619047619047615",
+      "closedTrades": 7,
+      "winningTrades": 7,
+      "losingTrades": 0,
+      "breakevenTrades": 0,
+      "winRatePct": "100",
+      "profitFactor": null
+    },
+    "runCard": {
+      "engineVersion": "1.0.0",
+      "protocolVersion": "1.0.0",
+      "schemaVersion": "1.0.0",
+      "validatorVersion": "1.0.0",
+      "canonicalization": "aitrading-canonical-1",
+      "dataFormat": "ohlcv-v1",
+      "decimalPolicy": "decimal34-half-even-v1",
+      "dslHash": "9e09b51a58583846b6d5926f6fedb62c5682b0b7d980588affa97a3166984816",
+      "canonicalDsl": "{\"execution\":{\"commissionBps\":0,\"fill\":\"next_bar_open\",\"maxPositions\":1,\"missingCandles\":\"reject\",\"sameBarExit\":\"stop_first\",\"signal\":\"bar_close\",\"slippageBps\":0,\"spreadBps\":0},\"indicators\":[{\"id\":\"trend\",\"pivotRef\":\"ph\",\"type\":\"TRENDLINE\"},{\"id\":\"ph\",\"left\":1,\"right\":1,\"type\":\"PIVOT_HIGH\"},{\"id\":\"pl\",\"left\":1,\"right\":1,\"type\":\"PIVOT_LOW\"},{\"id\":\"atr\",\"period\":3,\"type\":\"ATR\"},{\"id\":\"sma\",\"period\":3,\"source\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"type\":\"SMA\"},{\"id\":\"ema\",\"period\":3,\"source\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"type\":\"EMA\"},{\"id\":\"rsi\",\"period\":3,\"source\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"type\":\"RSI\"},{\"id\":\"highest\",\"period\":3,\"source\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"type\":\"HIGHEST\"},{\"id\":\"lowest\",\"period\":3,\"source\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"type\":\"LOWEST\"},{\"id\":\"nested\",\"period\":2,\"source\":{\"id\":\"sma\",\"kind\":\"indicator\",\"lag\":1},\"type\":\"EMA\"}],\"labels\":[\"price action\"],\"market\":{\"symbol\":\"BTC_USDT\",\"timeframe\":\"1h\",\"timezone\":\"UTC\"},\"name\":\"Neutral price research\",\"risk\":{\"allocationPct\":100,\"initialCapital\":1000,\"leverage\":1,\"stopLossPct\":50,\"takeProfitPct\":100},\"rules\":{\"longEntry\":{\"children\":[{\"direction\":\"above\",\"kind\":\"cross\",\"left\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"right\":{\"id\":\"sma\",\"kind\":\"indicator\",\"lag\":0}},{\"children\":[{\"kind\":\"compare\",\"left\":{\"id\":\"rsi\",\"kind\":\"indicator\",\"lag\":0},\"op\":\"lt\",\"right\":{\"kind\":\"constant\",\"value\":30}},{\"child\":{\"kind\":\"compare\",\"left\":{\"id\":\"trend\",\"kind\":\"indicator\",\"lag\":0},\"op\":\"gt\",\"right\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0}},\"kind\":\"not\"}],\"kind\":\"all\"}],\"kind\":\"any\"},\"longExit\":{\"child\":{\"kind\":\"compare\",\"left\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"op\":\"gte\",\"right\":{\"id\":\"ema\",\"kind\":\"indicator\",\"lag\":0}},\"kind\":\"not\"},\"shortEntry\":null,\"shortExit\":null},\"schemaVersion\":\"1.0.0\"}",
+      "minimumBars": 5,
+      "dataset": {
+        "symbol": "BTC_USDT",
+        "timeframe": "1h",
+        "timezone": "UTC",
+        "sourceType": "SYNTHETIC",
+        "closedThrough": "2030-01-01T00:00:00Z",
+        "dataHash": "17946054d2ffad6fa13a76865d36e80e0ec73f25aa9f2eb51d2af12ef554e830",
+        "count": 24,
+        "start": "2024-01-01T00:00:00Z",
+        "end": "2024-01-01T23:00:00Z",
+        "sourceVerified": false
+      },
+      "inputHash": "b8183ceca6aee9ed9ee359888a04f0e9a960e369277215adf02e6e8a6b36a18b",
+      "policy": {
+        "signal": "bar_close",
+        "fill": "next_bar_open",
+        "sameBarExit": "stop_first",
+        "missingCandles": "reject",
+        "maxPositions": "1",
+        "commissionBps": "0",
+        "spreadBps": "0",
+        "slippageBps": "0"
+      },
+      "limitations": [
+        "Unverified research data; historical results do not guarantee profit.",
+        "No funding, liquidation, broker tick/lot or live-order simulation.",
+        "Protective execution time is only known within its candle."
+      ]
+    },
+    "resultHash": "cb5a01056b4584a3a0220c9ebf704e8ac4aa4c41aea12eb4a9a6b79cf4c1caa4"
+  },
+  "targetStatus": "NOT_RUN_OFFICIAL_PINE_REQUIRES_LOGIN",
+  "numericTolerance": {
+    "absolute": "0.00000001",
+    "relative": "0.000000000001"
+  },
+  "eventPolicy": "Exact bar/side/reason/signal/confirmation identity; no numeric tolerance on event decisions."
+}

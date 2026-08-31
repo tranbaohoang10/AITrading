@@ -1,0 +1,79 @@
+- complementary "Global navigation":
+  - generic "AI Trading": AT
+  - navigation "Primary":
+    - button "Workspace":
+    - button "AI Strategy":
+    - button "Backtest":
+    - button "My Code":
+    - button "Trading Journal":
+    - button "Strategies":
+  - button "Settings":
+  - button "Account":
+- region "AI Chat":
+  - heading "Quant / Research conversations" [level=2]
+  - paragraph: Private saved messages · AI requests are always explicit
+  - button "New Chat"
+  - button "Refresh list"
+  - paragraph: No conversations yet. Start a New Chat.
+  - navigation "Saved conversations"
+  - generic: Select a conversation or start a New Chat. Messages are saved to your account; strategy generation will be connected separately.
+  - region "AI provider controls":
+    - button "Check AI availability"
+    - generic: Provider availability not checked.
+    - paragraph: Ask AI sends up to 20 recent saved messages from this conversation to the configured provider. Provider retention policies apply. Do not include secrets. Research output may be wrong; no trades are executed.
+    - button "Ask AI" [disabled]
+- separator "Resize AI Chat"
+- main "Trading Workspace":
+  - paragraph: Workspace / Market data
+  - heading "AI Trading Platform" [level=1]
+  - generic: Private research
+  - button "Backtest":
+    - text: Backtest
+  - tablist "Workspace views":
+    - tab "Chart"
+    - tab "Strategy DSL" [active] [selected]
+    - tab "Pine Script"
+    - tab "MQL5"
+    - tab "Backtest Results"
+    - tab "Trades"
+  - tabpanel "Strategy DSL":
+    - region "My Script":
+      - heading "My Script" [level=2]
+      - text: Strategy
+      - combobox "Strategy":
+        - option "Select a strategy" [disabled]
+        - option "PB015 synthetic research · r2" [selected]
+      - button "New strategy"
+      - button "Refresh strategies"
+      - paragraph: Private immutable revisions · validation does not run AI or a backtest. Use Pine Script to export a saved VALIDATED revision for research.
+      - generic: Saved r2 · VALIDATED
+      - generic: Unsaved changes
+      - text: Strategy title
+      - textbox "Strategy title": PB015 unsaved title must remain
+      - text: Strategy JSON
+      - textbox "Strategy JSON": "{ \"schemaVersion\": \"1.0.0\", \"name\": \"Neutral price research\", \"labels\": [ \"price action\" ], \"market\": { \"symbol\": \"BTC_USDT\", \"timeframe\": \"1h\", \"timezone\": \"UTC\" }, \"indicators\": [], \"rules\": { \"longEntry\": { \"kind\": \"compare\", \"op\": \"gt\", \"left\": { \"kind\": \"series\", \"field\": \"close\", \"lag\": 0 }, \"right\": { \"kind\": \"series\", \"field\": \"open\", \"lag\": 0 } }, \"shortEntry\": null, \"longExit\": null, \"shortExit\": null }, \"risk\": { \"initialCapital\": 10000, \"allocationPct\": 10, \"leverage\": 1, \"stopLossPct\": 2, \"takeProfitPct\": 4 }, \"execution\": { \"signal\": \"bar_close\", \"fill\": \"next_bar_open\", \"sameBarExit\": \"stop_first\", \"missingCandles\": \"reject\", \"maxPositions\": 1, \"commissionBps\": 5, \"spreadBps\": 2, \"slippageBps\": 1 } }"
+      - paragraph: 922 /65,536 UTF-8 bytes. DRAFT may contain incomplete JSON. Only explicit validated save stores canonical DSL.
+      - button "Save draft"
+      - button "Validate"
+      - button "Save validated revision"
+      - button "Reload current revision"
+      - button "Load synthetic DSL example"
+      - button "Delete strategy"
+      - generic "Saved validated metadata"
+      - region "Revision history":
+        - heading "Saved revisions" [level=3]
+        - button "Refresh history"
+        - list:
+          - button "View revision 2 · VALIDATED · PB015 synthetic research"
+          - button "View revision 1 · DRAFT · PB015 synthetic research"
+      - paragraph: Chart context only · no saved dataset binding or execution
+      - paragraph: "Saved strategy: BTC_USDT · 1h (editor has unsaved changes)"
+      - region "Chart":
+        - text: Dataset
+        - combobox "Dataset":
+          - option "Select a dataset" [disabled] [selected]
+        - button "Import CSV"
+        - button "Refresh datasets"
+        - heading "Your market datasets" [level=2]
+        - paragraph: Import a CSV to inspect your own OHLCV candles. No market feed or sample price is shown as real data.
+        - button "Import your first dataset"

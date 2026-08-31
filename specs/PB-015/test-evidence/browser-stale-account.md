@@ -1,0 +1,14 @@
+- main:
+  - region "Account access":
+    - generic: AT
+    - generic: AI Trading
+    - paragraph: Private research workspace
+    - heading "Sign in" [level=1]
+    - paragraph: Keep your strategies, research and trading notes in your own workspace.
+    - text: Email
+    - textbox "Email"
+    - text: Password
+    - textbox "Password"
+    - button "Sign in"
+    - button "Create a new account"
+    - paragraph: Prototype research tool. Historical results do not guarantee future returns. Do not reuse a password from another service.

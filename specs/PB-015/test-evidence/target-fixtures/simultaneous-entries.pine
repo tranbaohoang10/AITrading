@@ -1,0 +1,317 @@
+//@version=6
+// AITrading pine-research-1.0.0 | schema 1.0.0 | validator 1.0.0
+// Strategy 11111111-1111-1111-1111-111111111111 revision 2 | DSL SHA256 5ef9115bd998f5813b8576c4d48e4604c6d11e287b1aad2845fec22e9fdbd00d
+// EXPERIMENTAL: official target validation pending. Inspect all limits before use.
+// DSL policy: bar_close -> next_bar_open; stop_first; missingCandles=reject; maxPositions=1.
+indicator("AITrading DSL research simulator", overlay = false, precision = 8)
+// SYNTHETIC TARGET ASSERTIONS — no Pine PASS until actually run.
+var array<float> fixture_open_values = array.from(100.0, 100.0, 100.0, 100.0)
+float fixture_open = array.get(fixture_open_values, math.min(bar_index, 3))
+var array<float> fixture_high_values = array.from(100.0, 100.0, 100.0, 100.0)
+float fixture_high = array.get(fixture_high_values, math.min(bar_index, 3))
+var array<float> fixture_low_values = array.from(100.0, 100.0, 100.0, 100.0)
+float fixture_low = array.get(fixture_low_values, math.min(bar_index, 3))
+var array<float> fixture_close_values = array.from(100.0, 100.0, 100.0, 100.0)
+float fixture_close = array.get(fixture_close_values, math.min(bar_index, 3))
+var array<float> fixture_volume_values = array.from(10.0, 10.0, 10.0, 10.0)
+float fixture_volume = array.get(fixture_volume_values, math.min(bar_index, 3))
+int fixture_time = 1704067200000 + bar_index * 3600000
+int fixture_time_close = fixture_time + 3600000
+f_check(float actual, float expected, string field) =>
+    if na(actual) != na(expected) or (not na(actual) and math.abs(actual - expected) > 0.00000001 + math.abs(expected) * 0.000000000001)
+        runtime.error("Fixture numeric divergence: " + field + " at bar " + str.tostring(bar_index))
+f_exact(int actual, int expected, string field) =>
+    if actual != expected
+        runtime.error("Fixture event divergence: " + field + " at bar " + str.tostring(bar_index))
+// Trusted runtime; generated constants/expressions follow this section.
+// Research simulator only. No native Strategy Tester, orders, alerts or profit guarantee.
+// Pine binary floats are not Python Decimal34. Near-threshold rules may diverge.
+f_at(array<float> values, int lag) =>
+    int at = array.size(values) - 1 - lag
+    at < 0 ? na : array.get(values, at)
+
+f_text(float value) =>
+    na(value) ? "null" : str.tostring(value, "0.################")
+
+// Modes: 0 SMA, 1 EMA, 2 Wilder, 3 highest, 4 lowest.
+f_smooth(array<float> values, int period, int mode, float previous) =>
+    float result = na
+    if array.size(values) >= period
+        float total = 0.0
+        float extreme = f_at(values, 0)
+        bool defined = true
+        for offset = 0 to period - 1
+            float value = f_at(values, offset)
+            defined := defined and not na(value)
+            total += value
+            extreme := mode == 3 ? math.max(extreme, value) : math.min(extreme, value)
+        if defined
+            float alpha = mode == 1 ? 2.0 / (period + 1) : 1.0 / period
+            result := mode >= 3 ? extreme : mode == 0 or na(previous) ? total / period : previous + alpha * (f_at(values, 0) - previous)
+    result
+
+f_pivot(array<float> values, int left, int right, bool highPivot) =>
+    float result = na
+    if array.size(values) >= left + right + 1
+        float candidate = f_at(values, right)
+        bool valid = true
+        for offset = 0 to left + right
+            if offset != right
+                valid := valid and (highPivot ? candidate > f_at(values, offset) : candidate < f_at(values, offset))
+        if valid
+            result := candidate
+    result
+
+// Tri-state truth: -1 undefined, 0 false, 1 true.
+f_not(int value) =>
+    value == -1 ? -1 : 1 - value
+f_all(int a, int b) =>
+    a == 0 or b == 0 ? 0 : a == -1 or b == -1 ? -1 : 1
+f_any(int a, int b) =>
+    a == 1 or b == 1 ? 1 : a == -1 or b == -1 ? -1 : 0
+f_compare(float a, float b, int op) =>
+    bool answer = switch op
+        0 => a > b
+        1 => a >= b
+        2 => a < b
+        3 => a <= b
+        4 => a == b
+        => a != b
+    na(a) or na(b) ? -1 : answer ? 1 : 0
+f_cross(float a, float b, float beforeA, float beforeB, bool above) =>
+    bool answer = above ? a > b and beforeA <= beforeB : a < b and beforeA >= beforeB
+    na(a) or na(b) or na(beforeA) or na(beforeB) ? -1 : answer ? 1 : 0
+
+type Simulation
+    float balance
+    float equity
+    int side = 0
+    int pending = 0
+    int signalBar = -1
+    float entryPrice = na
+    float quantity = 0.0
+    float stopPrice = na
+    float targetPrice = na
+    float entryFee = 0.0
+    int entrySide = 0
+    float entryFill = na
+    float entryCost = na
+    int entrySignalBar = -1
+    int exitSide = 0
+    float exitFill = na
+    float exitCost = na
+    int exitReason = 0
+    int exitSignalBar = -1
+    float closedNet = na
+    int signal = 0
+    int skip = 0
+    int skipOpen = 0
+
+f_fill(float raw, bool buy, float adverse) =>
+    raw * (buy ? 1.0 + adverse : 1.0 - adverse)
+
+method closePosition(Simulation s, float raw, int reason, float adverse, float commission) =>
+    float price = f_fill(raw, s.side == -1, adverse)
+    float fee = price * s.quantity * commission
+    float gross = (price - s.entryPrice) * s.quantity * s.side
+    s.balance += gross - fee
+    s.exitSide := s.side
+    s.exitFill := price
+    s.exitCost := fee
+    s.exitReason := reason
+    s.closedNet := gross - s.entryFee - fee
+    s.side := 0
+
+// Pending actions: 1 long entry, -1 short entry, 2 exit. Exit reasons: 1 rule, 2 stop, 3 target.
+method openBar(Simulation s, float o, float h, float l, float c, float allocation, float leverage, float stopPct, float targetPct, float adverse, float commission) =>
+    s.entrySide := 0
+    s.entryFill := na
+    s.entryCost := na
+    s.entrySignalBar := -1
+    s.exitSide := 0
+    s.exitFill := na
+    s.exitCost := na
+    s.exitReason := 0
+    s.exitSignalBar := -1
+    s.closedNet := na
+    s.signal := 0
+    s.skip := 0
+    s.skipOpen := 0
+    int order = s.pending
+    s.pending := 0
+    if order == 2
+        s.exitSignalBar := s.signalBar
+        s.closePosition(o, 1, adverse, commission)
+    else if order != 0
+        if s.balance <= 0
+            s.skipOpen := 1
+        else
+            s.side := order
+            s.entryPrice := f_fill(o, order == 1, adverse)
+            s.quantity := s.balance * allocation / 100.0 * leverage / s.entryPrice
+            s.entryFee := s.entryPrice * s.quantity * commission
+            s.balance -= s.entryFee
+            s.stopPrice := s.entryPrice * (1.0 - order * stopPct / 100.0)
+            s.targetPrice := s.entryPrice * (1.0 + order * targetPct / 100.0)
+            s.entrySide := order
+            s.entryFill := s.entryPrice
+            s.entryCost := s.entryFee
+            s.entrySignalBar := s.signalBar
+    if s.side != 0
+        bool hitStop = s.side == 1 ? l <= s.stopPrice : h >= s.stopPrice
+        bool hitTarget = s.side == 1 ? h >= s.targetPrice : l <= s.targetPrice
+        if hitStop
+            float raw = s.side == 1 ? math.min(o, s.stopPrice) : math.max(o, s.stopPrice)
+            s.closePosition(raw, 2, adverse, commission)
+        else if hitTarget
+            s.closePosition(s.targetPrice, 3, adverse, commission)
+    s.equity := s.balance + (s.side == 0 ? 0.0 : (c - s.entryPrice) * s.quantity * s.side)
+
+method closeBar(Simulation s, int index, int longEntry, int shortEntry, int longExit, int shortExit) =>
+    if s.side != 0
+        if (s.side == 1 ? longExit : shortExit) == 1
+            s.pending := 2
+    else if longEntry == 1 and shortEntry == 1
+        s.skip := 2
+    else if longEntry == 1 or shortEntry == 1
+        s.pending := longEntry == 1 ? 1 : -1
+    if s.pending != 0
+        s.signalBar := index
+        s.signal := s.pending
+
+// END TRUSTED RUNTIME
+
+const int intervalMs = 3600000
+const int startTime = 1704067200000
+const int endTime = 1704081600000
+bool trace = false
+// Fixture adapter: chart type/symbol/interval guard is tested separately.
+if startTime < 0 or endTime > 4133980800000 or startTime % intervalMs != 0 or endTime <= startTime or (endTime - startTime) % intervalMs != 0 or (endTime - startTime) / intervalMs > 5000
+    runtime.error("Choose an exact UTC window of 1 to 5000 candles.")
+var int count = 0
+var int lastTime = na
+var array<float> s_open = array.new<float>()
+var array<float> s_high = array.new<float>()
+var array<float> s_low = array.new<float>()
+var array<float> s_close = array.new<float>()
+var array<float> s_volume = array.new<float>()
+var Simulation sim = Simulation.new(1000.0, 1000.0)
+int longEntry = -1
+int shortEntry = -1
+int longExit = -1
+int shortExit = -1
+bool included = barstate.isconfirmed and fixture_time >= startTime and fixture_time < endTime
+if included
+    if fixture_time != startTime + count * intervalMs or fixture_time_close != fixture_time + intervalMs or count >= 5000
+        runtime.error("Missing start, gap, duplicate candle or incompatible candle boundaries.")
+    if na(fixture_open) or na(fixture_high) or na(fixture_low) or na(fixture_close) or na(fixture_volume) or fixture_low < 0.00000001 or fixture_volume < 0 or fixture_high < math.max(fixture_open, fixture_close) or fixture_low > math.min(fixture_open, fixture_close) or fixture_high < fixture_low or fixture_high > 1000000000000.0 or fixture_volume > 1000000000000.0
+        runtime.error("Invalid OHLCV research data.")
+    count += 1
+    lastTime := fixture_time
+    array.push(s_open, fixture_open)
+    array.push(s_high, fixture_high)
+    array.push(s_low, fixture_low)
+    array.push(s_close, fixture_close)
+    array.push(s_volume, fixture_volume)
+    longEntry := f_compare(f_at(s_close, 0), 0.0, 0)
+    shortEntry := f_compare(f_at(s_close, 0), 0.0, 0)
+    longExit := -1
+    shortExit := -1
+    sim.openBar(fixture_open, fixture_high, fixture_low, fixture_close, 100.0, 1.0, 50.0, 100.0, (0.0 / 2.0 + 0.0) / 10000.0, 0.0 / 10000.0)
+    sim.closeBar(count - 1, longEntry, shortEntry, longExit, shortExit)
+    if trace
+        log.info("bar={0},openMs={1},closeMs={2},signal={3},entry={4},entrySignalBar={5},entryFill={6},entryFee={7},quantity={8},skipOpen={9},skipClose={10}", f_text(count - 1), f_text(fixture_time), f_text(fixture_time_close), f_text(sim.signal), f_text(sim.entrySide), f_text(sim.entrySignalBar), f_text(sim.entryFill), f_text(sim.entryCost), f_text(sim.quantity), f_text(sim.skipOpen), f_text(sim.skip))
+        log.info("exit={0},exitReason={1},exitSignalBar={2},exitFill={3},exitFee={4},closedNet={5},balance={6},equity={7}", f_text(sim.exitSide), f_text(sim.exitReason), f_text(sim.exitSignalBar), f_text(sim.exitFill), f_text(sim.exitCost), f_text(sim.closedNet), f_text(sim.balance), f_text(sim.equity))
+    if fixture_time_close == endTime
+        if trace
+            log.info("DATASET_END: cancelledPending={0}; openSide={1}", sim.pending, sim.side)
+        sim.pending := 0
+if barstate.islastconfirmedhistory and (na(lastTime) or lastTime + intervalMs != endTime)
+    runtime.error("Full closed UTC window not available. Load matching history or change window.")
+plot(included ? sim.equity : na, "Research equity (float, not Strategy Tester)", color = color.silver)
+plot(included ? sim.balance : na, "Balance", display = display.data_window)
+plot(included ? longEntry : na, "Rule longEntry (-1 undefined)", display = display.data_window)
+plot(included ? shortEntry : na, "Rule shortEntry (-1 undefined)", display = display.data_window)
+plot(included ? longExit : na, "Rule longExit (-1 undefined)", display = display.data_window)
+plot(included ? shortExit : na, "Rule shortExit (-1 undefined)", display = display.data_window)
+plot(included ? sim.side : na, "Trace side", display = display.data_window)
+plot(included ? sim.signal : na, "Trace signal", display = display.data_window)
+plot(included ? sim.entrySide : na, "Trace entrySide", display = display.data_window)
+plot(included ? sim.exitSide : na, "Trace exitSide", display = display.data_window)
+plot(included ? sim.exitReason : na, "Trace exitReason", display = display.data_window)
+plot(included ? sim.entryFill : na, "Trace entryFill", display = display.data_window)
+plot(included ? sim.exitFill : na, "Trace exitFill", display = display.data_window)
+plot(included ? sim.entryCost : na, "Trace entryCost", display = display.data_window)
+plot(included ? sim.exitCost : na, "Trace exitCost", display = display.data_window)
+plot(included ? sim.quantity : na, "Trace quantity", display = display.data_window)
+plot(included ? sim.closedNet : na, "Trace closedNet", display = display.data_window)
+plot(included ? sim.skipOpen : na, "Trace skipOpen", display = display.data_window)
+plot(included ? sim.skip : na, "Trace skip", display = display.data_window)
+var table notice = table.new(position.top_right, 1, 1)
+if barstate.islast
+    table.cell(notice, 0, 0, "EXPERIMENTAL research simulator\nNot Strategy Tester / no orders\nFloat thresholds may diverge; target verification pending", text_color = color.silver)
+var array<int> expected_longEntry = array.from(1, 1, 1, 1)
+if included
+    f_exact(longEntry, array.get(expected_longEntry, count - 1), "longEntry")
+var array<int> expected_shortEntry = array.from(1, 1, 1, 1)
+if included
+    f_exact(shortEntry, array.get(expected_shortEntry, count - 1), "shortEntry")
+var array<int> expected_longExit = array.from(-1, -1, -1, -1)
+if included
+    f_exact(longExit, array.get(expected_longExit, count - 1), "longExit")
+var array<int> expected_shortExit = array.from(-1, -1, -1, -1)
+if included
+    f_exact(shortExit, array.get(expected_shortExit, count - 1), "shortExit")
+var array<float> expected_sim_balance = array.from(1000.0, 1000.0, 1000.0, 1000.0)
+if included
+    f_check(sim.balance, array.get(expected_sim_balance, count - 1), "sim.balance")
+var array<float> expected_sim_equity = array.from(1000.0, 1000.0, 1000.0, 1000.0)
+if included
+    f_check(sim.equity, array.get(expected_sim_equity, count - 1), "sim.equity")
+var array<int> expected_sim_side = array.from(0, 0, 0, 0)
+if included
+    f_exact(sim.side, array.get(expected_sim_side, count - 1), "sim.side")
+var array<int> expected_sim_entrySide = array.from(0, 0, 0, 0)
+if included
+    f_exact(sim.entrySide, array.get(expected_sim_entrySide, count - 1), "sim.entrySide")
+var array<int> expected_sim_entrySignalBar = array.from(-1, -1, -1, -1)
+if included
+    f_exact(sim.entrySignalBar, array.get(expected_sim_entrySignalBar, count - 1), "sim.entrySignalBar")
+var array<float> expected_sim_entryFill = array.from(float(na), float(na), float(na), float(na))
+if included
+    f_check(sim.entryFill, array.get(expected_sim_entryFill, count - 1), "sim.entryFill")
+var array<float> expected_sim_entryCost = array.from(float(na), float(na), float(na), float(na))
+if included
+    f_check(sim.entryCost, array.get(expected_sim_entryCost, count - 1), "sim.entryCost")
+var array<int> expected_sim_exitSide = array.from(0, 0, 0, 0)
+if included
+    f_exact(sim.exitSide, array.get(expected_sim_exitSide, count - 1), "sim.exitSide")
+var array<int> expected_sim_exitSignalBar = array.from(-1, -1, -1, -1)
+if included
+    f_exact(sim.exitSignalBar, array.get(expected_sim_exitSignalBar, count - 1), "sim.exitSignalBar")
+var array<float> expected_sim_exitFill = array.from(float(na), float(na), float(na), float(na))
+if included
+    f_check(sim.exitFill, array.get(expected_sim_exitFill, count - 1), "sim.exitFill")
+var array<float> expected_sim_exitCost = array.from(float(na), float(na), float(na), float(na))
+if included
+    f_check(sim.exitCost, array.get(expected_sim_exitCost, count - 1), "sim.exitCost")
+var array<int> expected_sim_exitReason = array.from(0, 0, 0, 0)
+if included
+    f_exact(sim.exitReason, array.get(expected_sim_exitReason, count - 1), "sim.exitReason")
+var array<int> expected_sim_signal = array.from(0, 0, 0, 0)
+if included
+    f_exact(sim.signal, array.get(expected_sim_signal, count - 1), "sim.signal")
+var array<int> expected_sim_skipOpen = array.from(0, 0, 0, 0)
+if included
+    f_exact(sim.skipOpen, array.get(expected_sim_skipOpen, count - 1), "sim.skipOpen")
+var array<int> expected_sim_skip = array.from(2, 2, 2, 2)
+if included
+    f_exact(sim.skip, array.get(expected_sim_skip, count - 1), "sim.skip")
+var array<float> expected_sim_quantity = array.from(0.0, 0.0, 0.0, 0.0)
+if included
+    f_check(sim.quantity, array.get(expected_sim_quantity, count - 1), "sim.quantity")
+var array<float> expected_sim_closedNet = array.from(float(na), float(na), float(na), float(na))
+if included
+    f_check(sim.closedNet, array.get(expected_sim_closedNet, count - 1), "sim.closedNet")
+if included and count == 4
+    log.info("SYNTHETIC simultaneous-entries: all 4 event/indicator/accounting assertions passed in this actual Pine execution.")

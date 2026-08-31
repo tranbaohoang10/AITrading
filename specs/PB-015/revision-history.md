@@ -1,0 +1,14 @@
+# PB-015 revision history
+
+- 31/08/2026 — Issue17 created before code after PB-027 completion. Chosen Pine
+  research simulator to preserve DSL execution policy; native Strategy Tester
+  parity not claimed. Official anonymous editor Add to chart requires Sign in;
+  PO notified; no private strategy submitted and no authentication bypass.
+
+- 31/08/2026 — Versioned generator, V9 owner artifact, real Pine UI and tests
+  implemented. Final152backend/176frontend/42Python and audits PASS. Actual browser
+ 1600/900/390, draft retention, copy/download action, A/B stale request rejection,
+  JVM28620→100 restart and exact persisted hash verified. All owned API/PG stopped
+  and generated credential files removed. Earlier compile/type/fixture-count
+  failures recorded in results.md. Official target validation remains unavailable;
+  publication checkpoint next, Issue17 must remain open pending target execution.

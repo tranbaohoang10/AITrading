@@ -1,0 +1,598 @@
+{
+  "request": {
+    "protocolVersion": "1.0.0",
+    "dsl": {
+      "schemaVersion": "1.0.0",
+      "name": "Neutral price research",
+      "labels": [
+        "price action"
+      ],
+      "market": {
+        "symbol": "BTC_USDT",
+        "timeframe": "1h",
+        "timezone": "UTC"
+      },
+      "indicators": [],
+      "rules": {
+        "longEntry": {
+          "kind": "compare",
+          "op": "gt",
+          "left": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "right": {
+            "kind": "series",
+            "field": "open",
+            "lag": 0
+          }
+        },
+        "shortEntry": {
+          "kind": "compare",
+          "op": "lt",
+          "left": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "right": {
+            "kind": "series",
+            "field": "open",
+            "lag": 0
+          }
+        },
+        "longExit": {
+          "kind": "compare",
+          "op": "lt",
+          "left": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "right": {
+            "kind": "series",
+            "field": "open",
+            "lag": 0
+          }
+        },
+        "shortExit": {
+          "kind": "compare",
+          "op": "gt",
+          "left": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "right": {
+            "kind": "series",
+            "field": "open",
+            "lag": 0
+          }
+        }
+      },
+      "risk": {
+        "initialCapital": 1000,
+        "allocationPct": 100,
+        "leverage": 1,
+        "stopLossPct": 5,
+        "takeProfitPct": 10
+      },
+      "execution": {
+        "signal": "bar_close",
+        "fill": "next_bar_open",
+        "sameBarExit": "stop_first",
+        "missingCandles": "reject",
+        "maxPositions": 1,
+        "commissionBps": 7,
+        "spreadBps": 6,
+        "slippageBps": 4
+      }
+    },
+    "dataset": {
+      "symbol": "BTC_USDT",
+      "timeframe": "1h",
+      "timezone": "UTC",
+      "sourceType": "SYNTHETIC",
+      "closedThrough": "2030-01-01T00:00:00Z",
+      "candles": [
+        {
+          "timestamp": "2024-01-01T00:00:00Z",
+          "open": "100",
+          "high": "102",
+          "low": "99",
+          "close": "101",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T01:00:00Z",
+          "open": "100",
+          "high": "120",
+          "low": "90",
+          "close": "105",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T02:00:00Z",
+          "open": "120",
+          "high": "125",
+          "low": "110",
+          "close": "115",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T03:00:00Z",
+          "open": "115",
+          "high": "140",
+          "low": "80",
+          "close": "110",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T04:00:00Z",
+          "open": "100",
+          "high": "101",
+          "low": "99",
+          "close": "100",
+          "volume": "10"
+        },
+        {
+          "timestamp": "2024-01-01T05:00:00Z",
+          "open": "150",
+          "high": "151",
+          "low": "149",
+          "close": "150",
+          "volume": "10"
+        }
+      ]
+    }
+  },
+  "reference": {
+    "bars": [
+      {
+        "index": 0,
+        "openTime": "2024-01-01T00:00:00Z",
+        "closeTime": "2024-01-01T01:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": true,
+          "shortEntry": false,
+          "longExit": false,
+          "shortExit": true
+        },
+        "balance": "1000",
+        "unrealizedGross": "0",
+        "equity": "1000",
+        "drawdownPct": "0",
+        "positionSide": null
+      },
+      {
+        "index": 1,
+        "openTime": "2024-01-01T01:00:00Z",
+        "closeTime": "2024-01-01T02:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": true,
+          "shortEntry": false,
+          "longExit": false,
+          "shortExit": true
+        },
+        "balance": "947.9704655",
+        "unrealizedGross": "0",
+        "equity": "947.9704655",
+        "drawdownPct": "5.20295345",
+        "positionSide": null
+      },
+      {
+        "index": 2,
+        "openTime": "2024-01-01T02:00:00Z",
+        "closeTime": "2024-01-01T03:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": false,
+          "shortEntry": true,
+          "longExit": true,
+          "shortExit": false
+        },
+        "balance": "898.64800346028669025",
+        "unrealizedGross": "0",
+        "equity": "898.64800346028669025",
+        "drawdownPct": "10.135199653971330975",
+        "positionSide": null
+      },
+      {
+        "index": 3,
+        "openTime": "2024-01-01T03:00:00Z",
+        "closeTime": "2024-01-01T04:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": false,
+          "shortEntry": true,
+          "longExit": true,
+          "shortExit": false
+        },
+        "balance": "851.765074765365753302155366375",
+        "unrealizedGross": "0",
+        "equity": "851.765074765365753302155366375",
+        "drawdownPct": "14.8234925234634246697844633625",
+        "positionSide": null
+      },
+      {
+        "index": 4,
+        "openTime": "2024-01-01T04:00:00Z",
+        "closeTime": "2024-01-01T05:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": false,
+          "shortEntry": false,
+          "longExit": false,
+          "shortExit": false
+        },
+        "balance": "851.1688392130299972748438576185375",
+        "unrealizedGross": "-0.5966532095824637519378652621460022",
+        "equity": "850.5721860034475335229059923563915",
+        "drawdownPct": "14.94278139965524664770940076436085",
+        "positionSide": "short"
+      },
+      {
+        "index": 5,
+        "openTime": "2024-01-01T05:00:00Z",
+        "closeTime": "2024-01-01T06:00:00Z",
+        "indicators": {},
+        "pivotConfirmations": {},
+        "rules": {
+          "longEntry": false,
+          "shortEntry": false,
+          "longExit": false,
+          "shortExit": false
+        },
+        "balance": "422.6007359013559721531062459928552",
+        "unrealizedGross": "0",
+        "equity": "422.6007359013559721531062459928552",
+        "drawdownPct": "57.73992640986440278468937540071448",
+        "positionSide": null
+      }
+    ],
+    "events": [
+      {
+        "id": 1,
+        "kind": "SIGNAL",
+        "barIndex": 0,
+        "action": "ENTRY",
+        "side": "long",
+        "signalBar": 0,
+        "signalTime": "2024-01-01T01:00:00Z",
+        "confirmationTime": "2024-01-01T01:00:00Z"
+      },
+      {
+        "id": 2,
+        "kind": "ENTRY",
+        "barIndex": 1,
+        "side": "long",
+        "rawPrice": "100",
+        "price": "100.07",
+        "quantity": "9.993004896572399320475667033076846",
+        "fee": "0.7",
+        "executionTime": "2024-01-01T01:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 0,
+        "signalTime": "2024-01-01T01:00:00Z"
+      },
+      {
+        "id": 3,
+        "kind": "EXIT",
+        "barIndex": 1,
+        "side": "long",
+        "rawPrice": "95.0665",
+        "price": "94.99995345",
+        "quantity": "9.993004896572399320475667033076846",
+        "fee": "0.6645345",
+        "reason": "STOP_LOSS",
+        "executionTime": null,
+        "timePrecision": "BAR_INTERVAL",
+        "barOpenTime": "2024-01-01T01:00:00Z",
+        "barCloseTime": "2024-01-01T02:00:00Z",
+        "signalBar": null,
+        "signalTime": null
+      },
+      {
+        "id": 4,
+        "kind": "SIGNAL",
+        "barIndex": 1,
+        "action": "ENTRY",
+        "side": "long",
+        "signalBar": 1,
+        "signalTime": "2024-01-01T02:00:00Z",
+        "confirmationTime": "2024-01-01T02:00:00Z"
+      },
+      {
+        "id": 5,
+        "kind": "ENTRY",
+        "barIndex": 2,
+        "side": "long",
+        "rawPrice": "120",
+        "price": "120.084",
+        "quantity": "7.894227919622930615236001465640718",
+        "fee": "0.66357932585",
+        "executionTime": "2024-01-01T02:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 1,
+        "signalTime": "2024-01-01T02:00:00Z"
+      },
+      {
+        "id": 6,
+        "kind": "EXIT",
+        "barIndex": 2,
+        "side": "long",
+        "rawPrice": "114.0798",
+        "price": "113.99994414",
+        "quantity": "7.894227919622930615236001465640718",
+        "fee": "0.62995907930580975",
+        "reason": "STOP_LOSS",
+        "executionTime": null,
+        "timePrecision": "BAR_INTERVAL",
+        "barOpenTime": "2024-01-01T02:00:00Z",
+        "barCloseTime": "2024-01-01T03:00:00Z",
+        "signalBar": null,
+        "signalTime": null
+      },
+      {
+        "id": 7,
+        "kind": "SIGNAL",
+        "barIndex": 2,
+        "action": "ENTRY",
+        "side": "short",
+        "signalBar": 2,
+        "signalTime": "2024-01-01T03:00:00Z",
+        "confirmationTime": "2024-01-01T03:00:00Z"
+      },
+      {
+        "id": 8,
+        "kind": "ENTRY",
+        "barIndex": 3,
+        "side": "short",
+        "rawPrice": "115",
+        "price": "114.9195",
+        "quantity": "7.81980432790158928858896879989906",
+        "fee": "0.629053602422200683175",
+        "executionTime": "2024-01-01T03:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 2,
+        "signalTime": "2024-01-01T03:00:00Z"
+      },
+      {
+        "id": 9,
+        "kind": "EXIT",
+        "barIndex": 3,
+        "side": "short",
+        "rawPrice": "120.665475",
+        "price": "120.7499408325",
+        "quantity": "7.81980432790158928858896879989906",
+        "fee": "0.660968636941091034835883625",
+        "reason": "STOP_LOSS",
+        "executionTime": null,
+        "timePrecision": "BAR_INTERVAL",
+        "barOpenTime": "2024-01-01T03:00:00Z",
+        "barCloseTime": "2024-01-01T04:00:00Z",
+        "signalBar": null,
+        "signalTime": null
+      },
+      {
+        "id": 10,
+        "kind": "SIGNAL",
+        "barIndex": 3,
+        "action": "ENTRY",
+        "side": "short",
+        "signalBar": 3,
+        "signalTime": "2024-01-01T04:00:00Z",
+        "confirmationTime": "2024-01-01T04:00:00Z"
+      },
+      {
+        "id": 11,
+        "kind": "ENTRY",
+        "barIndex": 4,
+        "side": "short",
+        "rawPrice": "100",
+        "price": "99.93",
+        "quantity": "8.52361727974948217054093231637146",
+        "fee": "0.5962355523357560273115087564625",
+        "executionTime": "2024-01-01T04:00:00Z",
+        "timePrecision": "OPEN",
+        "signalBar": 3,
+        "signalTime": "2024-01-01T04:00:00Z"
+      },
+      {
+        "id": 12,
+        "kind": "EXIT",
+        "barIndex": 5,
+        "side": "short",
+        "rawPrice": "150",
+        "price": "150.105",
+        "quantity": "8.52361727974948217054093231637146",
+        "fee": "0.8956063002437572148463326517442566",
+        "reason": "STOP_LOSS",
+        "executionTime": null,
+        "timePrecision": "BAR_INTERVAL",
+        "barOpenTime": "2024-01-01T05:00:00Z",
+        "barCloseTime": "2024-01-01T06:00:00Z",
+        "signalBar": null,
+        "signalTime": null
+      }
+    ],
+    "trades": [
+      {
+        "side": "long",
+        "direction": 1,
+        "entryEventId": 2,
+        "entryBar": 1,
+        "entryTime": "2024-01-01T01:00:00Z",
+        "signalBar": 0,
+        "signalTime": "2024-01-01T01:00:00Z",
+        "entryPrice": "100.07",
+        "quantity": "9.993004896572399320475667033076846",
+        "margin": "1000",
+        "entryNotional": "1000",
+        "entryFee": "0.7",
+        "stopPrice": "95.0665",
+        "takeProfitPrice": "110.077",
+        "exitEventId": 3,
+        "exitBar": 1,
+        "exitPrice": "94.99995345",
+        "exitFee": "0.6645345",
+        "exitReason": "STOP_LOSS",
+        "exitTime": null,
+        "exitTimePrecision": "BAR_INTERVAL",
+        "grossPnl": "-50.665",
+        "netPnl": "-52.0295345"
+      },
+      {
+        "side": "long",
+        "direction": 1,
+        "entryEventId": 5,
+        "entryBar": 2,
+        "entryTime": "2024-01-01T02:00:00Z",
+        "signalBar": 1,
+        "signalTime": "2024-01-01T02:00:00Z",
+        "entryPrice": "120.084",
+        "quantity": "7.894227919622930615236001465640718",
+        "margin": "947.9704655",
+        "entryNotional": "947.9704655",
+        "entryFee": "0.66357932585",
+        "stopPrice": "114.0798",
+        "takeProfitPrice": "132.0924",
+        "exitEventId": 6,
+        "exitBar": 2,
+        "exitPrice": "113.99994414",
+        "exitFee": "0.62995907930580975",
+        "exitReason": "STOP_LOSS",
+        "exitTime": null,
+        "exitTimePrecision": "BAR_INTERVAL",
+        "grossPnl": "-48.0289236345575",
+        "netPnl": "-49.32246203971330975"
+      },
+      {
+        "side": "short",
+        "direction": -1,
+        "entryEventId": 8,
+        "entryBar": 3,
+        "entryTime": "2024-01-01T03:00:00Z",
+        "signalBar": 2,
+        "signalTime": "2024-01-01T03:00:00Z",
+        "entryPrice": "114.9195",
+        "quantity": "7.81980432790158928858896879989906",
+        "margin": "898.64800346028669025",
+        "entryNotional": "898.64800346028669025",
+        "entryFee": "0.629053602422200683175",
+        "stopPrice": "120.665475",
+        "takeProfitPrice": "103.42755",
+        "exitEventId": 9,
+        "exitBar": 3,
+        "exitPrice": "120.7499408325",
+        "exitFee": "0.660968636941091034835883625",
+        "exitReason": "STOP_LOSS",
+        "exitTime": null,
+        "exitTimePrecision": "BAR_INTERVAL",
+        "grossPnl": "-45.59290645555764522983375",
+        "netPnl": "-46.882928694920936947844633625"
+      },
+      {
+        "side": "short",
+        "direction": -1,
+        "entryEventId": 11,
+        "entryBar": 4,
+        "entryTime": "2024-01-01T04:00:00Z",
+        "signalBar": 3,
+        "signalTime": "2024-01-01T04:00:00Z",
+        "entryPrice": "99.93",
+        "quantity": "8.52361727974948217054093231637146",
+        "margin": "851.765074765365753302155366375",
+        "entryNotional": "851.765074765365753302155366375",
+        "entryFee": "0.5962355523357560273115087564625",
+        "stopPrice": "104.9265",
+        "takeProfitPrice": "89.937",
+        "exitEventId": 12,
+        "exitBar": 5,
+        "exitPrice": "150.105",
+        "exitFee": "0.8956063002437572148463326517442566",
+        "exitReason": "STOP_LOSS",
+        "exitTime": null,
+        "exitTimePrecision": "BAR_INTERVAL",
+        "grossPnl": "-427.672497011430267906891278973938",
+        "netPnl": "-429.1643388640097811490491203821448"
+      }
+    ],
+    "openPosition": null,
+    "termination": {
+      "reason": "DATASET_END",
+      "cancelledOrder": null
+    },
+    "metrics": {
+      "initialCapital": "1000",
+      "finalBalance": "422.6007359013559721531062459928552",
+      "finalEquity": "422.6007359013559721531062459928552",
+      "netProfit": "-577.3992640986440278468937540071448",
+      "returnPct": "-57.73992640986440278468937540071448",
+      "closedNetPnl": "-577.3992640986440278468937540071448",
+      "totalFees": "5.439936997098614710168725033206757",
+      "maxDrawdownPct": "57.73992640986440278468937540071448",
+      "closedTrades": 4,
+      "winningTrades": 0,
+      "losingTrades": 4,
+      "breakevenTrades": 0,
+      "winRatePct": "0",
+      "profitFactor": "0"
+    },
+    "runCard": {
+      "engineVersion": "1.0.0",
+      "protocolVersion": "1.0.0",
+      "schemaVersion": "1.0.0",
+      "validatorVersion": "1.0.0",
+      "canonicalization": "aitrading-canonical-1",
+      "dataFormat": "ohlcv-v1",
+      "decimalPolicy": "decimal34-half-even-v1",
+      "dslHash": "7aff31ee33bad0a64a6f34e5a6a4dac910a200430e6de824427ffda73351f269",
+      "canonicalDsl": "{\"execution\":{\"commissionBps\":7,\"fill\":\"next_bar_open\",\"maxPositions\":1,\"missingCandles\":\"reject\",\"sameBarExit\":\"stop_first\",\"signal\":\"bar_close\",\"slippageBps\":4,\"spreadBps\":6},\"indicators\":[],\"labels\":[\"price action\"],\"market\":{\"symbol\":\"BTC_USDT\",\"timeframe\":\"1h\",\"timezone\":\"UTC\"},\"name\":\"Neutral price research\",\"risk\":{\"allocationPct\":100,\"initialCapital\":1000,\"leverage\":1,\"stopLossPct\":5,\"takeProfitPct\":10},\"rules\":{\"longEntry\":{\"kind\":\"compare\",\"left\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"op\":\"gt\",\"right\":{\"field\":\"open\",\"kind\":\"series\",\"lag\":0}},\"longExit\":{\"kind\":\"compare\",\"left\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"op\":\"lt\",\"right\":{\"field\":\"open\",\"kind\":\"series\",\"lag\":0}},\"shortEntry\":{\"kind\":\"compare\",\"left\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"op\":\"lt\",\"right\":{\"field\":\"open\",\"kind\":\"series\",\"lag\":0}},\"shortExit\":{\"kind\":\"compare\",\"left\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"op\":\"gt\",\"right\":{\"field\":\"open\",\"kind\":\"series\",\"lag\":0}}},\"schemaVersion\":\"1.0.0\"}",
+      "minimumBars": 1,
+      "dataset": {
+        "symbol": "BTC_USDT",
+        "timeframe": "1h",
+        "timezone": "UTC",
+        "sourceType": "SYNTHETIC",
+        "closedThrough": "2030-01-01T00:00:00Z",
+        "dataHash": "db1f906f3fe4b8ffbc00d29b5b228afc0d6b44856a1770de66293ffed7e8619c",
+        "count": 6,
+        "start": "2024-01-01T00:00:00Z",
+        "end": "2024-01-01T05:00:00Z",
+        "sourceVerified": false
+      },
+      "inputHash": "13a9b23f7d724a407d8fdccdc7c4549e3f5a97124571e88fb6366a21ad9d905d",
+      "policy": {
+        "signal": "bar_close",
+        "fill": "next_bar_open",
+        "sameBarExit": "stop_first",
+        "missingCandles": "reject",
+        "maxPositions": "1",
+        "commissionBps": "7",
+        "spreadBps": "6",
+        "slippageBps": "4"
+      },
+      "limitations": [
+        "Unverified research data; historical results do not guarantee profit.",
+        "No funding, liquidation, broker tick/lot or live-order simulation.",
+        "Protective execution time is only known within its candle."
+      ]
+    },
+    "resultHash": "d815f96b72d5aacd5242e48246da2baa9de4a5f6fcda3a45a042a9cf98c0aaa0"
+  },
+  "targetStatus": "NOT_RUN_OFFICIAL_PINE_REQUIRES_LOGIN",
+  "numericTolerance": {
+    "absolute": "0.00000001",
+    "relative": "0.000000000001"
+  },
+  "eventPolicy": "Exact bar/side/reason/signal/confirmation identity; no numeric tolerance on event decisions."
+}
