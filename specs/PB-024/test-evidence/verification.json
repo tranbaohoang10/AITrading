@@ -1,0 +1,75 @@
+{
+  "date": "31/08/2026",
+  "backend": {
+    "tests": 174,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "newAuditIntegrationTests": 11,
+  "frontend": {
+    "tests": 192,
+    "failures": 0,
+    "isolatedRetry": true,
+    "unchangedTimeouts": true
+  },
+  "python": {
+    "tests": 44,
+    "failures": 0
+  },
+  "verificationTools": 6,
+  "canonicalFixtures": 6,
+  "backtestUiFixtures": 6,
+  "javaDependencies": {
+    "count": 118,
+    "findings": [],
+    "passed": true
+  },
+  "npmVulnerabilities": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "browser": {
+    "actualApi": true,
+    "desktop": [
+      1600,
+      1000
+    ],
+    "tablet": [
+      900,
+      1000
+    ],
+    "mobile": [
+      390,
+      844
+    ],
+    "crossAccountIsolation": true,
+    "viewportReset": true
+  },
+  "finalRestartSmoke": {
+    "passed": true,
+    "synthetic": true,
+    "realHttpPostgres": true,
+    "actualApiDownUpObserved": true,
+    "sessionAndAuditSurvivedRestart": true,
+    "unchangedPageAfterRestart": true,
+    "serverRequestId": "bade6b2e-efcd-4cdc-9c2e-75c38b95e10f",
+    "mutationEvent": {
+      "id": "3",
+      "occurredAt": "2026-08-31T12:30:44.602175Z",
+      "requestId": "bade6b2e-efcd-4cdc-9c2e-75c38b95e10f",
+      "category": "AUTH",
+      "operation": "PROFILE",
+      "method": "PATCH",
+      "httpStatus": 200,
+      "resourceId": null,
+      "errorCode": null
+    },
+    "logoutThenPrivateAccessDenied": true
+  },
+  "publicationAndCi": "PENDING"
+}

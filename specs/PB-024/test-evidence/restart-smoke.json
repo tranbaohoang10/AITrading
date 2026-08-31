@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "synthetic": true,
+  "realHttpPostgres": true,
+  "actualApiDownUpObserved": true,
+  "sessionAndAuditSurvivedRestart": true,
+  "unchangedPageAfterRestart": true,
+  "serverRequestId": "ad984872-1f89-4278-929c-ed8c059985bd",
+  "mutationEvent": {
+    "id": "4",
+    "occurredAt": "2026-08-31T12:11:16.672587Z",
+    "requestId": "ad984872-1f89-4278-929c-ed8c059985bd",
+    "category": "AUTH",
+    "operation": "PROFILE",
+    "method": "PATCH",
+    "httpStatus": 200,
+    "resourceId": null,
+    "errorCode": null
+  },
+  "logoutThenPrivateAccessDenied": true
+}

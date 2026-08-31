@@ -32,3 +32,5 @@
   signed out and stopped harness/password removed. Browser screenshots remain
   correctly labeled pre-guard evidence; final API report carries new code hash.
   No runtime certification; commit/push/CI checkpoint and open Issue update next.
+
+- 31/08/2026: Normal push239c1bc verified on GitHub main. CI33388361245 SUCCESS with downloaded163backend/186frontend/44Python/Java118. Issue18 comment5477882015 retains OPEN/BLOCKED for actual target runtime. No protected historical file changed.

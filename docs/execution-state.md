@@ -380,3 +380,24 @@ push main and verify exact GitHub SHA/actual CI, update Issue18 without closing.
 Then recheck blockers/READY order and continue PB024 (audit diagnostics) if AI
 and target access still unavailable. Do not stop the full autonomous goal after
 publishing this checkpoint or redo DONE features.
+
+
+## 31/08/2026 — PB-016 published; PB-024 active
+
+PB016 main239c1bc0e29c1c3461112f66386592ed2d218844 verified after normal push.
+CI33388361245 SUCCESS; downloaded163JUnit/0fail/error/skip,186frontend/44Python,
+JavaOSV118/no findings and npm0. Issue18 comment5477882015 retains OPEN/BLOCKED
+for actual MQL runtime/negative cases, not compilation. No app-control approval
+retry/bypass. Latest project OPENAI_API_KEY presence absent at Process/User/Machine;
+PB008/Issue12 and PB015/Issue17 external blockers unchanged. Working tree was clean.
+
+PB024/Issue19 created before code. CNPM/test matrix defined, audit V11/API/Account
+activity implemented. Local frontend192/lint/build PASS; first backend run had one
+new-test expectation failure (auth query correctly rejected); test separated into
+valid mutation plus query denial without changing security. Full corrected backend,
+restart/browser, scope, publication and CI remain required. No product DONE claim.
+
+
+## 31/08/2026 — PB-024 local verification complete
+
+Final174backend/192frontend/44Python PASS; verifier/canonical/UI fixtures6each, JavaOSV118/npm0. Frontend concurrent repeat had3 pre-existing 5s timeouts; unchanged isolated rerun192PASS. No test/config disabled. Actual browser1600/900/390 and stale-A/B isolation; final exact-source API25336→25212/PGb2my_5ah restart PASS. All owned API/PG stopped/password removed; temporary browser viewport reset and synthetic users signed out. PB024 Issue19 requires scoped commit/push/exactCI then completed closure. PB008/015/016 blockers unchanged. Next independent READY after PB024 is PB022 in-app notifications; full backlog goal remains active.

@@ -460,3 +460,24 @@ warnings; **actual MQL runtime/event and negative CSV verification remain pendin
 Do not treat local tests/compiler success as runtime certification. See
 [target evidence/procedure](specs/PB-016/test-evidence/target-validation.md),
 [design](specs/PB-016/design.md) and [test cases](specs/PB-016/test-cases.md).
+
+## PB-024 — private activity and operational audit
+
+Account → Load activity displays your recent authentication, resource changes and
+backtest transitions. Metadata only, retained30days; successful reads and anonymous
+attempts are not shown. Refresh or load older pages; no edit/delete API. V11 adds
+immutable audit events, transactional job triggers and bounded retention. Existing
+migrations, algorithm, dependencies and stack remain unchanged.
+
+GET `/api/audit?limit=25&before=<id>` requires current session and matching
+X-Workspace-User; limit1..50 and120 reads per15minutes/account. Server request UUIDs
+correlate errors, HTTP outcomes and async job transitions. No raw body, query,
+headers, credentials, prompts or trade details enter audit rows. Account deletion
+cascades its audit rows. Database administrators remain trusted.
+
+HTTP audit failure logs a fixed warning and preserves an already committed result;
+job audit failure rolls back the job transition. Public health probes database
+and audit reads, not all provider/worker/write permissions. This is a scoped
+operational trail, not forensic completeness or a compliance guarantee. See
+[operations/retention runbook](docs/operations-audit.md),
+[design](specs/PB-024/design.md) and [test cases](specs/PB-024/test-cases.md).

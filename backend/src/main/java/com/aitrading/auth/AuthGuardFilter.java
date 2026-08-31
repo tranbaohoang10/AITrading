@@ -30,6 +30,7 @@ public class AuthGuardFilter extends OncePerRequestFilter {
                 return;
             }
             String path = request.getRequestURI();
+            if(user!=null)request.setAttribute(com.aitrading.audit.AuditService.ACTOR,user.id());
             // The header binds the rendered workspace, never selects an owner.
             // A mismatch must not invalidate the replacement account's session.
             boolean bootstrap = java.util.Set.of("/api/health", "/api/auth/csrf",
@@ -42,6 +43,7 @@ public class AuthGuardFilter extends OncePerRequestFilter {
                 return;
             }
             boolean allowed = true;
+            if(user!=null&&path.equals("/api/audit"))allowed=limits.allow("audit-read",user.id().toString(),120);
             if (user != null && path.startsWith("/api/dsl/"))
                 allowed = limits.allow("dsl-user", user.id().toString(), 120);
             if (user != null && (path.equals("/api/strategies") || path.startsWith("/api/strategies/"))) {

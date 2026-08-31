@@ -81,9 +81,9 @@ public class BacktestStore {
         UUID id=UUID.randomUUID();
         jdbc.update("""
                 INSERT INTO trading.backtest_job(id,owner_id,request_id,request_hash,strategy_id,strategy_revision,strategy_title,dataset_id,dataset_name,symbol,timeframe,source_kind,
-                credential_version,input_json,input_hash,dsl_hash,data_hash,candle_count,state) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'QUEUED')
+                credential_version,input_json,input_hash,dsl_hash,data_hash,candle_count,audit_request_id,state) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'QUEUED')
                 """,id,user.id(),key,fingerprint,strategy,revision.revision(),revision.title(),dataset,data.name(),data.symbol(),data.timeframe(),data.sourceKind(),user.credentialVersion(),frozen,
-                BacktestJson.hash(frozen),revision.hash(),data.dataHash(),data.candleCount());
+                BacktestJson.hash(frozen),revision.hash(),data.dataHash(),data.candleCount(),com.aitrading.api.RequestIdFilter.currentId());
         return owned(user,id,false);
     }
     @Transactional
@@ -93,10 +93,10 @@ public class BacktestStore {
         if(!configured)throw new BacktestFailure(BacktestFailure.Code.WORKER_UNCONFIGURED);quota(user);UUID id=UUID.randomUUID();
         jdbc.update("""
                 INSERT INTO trading.backtest_job(id,owner_id,request_id,request_hash,strategy_id,strategy_revision,strategy_title,dataset_id,dataset_name,symbol,timeframe,source_kind,
-                retry_of,credential_version,input_json,input_hash,dsl_hash,data_hash,candle_count,state)
-                SELECT ?,owner_id,?,?,strategy_id,strategy_revision,strategy_title,dataset_id,dataset_name,symbol,timeframe,source_kind,?,?,input_json,input_hash,dsl_hash,data_hash,candle_count,'QUEUED'
+                retry_of,credential_version,input_json,input_hash,dsl_hash,data_hash,candle_count,audit_request_id,state)
+                SELECT ?,owner_id,?,?,strategy_id,strategy_revision,strategy_title,dataset_id,dataset_name,symbol,timeframe,source_kind,?,?,input_json,input_hash,dsl_hash,data_hash,candle_count,?,'QUEUED'
                 FROM trading.backtest_job WHERE id=? AND owner_id=?
-                """,id,key,fingerprint,original,user.credentialVersion(),original,user.id());
+                """,id,key,fingerprint,original,user.credentialVersion(),com.aitrading.api.RequestIdFilter.currentId(),original,user.id());
         return owned(user,id,false);
     }
     @Transactional public Job get(UserPrincipal user,UUID id){lockUser(user);return owned(user,id,false);}

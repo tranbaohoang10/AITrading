@@ -43,13 +43,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/ai/capabilities").authenticated()
                         .requestMatchers("/api/backtests", "/api/backtests/**").authenticated()
                         .requestMatchers("/api/journal", "/api/journal/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/audit").authenticated()
                         .anyRequest().denyAll())
                 .csrf(Customizer.withDefaults())
                 .addFilterBefore(new AuthInputFilter(new HashSet<>(Arrays.asList(origins.split(",")))), CsrfFilter.class)
                 .addFilterBefore(new AuthGuardFilter(users, limits), LogoutFilter.class)
                 .formLogin(form -> form.loginPage("/api/auth/login").loginProcessingUrl("/api/auth/login")
                         .usernameParameter("email")
-                        .successHandler((request, response, authentication) -> response.setStatus(204))
+                        .successHandler((request, response, authentication) -> {
+                            if(authentication.getPrincipal() instanceof UserPrincipal user)
+                                request.setAttribute(com.aitrading.audit.AuditService.ACTOR,user.id());
+                            response.setStatus(204);
+                        })
                         .failureHandler((request, response, exception) ->
                                 ApiErrors.write(request, response, 401, ApiErrors.Code.UNAUTHORIZED)))
                 .httpBasic(AbstractHttpConfigurer::disable)

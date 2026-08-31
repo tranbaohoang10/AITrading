@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useAuth } from './AuthContext'
 import { ApiError, currentUser, privateMutate } from './api'
 import { buttonClass, inputClass } from './AuthForm'
+import { AuditPanel } from '../audit/AuditPanel'
 
 export function AccountView() {
   const auth = useAuth()
@@ -60,6 +61,7 @@ export function AccountView() {
         {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
         {notice && <p role="status" className="text-sm text-slate-300">{notice}</p>}
         <button disabled={busy} type="button" className="min-h-11 border-b border-slate-500 text-sm text-slate-300 focus-visible:outline-2 focus-visible:outline-sky-400" onClick={() => void run(async () => { await privateMutate(auth.user.id, '/auth/logout'); if (alive.current) auth.clear() })}>Sign out</button>
+        <AuditPanel />
       </>}
     </div>
   </section>

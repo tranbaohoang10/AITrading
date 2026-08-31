@@ -14,7 +14,8 @@ public class ApiExceptionHandler {
     private ResponseEntity<ApiErrors.ErrorBody> error(HttpServletRequest request, int status, ApiErrors.Code code) {
         return ResponseEntity.status(status).body(new ApiErrors.ErrorBody(code.name(), ApiErrors.requestId(request)));
     }
-    @ExceptionHandler({IllegalArgumentException.class, HttpMessageNotReadableException.class})
+    @ExceptionHandler({IllegalArgumentException.class, HttpMessageNotReadableException.class,
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
     public ResponseEntity<?> invalid(HttpServletRequest request) { return error(request, 400, ApiErrors.Code.INVALID_REQUEST); }
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<?> unauthorized(HttpServletRequest request) { return error(request, 401, ApiErrors.Code.UNAUTHORIZED); }

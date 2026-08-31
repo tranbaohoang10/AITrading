@@ -1,0 +1,52 @@
+- complementary "Global navigation":
+  - generic "AI Trading": AT
+  - navigation "Primary":
+    - button "Workspace":
+    - button "AI Strategy":
+    - button "Backtest":
+    - button "My Code":
+    - button "Trading Journal":
+    - button "Strategies":
+  - button "Settings":
+  - button "Account":
+- region "AI Chat":
+  - heading "Quant / Research conversations" [level=2]
+  - paragraph: Private saved messages · AI requests are always explicit
+  - button "New Chat"
+  - button "Refresh list"
+  - paragraph: No conversations yet. Start a New Chat.
+  - navigation "Saved conversations"
+  - generic: Select a conversation or start a New Chat. Messages are saved to your account; strategy generation will be connected separately.
+  - region "AI provider controls":
+    - button "Check AI availability"
+    - generic: Provider availability not checked.
+    - paragraph: Ask AI sends up to 20 recent saved messages from this conversation to the configured provider. Provider retention policies apply. Do not include secrets. Research output may be wrong; no trades are executed.
+    - button "Ask AI" [disabled]
+- separator "Resize AI Chat"
+- region "Account":
+  - heading "Account" [level=2]
+  - paragraph: pb024-a@example.test
+  - paragraph: Audit A changed <script>inert</script>
+  - text: Display name
+  - textbox "Display name": Audit A changed <script>inert</script>
+  - button "Save display name"
+  - heading "Change password" [level=3]
+  - paragraph: All sessions will end. Sign in again with your new password.
+  - text: Current password
+  - textbox "Current password"
+  - text: New password
+  - textbox "New password"
+  - button "Change password"
+  - status: Display name saved.
+  - button "Sign out"
+  - region "Account activity":
+    - heading "Account activity" [level=3]
+    - paragraph: Your recent authentication, changes and backtest events. Metadata only; retained for 30 days. Anonymous attempts and successful reads are not shown. This is not a complete access history.
+    - button "Refresh activity"
+    - list:
+      - paragraph: PROFILE · HTTP 200
+      - time: 2026-08-31T12:15:00.964536Z
+      - paragraph: "Request ID: 7a50efec-f1fe-4855-8282-be9bb440b3b8"
+      - paragraph: LOGIN · HTTP 204
+      - time: 2026-08-31T12:12:20.299733Z
+      - paragraph: "Request ID: 98c6b538-8510-4181-9559-f65c555923f8"

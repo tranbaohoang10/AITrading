@@ -18,6 +18,7 @@ public class HealthController {
     public ResponseEntity<?> health(HttpServletRequest request) {
         try {
             Integer value = jdbc.queryForObject("SELECT 1", Integer.class);
+            jdbc.queryForObject("SELECT count(*) FROM (SELECT id FROM trading.audit_event LIMIT 1) probe",Integer.class);
             if (Integer.valueOf(1).equals(value)) return ResponseEntity.ok(new Health("UP"));
         } catch (DataAccessException ignored) {
             // Do not log database exceptions: messages can expose hostnames or credentials.
