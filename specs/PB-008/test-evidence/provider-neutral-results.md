@@ -312,3 +312,16 @@ three Markdown files. Restored UTF-8 punctuation only, verified all historical
 backlog rows outside PB008 against baseline761f3b4; no source/test change. Publish
 this correction as a new commit, never rewrite feature history. Final Issue
 closure/backlog DONE awaits correction delivery verification.
+
+
+31/08/2026 — PB-008 DONE, Issue #12 CLOSED / COMPLETED after full AC/DoD.
+Feature a38c83d1a4a9a3524d4fa70df78c6a00d2c6ac42, UTF-8 evidence correction
+b148333104a496e633ef67cd607b1351600426c4: both normal main pushes and exact
+GitHub SHA verified. CI33408544142 and33408952000 both jobs SUCCESS; feature
+artifact independently confirms211/0/0/0 JUnit and118 dependencies without findings.
+Local209frontend/44Python and real Gemini3.5Flash synthetic two-turn structured/
+context isolation/persistence/actual restart PASS. Secret/log/scope checks PASS.
+Earlier2.5Flash model rejection and intermediate fixture timeout remain historical.
+Owned smoke API/PG stopped, temporary DB password removed. No protected mvp-ui,
+stack, dependency, governance, CI or security weakening. Next READY by priority/ID:
+PB-009; PB-014/PB-018 also newly READY. Existing DONE work is not repeated.

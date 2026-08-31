@@ -17,7 +17,7 @@ flowchart LR
   API[Spring Boot Java21 API]
   DB[(PostgreSQL / Flyway)]
   Python[Offline Python DSL engine PB-010]
-  Provider[Selected AiProvider: Gemini or optional OpenAI - real smoke pending]
+  Provider[Selected AiProvider: Gemini or optional OpenAI]
   Browser -->|same-origin REST, HttpOnly session and CSRF| API
   API -->|JDBC, owned application schema| DB
   API -->|frozen owned input, bounded supervised jobs PB-011| Python
@@ -154,3 +154,5 @@ provider check to openai/gemini, retaining V6 and old provenance. Current diagra
 privacy/security/AC and evidence: specs/PB-008/provider-neutral.md. Historical
 OpenAI-only description above records the initial implementation, not the current
 mandatory provider. Real Gemini smoke is required before PB008 DONE.
+
+31/08/2026: PB008 Gemini3.5Flash real synthetic smoke and delivery CI verified; Issue12 completed. Historical smoke-pending entries above are superseded by PB008 final evidence.

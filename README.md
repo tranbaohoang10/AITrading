@@ -254,7 +254,7 @@ Run `python -m unittest discover -s python/tests -v`. See the
 [execution/precision/security contract](specs/PB-010/design.md) and
 [test plan](specs/PB-010/test-cases.md). No new Python dependency is required.
 
-## AI provider boundary (PB-008 — external smoke pending)
+## AI provider boundary (PB-008 — verified Gemini / optional OpenAI)
 
 Business logic depends on the neutral `AiProvider` contract. Select one adapter at
 server startup: official Gemini Developer API (`generateContent`) or optional
@@ -306,8 +306,8 @@ is not a zero-retention guarantee; each provider/account data policy applies. Do
 secrets. Output is untrusted research text, never trade execution or guaranteed advice.
 
 Local loopback HTTP/real PostgreSQL and UI tests are separate from the required
-real Gemini smoke. Issue #12 stays open until that smoke, publication and CI meet
-DoD. See the current [provider-neutral amendment](specs/PB-008/provider-neutral.md),
+real Gemini smoke. Gemini3.5Flash synthetic two-turn/context/restart smoke and
+publication CI passed; Issue #12 is completed. See the current [provider-neutral amendment](specs/PB-008/provider-neutral.md),
 [test cases](specs/PB-008/provider-neutral-test-cases.md) and
 [evidence](specs/PB-008/test-evidence/provider-neutral-results.md). Original OpenAI
 CNPM/evidence remain as historical records. V13 permits Gemini without changing
