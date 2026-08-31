@@ -30,30 +30,30 @@ it('rejects wrong result identity, version, counts, times, precision and decimal
 it('enforces frozen candle identity, global ordinals, result times and price bounds', async () => {
   const { job, result, page } = fixture()
   const fetcher = vi.fn().mockResolvedValue(reply(page)); vi.stubGlobal('fetch', fetcher)
-  expect(await api.getCandles(job, result, 0)).toEqual(page)
+  expect(await api.getCandles(job, result, 0, undefined, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).toEqual(page)
   expect(fetcher.mock.calls[0][0]).toBe(`/api/backtests/${job.id}/candles?start=0&limit=100`)
   for (const value of [{ ...page, jobId: key(2) }, { ...page, dataHash: 'f'.repeat(64) }, { ...page, start: 1 },
     { ...page, items: page.items.slice(1) }, { ...page, items: page.items.map(c => ({ ...c, low: '999' })) },
     { ...page, items: page.items.map(c => ({ ...c, time: '2024-02-01T00:00:00Z' })) }]) {
-    fetcher.mockResolvedValueOnce(reply(value)); await expect(api.getCandles(job, result, 0)).rejects.toThrow()
+    fetcher.mockResolvedValueOnce(reply(value)); await expect(api.getCandles(job, result, 0, undefined, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow()
   }
-  await expect(api.getCandles(job, result, -1)).rejects.toThrow()
-  await expect(api.getCandles(job, result, 0, 501)).rejects.toThrow()
+  await expect(api.getCandles(job, result, -1, undefined, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow()
+  await expect(api.getCandles(job, result, 0, 501, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow()
 })
 it('bounds streamed responses and propagates authorization without mock fallback', async () => {
   const { job } = fixture(), fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher)
   fetcher.mockResolvedValueOnce(new Response(' '.repeat(256 * 1024 + 1)))
-  await expect(api.getJob(job.id)).rejects.toThrow('Invalid backtest')
+  await expect(api.getJob(job.id, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Invalid backtest')
   fetcher.mockResolvedValueOnce(reply({ code: 'UNAUTHORIZED' }, 401))
-  await expect(api.getJob(job.id)).rejects.toMatchObject({ status: 401 })
+  await expect(api.getJob(job.id, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toMatchObject({ status: 401 })
 })
 it('submits flat exact intent with fresh CSRF and rejects a replay of a different source', async () => {
   const { job } = fixture(), fetcher = vi.fn().mockResolvedValueOnce(reply({ headerName: 'X-CSRF-TOKEN', token: 'synthetic' })).mockResolvedValueOnce(reply(job))
   vi.stubGlobal('fetch', fetcher)
   const body = { requestId: job.requestId, strategyId: job.strategyId, revision: job.revision, datasetId: job.datasetId }
-  expect(await api.createJob(body)).toEqual(job)
+  expect(await api.createJob(body, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).toEqual(job)
   expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual(body)
-  expect(fetcher.mock.calls[1][1].headers['X-CSRF-TOKEN']).toBe('synthetic')
+  expect(new Headers(fetcher.mock.calls[1][1].headers).get('X-CSRF-TOKEN')).toBe('synthetic')
   fetcher.mockResolvedValueOnce(reply({ headerName: 'X-CSRF-TOKEN', token: 'synthetic2' })).mockResolvedValueOnce(reply({ ...job, datasetId: key(999) }))
-  await expect(api.createJob(body)).rejects.toThrow()
+  await expect(api.createJob(body, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow()
 })

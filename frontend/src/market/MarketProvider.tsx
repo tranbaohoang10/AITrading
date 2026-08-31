@@ -21,7 +21,7 @@ export function MarketProvider({ children }: { children: ReactNode }) {
     const epoch = ++pageEpoch.current
     setPageLoading(true); setPageError(''); setPage(null)
     try {
-      const result = await api.candles(item, size, start)
+      const result = await api.candles(item, size, start, auth?.user.id)
       if (epoch !== pageEpoch.current || selectedRef.current?.id !== item.id) return
       setPage(result)
     } catch (error) { if (epoch === pageEpoch.current) setPageError(errorText(error)) }
@@ -33,7 +33,7 @@ export function MarketProvider({ children }: { children: ReactNode }) {
     const epoch = ++listEpoch.current
     setListLoading(true); setListError('')
     try {
-      const result = await api.listDatasets(more ? nextCursor ?? undefined : undefined)
+      const result = await api.listDatasets(more ? nextCursor ?? undefined : undefined, auth?.user.id)
       if (epoch !== listEpoch.current) return
       setItems(old => more ? [...old, ...result.items.filter(item => !old.some(other => other.id === item.id))] : result.items)
       setNextCursor(result.nextCursor)
@@ -53,12 +53,13 @@ export function MarketProvider({ children }: { children: ReactNode }) {
   const known = (error: unknown) => error instanceof ApiError && [400, 401, 403, 404, 409, 413, 422, 429].includes(error.status)
   const importData = async (draft?: api.ImportDraft) => {
     if (writing.current || (!pending.current && !draft)) return false
+    const previouslyUncertain = pending.current !== null
     if (!pending.current && draft) pending.current = { ...draft, requestId: crypto.randomUUID() }
     const payload = pending.current!
     const generation = lifetime.current
     writing.current = true; setBusy(true); setMutationError(''); setNotice(''); listEpoch.current++; setListLoading(false)
     try {
-      const item = await api.importDataset(payload)
+      const item = await api.importDataset(payload, auth?.user.id)
       if (generation !== lifetime.current) return false
       pending.current = null; setUncertain(false)
       setItems(old => [item, ...old.filter(other => other.id !== item.id)])
@@ -66,7 +67,7 @@ export function MarketProvider({ children }: { children: ReactNode }) {
       return true
     } catch (error) {
       if (generation === lifetime.current) {
-        if (known(error)) { pending.current = null; setUncertain(false) } else setUncertain(true)
+        if (known(error) && !previouslyUncertain) { pending.current = null; setUncertain(false) } else setUncertain(true)
         setMutationError(errorText(error))
       }
       return false
@@ -78,7 +79,7 @@ export function MarketProvider({ children }: { children: ReactNode }) {
     const generation = lifetime.current
     writing.current = true; setBusy(true); setMutationError(''); setNotice('')
     try {
-      await api.deleteDataset(item)
+      await api.deleteDataset(item, auth?.user.id)
       if (generation !== lifetime.current) return false
       pageEpoch.current++; listEpoch.current++; setPageLoading(false); setListLoading(false)
       selectedRef.current = null; setSelected(null); setPage(null); setPageError('')

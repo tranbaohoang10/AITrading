@@ -25,7 +25,7 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
   const intent = useRef<Intent | null>(null), mutation = useRef(false), selectedRef = useRef<api.Job | null>(null), resultRef = useRef<api.Result | null>(null)
   async function verifyIdentity() {
     if (!alive.current || !auth) return
-    const actual = await currentUser()
+    const actual = await currentUser(auth?.user.id)
     if (alive.current && actual.id !== auth.user.id) throw new ApiError(401)
   }
   useEffect(() => {
@@ -40,7 +40,7 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
     const job = selectedRef.current, data = resultRef.current
     if (!job || !data) return
     const token = ++chartEpoch.current; setPage(null); setChartError(''); setChartLoading(true)
-    try { const next = await api.getCandles(job, data, start); await verifyIdentity(); if (alive.current && token === chartEpoch.current) setPage(next) }
+    try { const next = await api.getCandles(job, data, start, undefined, auth?.user.id); await verifyIdentity(); if (alive.current && token === chartEpoch.current) setPage(next) }
     catch (failure) { if (alive.current && token === chartEpoch.current) setChartError(message(failure)) }
     finally { if (alive.current && token === chartEpoch.current) setChartLoading(false) }
   }
@@ -48,12 +48,12 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
     if (mutation.current || intent.current) return
     const token = ++selectionEpoch.current; selectedRef.current = null; setSelected(null); clearResult(); setError(''); setLoading(true)
     try {
-      const job = await api.getJob(key)
+      const job = await api.getJob(key, auth?.user.id)
       await verifyIdentity()
       if (!alive.current || token !== selectionEpoch.current) return
       selectedRef.current = job; setSelected(job); remember(job)
       if (job.state === 'SUCCEEDED') {
-        const data = await api.getResult(job)
+        const data = await api.getResult(job, auth?.user.id)
         await verifyIdentity()
         if (!alive.current || token !== selectionEpoch.current) return
         resultRef.current = data; setResult(data); await candleWindow(0)
@@ -65,12 +65,12 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
     const token = ++listEpoch.current; setError('')
     try {
       // Account limits are <=100; bounded pagination prevents a malformed endless cursor.
-      async function all<T>(read: (cursor?: string) => Promise<{ items: T[]; nextCursor: string | null }>): Promise<T[]> {
+      async function all<T>(read: (cursor?: string, accountId?: string) => Promise<{ items: T[]; nextCursor: string | null }>): Promise<T[]> {
         const rows: T[] = []; let cursor: string | undefined
-        for (let i = 0; i < 6; i++) { const page = await read(cursor); rows.push(...page.items); if (!page.nextCursor) return rows; cursor = page.nextCursor }
+        for (let i = 0; i < 6; i++) { const page = await read(cursor, auth?.user.id); rows.push(...page.items); if (!page.nextCursor) return rows; cursor = page.nextCursor }
         throw new Error('Catalog limit exceeded')
       }
-      const [jobs, scripts, market, ready] = await Promise.all([all(api.listJobs), all(strategiesApi.listStrategies), all(marketApi.listDatasets), api.capabilities()])
+      const [jobs, scripts, market, ready] = await Promise.all([all(api.listJobs), all(strategiesApi.listStrategies), all(marketApi.listDatasets), api.capabilities(auth?.user.id)])
       await verifyIdentity()
       if (!alive.current || token !== listEpoch.current) return
       setItems(jobs); setStrategies(scripts); setDatasets(market); setConfigured(ready)
@@ -82,7 +82,7 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
     if (!key) return
     try {
       const rows: strategiesApi.Brief[] = []; let before: number | undefined
-      for (let i = 0; i < 5; i++) { const page = await strategiesApi.history(key, before); rows.push(...page.items); if (page.nextBefore === null) break; before = page.nextBefore }
+      for (let i = 0; i < 5; i++) { const page = await strategiesApi.history(key, before, auth?.user.id); rows.push(...page.items); if (page.nextBefore === null) break; before = page.nextBefore }
       await verifyIdentity()
       if (!alive.current || token !== setupEpoch.current) return
       setVersions(rows.filter(v => v.status === 'VALIDATED'))
@@ -92,7 +92,7 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
     if (intent.current || mutation.current) return
     const key = strategyId, token = ++setupEpoch.current; setRevision(null); setError('')
     if (!version) return
-    try { const saved = await strategiesApi.getRevision(key, version); await verifyIdentity(); if (saved.status !== 'VALIDATED') throw new Error('Invalid revision'); if (alive.current && token === setupEpoch.current) setRevision(saved) }
+    try { const saved = await strategiesApi.getRevision(key, version, auth?.user.id); await verifyIdentity(); if (saved.status !== 'VALIDATED') throw new Error('Invalid revision'); if (alive.current && token === setupEpoch.current) setRevision(saved) }
     catch (failure) { if (alive.current && token === setupEpoch.current) setError(message(failure)) }
   }
   async function submit(action: Intent) {
@@ -100,16 +100,16 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
     const previouslyUncertain = intent.current !== null
     mutation.current = true; intent.current = action; setBusy(true); setUncertain(false); setError(''); ++selectionEpoch.current; ++listEpoch.current
     selectedRef.current = null; setSelected(null); clearResult(); setLoading(false)
-    let completed: api.Job | null = null
+    let completed: api.Job | null = null, acknowledged = false
     try {
-      completed = action.kind === 'create' ? await api.createJob(action.body) : await api.retryJob(action.job, action.requestId)
-      await verifyIdentity()
+      completed = action.kind === 'create' ? await api.createJob(action.body, auth?.user.id) : await api.retryJob(action.job, action.requestId, auth?.user.id)
+      acknowledged = true; await verifyIdentity()
       if (!alive.current) return
       remember(completed); intent.current = null; setUncertain(false)
     } catch (failure) {
       completed = null
       if (!alive.current) return
-      if (definitive(failure) && !previouslyUncertain) intent.current = null
+      if (definitive(failure) && !previouslyUncertain && !acknowledged) intent.current = null
       else setUncertain(true)
       setError(message(failure))
     } finally { mutation.current = false; if (alive.current) setBusy(false) }
@@ -128,8 +128,8 @@ export function BacktestProvider({ children }: { children: ReactNode }) {
     mutation.current = true; setBusy(true); setError(''); ++selectionEpoch.current; ++listEpoch.current; clearResult(); setLoading(false)
     let refresh = true, actionError = ''
     try {
-      if (remove) { await api.deleteJob(job); await verifyIdentity(); if (alive.current) { setItems(rows => rows.filter(x => x.id !== job.id)); selectedRef.current = null; setSelected(null); refresh = false } }
-      else { const next = await api.cancelJob(job); await verifyIdentity(); if (alive.current) remember(next) }
+      if (remove) { await api.deleteJob(job, auth?.user.id); await verifyIdentity(); if (alive.current) { setItems(rows => rows.filter(x => x.id !== job.id)); selectedRef.current = null; setSelected(null); refresh = false } }
+      else { const next = await api.cancelJob(job, auth?.user.id); await verifyIdentity(); if (alive.current) remember(next) }
     } catch (failure) { if (alive.current) { actionError = message(failure); setError(actionError) } }
     finally { mutation.current = false; if (alive.current) setBusy(false) }
     // On uncertain delete/cancel, a read resolves state; never automatically mutate again.

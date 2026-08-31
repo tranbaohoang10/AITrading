@@ -132,7 +132,9 @@ NOT RUN; replace actual/status with measured evidence, never inferred PASS.
   changes, evidence captured; next READY selection only after completed delivery.
 - Actual: Local137backend/149frontend/40Python/6verifier/6canonical/6UI-fixture
   tests PASS; lint/type/build and Java118/npm audits PASS. Publication pending.
-- Status: IN PROGRESS. Evidence: [execution record](test-evidence/results.md).
+- Status: PASS. Publication: ae59734 verified on GitHub main, CI33373695604 SUCCESS,
+  downloaded backend137/OSV118 and frontend149 log verified; Issue15 completed.
+  Evidence: [execution record](test-evidence/results.md).
 
 Security applicability: BOLA, CSRF, injection/XSS, mass assignment, replay/races,
 rate/storage/body bounds, session revocation, redaction and dependencies apply.

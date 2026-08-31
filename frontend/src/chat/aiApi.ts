@@ -1,3 +1,4 @@
+import { privateRequest } from '../auth/api'
 import { ApiError, request } from '../auth/api'
 
 export type AiConfiguration = { configured: boolean; provider: 'openai'; model: string | null }
@@ -44,17 +45,17 @@ function turn(value: unknown, expected: AiIntent): AiTurn {
     : result.assistantSequence !== null || (result.state === 'PENDING' ? result.errorCode !== null : result.errorCode === null)) throw invalid()
   return result
 }
-export async function getAiConfiguration(): Promise<AiConfiguration> {
-  const v = object(await (await request('/ai/capabilities')).json())
+export async function getAiConfiguration(accountId?: string): Promise<AiConfiguration> {
+  const v = object(await (await privateRequest(accountId, '/ai/capabilities')).json())
   if (typeof v.configured !== 'boolean' || v.provider !== 'openai' || (!v.configured && v.model !== null)) throw invalid()
   return { configured: v.configured, provider: 'openai', model: v.configured ? model(v.model) : null }
 }
 const route = (intent: AiIntent) => `/conversations/${id(intent.conversationId)}/ai-turns`
-async function post(path: string, body: object) {
+async function post(path: string, body: object, accountId?: string) {
   const token = object(await (await request('/auth/csrf')).json())
   if (token.headerName !== 'X-CSRF-TOKEN' || typeof token.token !== 'string') throw invalid()
   try {
-    return await (await request(path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token.token }, body: JSON.stringify(body), signal: AbortSignal.timeout(30_000) })).json()
+    return await (await privateRequest(accountId, path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token.token }, body: JSON.stringify(body), signal: AbortSignal.timeout(30_000) })).json()
   } catch (error) {
     if (error instanceof ApiError && error.status === 503 && error.response) {
       const details: unknown = await error.response.clone().json().catch(() => null)
@@ -63,15 +64,15 @@ async function post(path: string, body: object) {
     throw error
   }
 }
-export async function startAi(intent: AiIntent): Promise<AiTurn> {
+export async function startAi(intent: AiIntent, accountId?: string): Promise<AiTurn> {
   const payload = { requestId: id(intent.requestId), expectedVersion: integer(intent.expectedVersion), sourceSequence: integer(intent.sourceSequence, 1999) }
-  return turn(await post(route(intent), payload), intent)
+  return turn(await post(route(intent), payload, accountId), intent)
 }
-export async function getAiTurn(intent: AiIntent): Promise<AiTurn> { return turn(await (await request(`${route(intent)}/${id(intent.requestId)}`)).json(), intent) }
-export async function getLatestAiTurn(conversationId: string): Promise<AiTurn | null> {
-  const response = await request(`/conversations/${id(conversationId)}/ai-turns`)
+export async function getAiTurn(intent: AiIntent, accountId?: string): Promise<AiTurn> { return turn(await (await privateRequest(accountId, `${route(intent)}/${id(intent.requestId)}`)).json(), intent) }
+export async function getLatestAiTurn(conversationId: string, accountId?: string): Promise<AiTurn | null> {
+  const response = await privateRequest(accountId, `/conversations/${id(conversationId)}/ai-turns`)
   if (response.status === 204) return null
   const value = object(await response.json())
   return turn(value, { conversationId, requestId: id(value.requestId), expectedVersion: integer(value.expectedVersion), sourceSequence: integer(value.sourceSequence, 1999) })
 }
-export async function cancelAiTurn(intent: AiIntent): Promise<AiTurn> { return turn(await post(`${route(intent)}/${id(intent.requestId)}/cancel`, {}), intent) }
+export async function cancelAiTurn(intent: AiIntent, accountId?: string): Promise<AiTurn> { return turn(await post(`${route(intent)}/${id(intent.requestId)}/cancel`, {}, accountId), intent) }

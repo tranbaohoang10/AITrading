@@ -1,4 +1,5 @@
-import { ApiError, mutate, request } from '../auth/api'
+import { privateRequest, privateMutate } from '../auth/api'
+import { ApiError } from '../auth/api'
 
 export type Dataset = {
   id: string; name: string; symbol: string; timeframe: string; timezone: 'UTC'
@@ -35,18 +36,18 @@ function dataset(value: unknown): Dataset {
     sourceLabel: text(v.sourceLabel), rawHash: hash(v.rawHash), dataHash: hash(v.dataHash), formatVersion: 'ohlcv-v1', candleCount: integer(v.candleCount, 1, 5000),
     gapCount: integer(v.gapCount), firstTime: time(v.firstTime), lastTime: time(v.lastTime), createdAt: time(v.createdAt) }
 }
-export async function listDatasets(cursor?: string): Promise<{ items: Dataset[]; nextCursor: string | null }> {
-  const v = object(await (await request(`/datasets?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`)).json())
+export async function listDatasets(cursor?: string, accountId?: string): Promise<{ items: Dataset[]; nextCursor: string | null }> {
+  const v = object(await (await privateRequest(accountId, `/datasets?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`)).json())
   if (!Array.isArray(v.items) || v.items.length > 20) throw invalid()
   return { items: v.items.map(dataset), nextCursor: v.nextCursor === null ? null : text(v.nextCursor) }
 }
-export async function getDataset(key: string): Promise<Dataset> {
-  const result = dataset(await (await request(`/datasets/${id(key)}`)).json())
+export async function getDataset(key: string, accountId?: string): Promise<Dataset> {
+  const result = dataset(await (await privateRequest(accountId, `/datasets/${id(key)}`)).json())
   if (result.id !== key) throw invalid()
   return result
 }
-export async function candles(selected: Dataset, limit: number, start?: number): Promise<CandlePage> {
-  const v = object(await (await request(`/datasets/${id(selected.id)}/candles?limit=${integer(limit, 1, 500)}${start === undefined ? '' : `&start=${integer(start, 0, selected.candleCount)}`}`)).json())
+export async function candles(selected: Dataset, limit: number, start?: number, accountId?: string): Promise<CandlePage> {
+  const v = object(await (await privateRequest(accountId, `/datasets/${id(selected.id)}/candles?limit=${integer(limit, 1, 500)}${start === undefined ? '' : `&start=${integer(start, 0, selected.candleCount)}`}`)).json())
   const meta = dataset(v.dataset), from = integer(v.start, 0, meta.candleCount), total = integer(v.total, 1, 5000)
   if (meta.id !== selected.id || meta.dataHash !== selected.dataHash || total !== meta.candleCount || total !== selected.candleCount
     || from !== (start ?? Math.max(0, total - limit)) || !Array.isArray(v.items)
@@ -62,8 +63,8 @@ export async function candles(selected: Dataset, limit: number, start?: number):
   })
   return { dataset: meta, start: from, total, items }
 }
-export async function importDataset(payload: ImportRequest): Promise<Dataset> {
-  try { return dataset(await mutate('/datasets/import', payload)) }
+export async function importDataset(payload: ImportRequest, accountId?: string): Promise<Dataset> {
+  try { return dataset(await privateMutate(accountId, '/datasets/import', payload)) }
   catch (error) {
     if (error instanceof ApiError && error.status === 422 && error.response) {
       try {
@@ -75,4 +76,4 @@ export async function importDataset(payload: ImportRequest): Promise<Dataset> {
     throw error
   }
 }
-export const deleteDataset = (value: Dataset) => mutate(`/datasets/${id(value.id)}`, { expectedDataHash: value.dataHash }, 'DELETE')
+export const deleteDataset = (value: Dataset, accountId?: string) => privateMutate(accountId, `/datasets/${id(value.id)}`, { expectedDataHash: value.dataHash }, 'DELETE')

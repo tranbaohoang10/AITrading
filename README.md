@@ -110,6 +110,21 @@ Never reuse a real service password for testing. Passwords are Argon2id-hashed;
 sessions live server-side in PostgreSQL with HttpOnly/SameSite cookies and CSRF.
 Use Account in desktop/mobile navigation to edit your name, change password or
 sign out. Password change revokes all sessions and requires signing in again.
+
+PB-027 adds `X-Workspace-User` to every private API read/write, including account
+profile/password/logout. Capture the account ID from `/api/auth/me` after login;
+keep that expected ID for the workspace and its asynchronous operations. Do not
+discover a replacement session's ID just before sending an old draft. Missing,
+malformed, duplicate or mismatched identity returns401 before resource access.
+The header is a precondition, never an owner selector; backend ownership still
+comes from the authenticated principal. CSRF remains required for unsafe requests.
+Health, registration, login and CSRF remain bootstrap endpoints; `/auth/me` permits
+unbound self-discovery but checks the header when supplied. Stale logout does not
+invalidate the replacement account. The UI clears its stale workspace on401;
+already-rendered data is not proactively erased merely by another tab changing
+session. Late responses are discarded after account remount. Uncertain writes
+retain their exact UUID/payload through retry, including rate-limit rejection.
+
 PB-003 is verified on GitHub at099d6a5, Actions33349231331 success, Issue6 completed.
 PB-004 replaces the authenticated chat demo; chart/strategy/backtest samples remain
 explicitly labelled until their own features.
@@ -369,7 +384,7 @@ API: GET `/api/journal`, `/api/journal/summary` with `from,to,zone,currency`;
 GET `/api/journal/{id}`; POST root/ID with `{requestId,expectedVersion,entry}`;
 DELETE ID with `{expectedVersion}`. Unsafe requests require fresh CSRF and
 `X-Workspace-User` matching the authenticated account, not a caller-chosen owner.
-Missing/mismatched workspace identity returns401 before any journal write. Up to
+Missing/mismatched workspace identity returns401 before any journal read/write. Up to
 500entries/account,100accepted writes/entry,20default/50max list page; read300 and
 write60/account/15min. Source/record IDs never grant access. No dependency added.
 

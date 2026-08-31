@@ -61,7 +61,7 @@ it('asks only for a saved latest user message and reloads the authoritative assi
   fireEvent.click(screen.getByRole('button', { name: 'Ask AI' }))
   expect(await screen.findByText(reply.content)).toBeInTheDocument()
   expect(screen.getByText('AI reply saved to this conversation.')).toBeInTheDocument()
-  expect(ai.startAi).toHaveBeenCalledWith(expect.objectContaining({ conversationId: alpha.id, expectedVersion: 2, sourceSequence: 1 }))
+  expect(ai.startAi).toHaveBeenCalledWith(expect.objectContaining({ conversationId: alpha.id, expectedVersion: 2, sourceSequence: 1 }), 'owner-a')
   expect(api.saveMessage).not.toHaveBeenCalled()
   expect(document.querySelector('script')).toBeNull()
   expect(screen.getByRole('button', { name: 'Ask AI' })).toBeDisabled()
@@ -89,7 +89,7 @@ it('checks a pending result without invoking the provider again', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Check AI status' }))
   await screen.findByText(reply.content)
   expect(ai.startAi).toHaveBeenCalledTimes(1)
-  expect(ai.getAiTurn).toHaveBeenCalledWith(vi.mocked(ai.startAi).mock.calls[0][0])
+  expect(ai.getAiTurn).toHaveBeenCalledWith(vi.mocked(ai.startAi).mock.calls[0][0], 'owner-a')
 })
 
 it('recovers durable request identity after reload and preserves an unsent draft', async () => {
@@ -102,7 +102,7 @@ it('recovers durable request identity after reload and preserves an unsent draft
   expect(screen.getByLabelText('Research message')).toHaveValue('Do not lose this draft')
   fireEvent.click(screen.getByRole('button', { name: 'Cancel AI request' }))
   await screen.findByText(/AI request cancelled/)
-  expect(ai.cancelAiTurn).toHaveBeenCalledWith(known)
+  expect(ai.cancelAiTurn).toHaveBeenCalledWith(known, 'owner-a')
   expect(screen.getByLabelText('Research message')).toHaveValue('Do not lose this draft')
   expect(screen.getByLabelText('Research message')).toBeEnabled()
 })
@@ -129,7 +129,7 @@ it('keeps pending identity if cancel or a subsequent retry is rejected', async (
   const original = vi.mocked(ai.startAi).mock.calls[0][0]
   fireEvent.click(screen.getByRole('button', { name: 'Retry same AI request' })); await screen.findByText(/Too many attempts/)
   fireEvent.click(screen.getByRole('button', { name: 'Cancel AI request' })); await screen.findByText('Cancel unavailable')
-  expect(ai.cancelAiTurn).toHaveBeenCalledWith(original)
+  expect(ai.cancelAiTurn).toHaveBeenCalledWith(original, 'owner-a')
   expect(screen.getByRole('button', { name: 'Check AI status' })).toBeEnabled()
   expect(screen.getByRole('button', { name: 'Ask AI' })).toBeDisabled()
 })

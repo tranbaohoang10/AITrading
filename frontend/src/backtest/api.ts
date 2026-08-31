@@ -1,4 +1,4 @@
-import { mutate, request } from '../auth/api'
+import { privateRequest, privateMutate } from '../auth/api'
 import type { Candle } from '../market/api'
 
 export type Job = {
@@ -103,8 +103,8 @@ export function parseResult(value: unknown, job: Job): Result {
       minimumBars: int(card.minimumBars, 1, 10000), dataset: { ...detail(Object.fromEntries(Object.entries(source).filter(([k]) => k !== 'sourceVerified'))), sourceVerified: 'false' },
       policy, limitations: array(card.limitations, 20).map(s => str(s, 512)) } }
 }
-async function json(path: string, maximum = 256 * 1024): Promise<unknown> {
-  const response = await request(path), reader = response.body?.getReader()
+async function json(path: string, maximum = 256 * 1024, accountId?: string): Promise<unknown> {
+  const response = await privateRequest(accountId, path), reader = response.body?.getReader()
   if (!reader) throw invalid()
   const chunks: Uint8Array[] = []; let size = 0
   try { while (true) { const { done, value } = await reader.read(); if (done) break; size += value.byteLength; if (size > maximum) throw invalid(); chunks.push(value) } }
@@ -113,15 +113,15 @@ async function json(path: string, maximum = 256 * 1024): Promise<unknown> {
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length }
   return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
 }
-export async function listJobs(cursor?: string) {
-  const v = obj(await json(`/backtests?limit=20${cursor ? `&cursor=${encodeURIComponent(str(cursor))}` : ''}`))
+export async function listJobs(cursor?: string, accountId?: string) {
+  const v = obj(await json(`/backtests?limit=20${cursor ? `&cursor=${encodeURIComponent(str(cursor))}` : ''}`, undefined, accountId))
   return { items: array(v.items, 20).map(x => parseJob(x)), nextCursor: optional(v.nextCursor, x => str(x)) }
 }
-export const getJob = async (key: string) => parseJob(await json(`/backtests/${id(key)}`), key)
-export const getResult = async (job: Job) => parseResult(await json(`/backtests/${id(job.id)}/result`, 32 * 1024 * 1024), job)
-export async function getCandles(job: Job, result: Result, start: number, limit = 100): Promise<FrozenPage> {
+export const getJob = async (key: string, accountId?: string) => parseJob(await json(`/backtests/${id(key)}`, undefined, accountId), key)
+export const getResult = async (job: Job, accountId?: string) => parseResult(await json(`/backtests/${id(job.id)}/result`, 32 * 1024 * 1024, accountId), job)
+export async function getCandles(job: Job, result: Result, start: number, limit = 100, accountId?: string): Promise<FrozenPage> {
   int(start, 0, job.candleCount); int(limit, 1, 500)
-  const v = obj(await json(`/backtests/${id(job.id)}/candles?start=${start}&limit=${limit}`))
+  const v = obj(await json(`/backtests/${id(job.id)}/candles?start=${start}&limit=${limit}`, undefined, accountId))
   if (v.jobId !== job.id || v.inputHash !== job.inputHash || v.dataHash !== job.dataHash || v.symbol !== job.symbol || v.start !== start || v.total !== job.candleCount) throw invalid()
   const items = array(v.items, limit).map((value, index) => {
     const c = obj(value), ordinal = int(c.ordinal, 0, job.candleCount - 1)
@@ -134,16 +134,16 @@ export async function getCandles(job: Job, result: Result, start: number, limit 
   if (items.length !== Math.min(limit, job.candleCount - start)) throw invalid()
   return { jobId: job.id, inputHash: job.inputHash, dataHash: job.dataHash, symbol: job.symbol, start, total: job.candleCount, items }
 }
-export async function capabilities() { const v = obj(await json('/backtests/capabilities')); if (typeof v.configured !== 'boolean') throw invalid(); return v.configured }
-export async function createJob(body: Create) {
-  const job = parseJob(await mutate('/backtests', body))
+export async function capabilities(accountId?: string) { const v = obj(await json('/backtests/capabilities', undefined, accountId)); if (typeof v.configured !== 'boolean') throw invalid(); return v.configured }
+export async function createJob(body: Create, accountId?: string) {
+  const job = parseJob(await privateMutate(accountId, '/backtests', body))
   if (job.requestId !== body.requestId || job.strategyId !== body.strategyId || job.revision !== body.revision || job.datasetId !== body.datasetId || job.retryOf !== null) throw invalid()
   return job
 }
-export async function retryJob(old: Job, requestId: string) {
-  const job = parseJob(await mutate(`/backtests/${id(old.id)}/retry`, { requestId }))
+export async function retryJob(old: Job, requestId: string, accountId?: string) {
+  const job = parseJob(await privateMutate(accountId, `/backtests/${id(old.id)}/retry`, { requestId }))
   if (job.requestId !== requestId || job.retryOf !== old.id || job.inputHash !== old.inputHash) throw invalid()
   return job
 }
-export const cancelJob = async (job: Job) => parseJob(await mutate(`/backtests/${id(job.id)}/cancel`, {}), job.id)
-export const deleteJob = (job: Job) => mutate(`/backtests/${id(job.id)}`, {}, 'DELETE')
+export const cancelJob = async (job: Job, accountId?: string) => parseJob(await privateMutate(accountId, `/backtests/${id(job.id)}/cancel`, {}), job.id)
+export const deleteJob = (job: Job, accountId?: string) => privateMutate(accountId, `/backtests/${id(job.id)}`, {}, 'DELETE')

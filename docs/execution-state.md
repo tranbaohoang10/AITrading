@@ -256,3 +256,35 @@ found older resource APIs still use unbound shared-session requests; add a focus
 P0 follow-up before optional export work, without reimplementing DONE features.
 PB-008 stays BLOCKED#12 on actual project AI credentials/smoke; independent work
 continues. No final-readiness or all-backlog completion claim.
+
+## 31/08/2026 — PB-013 delivered, PB-027 selected
+
+ae59734ac44ce72166568ae3c17ac6f8d8ca8a08 is verified on GitHub main after normal
+push; CI33373695604 frontend/backend SUCCESS; artifact137tests/OSV118 and actual
+frontend149 log verified. Issue15 completed comment5475909646; tree was clean.
+Created Issue16 for PB-027 P0 expected-account binding before any follow-up code.
+Current journal POST/DELETE are bound; older APIs and private reads are not yet.
+Extend the same explicit precondition with captured frontend account identity,
+including safe logout ordering, without rebuilding DONE feature business logic.
+Additive backlog security fix is selected before export work. Tests/browser first,
+then normal commit Refs16+15 for completion checkpoint; no AI credential reuse.
+
+## 31/08/2026 — PB-027 local verification complete, publication next
+
+Issue16 OPEN, main ae59734 base. Expected workspace identity now binds every
+private read/write and account logout before resource access. No business engine,
+migration, dependency or stack change. Captured ID persists through CSRF/retry;
+uncertain chat/market/strategy/backtest intent preserved. Local141backend,
+166frontend,40Python,6verifier,6canonical,6UI-fixture and lint/build/audits PASS.
+Baseline actual200/read and204/logout reproduced and fixed; transient earlier
+suite failures recorded honestly in PB-027 evidence, no weakened expectations.
+Actual two-tab browser A→B mismatch and B surviving stale logout/reload verified;
+backtest smoke + JVM21636→8188 restart PASS. All owned API/PG clusters stopped,
+credential files removed, browser users signed out. Vite may remain available.
+
+Next: stage exact60file scope, commit Vietnamese security(auth) Refs16+15, normal
+push main, verify exact GitHub SHA and actual CI, complete Issue16 only after PASS.
+Then select PB-015 (highest-priority remaining independent READY by dependencies).
+PB-008 stays blocked#12 for real project provider credentials/smoke; no reuse of
+Codex credentials and no claim the entire backlog is complete. Protected old
+mvp-ui blobs unchanged and outside new commit.

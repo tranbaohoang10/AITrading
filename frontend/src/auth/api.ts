@@ -24,8 +24,20 @@ export async function request(path: string, options: RequestInit = {}): Promise<
   return result
 }
 
-export async function currentUser(): Promise<UserProfile> {
-  const body: unknown = await (await request('/auth/me')).json()
+export function workspaceHeaders(accountId: string | undefined): Headers {
+  if (!accountId || !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(accountId)) throw new ApiError(401)
+  return new Headers({ 'X-Workspace-User': accountId })
+}
+
+export function privateRequest(accountId: string | undefined, path: string, options: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(options.headers)
+  // Capture from the calling workspace, never from a mutable global or a new session.
+  headers.set('X-Workspace-User', workspaceHeaders(accountId).get('X-Workspace-User')!)
+  return request(path, { ...options, headers: Object.fromEntries(headers) })
+}
+
+export async function currentUser(accountId?: string): Promise<UserProfile> {
+  const body: unknown = await (await (accountId === undefined ? request('/auth/me') : privateRequest(accountId, '/auth/me'))).json()
   if (!body || typeof body !== 'object' || !('id' in body) || !('email' in body) || !('displayName' in body)
     || typeof body.id !== 'string' || typeof body.email !== 'string' || typeof body.displayName !== 'string') {
     throw new Error('The service returned an invalid account response. Please retry.')
@@ -33,15 +45,23 @@ export async function currentUser(): Promise<UserProfile> {
   return { id: body.id, email: body.email, displayName: body.displayName }
 }
 
-export async function mutate(path: string, fields?: Record<string, string | number>, method = 'POST', form = false) {
+export async function mutate(path: string, fields?: Record<string, string | number>, method = 'POST', form = false, accountId?: string) {
   // Fresh masked token for each user action; never persisted in browser storage.
   // Unsafe requests are not automatically retried: their outcome may be uncertain.
+  const headers = accountId === undefined ? new Headers() : workspaceHeaders(accountId)
   const token: { headerName: string; token: string } = await (await request('/auth/csrf')).json()
   if (token.headerName !== 'X-CSRF-TOKEN' || typeof token.token !== 'string') throw new Error('Invalid security token response.')
+  headers.set('Content-Type', form ? 'application/x-www-form-urlencoded' : 'application/json')
+  headers.set(token.headerName, token.token)
   const response = await request(path, {
     method,
-    headers: { 'Content-Type': form ? 'application/x-www-form-urlencoded' : 'application/json', [token.headerName]: token.token },
+    headers,
     body: form ? new URLSearchParams(Object.entries(fields ?? {}).map(([key, value]) => [key, String(value)])).toString() : JSON.stringify(fields ?? {}),
   })
   return response.status === 204 ? undefined : response.json()
+}
+
+export function privateMutate(accountId: string | undefined, path: string, fields?: Record<string, string | number>, method = 'POST') {
+  workspaceHeaders(accountId)
+  return mutate(path, fields, method, false, accountId)
 }

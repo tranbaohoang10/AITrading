@@ -55,6 +55,7 @@ class StrategyApiTests {
     }
     HttpResponse<String> send(Actor actor,String method,String path,byte[] body,String csrf,Map<String,String> headers,boolean chunked) throws Exception {
         var builder=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+path)).timeout(Duration.ofSeconds(15));
+        if(actor.id()!=null && !headers.containsKey("X-Workspace-User")) builder.header("X-Workspace-User",actor.id().toString());
         builder.header("Content-Type",headers.getOrDefault("Content-Type","application/json"));
         headers.forEach((key,value)->{if(!key.equals("Content-Type"))builder.header(key,value);});if(csrf!=null)builder.header("X-CSRF-TOKEN",csrf);
         var publisher=chunked?HttpRequest.BodyPublishers.ofInputStream(()->new ByteArrayInputStream(body)):HttpRequest.BodyPublishers.ofByteArray(body);

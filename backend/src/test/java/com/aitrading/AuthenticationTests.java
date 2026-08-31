@@ -46,6 +46,8 @@ class AuthenticationTests {
         jdbc.update("DELETE FROM trading.app_user");
     }
 
+    final Map<HttpClient,String> expectedAccounts = new ConcurrentHashMap<>();
+
     HttpClient actor() {
         return HttpClient.newBuilder().cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
                 .connectTimeout(Duration.ofSeconds(3)).build();
@@ -56,6 +58,8 @@ class AuthenticationTests {
         var request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path))
                 .timeout(Duration.ofSeconds(20)).header("Content-Type", type);
         if (token != null) request.header("X-CSRF-TOKEN", token);
+        if (expectedAccounts.containsKey(actor) && !headers.containsKey("X-Workspace-User"))
+            request.header("X-Workspace-User", expectedAccounts.get(actor));
         headers.forEach(request::header);
         return actor.send(request.method(method, HttpRequest.BodyPublishers.ofString(body)).build(), HttpResponse.BodyHandlers.ofString());
     }
@@ -79,9 +83,14 @@ class AuthenticationTests {
     }
 
     HttpResponse<String> login(HttpClient actor, String email, String password, String token) throws Exception {
-        return send(actor, "POST", "/api/auth/login", "email=" + URLEncoder.encode(email, StandardCharsets.UTF_8)
+        var result = send(actor, "POST", "/api/auth/login", "email=" + URLEncoder.encode(email, StandardCharsets.UTF_8)
                 + "&password=" + URLEncoder.encode(password, StandardCharsets.UTF_8), token,
                 "application/x-www-form-urlencoded", Map.of());
+        if (result.statusCode() == 204) {
+            expectedAccounts.remove(actor);
+            expectedAccounts.put(actor, profile(actor).get("id").asString());
+        }
+        return result;
     }
 
     HttpClient signedIn(String email) throws Exception {

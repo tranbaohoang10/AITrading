@@ -26,7 +26,7 @@ export function JournalProvider({ children }: { children: ReactNode }) {
   const [datasets, setDatasets] = useState<market.Dataset[]>([]), [chart, setChart] = useState<market.CandlePage | null>(null)
   const [chartLoading, setChartLoading] = useState(false), [chartError, setChartError] = useState(''), [chartWarning, setChartWarning] = useState('')
   const selectionEpoch = useRef(0), reportEpoch = useRef(0), chartEpoch = useRef(0), catalogEpoch = useRef(0)
-  async function identity() { if (alive.current && auth) { const actual = await currentUser(); if (alive.current && actual.id !== auth.user.id) throw new ApiError(401) } }
+  async function identity() { if (alive.current && auth) { const actual = await currentUser(auth?.user.id); if (alive.current && actual.id !== auth.user.id) throw new ApiError(401) } }
   function message(failure: unknown) {
     if (failure instanceof ApiError && failure.status === 401) auth?.clear()
     return failure instanceof ApiError ? failure.message : 'Cannot verify the response. Keep your draft and retry safely.'
@@ -58,7 +58,7 @@ export function JournalProvider({ children }: { children: ReactNode }) {
     if (!entry?.data.datasetId) { setChartLoading(false); return }
     setChartLoading(true)
     try {
-      const dataset = await market.getDataset(entry.data.datasetId)
+      const dataset = await market.getDataset(entry.data.datasetId, auth?.user.id)
       if (dataset.symbol !== entry.data.symbol || dataset.timeframe !== entry.data.timeframe) throw new Error('Mismatched source')
       const interval: Record<string, number> = { '1m': 60, '5m': 300, '15m': 900, '30m': 1800, '1h': 3600, '4h': 14400, '1d': 86400 }
       const time = Date.parse(entry.data.entryTime), outside = time < Date.parse(dataset.firstTime) || time >= Date.parse(dataset.lastTime) + interval[dataset.timeframe] * 1000
@@ -69,14 +69,14 @@ export function JournalProvider({ children }: { children: ReactNode }) {
       if (from === undefined) {
         let nearest = 0
         for (let offset = 0; offset < dataset.candleCount; offset += 500) {
-          const page = await market.candles(dataset, 500, offset)
+          const page = await market.candles(dataset, 500, offset, auth?.user.id)
           for (const candle of page.items) { if (Date.parse(candle.time) <= time) nearest = candle.ordinal }
           if (page.items.some(candle => Date.parse(candle.time) > time)) break
           if (!alive.current || token !== chartEpoch.current) return
         }
         from = Math.max(0, Math.min(Math.max(0, dataset.candleCount - 100), nearest - 50))
       }
-      const page = await market.candles(dataset, 100, from); await identity()
+      const page = await market.candles(dataset, 100, from, auth?.user.id); await identity()
       if (!alive.current || token !== chartEpoch.current) return
       setChart(page); setChartWarning(outside ? 'Entry time is outside this dataset. These candles do not verify the manual fill.' : 'Linked source is context only; manual times and prices are not verified fills.')
     } catch (failure) { if (alive.current && token === chartEpoch.current) setChartError(message(failure)) }
@@ -84,14 +84,14 @@ export function JournalProvider({ children }: { children: ReactNode }) {
   }
   async function readEntry(key: string) {
     const token = ++selectionEpoch.current; adopt(null); setLoading(true); setError(''); setNotice('')
-    try { const entry = await api.get(key); await identity(); if (alive.current && token === selectionEpoch.current) { adopt(entry); void loadChart() } }
+    try { const entry = await api.get(key, auth?.user.id); await identity(); if (alive.current && token === selectionEpoch.current) { adopt(entry); void loadChart() } }
     catch (failure) { if (alive.current && token === selectionEpoch.current) setError(message(failure)) }
     finally { if (alive.current && token === selectionEpoch.current) setLoading(false) }
   }
   async function applyFilter(next: api.Filter, clearError = true) {
     const token = ++reportEpoch.current; filterRef.current = { ...next }; setFilter({ ...next }); setReport(null); setItems([]); setNextCursor(null); setReportLoading(true); if (clearError) setError(''); paging.current = false
     try {
-      const [page, summary] = await Promise.all([api.list(next), api.summary(next)]); await identity()
+      const [page, summary] = await Promise.all([api.list(next, undefined, auth?.user.id), api.summary(next, auth?.user.id)]); await identity()
       if (!alive.current || token !== reportEpoch.current) return
       setReport(summary); setItems(page.items); setNextCursor(page.nextCursor)
     } catch (failure) { if (alive.current && token === reportEpoch.current) setError(message(failure)) }
@@ -101,7 +101,7 @@ export function JournalProvider({ children }: { children: ReactNode }) {
     if (!nextCursor || paging.current || reportLoading) return
     const token = reportEpoch.current, cursor = nextCursor; paging.current = true; setReportLoading(true)
     try {
-      const page = await api.list(filterRef.current, cursor); await identity()
+      const page = await api.list(filterRef.current, cursor, auth?.user.id); await identity()
       if (!alive.current || token !== reportEpoch.current) return
       setItems(previous => [...previous, ...page.items.filter(item => !previous.some(old => old.id === item.id))].slice(0, 500));setNextCursor(page.nextCursor)
     } catch (failure) { if (alive.current && token === reportEpoch.current) setError(message(failure)) }
@@ -111,7 +111,7 @@ export function JournalProvider({ children }: { children: ReactNode }) {
     const token = ++catalogEpoch.current
     try {
       const rows: market.Dataset[] = []; let cursor: string | undefined
-      for (let i = 0; i < 6; i++) { const page = await market.listDatasets(cursor); rows.push(...page.items); if (page.nextCursor === null) { cursor = undefined; break } cursor = page.nextCursor }
+      for (let i = 0; i < 6; i++) { const page = await market.listDatasets(cursor, auth?.user.id); rows.push(...page.items); if (page.nextCursor === null) { cursor = undefined; break } cursor = page.nextCursor }
       if (cursor) throw new Error('Catalog limit'); await identity()
       if (alive.current && token === catalogEpoch.current) setDatasets(rows)
     } catch (failure) { if (alive.current && token === catalogEpoch.current) setError(message(failure)) }
@@ -153,7 +153,7 @@ export function JournalProvider({ children }: { children: ReactNode }) {
       // A read resolves an uncertain delete without reissuing the mutation. Keep
       // the draft on conflict/network failure; never silently replace edits.
       if (!definite(failure)) {
-        try { await api.get(entry.id); await identity() }
+        try { await api.get(entry.id, auth?.user.id); await identity() }
         catch (readFailure) {
           if (alive.current && readFailure instanceof ApiError && readFailure.status === 404) {
             try { await identity(); if (alive.current) { adopt(null); setNotice('Entry is no longer available. Deletion was verified by a read.');setError('') } }

@@ -1,4 +1,4 @@
-import { mutate, request } from '../auth/api'
+import { privateRequest, privateMutate } from '../auth/api'
 
 export type Conversation = { id: string; title: string; version: number; createdAt: string; updatedAt: string; lastMessage: string }
 export type Message = { sequence: number; requestId: string; role: 'user' | 'assistant'; content: string; createdAt: string }
@@ -22,19 +22,19 @@ function message(value: unknown): Message {
   if (v.role !== 'user' && v.role !== 'assistant') throw invalid()
   return { sequence: number(v.sequence), requestId: id(v.requestId), role: v.role, content: text(v.content), createdAt: date(v.createdAt) }
 }
-export async function listConversations(cursor?: string): Promise<Page> {
-  const v = object(await (await request(`/conversations?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`)).json())
+export async function listConversations(cursor?: string, accountId?: string): Promise<Page> {
+  const v = object(await (await privateRequest(accountId, `/conversations?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`)).json())
   if (!Array.isArray(v.items)) throw invalid()
   return { items: v.items.map(conversation), nextCursor: v.nextCursor === null ? null : text(v.nextCursor) }
 }
-export async function getMessages(conversationId: string, before?: number): Promise<Messages> {
-  const v = object(await (await request(`/conversations/${id(conversationId)}/messages?limit=50${before ? `&before=${before}` : ''}`)).json())
+export async function getMessages(conversationId: string, before?: number, accountId?: string): Promise<Messages> {
+  const v = object(await (await privateRequest(accountId, `/conversations/${id(conversationId)}/messages?limit=50${before ? `&before=${before}` : ''}`)).json())
   if (!Array.isArray(v.items)) throw invalid()
   const selected = conversation(v.conversation)
   if (selected.id !== conversationId) throw invalid()
   return { conversation: selected, items: v.items.map(message), nextBefore: v.nextBefore === null ? null : number(v.nextBefore) }
 }
-export const createConversation = async (requestId: string) => conversation(await mutate('/conversations', { requestId }))
-export const renameConversation = async (value: Conversation, title: string) => conversation(await mutate(`/conversations/${id(value.id)}`, { title, expectedVersion: value.version }, 'PATCH'))
-export const deleteConversation = async (value: Conversation) => mutate(`/conversations/${id(value.id)}`, { expectedVersion: value.version }, 'DELETE')
-export const saveMessage = async (conversationId: string, requestId: string, content: string) => message(await mutate(`/conversations/${id(conversationId)}/messages`, { requestId, content }))
+export const createConversation = async (requestId: string, accountId?: string) => conversation(await privateMutate(accountId, '/conversations', { requestId }))
+export const renameConversation = async (value: Conversation, title: string, accountId?: string) => conversation(await privateMutate(accountId, `/conversations/${id(value.id)}`, { title, expectedVersion: value.version }, 'PATCH'))
+export const deleteConversation = async (value: Conversation, accountId?: string) => privateMutate(accountId, `/conversations/${id(value.id)}`, { expectedVersion: value.version }, 'DELETE')
+export const saveMessage = async (conversationId: string, requestId: string, content: string, accountId?: string) => message(await privateMutate(accountId, `/conversations/${id(conversationId)}/messages`, { requestId, content }))

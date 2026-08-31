@@ -1,6 +1,6 @@
-import { useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useAuth } from './AuthContext'
-import { currentUser, mutate } from './api'
+import { ApiError, currentUser, privateMutate } from './api'
 import { buttonClass, inputClass } from './AuthForm'
 
 export function AccountView() {
@@ -12,25 +12,31 @@ export function AccountView() {
   const [notice, setNotice] = useState('')
   const [busy, setBusy] = useState(false)
   const pending = useRef(false)
+  const alive = useRef(true)
+  useEffect(() => { alive.current = true; return () => { alive.current = false } }, [])
 
   const run = async (action: () => Promise<void>) => {
     if (pending.current) return
     pending.current = true; setBusy(true); setError(''); setNotice('')
     try { await action() }
-    catch (failure) { setError(failure instanceof Error ? failure.message : 'Unable to complete the request.') }
-    finally { pending.current = false; setBusy(false) }
+    catch (failure) { if (alive.current) { if (failure instanceof ApiError && failure.status === 401) auth?.clear(); setError(failure instanceof Error ? failure.message : 'Unable to complete the request.') } }
+    finally { pending.current = false; if (alive.current) setBusy(false) }
   }
   const saveName = (event: FormEvent) => {
     event.preventDefault()
     void run(async () => {
-      await mutate('/auth/profile', { displayName: name }, 'PATCH')
-      const profile = await currentUser(); auth?.update(profile); setName(profile.displayName); setNotice('Display name saved.')
+      await privateMutate(auth?.user.id, '/auth/profile', { displayName: name }, 'PATCH')
+      const profile = await currentUser(auth?.user.id)
+      if (!alive.current) return
+      if (profile.id !== auth?.user.id) throw new ApiError(401)
+      auth?.update(profile); setName(profile.displayName); setNotice('Display name saved.')
     })
   }
   const changePassword = (event: FormEvent) => {
     event.preventDefault()
     void run(async () => {
-      await mutate('/auth/password', { currentPassword, newPassword })
+      await privateMutate(auth?.user.id, '/auth/password', { currentPassword, newPassword })
+      if (!alive.current) return
       setCurrentPassword(''); setNewPassword(''); auth?.clear()
     })
   }
@@ -53,7 +59,7 @@ export function AccountView() {
         </form>
         {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
         {notice && <p role="status" className="text-sm text-slate-300">{notice}</p>}
-        <button disabled={busy} type="button" className="min-h-11 border-b border-slate-500 text-sm text-slate-300 focus-visible:outline-2 focus-visible:outline-sky-400" onClick={() => void run(async () => { await mutate('/auth/logout'); auth.clear() })}>Sign out</button>
+        <button disabled={busy} type="button" className="min-h-11 border-b border-slate-500 text-sm text-slate-300 focus-visible:outline-2 focus-visible:outline-sky-400" onClick={() => void run(async () => { await privateMutate(auth.user.id, '/auth/logout'); if (alive.current) auth.clear() })}>Sign out</button>
       </>}
     </div>
   </section>

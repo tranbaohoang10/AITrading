@@ -1,4 +1,5 @@
-import { ApiError, mutate, request } from '../auth/api'
+import { privateRequest, privateMutate } from '../auth/api'
+import { ApiError, request } from '../auth/api'
 
 export type Status = 'DRAFT' | 'VALIDATED'
 export type Brief = { id: string; revision: number; title: string; status: Status; symbol: string | null; timeframe: string | null; createdAt: string }
@@ -42,14 +43,14 @@ function validation(value: unknown): Validation {
   if (v.document !== null || !v.errors.length) throw invalid()
   return { valid: false, document: null, errors: v.errors.map(value => { const e = object(value); return { path: text(e.path, 512), code: text(e.code, 128) } }) }
 }
-export async function listStrategies(cursor?: string) {
-  const v = object(await (await request(`/strategies?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`)).json())
+export async function listStrategies(cursor?: string, accountId?: string) {
+  const v = object(await (await privateRequest(accountId, `/strategies?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`)).json())
   if (!Array.isArray(v.items) || v.items.length > 20) throw invalid()
   return { items: v.items.map(item => ({ ...common(item), id: id(object(item).id) })), nextCursor: v.nextCursor === null ? null : text(v.nextCursor, 128) }
 }
-export const getRevision = async (strategy: string, version?: number) => revision(await (await request(`/strategies/${id(strategy)}${version === undefined ? '' : `/versions/${integer(version)}`}`)).json(), strategy, version)
-export async function history(strategy: string, before?: number) {
-  const v = object(await (await request(`/strategies/${id(strategy)}/versions?limit=20${before === undefined ? '' : `&before=${integer(before, 101)}`}`)).json())
+export const getRevision = async (strategy: string, version?: number, accountId?: string) => revision(await (await privateRequest(accountId, `/strategies/${id(strategy)}${version === undefined ? '' : `/versions/${integer(version)}`}`)).json(), strategy, version)
+export async function history(strategy: string, before?: number, accountId?: string) {
+  const v = object(await (await privateRequest(accountId, `/strategies/${id(strategy)}/versions?limit=20${before === undefined ? '' : `&before=${integer(before, 101)}`}`)).json())
   if (!Array.isArray(v.items) || v.items.length > 20) throw invalid()
   let previous = before ?? 101
   const items = v.items.map(item => { const result = { ...common(item), id: id(object(item).id) }; if (result.id !== strategy || result.revision >= previous) throw invalid(); previous = result.revision; return result })
@@ -57,20 +58,20 @@ export async function history(strategy: string, before?: number) {
   if (nextBefore !== null && (!items.length || nextBefore !== previous)) throw invalid()
   return { items, nextBefore }
 }
-export const createStrategy = async (payload: { requestId: string; title: string }) => revision(await mutate('/strategies', payload), undefined, 1)
-export async function saveRevision(strategy: string, payload: Save) {
-  try { return revision(await mutate(`/strategies/${id(strategy)}/versions`, payload), strategy, payload.expectedRevision + 1) }
+export const createStrategy = async (payload: { requestId: string; title: string }, accountId?: string) => revision(await privateMutate(accountId, '/strategies', payload), undefined, 1)
+export async function saveRevision(strategy: string, payload: Save, accountId?: string) {
+  try { return revision(await privateMutate(accountId, `/strategies/${id(strategy)}/versions`, payload), strategy, payload.expectedRevision + 1) }
   catch (error) {
     if (error instanceof ApiError && error.status === 422 && error.response) throw new ValidationError(validation(await error.response.json()))
     throw error
   }
 }
-export const deleteStrategy = (selected: Revision) => mutate(`/strategies/${id(selected.strategyId)}`, { expectedRevision: selected.revision }, 'DELETE')
-export async function validateDraft(draft: string): Promise<Validation> {
+export const deleteStrategy = (selected: Revision, accountId?: string) => privateMutate(accountId, `/strategies/${id(selected.strategyId)}`, { expectedRevision: selected.revision }, 'DELETE')
+export async function validateDraft(draft: string, accountId?: string): Promise<Validation> {
   if (new TextEncoder().encode(draft).length > 65536) throw new ApiError(413)
   const token = object(await (await request('/auth/csrf')).json())
   if (token.headerName !== 'X-CSRF-TOKEN' || typeof token.token !== 'string') throw invalid()
-  try { return validation(await (await request('/dsl/validate', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token.token }, body: draft })).json()) }
+  try { return validation(await (await privateRequest(accountId, '/dsl/validate', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token.token }, body: draft })).json()) }
   catch (error) {
     if (error instanceof ApiError && error.status === 422 && error.response) return validation(await error.response.json())
     if (error instanceof ApiError && error.status === 400) return { valid: false, document: null, errors: [{ path: '', code: 'MALFORMED_JSON' }] }

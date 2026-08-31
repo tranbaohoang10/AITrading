@@ -53,6 +53,7 @@ class BacktestApiTests {
     UserPrincipal user(Actor actor){return (UserPrincipal)users.loadUserByUsername(actor.email());}
     HttpResponse<String> send(Actor actor,String method,String path,String body,String csrf,Map<String,String> headers)throws Exception {
         var builder=HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+path)).timeout(Duration.ofSeconds(15));
+        if(actor.id()!=null && !headers.containsKey("X-Workspace-User")) builder.header("X-Workspace-User",actor.id().toString());
         builder.header("Content-Type",headers.getOrDefault("Content-Type","application/json"));headers.forEach((k,v)->{if(!k.equals("Content-Type"))builder.header(k,v);});
         if(csrf!=null)builder.header("X-CSRF-TOKEN",csrf);
         return actor.client().send(builder.method(method,HttpRequest.BodyPublishers.ofString(body)).build(),HttpResponse.BodyHandlers.ofString());

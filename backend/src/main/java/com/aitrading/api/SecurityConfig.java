@@ -13,7 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -46,7 +46,7 @@ public class SecurityConfig {
                         .anyRequest().denyAll())
                 .csrf(Customizer.withDefaults())
                 .addFilterBefore(new AuthInputFilter(new HashSet<>(Arrays.asList(origins.split(",")))), CsrfFilter.class)
-                .addFilterBefore(new AuthGuardFilter(users, limits), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new AuthGuardFilter(users, limits), LogoutFilter.class)
                 .formLogin(form -> form.loginPage("/api/auth/login").loginProcessingUrl("/api/auth/login")
                         .usernameParameter("email")
                         .successHandler((request, response, authentication) -> response.setStatus(204))

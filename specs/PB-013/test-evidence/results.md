@@ -117,3 +117,14 @@ V1–V7/Python/dependencies/governance/CI/scripts unchanged, valid Markdown link
 fences/JSON/JPEG and limited secret-pattern checks. The latter is not a comprehensive
 secret scanner. No unrelated pre-existing change included. Refs14 is included
 only for the already-delivered PB-012 completion checkpoint.
+
+## Publication complete
+
+Commit ae59734ac44ce72166568ae3c17ac6f8d8ca8a08,45files3390insertions/8deletions,
+normal push493b737..ae59734. Local/origin/main/GitHub commits/main SHA verified.
+CI33373695604 completed SUCCESS on that SHA: frontend149PASS/npm0; backend137/
+0failures/errors/skips and OSV118/0findings verified from downloaded artifact in
+tmp/pb013-ci-33373695604. Python/verifier/canonical/UI-fixture steps SUCCESS.
+Issue15 CLOSED/COMPLETED; comment5475909646. Working tree clean after publication.
+JRN-T09 release requirement PASS. PB-027 Issue16 is the next focused P0 security
+follow-up, created before its code; PB-008 remains blocked and is not DONE.

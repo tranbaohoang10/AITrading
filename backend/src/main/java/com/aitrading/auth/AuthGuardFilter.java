@@ -11,7 +11,7 @@ import org.springframework.transaction.TransactionException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/** Added only to Spring Security's chain, after CSRF and before login processing. */
+/** Added only to Spring Security's chain, after CSRF and before logout/login. */
 public class AuthGuardFilter extends OncePerRequestFilter {
     private final UserRepository users;
     private final AuthRateLimiter limits;
@@ -30,6 +30,17 @@ public class AuthGuardFilter extends OncePerRequestFilter {
                 return;
             }
             String path = request.getRequestURI();
+            // The header binds the rendered workspace, never selects an owner.
+            // A mismatch must not invalidate the replacement account's session.
+            boolean bootstrap = java.util.Set.of("/api/health", "/api/auth/csrf",
+                    "/api/auth/register", "/api/auth/login").contains(path);
+            var expected = java.util.Collections.list(request.getHeaders("X-Workspace-User"));
+            boolean discovery = path.equals("/api/auth/me") && expected.isEmpty();
+            if (user != null && path.startsWith("/api/") && !bootstrap && !discovery
+                    && (expected.size() != 1 || !user.id().toString().equals(expected.getFirst()))) {
+                ApiErrors.write(request, response, 401, ApiErrors.Code.UNAUTHORIZED);
+                return;
+            }
             boolean allowed = true;
             if (user != null && path.startsWith("/api/dsl/"))
                 allowed = limits.allow("dsl-user", user.id().toString(), 120);
@@ -57,12 +68,6 @@ public class AuthGuardFilter extends OncePerRequestFilter {
             }
             if (user != null && (path.equals("/api/journal") || path.startsWith("/api/journal/"))) {
                 boolean read=java.util.Set.of("GET","HEAD","OPTIONS").contains(request.getMethod());
-                // A shared browser session can change in another tab. A stale
-                // workspace must not write its private draft into the new account.
-                if (!read && !user.id().toString().equals(request.getHeader("X-Workspace-User"))) {
-                    ApiErrors.write(request,response,401,ApiErrors.Code.UNAUTHORIZED);
-                    return;
-                }
                 allowed=allowed&&limits.allow(read?"journal-read":"journal-write",user.id().toString(),read?300:60);
             }
             if ("GET".equals(request.getMethod()) && path.equals("/api/auth/csrf"))

@@ -43,7 +43,7 @@ export function StrategyProvider({ children }: { children: ReactNode }) {
     const epoch = ++historyEpoch.current
     setHistoryLoading(true)
     try {
-      const result = await api.history(current.strategyId, more ? nextBefore ?? undefined : undefined)
+      const result = await api.history(current.strategyId, more ? nextBefore ?? undefined : undefined, auth?.user.id)
       if (epoch !== historyEpoch.current || current.strategyId !== selectedRef.current?.strategyId) return
       setVersions(old => more ? [...old, ...result.items.filter(item => !old.some(v => v.revision === item.revision))] : result.items); setNextBefore(result.nextBefore)
     } catch (e) { if (epoch === historyEpoch.current) setError(errorText(e)) }
@@ -53,7 +53,7 @@ export function StrategyProvider({ children }: { children: ReactNode }) {
     if (blocked()) return
     const epoch = ++readEpoch.current; resetValidation(); setLoading(true); setError(''); setNotice(''); previewEpoch.current++; setPreview(null)
     try {
-      const result = await api.getRevision(id)
+      const result = await api.getRevision(id, undefined, auth?.user.id)
       if (epoch !== readEpoch.current) return
       apply(result); void loadHistory()
     } catch (e) { if (epoch === readEpoch.current) setError(errorText(e)) }
@@ -62,7 +62,7 @@ export function StrategyProvider({ children }: { children: ReactNode }) {
   const loadList = async (more = false) => {
     const epoch = ++listEpoch.current; setListLoading(true)
     try {
-      const result = await api.listStrategies(more ? nextCursor ?? undefined : undefined)
+      const result = await api.listStrategies(more ? nextCursor ?? undefined : undefined, auth?.user.id)
       if (epoch !== listEpoch.current) return
       setItems(old => more ? [...old, ...result.items.filter(item => !old.some(v => v.id === item.id))] : result.items); setNextCursor(result.nextCursor)
       // Selection is explicit: a background list must never replace an editor.
@@ -81,7 +81,7 @@ export function StrategyProvider({ children }: { children: ReactNode }) {
   const validate = async () => {
     if (blocked() || loading || !selectedRef.current) return
     const epoch = ++validationEpoch.current; setValidating(true); setValidation(null); setError('')
-    try { const result = await api.validateDraft(draft); if (epoch === validationEpoch.current) setValidation(result) }
+    try { const result = await api.validateDraft(draft, auth?.user.id); if (epoch === validationEpoch.current) setValidation(result) }
     catch (e) { if (epoch === validationEpoch.current) setError(errorText(e)) }
     finally { if (epoch === validationEpoch.current) setValidating(false) }
   }
@@ -89,16 +89,17 @@ export function StrategyProvider({ children }: { children: ReactNode }) {
     const current = selectedRef.current
     if (!current || blocked()) return
     const epoch = ++previewEpoch.current; setPreview(null)
-    try { const result = await api.getRevision(current.strategyId, version); if (epoch === previewEpoch.current && current.strategyId === selectedRef.current?.strategyId) setPreview(result) }
+    try { const result = await api.getRevision(current.strategyId, version, auth?.user.id); if (epoch === previewEpoch.current && current.strategyId === selectedRef.current?.strategyId) setPreview(result) }
     catch (e) { if (epoch === previewEpoch.current) setError(errorText(e)) }
   }
   const execute = async (operation: Pending) => {
     if (writing.current) return false
+    const previouslyUncertain = pending.current !== null
     writing.current = true; pending.current = operation; setBusy(true); setError(''); setNotice(''); resetValidation()
     readEpoch.current++; previewEpoch.current++; listEpoch.current++; setListLoading(false); setLoading(false)
     const generation = life.current
     try {
-      const saved = operation.kind === 'create' ? await api.createStrategy(operation.payload) : operation.kind === 'save' ? await api.saveRevision(operation.id, operation.payload) : await api.deleteStrategy(operation.selected)
+      const saved = operation.kind === 'create' ? await api.createStrategy(operation.payload, auth?.user.id) : operation.kind === 'save' ? await api.saveRevision(operation.id, operation.payload, auth?.user.id) : await api.deleteStrategy(operation.selected, auth?.user.id)
       if (generation !== life.current) return false
       pending.current = null; setUncertain(false)
       if (saved) {
@@ -112,7 +113,7 @@ export function StrategyProvider({ children }: { children: ReactNode }) {
       return true
     } catch (e) {
       if (generation !== life.current) return false
-      if (e instanceof ApiError && [400, 401, 403, 404, 409, 413, 422, 429].includes(e.status)) { pending.current = null; setUncertain(false) } else setUncertain(true)
+      if (!previouslyUncertain && e instanceof ApiError && [400, 401, 403, 404, 409, 413, 422, 429].includes(e.status)) { pending.current = null; setUncertain(false) } else setUncertain(true)
       if (e instanceof api.ValidationError) setValidation(e.validation)
       setError(errorText(e)); return false
     } finally { if (generation === life.current) { writing.current = false; setBusy(false) } }

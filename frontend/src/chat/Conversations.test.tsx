@@ -121,7 +121,7 @@ describe('PB-004 private conversation UI (API contract mocks)', () => {
     const firstKey = vi.mocked(api.createConversation).mock.calls[0][0]
     fireEvent.click(screen.getByRole('button', { name: 'Retry New Chat' }))
     await screen.findByText('Conversation created.')
-    expect(api.createConversation).toHaveBeenNthCalledWith(2, firstKey)
+    expect(api.createConversation).toHaveBeenNthCalledWith(2, firstKey, 'owner-a')
     expect(screen.getByLabelText('Conversation title')).toHaveValue('Beta research')
   })
 
@@ -138,7 +138,7 @@ describe('PB-004 private conversation UI (API contract mocks)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Confirm delete' }))
     await screen.findByText('Conversation deleted.')
-    expect(api.deleteConversation).toHaveBeenCalledWith(alpha)
+    expect(api.deleteConversation).toHaveBeenCalledWith(alpha, 'owner-a')
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 
@@ -151,7 +151,7 @@ describe('PB-004 private conversation UI (API contract mocks)', () => {
     await screen.findByText(hostile)
     expect(container.querySelector('img')).toBeNull()
     expect([...container.querySelectorAll('article p:last-child')].map(p => p.textContent)).toEqual([hostile, 'Second', 'Third'])
-    expect(api.getMessages).toHaveBeenLastCalledWith(alpha.id, 3)
+    expect(api.getMessages).toHaveBeenLastCalledWith(alpha.id, 3, 'owner-a')
     expect(screen.queryByRole('button', { name: 'Load earlier messages' })).not.toBeInTheDocument()
   })
 
@@ -182,7 +182,7 @@ describe('PB-004 private conversation UI (API contract mocks)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Load more conversations' }))
     await screen.findByRole('button', { name: /Beta research/ })
     expect(screen.getAllByRole('button', { name: /Alpha research/ })).toHaveLength(1)
-    expect(api.listConversations).toHaveBeenLastCalledWith('page-two')
+    expect(api.listConversations).toHaveBeenLastCalledWith('page-two', 'owner-a')
     expect(screen.queryByRole('button', { name: 'Load more conversations' })).not.toBeInTheDocument()
   })
 
@@ -198,4 +198,18 @@ describe('PB-004 private conversation UI (API contract mocks)', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
     expect(screen.getByRole('button', { name: /Alpha research/ })).toBeInTheDocument()
   })
+})
+
+it('PB-027 keeps private message intent frozen after a rate-limited uncertain retry', async () => {
+  vi.mocked(api.saveMessage).mockRejectedValueOnce(new Error('Lost acknowledgement')).mockRejectedValueOnce(new ApiError(429))
+  render(<Root />); await select()
+  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Private exact intent' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save message' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Retry save' }))
+  await waitFor(() => expect(api.saveMessage).toHaveBeenCalledTimes(2))
+  expect(screen.getByLabelText('Research message')).toBeDisabled()
+  expect(vi.mocked(api.saveMessage).mock.calls[1]).toEqual(vi.mocked(api.saveMessage).mock.calls[0])
+  fireEvent.click(screen.getByRole('button', { name: 'Retry save' }))
+  await waitFor(() => expect(api.saveMessage).toHaveBeenCalledTimes(3))
+  expect(vi.mocked(api.saveMessage).mock.calls[2]).toEqual(vi.mocked(api.saveMessage).mock.calls[0])
 })

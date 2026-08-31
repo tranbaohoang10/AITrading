@@ -1,3 +1,4 @@
+import { privateRequest } from '../auth/api'
 import { request } from '../auth/api'
 
 export type Input = {
@@ -61,8 +62,8 @@ async function body(response: Response): Promise<unknown> {
   return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(all)) as unknown
 }
 const query = (filter: Filter) => new URLSearchParams(filter).toString()
-export async function list(filter: Filter, cursor?: string): Promise<Page> {
-  const v = object(await body(await request(`/journal?${query(filter)}&limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`)))
+export async function list(filter: Filter, cursor?: string, accountId?: string): Promise<Page> {
+  const v = object(await body(await privateRequest(accountId, `/journal?${query(filter)}&limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`)))
   if (!Array.isArray(v.items) || v.items.length > 20) throw invalid()
   const items = v.items.map(entry)
   if (new Set(items.map(item => item.id)).size !== items.length || items.some(item => item.data.settlementCurrency !== filter.currency)) throw invalid()
@@ -70,8 +71,8 @@ export async function list(filter: Filter, cursor?: string): Promise<Page> {
   if (nextCursor !== null && !/^[A-Za-z0-9_-]+$/.test(nextCursor)) throw invalid()
   return { filter: sameFilter(v.filter, filter), items, nextCursor }
 }
-export async function summary(filter: Filter): Promise<Summary> {
-  const v = object(await body(await request(`/journal/summary?${query(filter)}`)))
+export async function summary(filter: Filter, accountId?: string): Promise<Summary> {
+  const v = object(await body(await privateRequest(accountId, `/journal/summary?${query(filter)}`)))
   const daysCount = (Date.parse(date(filter.to)) - Date.parse(date(filter.from))) / 86400000 + 1
   if (!Array.isArray(v.days) || daysCount < 1 || daysCount > 366 || v.days.length !== daysCount) throw invalid()
   const days = v.days.map((row, index) => { const day = object(row), expected = new Date(Date.parse(filter.from) + index * 86400000).toISOString().slice(0, 10); if (date(day.date) !== expected) throw invalid(); return { date: expected, values: values(day.values) } })
@@ -81,8 +82,8 @@ export async function summary(filter: Filter): Promise<Summary> {
   for (const value of [totals, ...days.map(day => day.values)]) if (scaled(value.grossPnl) - scaled(value.fees) !== scaled(value.netPnl)) throw invalid()
   return { filter: sameFilter(v.filter, filter), totals, days }
 }
-export async function get(key: string): Promise<Entry> {
-  const result = entry(await body(await request(`/journal/${id(key)}`))); if (result.id !== key) throw invalid(); return result
+export async function get(key: string, accountId?: string): Promise<Entry> {
+  const result = entry(await body(await privateRequest(accountId, `/journal/${id(key)}`))); if (result.id !== key) throw invalid(); return result
 }
 async function mutate(path: string, payload: unknown, accountId: string, method = 'POST') {
   const workspace = id(accountId)

@@ -43,13 +43,13 @@ it('saves an incomplete draft then explicitly saves a validated immutable revisi
   expect(screen.getByText('Unsaved changes')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Save draft' }))
   await screen.findByText('Saved revision 2 · DRAFT.')
-  expect(api.saveRevision).toHaveBeenLastCalledWith(first.strategyId, expect.objectContaining({ expectedRevision: 1, draftText: '{ incomplete', mode: 'DRAFT' }))
+  expect(api.saveRevision).toHaveBeenLastCalledWith(first.strategyId, expect.objectContaining({ expectedRevision: 1, draftText: '{ incomplete', mode: 'DRAFT' }), 'a')
   fireEvent.click(screen.getByRole('button', { name: 'Load synthetic DSL example' }))
   expect(screen.getByLabelText('Strategy JSON')).toHaveValue(JSON.stringify(sample, null, 2))
   expect(api.saveRevision).toHaveBeenCalledTimes(1)
   fireEvent.click(screen.getByRole('button', { name: 'Save validated revision' }))
   await screen.findByText('Saved revision 3 · VALIDATED.')
-  expect(api.saveRevision).toHaveBeenLastCalledWith(first.strategyId, expect.objectContaining({ expectedRevision: 2, mode: 'VALIDATED' }))
+  expect(api.saveRevision).toHaveBeenLastCalledWith(first.strategyId, expect.objectContaining({ expectedRevision: 2, mode: 'VALIDATED' }), 'a')
   expect(screen.getByText('Editor matches saved revision')).toBeInTheDocument()
 })
 
@@ -77,7 +77,7 @@ it('retains exact uncertain save intent, locks edits and retries without duplica
   expect(screen.getByLabelText('Strategy JSON')).toBeDisabled(); expect(screen.getByLabelText('Strategy')).toBeDisabled()
   fireEvent.click(screen.getByRole('button', { name: 'Retry strategy request' }))
   await screen.findByText('Saved revision 2 · DRAFT.')
-  expect(api.saveRevision).toHaveBeenLastCalledWith(first.strategyId, original)
+  expect(api.saveRevision).toHaveBeenLastCalledWith(first.strategyId, original, 'a')
   expect(screen.getByLabelText('Strategy JSON')).toHaveValue('original pending')
 })
 
@@ -119,7 +119,7 @@ it('keeps historical revision read-only then copies it into a new revision based
   expect(screen.getByLabelText('Strategy JSON')).toHaveValue('current'); expect(api.saveRevision).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', { name: 'Use revision in editor' })); expect(screen.getByLabelText('Strategy JSON')).toHaveValue('old immutable')
   fireEvent.click(screen.getByRole('button', { name: 'Save draft' })); await screen.findByText('Saved revision 4 · DRAFT.')
-  expect(api.saveRevision).toHaveBeenLastCalledWith(first.strategyId, expect.objectContaining({ expectedRevision: 3, draftText: 'old immutable' }))
+  expect(api.saveRevision).toHaveBeenLastCalledWith(first.strategyId, expect.objectContaining({ expectedRevision: 3, draftText: 'old immutable' }), 'a')
 })
 
 it('creates an empty strategy only on submission and preserves uncertain create UUID', async () => {
@@ -132,7 +132,7 @@ it('creates an empty strategy only on submission and preserves uncertain create 
   await screen.findByRole('button', { name: 'Retry strategy request' })
   const original = vi.mocked(api.createStrategy).mock.calls[0][0]
   fireEvent.click(screen.getByRole('button', { name: 'Cancel creation' })); fireEvent.click(screen.getByRole('button', { name: 'Retry strategy request' }))
-  await screen.findByText('Saved revision 1 · DRAFT.'); expect(api.createStrategy).toHaveBeenLastCalledWith(original)
+  await screen.findByText('Saved revision 1 · DRAFT.'); expect(api.createStrategy).toHaveBeenLastCalledWith(original, 'a')
 })
 
 it('does not apply late saves after changing authenticated identity', async () => {
@@ -192,4 +192,17 @@ it('warns on saved validated market mismatch but never invents a match from edit
   fireEvent.click(screen.getByRole('button', { name: 'Show editor' })); edit('unvalidated unrelated text'); fireEvent.click(screen.getByRole('button', { name: 'Show chart' }))
   expect(screen.getByText(/editor has unsaved changes/)).toHaveTextContent('BTC_USDT')
   expect(api.saveRevision).not.toHaveBeenCalled()
+})
+
+it('PB-027 preserves an uncertain strategy UUID after a rate-limited retry', async () => {
+  vi.mocked(api.saveRevision).mockRejectedValueOnce(new Error('Lost response')).mockRejectedValueOnce(new ApiError(429))
+  render(<App />); await choose(); edit('Private exact intent')
+  fireEvent.click(screen.getByRole('button', { name: 'Save draft' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Retry strategy request' }))
+  await waitFor(() => expect(api.saveRevision).toHaveBeenCalledTimes(2))
+  expect(screen.getByLabelText('Strategy JSON')).toBeDisabled()
+  const original = vi.mocked(api.saveRevision).mock.calls[0][1]
+  fireEvent.click(screen.getByRole('button', { name: 'Retry strategy request' }))
+  await screen.findByText('Saved revision 2 · DRAFT.')
+  expect(api.saveRevision).toHaveBeenLastCalledWith(first.strategyId, original, 'a')
 })

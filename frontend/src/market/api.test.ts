@@ -14,10 +14,10 @@ it('retains exact decimal text and rejects another dataset, hash or offset in pa
     .mockResolvedValueOnce(response(200, { ...body, dataset: { ...dataset, dataHash: 'c'.repeat(64) } }))
     .mockResolvedValueOnce(response(200, { ...body, start: 1, items: [] }))
   vi.stubGlobal('fetch', fetch)
-  expect((await candles(dataset, 50)).items[0].open).toBe('100.12345678')
-  await expect(candles(dataset, 50)).rejects.toThrow('Invalid market-data response')
-  await expect(candles(dataset, 50)).rejects.toThrow('Invalid market-data response')
-  await expect(candles(dataset, 50)).rejects.toThrow('Invalid market-data response')
+  expect((await candles(dataset, 50, undefined, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).items[0].open).toBe('100.12345678')
+  await expect(candles(dataset, 50, undefined, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Invalid market-data response')
+  await expect(candles(dataset, 50, undefined, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Invalid market-data response')
+  await expect(candles(dataset, 50, undefined, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Invalid market-data response')
   expect(fetch.mock.calls[0][1]).toMatchObject({ credentials: 'same-origin', cache: 'no-store' })
 })
 
@@ -27,18 +27,19 @@ it('rejects numeric coercion, nonfinite prices, invalid bars and invented metada
     fetch.mockResolvedValueOnce(response(200, { dataset, start: 0, total: 1, items: [{ ...candle, ...changed }] }))
   fetch.mockResolvedValueOnce(response(200, { items: [{ ...dataset, sourceKind: 'VERIFIED_EXCHANGE' }], nextCursor: null }))
   vi.stubGlobal('fetch', fetch)
-  for (let i = 0; i < 6; i++) await expect(candles(dataset, 50)).rejects.toThrow('Invalid market-data response')
-  await expect(listDatasets()).rejects.toThrow('Invalid market-data response')
+  for (let i = 0; i < 6; i++) await expect(candles(dataset, 50, undefined, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Invalid market-data response')
+  await expect(listDatasets(undefined, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Invalid market-data response')
 })
 
 it('submits the bounded document via CSRF and never retries uncertain mutation automatically', async () => {
   const fetch = vi.fn().mockResolvedValueOnce(response(200, { headerName: 'X-CSRF-TOKEN', token: 'synthetic-token' })).mockRejectedValueOnce(new TypeError('network fixture'))
   vi.stubGlobal('fetch', fetch)
-  await expect(importDataset(payload)).rejects.toThrow('Cannot reach the service')
+  await expect(importDataset(payload, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Cannot reach the service')
   expect(fetch).toHaveBeenCalledTimes(2)
+  expect(Object.fromEntries(new Headers(fetch.mock.calls[1][1].headers))).toMatchObject({ 'content-type': 'application/json', 'x-csrf-token': 'synthetic-token' })
   expect(fetch.mock.calls[1][0]).toBe('/api/datasets/import')
   expect(JSON.parse(fetch.mock.calls[1][1].body)).toEqual(payload)
-  expect(fetch.mock.calls[1][1]).toMatchObject({ method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': 'synthetic-token' } })
+  expect(fetch.mock.calls[1][1]).toMatchObject({ method: 'POST', credentials: 'same-origin' })
 })
 
 it('shows only bounded CSV error codes and line numbers, never raw server messages', async () => {
@@ -47,7 +48,7 @@ it('shows only bounded CSV error codes and line numbers, never raw server messag
     fetch.mockResolvedValueOnce(response(200, { headerName: 'X-CSRF-TOKEN', token: 'synthetic-token' })).mockResolvedValueOnce(response(422, body))
   }
   vi.stubGlobal('fetch', fetch)
-  await expect(importDataset(payload)).rejects.toEqual(expect.objectContaining({ line: 2, code: 'CSV_NUMBER_FORMAT', message: 'CSV validation failed at line 2 (CSV_NUMBER_FORMAT). Check the import format.' }))
-  try { await importDataset(payload); throw new Error('Should reject') }
+  await expect(importDataset(payload, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toEqual(expect.objectContaining({ line: 2, code: 'CSV_NUMBER_FORMAT', message: 'CSV validation failed at line 2 (CSV_NUMBER_FORMAT). Check the import format.' }))
+  try { await importDataset(payload, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'); throw new Error('Should reject') }
   catch (error) { expect(error).toBeInstanceOf(ApiError); expect(error).not.toBeInstanceOf(CsvError); expect((error as Error).message).not.toMatch(/private|script/) }
 })

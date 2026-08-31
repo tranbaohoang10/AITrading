@@ -58,6 +58,7 @@ class ConversationTests {
     }
     HttpResponse<String> send(Actor actor,String method,String path,String body,String token,String type,Map<String,String> headers) throws Exception {
         var request = HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+path)).timeout(Duration.ofSeconds(8)).header("Content-Type",type);
+        if(actor.id()!=null && !headers.containsKey("X-Workspace-User")) request.header("X-Workspace-User",actor.id().toString());
         if (token != null) request.header("X-CSRF-TOKEN",token);
         headers.forEach(request::header);
         return actor.client().send(request.method(method,HttpRequest.BodyPublishers.ofString(body)).build(),HttpResponse.BodyHandlers.ofString());

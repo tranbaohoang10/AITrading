@@ -5,7 +5,7 @@ import { AccountView } from './AccountView'
 import { AuthContext } from './AuthContext'
 import { currentUser, mutate } from './api'
 
-const user = { id: 'synthetic-user-a', email: 'a@example.test', displayName: 'Researcher A' }
+const user = { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', email: 'a@example.test', displayName: 'Researcher A' }
 const response = (status: number, body: unknown = {}) => new Response(status === 204 ? null : JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
 const csrf = () => response(200, { headerName: 'X-CSRF-TOKEN', token: 'synthetic-csrf-token' })
 
@@ -153,4 +153,26 @@ describe('PB-003 account rendering and revocation UX', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('unavailable')
     expect(clear).not.toHaveBeenCalled()
   })
+})
+
+it('PB-027 clears stale account controls on401 and carries the displayed account to logout', async () => {
+  const clear = vi.fn(), network = vi.fn(async (path: string) => path.endsWith('/csrf') ? csrf() : response(401))
+  vi.stubGlobal('fetch', network)
+  render(<AuthContext.Provider value={{ user, clear, update: vi.fn() }}><AccountView /></AuthContext.Provider>)
+  fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+  await waitFor(() => expect(clear).toHaveBeenCalledTimes(1))
+  const options = (network.mock.calls[1] as unknown as [string, RequestInit])[1]
+  expect(new Headers(options.headers).get('X-Workspace-User')).toBe(user.id)
+})
+
+it('PB-027 ignores a late logout acknowledgement after the account view is remounted', async () => {
+  let finish!: (r: Response) => void
+  const clear = vi.fn(), network = vi.fn(async (path: string) => path.endsWith('/csrf') ? csrf() : new Promise<Response>(resolve => { finish = resolve }))
+  vi.stubGlobal('fetch', network)
+  const app = render(<AuthContext.Provider value={{ user, clear, update: vi.fn() }}><AccountView key="a" /></AuthContext.Provider>)
+  fireEvent.click(screen.getByRole('button', { name: 'Sign out' }))
+  await waitFor(() => expect(network).toHaveBeenCalledTimes(2))
+  app.rerender(<AuthContext.Provider value={{ user: { ...user, id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', displayName: 'B' }, clear, update: vi.fn() }}><AccountView key="b" /></AuthContext.Provider>)
+  await act(async () => finish(response(204)))
+  expect(clear).not.toHaveBeenCalled(); expect(screen.getByLabelText('Display name')).toHaveValue('B')
 })

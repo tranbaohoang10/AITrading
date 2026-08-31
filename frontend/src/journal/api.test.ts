@@ -6,24 +6,24 @@ const reply = (value: unknown, status = 200) => new Response(JSON.stringify(valu
 afterEach(() => vi.unstubAllGlobals())
 it('preserves exact saved decimal and inert text values with same-owner resource identity', async () => {
   const entry = fixture(), fetcher = vi.fn().mockResolvedValueOnce(reply(entry)); vi.stubGlobal('fetch', fetcher)
-  expect(await api.get(entry.id)).toEqual(entry)
+  expect(await api.get(entry.id, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).toEqual(entry)
   expect(fetcher.mock.calls[0][0]).toBe(`/api/journal/${entry.id}`)
   expect(fetcher.mock.calls[0][1]).toMatchObject({ credentials: 'same-origin', cache: 'no-store' })
   for (const value of [{ ...entry, id: key(2) }, { ...entry, netPnl: 'NaN' }, { ...entry, data: { ...entry.data, quantity: '1000000000000.00000001' } }, { ...entry, data: { ...entry.data, state: 'OPEN' } }]) {
-    fetcher.mockResolvedValueOnce(reply(value)); await expect(api.get(entry.id)).rejects.toThrow('Invalid journal')
+    fetcher.mockResolvedValueOnce(reply(value)); await expect(api.get(entry.id, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Invalid journal')
   }
 })
 it('checks report filter/day identities, counts, exact monetary sums and unit isolation', async () => {
   const summary = summaryFixture(filter, true), fetcher = vi.fn().mockResolvedValueOnce(reply(summary)); vi.stubGlobal('fetch', fetcher)
-  expect(await api.summary(filter)).toEqual(summary)
+  expect(await api.summary(filter, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).toEqual(summary)
   const changed = structuredClone(summary); changed.totals.netPnl = '0.028'
   const day = structuredClone(summary); day.days[1].date = day.days[0].date
   for (const value of [changed, day, { ...summary, filter: { ...filter, currency: 'EUR' } }, { ...summary, days: [] }, { ...summary, totals: { ...summary.totals, wins: 2 } }]) {
-    fetcher.mockResolvedValueOnce(reply(value)); await expect(api.summary(filter)).rejects.toThrow('Invalid journal')
+    fetcher.mockResolvedValueOnce(reply(value)); await expect(api.summary(filter, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Invalid journal')
   }
-  fetcher.mockResolvedValueOnce(reply({ filter, items: [fixture()], nextCursor: null }));expect((await api.list(filter)).items[0].netPnl).toBe('0.027')
+  fetcher.mockResolvedValueOnce(reply({ filter, items: [fixture()], nextCursor: null }));expect((await api.list(filter, undefined, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).items[0].netPnl).toBe('0.027')
   for (const items of [[fixture(), fixture()], [{ ...fixture(), data: { ...fixture().data, settlementCurrency: 'EUR' } }]]) {
-    fetcher.mockResolvedValueOnce(reply({ filter, items, nextCursor: null }));await expect(api.list(filter)).rejects.toThrow('Invalid journal')
+    fetcher.mockResolvedValueOnce(reply({ filter, items, nextCursor: null }));await expect(api.list(filter, undefined, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Invalid journal')
   }
 })
 it('uses fresh CSRF and exact nested intent, validates current versus applied version on replay', async () => {
@@ -39,9 +39,9 @@ it('uses fresh CSRF and exact nested intent, validates current versus applied ve
 })
 it('bounds streamed payloads, rejects path traversal and propagates auth and delete failures', async () => {
   const fetcher = vi.fn();vi.stubGlobal('fetch', fetcher)
-  await expect(api.get('../../private')).rejects.toThrow();expect(fetcher).not.toHaveBeenCalled()
-  fetcher.mockResolvedValueOnce(new Response(' '.repeat(1024 * 1024 + 1)));await expect(api.get(key(1))).rejects.toThrow('Invalid journal')
-  fetcher.mockResolvedValueOnce(reply({}, 401));await expect(api.list(filter)).rejects.toMatchObject({ status: 401 })
+  await expect(api.get('../../private', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow();expect(fetcher).not.toHaveBeenCalled()
+  fetcher.mockResolvedValueOnce(new Response(' '.repeat(1024 * 1024 + 1)));await expect(api.get(key(1), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Invalid journal')
+  fetcher.mockResolvedValueOnce(reply({}, 401));await expect(api.list(filter, undefined, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toMatchObject({ status: 401 })
   fetcher.mockResolvedValueOnce(reply({ headerName: 'X-CSRF-TOKEN', token: 'synthetic' })).mockResolvedValueOnce(new Response(null, { status: 204 }))
   await expect(api.remove(fixture(), key(90))).resolves.toBeUndefined();expect(fetcher.mock.calls[3][1].method).toBe('DELETE')
   expect(JSON.parse(fetcher.mock.calls[3][1].body)).toEqual({ expectedVersion: 1 })

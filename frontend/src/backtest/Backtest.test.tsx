@@ -68,7 +68,7 @@ it('retains one uncertain UUID and input choices across repeated click and same-
   expect(screen.getByLabelText('Backtest strategy')).toBeDisabled(); expect(screen.getByLabelText('Backtest dataset')).toHaveValue(dataset.id)
   fireEvent.click(screen.getByRole('button', { name: 'Retry same job request' }))
   await screen.findByLabelText('Actual backtest metrics')
-  expect(api.createJob).toHaveBeenLastCalledWith(original)
+  expect(api.createJob).toHaveBeenLastCalledWith(original, undefined)
 })
 it('keeps input selection editable after a definite rejection and disables unavailable worker', async () => {
   vi.mocked(api.createJob).mockRejectedValueOnce(new ApiError(422))
@@ -88,7 +88,7 @@ it('retains a previously uncertain intent even when its retry is rate-limited', 
   expect(screen.getByLabelText('Backtest strategy')).toBeDisabled()
   expect(screen.getByRole('button', { name: 'Retry same job request' })).toBeEnabled()
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Retry same job request' })) })
-  expect(api.createJob).toHaveBeenLastCalledWith(original)
+  expect(api.createJob).toHaveBeenLastCalledWith(original, undefined)
   expect(screen.getByLabelText('Actual backtest metrics')).toBeInTheDocument()
 })
 it('ignores late A results after selecting B and clears A immediately', async () => {
@@ -143,7 +143,7 @@ it('requires confirmation before deletion and never shows stale result after it'
   expect(api.deleteJob).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', { name: 'Delete job…' })); await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Confirm delete' })) })
   await waitFor(() => expect(screen.queryByLabelText('Actual backtest metrics')).not.toBeInTheDocument())
-  expect(api.deleteJob).toHaveBeenCalledWith(sample.job)
+  expect(api.deleteJob).toHaveBeenCalledWith(sample.job, undefined)
 })
 it('cancels active jobs and explicitly retries the failed snapshot with a new intent', async () => {
   const queued: api.Job = { ...sample.job, state: 'QUEUED', resultHash: null, finishedAt: null }
@@ -184,4 +184,19 @@ it('handles private read failures without result fallback and rejects mismatched
   fireEvent.change(screen.getByLabelText('Backtest dataset'), { target: { value: dataset.id } })
   expect(screen.getByRole('button', { name: 'Start saved backtest' })).toBeDisabled()
   expect(api.createJob).not.toHaveBeenCalled()
+})
+
+it('PB-027 retains the acknowledged job intent when the subsequent identity check is rate-limited', async () => {
+  const user = { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', email: 'a@example.test', displayName: 'A' }
+  vi.mocked(currentUser).mockResolvedValue(user)
+  render(<AuthContext.Provider value={{ user, clear: vi.fn(), update: vi.fn() }}><App /></AuthContext.Provider>)
+  await inputs()
+  vi.mocked(currentUser).mockRejectedValueOnce(new ApiError(429))
+  fireEvent.click(screen.getByRole('button', { name: 'Start saved backtest' }))
+  const retry = await screen.findByRole('button', { name: 'Retry same job request' })
+  const original = vi.mocked(api.createJob).mock.calls[0][0]
+  expect(api.createJob).toHaveBeenLastCalledWith(original, user.id)
+  fireEvent.click(retry)
+  await waitFor(() => expect(api.createJob).toHaveBeenCalledTimes(2))
+  expect(api.createJob).toHaveBeenLastCalledWith(original, user.id)
 })

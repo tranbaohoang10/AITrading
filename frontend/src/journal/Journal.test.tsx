@@ -88,7 +88,7 @@ it('drops pending reads when identity changes and checks server user before disp
 it('centers on actual gapped candles, preserves saved context through edits and handles deleted source', async () => {
   const linked = { ...first, data: { ...first.data, entryTime: '2024-01-01T03:00:00Z', datasetId: dataset.id } };vi.mocked(api.get).mockResolvedValue(linked)
   render(<App />);await select();await screen.findByRole('img', { name: /imported candlesticks/ })
-  expect(market.getDataset).toHaveBeenCalledWith(dataset.id);expect(market.candles).toHaveBeenCalledWith(dataset, 500, 0);expect(market.candles).toHaveBeenCalledWith(dataset, 100, 0)
+  expect(market.getDataset).toHaveBeenCalledWith(dataset.id, undefined);expect(market.candles).toHaveBeenCalledWith(dataset, 500, 0, undefined);expect(market.candles).toHaveBeenCalledWith(dataset, 100, 0, undefined)
   fireEvent.change(screen.getByLabelText('Symbol'), { target: { value: 'OTHER' } });expect(screen.getByText(/Chart and P&L show the saved version/)).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Refresh journal' }));fireEvent.click(screen.getByRole('button', { name: 'Confirm journal action' }))
   vi.mocked(market.getDataset).mockRejectedValue(new ApiError(404))
@@ -110,7 +110,7 @@ it('supports explicit custom range and open-state invariants without automatic w
   expect(vi.mocked(api.save).mock.calls[0][1].entry).toMatchObject({ state: 'OPEN', exitPrice: null, exitTime: null, exitFee: '0' })
   fireEvent.change(screen.getByLabelText('From date'), { target: { value: '2024-02-29' } });fireEvent.change(screen.getByLabelText('Through date'), { target: { value: '2024-03-01' } })
   fireEvent.change(screen.getByLabelText('Report timezone'), { target: { value: 'Asia/Ho_Chi_Minh' } });fireEvent.change(screen.getByLabelText('Report settlement unit'), { target: { value: 'EUR' } })
-  fireEvent.submit(screen.getByRole('form', { name: 'Journal report filters' }));await waitFor(() => expect(api.summary).toHaveBeenLastCalledWith({ from: '2024-02-29', to: '2024-03-01', zone: 'Asia/Ho_Chi_Minh', currency: 'EUR' }))
+  fireEvent.submit(screen.getByRole('form', { name: 'Journal report filters' }));await waitFor(() => expect(api.summary).toHaveBeenLastCalledWith({ from: '2024-02-29', to: '2024-03-01', zone: 'Asia/Ho_Chi_Minh', currency: 'EUR' }, undefined))
 })
 it('retains partial ISO UTC input and sends exact millisecond timestamps from a new form', async () => {
   render(<App />);await screen.findByLabelText('Realized journal totals')

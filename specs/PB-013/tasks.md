@@ -7,4 +7,4 @@
 - [x] Execute detailed unit/HTTP/PG/concurrency/security and frontend tests.
 - [x] Verify real browser/restart/isolation/responsive flow; fix all failures.
 - [x] Run full regression/build/audits, inspect scope and preserve unrelated files.
-- [ ] Commit/push main, exact GitHub SHA/CI, close completed and continue READY.
+- [x] Commit/push main, exact GitHub SHA/CI, close completed and continue READY.

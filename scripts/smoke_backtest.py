@@ -32,8 +32,10 @@ def main():
         raise RuntimeError('Report must stay in the repository')
     client = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
 
+    expected_account = None
+
     def call(method, route, body=None, expected=200, form=False):
-        headers = {}
+        headers = {"X-Workspace-User": expected_account} if expected_account else {}
         if method not in ('GET', 'HEAD'):
             token = call('GET', '/auth/csrf')
             headers[token['headerName']] = token['token']
@@ -68,6 +70,7 @@ def main():
     password = secrets.token_urlsafe(32)
     call('POST', '/auth/register', {'email': email, 'displayName': 'Synthetic job restart smoke', 'password': password}, expected=202)
     call('POST', '/auth/login', {'email': email, 'password': password}, expected=204, form=True)
+    expected_account = call('GET', '/auth/me')['id']
     del password
     assert call('GET', '/backtests/capabilities')['configured'] is True
     sample = json.loads((ROOT / 'python/examples/long-next-open.json').read_text(encoding='utf-8'))

@@ -44,7 +44,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     const epoch = ++messageEpoch.current
     setMessagesLoading(true); setMessageError('')
     try {
-      const page = await api.getMessages(item.id, before)
+      const page = await api.getMessages(item.id, before, auth?.user.id)
       if (epoch !== messageEpoch.current || selectedRef.current?.id !== item.id) return
       updateSelected(page.conversation)
       setMessages(previous => before ? [...page.items, ...previous.filter(value => !page.items.some(p => p.sequence === value.sequence))] : page.items)
@@ -63,7 +63,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     const epoch = ++listEpoch.current
     setListLoading(true); setListError('')
     try {
-      const page = await api.listConversations(more ? nextCursor ?? undefined : undefined)
+      const page = await api.listConversations(more ? nextCursor ?? undefined : undefined, auth?.user.id)
       if (epoch !== listEpoch.current) return
       setItems(previous => more ? [...previous, ...page.items.filter(item => !previous.some(p => p.id === item.id))] : page.items)
       setNextCursor(page.nextCursor)
@@ -85,9 +85,10 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     if (pendingSave.current || !begin()) return
     if (selectedRef.current) drafts.current.set(selectedRef.current.id, draft)
     const generation = lifetime.current
+    const previouslyUncertain = pendingCreate.current !== null
     pendingCreate.current ??= crypto.randomUUID()
     try {
-      const item = await api.createConversation(pendingCreate.current)
+      const item = await api.createConversation(pendingCreate.current, auth?.user.id)
       if (generation !== lifetime.current) return
       pendingCreate.current = null; setUncertain(false)
       setAiError(''); setAiTurn(null); aiEpoch.current++
@@ -96,7 +97,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
       await loadList(); setNotice('Conversation created.')
     } catch (error) {
       if (generation !== lifetime.current) return
-      if (knownRejection(error)) pendingCreate.current = null
+      if (knownRejection(error) && !previouslyUncertain) pendingCreate.current = null
       setUncertain(pendingCreate.current !== null); setMutationError(errorText(error))
     } finally { if (generation === lifetime.current) end() }
   }
@@ -104,17 +105,18 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     const item = selectedRef.current
     if (!item || pendingCreate.current || !draft.trim() || !begin()) return
     const generation = lifetime.current
+    const previouslyUncertain = pendingSave.current !== null
     pendingSave.current ??= { conversationId: item.id, requestId: crypto.randomUUID(), content: draft.trim() }
     try {
       const pending = pendingSave.current
-      await api.saveMessage(pending.conversationId, pending.requestId, pending.content)
+      await api.saveMessage(pending.conversationId, pending.requestId, pending.content, auth?.user.id)
       if (generation !== lifetime.current) return
       pendingSave.current = null; setUncertain(false); updateDraft(''); drafts.current.delete(item.id)
       setNotice('Message saved. Ask AI separately to share this conversation context with the configured provider.')
       await fetchMessages(item)
     } catch (error) {
       if (generation !== lifetime.current) return
-      if (knownRejection(error)) pendingSave.current = null
+      if (knownRejection(error) && !previouslyUncertain) pendingSave.current = null
       setUncertain(pendingSave.current !== null); setMutationError(errorText(error))
     } finally { if (generation === lifetime.current) end() }
   }
@@ -123,7 +125,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     if (!item || pendingSave.current || pendingCreate.current || !begin()) return
     const generation = lifetime.current
     try {
-      const renamed = await api.renameConversation(item, title)
+      const renamed = await api.renameConversation(item, title, auth?.user.id)
       if (generation === lifetime.current) { updateSelected(renamed); setNotice('Conversation renamed.') }
     } catch (error) { if (generation === lifetime.current) setMutationError(errorText(error)) }
     finally { if (generation === lifetime.current) end() }
@@ -133,7 +135,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     if (!item || pendingSave.current || pendingCreate.current || !begin()) return false
     const generation = lifetime.current
     try {
-      await api.deleteConversation(item)
+      await api.deleteConversation(item, auth?.user.id)
       if (generation !== lifetime.current) return false
       selectedRef.current = null; setSelected(null); setMessages([]); setNextBefore(null)
       setAiError(''); setAiTurn(null); aiEpoch.current++
@@ -147,8 +149,8 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     const generation = lifetime.current, epoch = ++aiConfigEpoch.current, item = selectedRef.current
     setAiChecking(true); setAiError('')
     try {
-      const config = await ai.getAiConfiguration()
-      const latest = item ? await ai.getLatestAiTurn(item.id) : null
+      const config = await ai.getAiConfiguration(auth?.user.id)
+      const latest = item ? await ai.getLatestAiTurn(item.id, auth?.user.id) : null
       if (generation !== lifetime.current || epoch !== aiConfigEpoch.current) return
       setAiConfiguration(config)
       if (item && selectedRef.current?.id === item.id && !writing.current && !pendingSave.current && !pendingCreate.current) {
@@ -179,7 +181,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     pendingAi.current ??= { conversationId: item.id, requestId: crypto.randomUUID(), expectedVersion: item.version, sourceSequence: latest!.sequence }
     const intent = pendingAi.current
     setUncertain(true); setAiError(''); if (!original) setAiTurn(null)
-    try { await applyAi(await (statusOnly ? ai.getAiTurn(intent) : ai.startAi(intent)), item, generation, epoch) }
+    try { await applyAi(await (statusOnly ? ai.getAiTurn(intent, auth?.user.id) : ai.startAi(intent, auth?.user.id)), item, generation, epoch) }
     catch (error) {
       if (generation !== lifetime.current || epoch !== aiEpoch.current) return
       if (!original && (knownRejection(error) || error instanceof ai.AiUnconfigured)) { pendingAi.current = null; setUncertain(false) }
@@ -193,7 +195,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     const generation = lifetime.current
     cancellingAi.current = true; setAiCancelling(true)
     try {
-      const result = await ai.cancelAiTurn(intent)
+      const result = await ai.cancelAiTurn(intent, auth?.user.id)
       if (generation !== lifetime.current || selectedRef.current?.id !== item.id) return
       const epoch = ++aiEpoch.current
       await applyAi(result, item, generation, epoch)

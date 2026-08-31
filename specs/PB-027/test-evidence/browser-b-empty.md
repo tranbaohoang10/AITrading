@@ -1,0 +1,48 @@
+- complementary "Global navigation":
+  - generic "AI Trading": AT
+  - navigation "Primary":
+    - button "Workspace":
+    - button "AI Strategy":
+    - button "Backtest":
+    - button "My Code":
+    - button "Trading Journal":
+    - button "Strategies":
+  - button "Settings":
+  - button "Account":
+- region "AI Chat":
+  - heading "Quant / Research conversations" [level=2]
+  - paragraph: Private saved messages · AI requests are always explicit
+  - button "New Chat"
+  - button "Refresh list"
+  - paragraph: No conversations yet. Start a New Chat.
+  - navigation "Saved conversations"
+  - generic: Select a conversation or start a New Chat. Messages are saved to your account; strategy generation will be connected separately.
+  - region "AI provider controls":
+    - button "Check AI availability"
+    - generic: Provider availability not checked.
+    - paragraph: Ask AI sends up to 20 recent saved messages from this conversation to the configured provider. Provider retention policies apply. Do not include secrets. Research output may be wrong; no trades are executed.
+    - button "Ask AI" [disabled]
+- separator "Resize AI Chat"
+- main "Trading Workspace":
+  - paragraph: Workspace / Market data
+  - heading "AI Trading Platform" [level=1]
+  - generic: Private research
+  - button "Backtest":
+    - text: Backtest
+  - tablist "Workspace views":
+    - tab "Chart" [selected]
+    - tab "Strategy DSL"
+    - tab "Pine Script"
+    - tab "MQL5"
+    - tab "Backtest Results"
+    - tab "Trades"
+  - tabpanel "Chart":
+    - region "Chart":
+      - text: Dataset
+      - combobox "Dataset":
+        - option "Select a dataset" [disabled] [selected]
+      - button "Import CSV"
+      - button "Refresh datasets"
+      - heading "Your market datasets" [level=2]
+      - paragraph: Import a CSV to inspect your own OHLCV candles. No market feed or sample price is shown as real data.
+      - button "Import your first dataset"
