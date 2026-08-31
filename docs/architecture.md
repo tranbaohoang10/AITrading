@@ -1,7 +1,8 @@
 # Prototype architecture and CNPM physical view
 
-Status: PB-001–PB-006 delivered; PB-007 strategy revisions implemented, verification in progress. Diagrams distinguish
-current boundaries from future modules. No AI/trading runtime is claimed yet.
+Status: PB-001–PB-007 delivered; PB-010 offline Python engine implemented,
+verification in progress. Diagrams distinguish current boundaries from future
+modules. AI and authenticated backtest jobs are not implemented yet.
 
 PB-004 adds owner-scoped conversation/message APIs and additive FlywayV3. JDBC
 transactions lock current user then owned conversation for quota/idempotency/version
@@ -14,7 +15,7 @@ flowchart LR
   Browser[React + TypeScript + Vite browser]
   API[Spring Boot Java21 API]
   DB[(PostgreSQL / Flyway)]
-  Python[Future Python DSL backtest / AI]
+  Python[Offline Python DSL engine PB-010]
   Provider[Future AI provider]
   Browser -->|same-origin REST, HttpOnly session and CSRF| API
   API -->|JDBC, owned application schema| DB
@@ -22,8 +23,8 @@ flowchart LR
   API -. server-side keys PB-008 .-> Provider
 ```
 
-The frontend auth, conversations and market chart call the real API; remaining
-strategy/backtest sample panes are explicitly demos. All future private API paths deny
+The frontend auth, conversations, strategy editor and market chart call the real
+API; remaining backtest sample panes are explicitly demos. All future private API paths deny
 access until their authenticated feature is implemented. No browser→DB/Python/provider-key shortcut is allowed.
 Native PostgreSQL tests use a fresh project-owned cluster, not the user service.
 Local developer compose, if used, binds DB port to loopback and needs an environment
@@ -43,6 +44,7 @@ flowchart TB
   Researcher --> History([Inspect immutable history and restore as new revision])
   Operator((Developer/operator)) --> Start([Start local API and isolated DB tests])
   Operator --> Ready([Inspect minimal readiness])
+  Operator --> Offline([Run bounded offline DSL backtest with synthetic or owned data])
 ```
 
 This is the currently supported use-case diagram. Add authenticated research,
@@ -61,7 +63,7 @@ PB-005 adds stateless DslController → DslValidator → bundled DslSchema. All 
 are session protected; POST is CSRF protected and bounded64KiB (other writes16KiB).
 Typed DAG/units/risk/complexity validation precedes deterministic canonical/hash
 creation; no interpreter/provider/target engine executes this data. No new ERD
-entity: PB-007 will own immutable persisted strategy versions. PB-004's V3
+entity in PB-005 itself: PB-007 owns immutable persisted strategy versions. PB-004's V3
 conversation/message entities and owner constraints remain as documented in its
 design; delivered cc99d4d / Issue7 completed. PB-005 delivered28a68e0 / Issue8 completed.
 
@@ -83,3 +85,13 @@ StrategyProvider lives under keyed identity and keeps editor state across respon
 renderers; no browser storage. Native JSON editor and real DatasetChart share a
 workspace but no database binding; future jobs explicitly select version+dataset.
 No provider/runtime/export/dependency change. Full diagrams: specs/PB-007/design.md.
+
+PB-010 adds a fixed isolated Python launcher → strict contract validator → causal
+IndicatorEvaluator → execution/accounting/result. It reads one bounded JSON request
+from stdin and returns deterministic JSON on stdout; no network, DB, user path,
+eval or dynamic plugin. Existing bundled DSL schema is shared read-only, with an
+independent Python semantic check and matching Java canonical/data hash fixtures.
+No migration or UI change. The API capabilities reports offline_engine_implemented
+for Python while operation remains validation_only. PB-011 must enforce owned
+snapshot selection, supervisor timeouts/cancellation and durable results before
+connecting the API to this worker. Details: specs/PB-010/design.md, python/README.md.

@@ -22,3 +22,7 @@ PB-005 schema-only delivery has no new ERD entity or UI screenshot requirement.
 
 31/08/2026: PB-007 adds private strategy/history use cases and V5 ERD/sequence/class
 diagrams, My Script editor and browser responsive/restart/conflict evidence.
+
+31/08/2026: PB-010 adds offline backtest UC/sequence/class design, deterministic
+DSL/data/result contract and separate hand-computed/causal/security test cases.
+No new ERD or UI; Java jobs are explicitly deferred to PB-011.

@@ -157,8 +157,9 @@ Authenticated API: GET /api/dsl/schema and /api/dsl/capabilities; POST
 takes the document directly and returns `{valid,document,errors}`. A valid document
 contains canonicalJson, SHA256 hash, schemaVersion, validatorVersion and minimumBars;
 invalid semantics return422 with bounded diagnostics, malformed JSON400. No save,
-backtest, AI call or code execution occurs. Python/Pine/MQL5 runtimes are explicitly
-not implemented yet. A hash is a fingerprint, not authorization or a signature.
+backtest, AI call or code execution occurs in this validation API. Python now has
+the offline PB-010 engine below; Pine/MQL5 remain unimplemented. A hash is a
+fingerprint, not authorization or a signature.
 
 Schema1.0.0 and [design/indicator semantics](specs/PB-005/design.md) define closed-bar,
 next-open execution, confirmed pivots, typed measurable rules, risk and resource
@@ -220,3 +221,18 @@ Chart context is beside the editor on wide screens, or Show chart/Show editor on
 smaller screens. Symbol/timeframe mismatch with saved validated strategy is explicit.
 Selecting a chart dataset does not bind it to a strategy or start backtesting.
 See [design](specs/PB-007/design.md) and [test evidence](specs/PB-007/test-evidence/results.md).
+
+PB-007 delivery:6de03ea, Actions33358050136 PASS, Issue #10 completed.
+
+## Offline Python backtesting (PB-010)
+
+The standard-library engine revalidates Strategy DSL1.0.0 and a matching contiguous
+closed UTC OHLCV dataset, then computes causal indicators, next-open fills, costs,
+SL/TP, trades and marked equity. Output includes per-bar/event traces and a hashed
+run card. It is an offline research worker; the web application does not start jobs
+until PB-011. No external source, live trading or profitability is implied.
+
+Run `python -m unittest discover -s python/tests -v`. See the
+[worker setup and synthetic example](python/README.md),
+[execution/precision/security contract](specs/PB-010/design.md) and
+[test plan](specs/PB-010/test-cases.md). No new Python dependency is required.

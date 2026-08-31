@@ -5,6 +5,19 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+LATEST PB-010 Issue11: offline Python engine implemented;35 engine/84 backend/
+88 frontend/6 verifier/6 canonical tests PASS. Full build/lint/audits PASS; no
+new dependency/migration/UI. Evidence under specs/PB-010. Owned test cluster
+pg-test-bqmekkr3 stopped, credential file removed. Next scoped commit/push/exactSHA/
+actualCI and Issue11 completion, then PB-008 next READY. No hard blocker; full
+backlog remains active. Earlier checkpoints below are historical.
+
+LATEST: PB-007 DONE at6de03ea69eef7d2a005a2818fac42cd43f4ab797. Normal push,
+exact GitHub SHA and actual CI33358050136 both jobs success verified; downloaded
+JUnit84/0/0/0, OSV118PASS. Issue10 CLOSED/completed. Working tree clean at delivery.
+PB-010 Issue11 created before code; offline deterministic Python design/test plan
+exists. Next implement/verify engine; full backlog remains the active goal.
+
 LATEST PB-007: final local84backend/88frontend/6verifier/6canonical PASS, lint/types/
 build/audits PASS. Actual browser1600/900/390, draft/validate/history, two-tab409,
 restart hash, confirmed deletion and A/B isolation complete. All owned API/DBs

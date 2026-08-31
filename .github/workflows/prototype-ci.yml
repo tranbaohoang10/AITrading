@@ -50,6 +50,8 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_verification_tools.py' -v
       - name: Independent DSL canonical fixtures
         run: python3 scripts/check_dsl_fixtures.py
+      - name: Deterministic Python engine and adversarial tests
+        run: python3 -m unittest discover -s python/tests -v
       - name: Real PostgreSQL integration and build
         env:
           AITRADING_TEST_PG_BIN: /usr/lib/postgresql/16/bin

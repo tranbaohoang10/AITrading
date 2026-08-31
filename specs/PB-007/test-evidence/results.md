@@ -127,3 +127,10 @@ pg-test-eq1si3jo stopped and generated credential file removed.
 Protected mvp-ui blobs remain e03fe3d3fcdc7eef83d83f819ca848c6b8e49b39 and
 5fb05f3f5d82640776c77283bacb8e529344c067 on feature/mvp-ui; no edits/stash/revert
 or inclusion in this scope. Applied V1–V4 and all dependency locks unchanged.
+
+## Delivery — 31/08/2026
+
+Commit6de03ea69eef7d2a005a2818fac42cd43f4ab797 normal-pushed to origin/main;
+ls-remote and GitHub API SHA agree. CI33358050136 backend/frontend success;
+downloaded JUnit84/0/0/0 and OSV118PASS verified. STR-13 PASS. Issue10 closed
+completed with evidence comment5473859291. Working tree clean after delivery.
