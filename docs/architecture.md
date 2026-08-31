@@ -1,8 +1,8 @@
 # Prototype architecture and CNPM physical view
 
-Status: PB-001–PB-007 delivered; PB-010 offline Python engine implemented,
-verification in progress. Diagrams distinguish current boundaries from future
-modules. AI and authenticated backtest jobs are not implemented yet.
+Status: PB-001–PB-007 and PB-010 delivered. PB-008 provider boundary implemented
+and locally tested, disabled by default; real-provider smoke remains blocked on
+credentials. Authenticated backtest jobs remain PB-011, not implemented yet.
 
 PB-004 adds owner-scoped conversation/message APIs and additive FlywayV3. JDBC
 transactions lock current user then owned conversation for quota/idempotency/version
@@ -16,11 +16,11 @@ flowchart LR
   API[Spring Boot Java21 API]
   DB[(PostgreSQL / Flyway)]
   Python[Offline Python DSL engine PB-010]
-  Provider[Future AI provider]
+  Provider[OpenAI Responses - external smoke pending]
   Browser -->|same-origin REST, HttpOnly session and CSRF| API
   API -->|JDBC, owned application schema| DB
   API -. bounded validated jobs PB-011 .-> Python
-  API -. server-side keys PB-008 .-> Provider
+  API -->|explicit bounded context, server-only key, PB-008| Provider
 ```
 
 The frontend auth, conversations, strategy editor and market chart call the real
@@ -42,6 +42,7 @@ flowchart TB
   Researcher --> DeleteMarket([Delete own dataset with confirmation])
   Researcher --> Strategy([Edit and save own draft or validated strategy revisions])
   Researcher --> History([Inspect immutable history and restore as new revision])
+  Researcher --> AI([Explicitly ask configured AI; inspect/cancel owned attempt])
   Operator((Developer/operator)) --> Start([Start local API and isolated DB tests])
   Operator --> Ready([Inspect minimal readiness])
   Operator --> Offline([Run bounded offline DSL backtest with synthetic or owned data])
@@ -95,3 +96,13 @@ No migration or UI change. The API capabilities reports offline_engine_implement
 for Python while operation remains validation_only. PB-011 must enforce owned
 snapshot selection, supervisor timeouts/cancellation and durable results before
 connecting the API to this worker. Details: specs/PB-010/design.md, python/README.md.
+
+PB-008 adds AiController → AiService → AiTurnStore / OpenAiProvider and additive
+V6 ai_turn. Current-user/owned-conversation transactions reserve bounded context
+and finalize only against unchanged versions; provider HTTP runs outside the DB
+transaction. Closed structured output is validated before an atomic assistant
+append. Durable request identity, lease, cancellation and fixed error codes prevent
+hidden replay or fake success. The explicit React controls share existing keyed
+conversation state. Fixed HTTPS endpoint/no redirects/no tools; body and whole
+request bounds; server secrets never returned. See specs/PB-008/design.md for
+sequence/class/ERD. Local stub evidence does not certify actual provider access.

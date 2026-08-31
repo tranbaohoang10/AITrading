@@ -1,0 +1,214 @@
+{
+  "totals": {
+    "tests": 105,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "suite": "com.aitrading.ai.AiApiTests",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "rateBudgetsIncludeExistingChatAndAreOwnerIndependent()",
+        "latestUserVersionAndContextWindowsAreExactAndBounded()",
+        "malformedRequestsAndCancelQuotaFailBeforeProvider()",
+        "providerRefusalAndDisabledConfigAreTruthfulAndRetryExplicit()",
+        "cancellationAndConcurrentEditDiscardPendingOutput()",
+        "simultaneousProviderWorkIsBoundedWithoutHiddenQueue()",
+        "sameRequestReplaysWhilePendingAndAfterSuccessWithoutDuplicateProviderOrMessage()",
+        "ownerAuthenticationCsrfAndMassAssignmentDenyBeforeProvider()",
+        "transactionFailureRollsBackAssistantAndVersionThenExpiresSafely()",
+        "expiredPersistedLeaseRecoversWithoutProviderReplay()",
+        "deletionAndCredentialRevocationDuringCallNeverAppend()",
+        "realHttpAndDatabasePersistOwnedAssistantAndContextWithoutSecretExposure()",
+        "attemptQuotaMessageQuotaAndOwnerDeleteCascadePreserveOtherUsers()"
+      ]
+    },
+    {
+      "suite": "com.aitrading.ai.OpenAiProviderTests",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "validatesStructuredFieldsUnicodeAndPlainAssumptions()",
+        "httpErrorsDoNotLeakBodiesOrRetryAndRedirectIsNeverFollowed()",
+        "actualHttpUsesFixedStructuredBoundaryAndExplicitPrivateContext()",
+        "refusalIncompleteToolOutputsAndMalformedTransportAreDistinct()",
+        "wholeBodyDeadlineCancelsAResponseThatAlreadySentHeaders()",
+        "disabledMissingAndInvalidConfigurationNeverCallsProvider()",
+        "contextBoundsAndRolesCannotEscalateInstructions()",
+        "excessiveChunkedResponseAndWrongMimeFailClosed()"
+      ]
+    },
+    {
+      "suite": "com.aitrading.AiTradingApplicationTests",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "databaseMigrationAndRepeatValidationAreRealAndIdempotent()",
+        "healthHasMinimalJsonAndSecurityHeaders()",
+        "allPrivateRoutesAndGeneratedLoginAreDeniedWithoutHtmlOrRequestEcho()",
+        "unsafeMethodsRemainCsrfProtectedAndUnsupportedMethodsDoNotBypassSecurity()",
+        "forgedIdentityRequestIdAndCorsOriginAreNotTrusted()",
+        "maliciousPathIsRejectedAndIgnoredQueryCannotExecuteSql()",
+        "databaseExceptionDetailsAreNeverInHealthResponse()",
+        "actualDatabaseOutageReturns503AndRestartRestoresReadinessWithoutRemigration()"
+      ]
+    },
+    {
+      "suite": "com.aitrading.AuthenticationTests",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "csrfSessionCreationIsAlsoIpLimited()",
+        "profileCannotSelectOrChangeAnotherUserAndUnknownFieldsAreRejected()",
+        "invalidCredentialsAndCsrfNeverAuthenticate()",
+        "registrationRejectsInvalidNullBoundaryAndMassAssignmentFields()",
+        "logoutExpiryAndForgedCookieAreDenied()",
+        "staleCredentialSnapshotCannotOverwritePasswordOrAuthorizeRacedLogin()",
+        "concurrentRegistrationCreatesExactlyOneUser()",
+        "httpsSessionCookieUsesSecureHttpOnlyAndSameSiteWithoutDomain()",
+        "registrationUsesDistinctArgon2idSaltsAndGenericDuplicateAcknowledgement()",
+        "passwordChangeRequiresCurrentPasswordAndRevokesAllSessions()",
+        "authenticatedRequestFailsClosedDuringActualDatabaseOutageAndRecovers()",
+        "atomicThrottleAllowsOnlyLimitAndDoesNotTrustForwardedIp()",
+        "loginRotatesSessionAndCsrfAndDoesNotSerializePasswords()",
+        "oversizedMalformedAmbiguousAndForeignOriginRequestsFailSafely()"
+      ]
+    },
+    {
+      "suite": "com.aitrading.ConversationTests",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "actualDatabaseOutageFailsClosedAndRetryPreservesContextWithoutDuplicateMessage()",
+        "authCsrfOriginsAndRevokedCredentialsFailAtActualMutationBoundary()",
+        "keysetPagesStayOwnerScopedAndStableUnderRenameAndAppend()",
+        "concurrentDistinctMessagesHaveContiguousSequencesAndStaleMutationsConflict()",
+        "messagePagesDoNotShiftWhenNewMessagesArrive()",
+        "everyReadAndWriteRejectsAnotherOwnerAndMissingResourcesUniformly()",
+        "validationBoundariesAndUnknownSecurityFieldsAreRejected()",
+        "concurrentCreateAndAppendReplaysReturnExactlyOneResource()",
+        "perUserMutationThrottleIsAtomicAndDoesNotTrustForwardedHeaders()",
+        "quotaChecksSerializeConcurrentRequestsAndAllowExistingReplayAtLimit()",
+        "ownedCrudPersistsExactTextMetadataAndCascadeWithoutOtherUserDataLoss()"
+      ]
+    },
+    {
+      "suite": "com.aitrading.dsl.DslSchemaTests",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "publishedV1SchemaFingerprintCannotSilentlyChange()",
+        "unsupportedKeywordsRemoteRefsAndOpenObjectsCannotBecomeTrustedSchema()"
+      ]
+    },
+    {
+      "suite": "com.aitrading.DslApiTests",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "authenticatedApiReturnsSchemaCapabilitiesAndDeterministicIdentityWithoutPersistence()",
+        "malformedSemanticAndUnknownFieldsHaveBoundedRedactedErrors()",
+        "userThrottleIsAtomicIndependentAndCannotBeSpoofedByForwardedHeaders()",
+        "boundaryDeniesAnonymousCsrfOriginAndRevokedSessions()",
+        "exactBodyLimitIncludesChunkedRequestsAndOtherRoutesRemainSmaller()"
+      ]
+    },
+    {
+      "suite": "com.aitrading.DslValidatorTests",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "resolvesForwardDagAndRejectsCyclesMissingDuplicateAndWrongPivotRefs()",
+        "textBoundariesUnicodeAndNumberResourceAbuseFailSafely()",
+        "parallelValidationCannotMixMutableTraversalStateOrErrors()",
+        "maxDepthAndConditionCountAreAcceptedButNextLevelRejected()",
+        "missingUnknownRootTypeAndVersionFailWithoutEcho()",
+        "exactGlobalConditionAndWarmupLimitsDoNotHaveOffByOneErrors()",
+        "malformedDuplicateTrailingDeepAndOversizedInputsAreRejected()",
+        "enforcesDimensionalTypesAndMeasurableSources()",
+        "indicatorListAndWarmupBudgetsAreBounded()",
+        "canonicalPreservesExactDecimalsUnicodeAndEquivalentNumericForms()",
+        "rejectsOpaqueFutureOrUnsupportedObjectsAndRetainsInertMetadata()",
+        "neutralFamiliesMatchIndependentGoldenBytesHashAndWarmup()",
+        "metadataLabelsHaveNoHiddenTradingSemantics()",
+        "diagnosticCapDoesNotReturnUserSuppliedIdsOrUnboundedErrors()",
+        "riskBoundsAndExecutionRulesRejectUnsafeOrImplicitAlternatives()",
+        "preciseWarmupIncludesSourceLagCrossPivotAndEvenUnusedDefinitions()"
+      ]
+    },
+    {
+      "suite": "com.aitrading.MarketApiTests",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "actualOwnedImportHasExactDecimalsHashesStablePagesAndCascade()",
+        "concurrentIdempotencyPreservesOneDatasetAndConflictingIntentIsRejected()",
+        "ownerPredicatesRejectAllForeignReadsPagesAndDeletesWithNoLeaks()",
+        "keysetListRemainsStableDuringNewImportAndRejectsInvalidPagination()",
+        "importThrottleIsAtomicAndUserScopedAcrossForwardedHeaderSpoofing()",
+        "concurrentQuotaCheckSerializesOnOwnerAndReplayStillWorksAtLimit()",
+        "bodyLimitsCsrfOriginAndCurrentCredentialsAreEnforced()",
+        "concurrentReadAndDuplicateDeleteNeverReturnPartialSnapshotOrDeleteAnotherDataset()",
+        "realBatchFailureRollsBackParentAndAlreadyInsertedCandles()",
+        "maximumDatasetPersistsAllRowsAndReadDeleteThrottlesStayIndependent()",
+        "invalidCsvMetadataAndUnknownFieldsCannotPartiallyPersistOrExecute()"
+      ]
+    },
+    {
+      "suite": "com.aitrading.MarketCsvParserTests",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "orderingAndGapsAreExplicitWithoutSortingDroppingOrFilling()",
+        "enforcesNumberPrecisionMagnitudePositivityAndOhlcRelations()",
+        "strictUtcCalendarAlignmentAndClosedCandleBoundary()",
+        "rejectsHeadersColumnsBlankRecordsQuotesAndUntrustedFormulaOrUrl()",
+        "rejectsUnpairedUnicodeControlsAndUnsupportedLineEndings()",
+        "preciseValuesAndFormattingVariantsShareCanonicalHashButNotRawHash()",
+        "exactRowLimitsAndUtf8ByteBoundsAreEnforced()"
+      ]
+    },
+    {
+      "suite": "com.aitrading.StrategyApiTests",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "strategyAndRevisionQuotasAreAtomicAndReplayWorksAtLimit()",
+        "createAndAppendReplayKeepOriginalIntentEvenAfterNewerRevisions()",
+        "concurrentReadSaveDeleteAndPerUserRateLimitsRemainSafe()",
+        "draftBoundsUnicodeAndValidationFailuresNeverPromoteOrTruncateText()",
+        "paginationIsStableAndRejectsInvalidCursorsAndVersionBounds()",
+        "concurrentSameIntentAndStaleWritersCannotDuplicateOrOverwrite()",
+        "bodyCsrfOriginStrictFieldsAndInertTextAreEnforced()",
+        "ownedDraftAndValidatedRevisionsKeepExactImmutableTextAndCanonicalMetadata()",
+        "failureRollsBackRevisionAndPointerAndDeletionCannotRemoveOtherOwners()",
+        "allOwnedPathsRejectForeignUsersAndUnknownIdsWithoutLeakingContent()"
+      ]
+    }
+  ]
+}

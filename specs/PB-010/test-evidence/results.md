@@ -70,3 +70,10 @@ No Pine/MQL runtime equivalence or web backtest functionality is claimed. No UI,
 database migration, dependency lock, fixed stack, governance or protected legacy
 review document changed. Existing V1–V5 and schema1.0.0 remain byte-identical to
 main; only Java capabilities + matching assertion report the offline engine.
+
+## Delivery — 31/08/2026
+
+Commit2a3cf2004ea6034ee3abf5738cd2cec0e3c334d3 normal-pushed to origin/main;
+remote and GitHub API SHA agree. CI33359737530 both jobs success. Downloaded
+JUnit84/0/0/0, OSV118PASS and actual log35 Python tests/OK verified. BT-T13 PASS.
+Issue11 closed completed, evidence comment5474069904. Working tree clean at delivery.

@@ -5,6 +5,29 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+LATEST: PB-008 local105backend/105frontend/35Python/6verifier/6canonical PASS;
+build/lint/audits PASS (OSV118), evidence recorded. Owned pg-test-_v_spmgo stopped,
+credential removed. Browser API already stopped. Scope/commit/push/actualCI next;
+Issue12 stays OPEN/BLOCKED solely for required real provider smoke/key. Continue
+PB-011 after publication; full backlog goal remains active.
+
+LATEST PB-008 Issue12: provider/client/V6/owned turn lifecycle and explicit UI
+implemented.104backend earlierPASS; final expanded105 running on owned cluster
+pg-test-_v_spmgo (session14596).105frontend/lint/build/audit,35Python/6verifier/
+6canonical PASS. Actual unconfigured browser desktop/tablet/mobile/draft/restart
+complete; owned browser API/DB stopped and credentials removed; signed out/reset.
+No OPENAI_API_KEY in Process/User/Machine (presence only), no external AI request.
+Need final backend/audit/evidence/scope/commit/push/exactSHA/CI. Then leave12open
+BLOCKED for real-provider smoke and select independent PB-011; do not stop full
+goal or pretend PB-008 DONE. No product commit after2a3cf20 yet.
+
+LATEST: PB-010 DONE at2a3cf2004ea6034ee3abf5738cd2cec0e3c334d3. Exact GitHub
+SHA and CI33359737530 PASS verified (35Python/84JUnit/OSV118); Issue11 completed.
+PB-008 Issue12 created before code; CNPM/test design exists. Provider key absent
+in process/user environment; PO notified without exposing values. Implement safe
+local provider/context/UI/tests, real smoke remains prerequisite; do not close12
+without it. Continue independent READY work if external key remains unavailable.
+
 LATEST PB-010 Issue11: offline Python engine implemented;35 engine/84 backend/
 88 frontend/6 verifier/6 canonical tests PASS. Full build/lint/audits PASS; no
 new dependency/migration/UI. Evidence under specs/PB-010. Owned test cluster

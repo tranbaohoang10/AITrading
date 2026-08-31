@@ -45,6 +45,11 @@ public class AuthGuardFilter extends OncePerRequestFilter {
             if (user != null && (path.equals("/api/conversations") || path.startsWith("/api/conversations/"))
                     && !java.util.Set.of("GET", "HEAD", "OPTIONS").contains(request.getMethod()))
                 allowed = limits.allow("chat-user", user.id().toString(), 120);
+            if (user != null && (path.equals("/api/ai/capabilities") || (path.startsWith("/api/conversations/") && path.contains("/ai-turns")))) {
+                boolean read=java.util.Set.of("GET","HEAD","OPTIONS").contains(request.getMethod());
+                String purpose=read?"ai-read":path.endsWith("/cancel")?"ai-cancel":"ai-start";
+                allowed=allowed && limits.allow(purpose,user.id().toString(),read?300:purpose.equals("ai-cancel")?30:10);
+            }
             if ("GET".equals(request.getMethod()) && path.equals("/api/auth/csrf"))
                 allowed = limits.allow("csrf-ip", request.getRemoteAddr(), 120);
             if ("POST".equals(request.getMethod())) {

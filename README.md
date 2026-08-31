@@ -51,8 +51,10 @@ and [CNPM index](docs/cnpm-index.md) track that run separately from governance #
 
 The frontend foundation is recovered from feature/mvp-ui with provenance in
 [PB-001](specs/PB-001/spec.md). It currently demonstrates responsive workspace,
-read-only sample scripts and labelled synthetic chat/backtest data. It does **not**
-yet implement a connected AI provider or real backtests. PB-004 now persists private chat.
+read-only sample scripts and labelled synthetic backtest panes. PB-004 persists
+private chat; PB-008 adds the disabled-by-default AI boundary below, with real
+provider verification still blocked on credentials. PB-010 is an offline engine;
+authenticated web backtest jobs remain PB-011.
 PB-003 adds real authentication/account persistence around that demo workspace.
 
 From frontend/ with Node 22.12+ (verified Node 24.8.0) and npm:
@@ -67,8 +69,8 @@ npm audit --audit-level=high
 ```
 
 Keep the dev server local. Branding is centralized in frontend/src/brand.ts.
-The Java/PostgreSQL backend is implemented below; Python backtest/AI work remains
-in the backlog. No production readiness is implied by the frontend demo.
+The Java/PostgreSQL backend and offline Python engine are described below.
+No production readiness is implied by the prototype workspace.
 
 ## Backend foundation (PB-002 delivered)
 
@@ -136,7 +138,7 @@ The current feature is not a production identity/security certification.
 
 Sign in, open AI Chat on mobile/tablet or use the desktop chat pane. New Chat
 creates an owned conversation. Save message persists text; it does not call an AI
-provider yet. Select past conversations, rename, delete with confirmation, and
+provider. Ask AI is a separate explicit PB-008 action. Select past conversations, rename, delete with confirmation, and
 load more/earlier pages. Reload messages before retrying a stale-version conflict.
 After an uncertain network save, Retry save keeps the same request ID and text
 to avoid duplication. No automatic unsafe replay occurs.
@@ -236,3 +238,38 @@ Run `python -m unittest discover -s python/tests -v`. See the
 [worker setup and synthetic example](python/README.md),
 [execution/precision/security contract](specs/PB-010/design.md) and
 [test plan](specs/PB-010/test-cases.md). No new Python dependency is required.
+
+## AI provider boundary (PB-008 — external smoke pending)
+
+The server uses the official OpenAI Responses endpoint through Java HttpClient,
+with strict structured output and no tools. It is disabled by default. Configure
+`AITRADING_AI_ENABLED=true`, `AITRADING_AI_MODEL` with an available structured-output
+model, and `OPENAI_API_KEY` privately in the server process environment. Never put
+the key in source, browser settings, `.env`, screenshots, chat or Issues. Restart
+the API after changing configuration. No default model or account access is assumed.
+
+Sign in, select an owned conversation, save a user message, and click Check AI
+availability. Ask AI sends only that conversation's latest at most20 saved messages
+and16000 characters; it requires an empty unsaved draft. The UI displays availability,
+model, pending/error/refusal/status/cancellation distinctly. Only a validated real
+answer is persisted as an assistant message. Without configuration, saved chat
+works and Ask AI stays disabled; no canned answer replaces the missing provider.
+
+After an uncertain outcome, Check AI status or Retry same AI request uses the same
+durable identity without hidden provider replay. After page reload, select the
+conversation and Check AI availability to recover its latest attempt. A terminal
+failed attempt needs a new explicit Ask AI. Acknowledged CANCELLED prevents later
+persistence, but cannot guarantee cancellation of provider billing. An expired
+45-second lease becomes a failed attempt on the next status/start check.
+
+Limits:20s whole provider exchange,256KiB response,2048 output tokens,100 attempts
+per conversation,one pending per conversation,four concurrent provider calls per
+API process; starts10/reads300/cancels30 per account/15min, in addition to existing
+chat write limits. No transaction spans the external request. `store:false` is not
+a zero-retention guarantee; provider/account data policies apply. Do not send
+secrets. Output is untrusted research text, never trade execution or guaranteed advice.
+
+Local HTTP-stub/real PostgreSQL and UI tests are separate from the required real
+configured-provider smoke. That smoke is currently **BLOCKED** on server credentials;
+Issue #12 remains open. See [design](specs/PB-008/design.md),
+[test cases](specs/PB-008/test-cases.md) and [evidence](specs/PB-008/test-evidence/results.md).

@@ -1,11 +1,14 @@
 import { createContext, useContext } from 'react'
 import type { Conversation, Message } from './api'
+import type { AiConfiguration, AiTurn } from './aiApi'
 
 export type ChatState = {
   items: Conversation[]; nextCursor: string | null; selected: Conversation | null
   messages: Message[]; nextBefore: number | null; draft: string
   listLoading: boolean; messagesLoading: boolean; busy: boolean; uncertain: boolean
-  pendingAction: 'create' | 'save' | null
+  pendingAction: 'create' | 'save' | 'ai' | null
+  aiConfiguration: AiConfiguration | null; aiChecking: boolean; aiCancelling: boolean; aiError: string; aiTurn: AiTurn | null
+  checkAiConfiguration: () => Promise<void>; askAi: () => Promise<void>; checkAiStatus: () => Promise<void>; cancelAi: () => Promise<void>
   listError: string; messageError: string; mutationError: string; notice: string
   setDraft: (text: string) => void; select: (item: Conversation) => void
   loadList: (more?: boolean) => Promise<void>; loadMessages: (earlier?: boolean) => Promise<void>

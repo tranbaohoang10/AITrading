@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/dsl/schema", "/api/dsl/capabilities", "/api/dsl/validate").authenticated()
                         .requestMatchers("/api/datasets", "/api/datasets/**").authenticated()
                         .requestMatchers("/api/strategies", "/api/strategies/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/ai/capabilities").authenticated()
                         .anyRequest().denyAll())
                 .csrf(Customizer.withDefaults())
                 .addFilterBefore(new AuthInputFilter(new HashSet<>(Arrays.asList(origins.split(",")))), CsrfFilter.class)

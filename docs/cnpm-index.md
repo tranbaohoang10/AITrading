@@ -26,3 +26,8 @@ diagrams, My Script editor and browser responsive/restart/conflict evidence.
 31/08/2026: PB-010 adds offline backtest UC/sequence/class design, deterministic
 DSL/data/result contract and separate hand-computed/causal/security test cases.
 No new ERD or UI; Java jobs are explicitly deferred to PB-011.
+
+31/08/2026: PB-008 adds explicit AI request/status/cancel UC, sequence/class/V6 ERD,
+security and separate test cases, plus actual unavailable-provider browser evidence
+at desktop/tablet/mobile sizes. Real configured-provider smoke remains BLOCKED;
+artifacts describe implemented boundaries without claiming the feature DONE.
