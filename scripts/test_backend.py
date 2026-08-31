@@ -58,6 +58,11 @@ def main() -> int:
         reservation.bind(("127.0.0.1", 0))
         port = reservation.getsockname()[1]
     env = os.environ.copy()
+    if not args.serve:
+        # Contract/integration suites use owned loopback adapters, never real account keys.
+        env.update(AITRADING_AI_ENABLED="false", AITRADING_AI_PROVIDER="gemini", AITRADING_AI_MODEL="")
+        env.pop("GEMINI_API_KEY", None)
+        env.pop("OPENAI_API_KEY", None)
     # Override, never reuse caller-supplied database credentials or URLs.
     env.update(AITRADING_DB_URL=f"jdbc:postgresql://127.0.0.1:{port}/postgres",
                AITRADING_DB_USER="prototype_test", AITRADING_DB_PASSWORD=secret,

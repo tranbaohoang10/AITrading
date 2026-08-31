@@ -47,3 +47,9 @@ sequence/class/V8 ERD, exact accounting/timezone conventions, responsive UI and
 separate detailed cases. Real PostgreSQL arithmetic/concurrency/security tests and
 browser restart/source-deletion evidence live in specs/PB-013. AI/NLP evaluation
 is PB-014; this feature does not score reasons or submit broker orders.
+
+31/08/2026: PB-008 provider-neutral amendment in specs/PB-008/provider-neutral.md
+adds startup provider selection, Gemini/optional OpenAI class/sequence diagrams,
+V13 impact, synthetic-only Gemini privacy requirements and AI-07–11. Separate
+provider-neutral-test-cases.md and test-evidence/provider-neutral-results.md track
+local versus real-provider verification. Initial documents/evidence are preserved.

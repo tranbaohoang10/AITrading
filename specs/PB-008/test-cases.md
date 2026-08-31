@@ -1,5 +1,10 @@
 # PB-008 test cases — Issue #12, 31/08/2026
 
+> Current amendment, 31/08/2026: [provider-neutral.md](provider-neutral.md) and
+> [provider-neutral-test-cases.md](provider-neutral-test-cases.md) supersede the
+> mandatory OpenAI configuration below. This original document is preserved as
+> initial PB-008 history; unchanged lifecycle/security requirements still apply.
+
 | Case | AC | Expected evidence |
 | --- | --- | --- |
 | AI-T01 | 01 | Disabled/missing/invalid config safe, no key/model request injection, fixed endpoint/no redirect |

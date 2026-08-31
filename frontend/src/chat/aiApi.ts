@@ -1,9 +1,11 @@
 import { privateRequest } from '../auth/api'
 import { ApiError, request } from '../auth/api'
 
-export type AiConfiguration = { configured: boolean; provider: 'openai'; model: string | null }
+export type AiProviderName = 'openai' | 'gemini'
+export type AiConfiguration = { configured: boolean; provider: AiProviderName | null; model: string | null }
 export type AiIntent = { conversationId: string; requestId: string; expectedVersion: number; sourceSequence: number }
-export type AiTurn = AiIntent & { state: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED'; errorCode: string | null; provider: 'openai'; model: string; assistantSequence: number | null; contextStart: number; contextEnd: number; contextCount: number; contextHash: string; createdAt: string; expiresAt: string; updatedAt: string }
+export type AiTurn = AiIntent & { state: 'PENDING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED'; errorCode: string | null; provider: AiProviderName; model: string; assistantSequence: number | null; contextStart: number; contextEnd: number; contextCount: number; contextHash: string; createdAt: string; expiresAt: string; updatedAt: string }
+const provider = (v: unknown): v is AiProviderName => v === 'openai' || v === 'gemini'
 const invalid = () => new Error('Invalid AI service response. Check status before retrying.')
 const object = (v: unknown): Record<string, unknown> => { if (!v || typeof v !== 'object' || Array.isArray(v)) throw invalid(); return v as Record<string, unknown> }
 const id = (v: unknown): string => { if (typeof v !== 'string' || !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(v)) throw invalid(); return v }
@@ -31,10 +33,10 @@ export function aiFailure(code: string | null): string {
 }
 function turn(value: unknown, expected: AiIntent): AiTurn {
   const v = object(value)
-  if (!['PENDING', 'SUCCEEDED', 'FAILED', 'CANCELLED'].includes(String(v.state)) || v.provider !== 'openai'
+  if (!['PENDING', 'SUCCEEDED', 'FAILED', 'CANCELLED'].includes(String(v.state)) || !provider(v.provider)
     || (v.errorCode !== null && (typeof v.errorCode !== 'string' || !/^AI_[A-Z_]{1,28}$/.test(v.errorCode)))) throw invalid()
   const result: AiTurn = { conversationId: id(v.conversationId), requestId: id(v.requestId), expectedVersion: integer(v.expectedVersion), sourceSequence: integer(v.sourceSequence, 1999),
-    state: v.state as AiTurn['state'], errorCode: v.errorCode as string | null, provider: 'openai', model: model(v.model),
+    state: v.state as AiTurn['state'], errorCode: v.errorCode as string | null, provider: v.provider, model: model(v.model),
     assistantSequence: v.assistantSequence === null ? null : integer(v.assistantSequence, 2000), contextStart: integer(v.contextStart, 1999),
     contextEnd: integer(v.contextEnd, 1999), contextCount: integer(v.contextCount, 20), contextHash: typeof v.contextHash === 'string' ? v.contextHash : '',
     createdAt: date(v.createdAt), expiresAt: date(v.expiresAt), updatedAt: date(v.updatedAt) }
@@ -46,19 +48,19 @@ function turn(value: unknown, expected: AiIntent): AiTurn {
   return result
 }
 export async function getAiConfiguration(accountId?: string): Promise<AiConfiguration> {
-  const v = object(await (await privateRequest(accountId, '/ai/capabilities')).json())
-  if (typeof v.configured !== 'boolean' || v.provider !== 'openai' || (!v.configured && v.model !== null)) throw invalid()
-  return { configured: v.configured, provider: 'openai', model: v.configured ? model(v.model) : null }
+  const v = object(await json(await privateRequest(accountId, '/ai/capabilities')))
+  if (typeof v.configured !== 'boolean' || (v.configured ? !provider(v.provider) : v.provider !== null && !provider(v.provider)) || (!v.configured && v.model !== null)) throw invalid()
+  return { configured: v.configured, provider: v.provider as AiProviderName | null, model: v.configured ? model(v.model) : null }
 }
 const route = (intent: AiIntent) => `/conversations/${id(intent.conversationId)}/ai-turns`
 async function post(path: string, body: object, accountId?: string) {
-  const token = object(await (await request('/auth/csrf')).json())
+  const token = object(await json(await request('/auth/csrf')))
   if (token.headerName !== 'X-CSRF-TOKEN' || typeof token.token !== 'string') throw invalid()
   try {
-    return await (await privateRequest(accountId, path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token.token }, body: JSON.stringify(body), signal: AbortSignal.timeout(30_000) })).json()
+    return await json(await privateRequest(accountId, path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token.token }, body: JSON.stringify(body), signal: AbortSignal.timeout(30_000) }))
   } catch (error) {
     if (error instanceof ApiError && error.status === 503 && error.response) {
-      const details: unknown = await error.response.clone().json().catch(() => null)
+      const details: unknown = await json(error.response.clone()).catch(() => null)
       if (details && typeof details === 'object' && 'code' in details && details.code === 'AI_UNCONFIGURED') throw new AiUnconfigured()
     }
     throw error
@@ -68,11 +70,33 @@ export async function startAi(intent: AiIntent, accountId?: string): Promise<AiT
   const payload = { requestId: id(intent.requestId), expectedVersion: integer(intent.expectedVersion), sourceSequence: integer(intent.sourceSequence, 1999) }
   return turn(await post(route(intent), payload, accountId), intent)
 }
-export async function getAiTurn(intent: AiIntent, accountId?: string): Promise<AiTurn> { return turn(await (await privateRequest(accountId, `${route(intent)}/${id(intent.requestId)}`)).json(), intent) }
+export async function getAiTurn(intent: AiIntent, accountId?: string): Promise<AiTurn> { return turn(await json(await privateRequest(accountId, `${route(intent)}/${id(intent.requestId)}`)), intent) }
 export async function getLatestAiTurn(conversationId: string, accountId?: string): Promise<AiTurn | null> {
   const response = await privateRequest(accountId, `/conversations/${id(conversationId)}/ai-turns`)
   if (response.status === 204) return null
-  const value = object(await response.json())
+  const value = object(await json(response))
   return turn(value, { conversationId, requestId: id(value.requestId), expectedVersion: integer(value.expectedVersion), sourceSequence: integer(value.sourceSequence, 1999) })
 }
 export async function cancelAiTurn(intent: AiIntent, accountId?: string): Promise<AiTurn> { return turn(await post(`${route(intent)}/${id(intent.requestId)}/cancel`, {}, accountId), intent) }
+
+async function json(response: Response): Promise<unknown> {
+  const reader = response.body?.getReader()
+  if (!reader) throw invalid()
+  let size = 0
+  const chunks: Uint8Array[] = []
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      size += value.byteLength
+      if (size > 65536) throw invalid()
+      chunks.push(value)
+    }
+  } catch { throw invalid() }
+  finally { await reader.cancel().catch(() => undefined); reader.releaseLock() }
+  const bytes = new Uint8Array(size)
+  let offset = 0
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length }
+  try { return JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as unknown }
+  catch { throw invalid() }
+}

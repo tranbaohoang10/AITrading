@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "syntheticDataOnly": true,
+  "realGemini": false,
+  "actualApiDownUpObserved": true,
+  "sessionAndMessagesSurvivedRestart": true,
+  "ownerBindingCsrfDenied": true,
+  "noDuplicateOrFakeAssistant": true,
+  "configuration": {
+    "configured": false,
+    "provider": "gemini",
+    "model": null
+  },
+  "messageCount": 1,
+  "messageSnapshotSha256": "abcf9298ad6fd8c85fb615deec0d4c3462dffa26b71b688287ca0a24cad50ad2"
+}

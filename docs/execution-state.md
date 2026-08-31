@@ -463,3 +463,102 @@ If a blocker is resolved, continue that Issue's remaining tests/work, then selec
 newly READY backlog by priority. Do not restart DONE features, close blocked Issues,
 change stack/permissions or call all-backlog DONE. Final checkpoint changes only
 delivery/test-status/backlog documentation, no production/source/test change.
+
+## 31/08/2026 — PB008 provider-neutral amendment in progress
+
+PO explicitly replaces mandatory OpenAI with neutral AiProvider + Gemini, OpenAI optional. Clean baseline761f3b4; Issue12 reused/updated before code. Scope/test design: specs/PB-008/provider-neutral.md and provider-neutral-test-cases.md. Preserve all current security and DONE work. If GEMINI_API_KEY absent after local PASS, stop uncommitted/unpushed and ask only secure server configuration. Real Gemini synthetic smoke required before DoD/commit/push/CI/closure and newly READY features.
+
+## 31/08/2026 — PB008 Gemini local PASS; stop for server key
+
+Provider-neutral amendment implemented on main, still uncommitted/unpushed at
+baseline761f3b47e692be69b4c81aa619cbbf4f03d42e88.209backend/209frontend/44Python
+PASS;6verifier/6canonical/6UI fixtures,JavaOSV118/npm0. Original OpenAI tests retained;
+new Gemini contracts/full inherited owner/CSRF/race suite and V12→V13 old-data
+upgrade PASS. One intermediate market5000-row503 during extra API startup retained
+as failed; full isolated rerun209/209 PASS without assertion or production changes.
+Actual disabled-Gemini API15044→23588 with same owned PG, two-user/session/chat
+restart and browser desktop1600/mobile390/save/reload/warning PASS. All owned
+API/PG stopped and generated password files removed; browser account signed out.
+
+After local PASS, GEMINI_API_KEY presence-only checks: absent Process/User/Machine.
+PB008 BLOCKED, Issue12 OPEN, real Gemini smoke NOT RUN. Per PO stop exactly here:
+no commit/push/merge/next feature, no OpenAI subscription/key requirement. Request
+only secure configuration of GEMINI_API_KEY; never ask to paste secrets in chat.
+Current evidence/spec/tasks: specs/PB-008/provider-neutral.md and test-evidence/
+provider-neutral-results.md. Initial OpenAI documents/history retained. Protected
+mvp-ui re-review blobs unchanged and excluded; baseline tree was clean.
+
+Resume only the remaining PB008 verification: inspect this dirty scope and key
+presence, use fresh owned synthetic data for official Gemini2.5Flash smoke through
+scripts/smoke_ai.py --real-gemini, then full DoD/Vietnamese Refs #12 commit/main
+normal push/exact GitHub SHA/CI before completed closure. No DONE feature rebuild.
+Only after PB008 DONE select newly READY backlog by existing priority/dependencies.
+
+31/08/2026 Issue12 updated: https://github.com/tranbaohoang10/AITrading/issues/12#issuecomment-5479932799 ; remains OPEN. No commit/push; final main and GitHub SHA761f3b47e692be69b4c81aa619cbbf4f03d42e88. Working tree:21 modified +17 untracked task paths, index empty.
+
+## 31/08/2026 — real Gemini smoke attempted; requested model unavailable
+
+PO confirmed secure key setup and authorized real synthetic smoke. Presence-only:
+Process=false,User=true,Machine=false. Passed the Windows User key directly to the
+owned API child environment (never a key file/CLI argument); Gemini enabled with
+model gemini-2.5-flash. Existing38-file PB008 scope resumed, no DONE work rebuilt.
+
+`python scripts/smoke_ai.py --owned tmp/pg-test-1lrfxa5s --report
+specs/PB-008/test-evidence/gemini-real-smoke.json --real-gemini` exited1:
+AI_PROVIDER_REJECTED. No successful report file was created. Owned PG confirms one
+FAILED Gemini turn and zero assistant messages; synthetic API accounts signed out.
+The real-provider restart path was not reached and is not claimed PASS.
+
+Safe diagnostics to the official fixed HTTPS API with the same key:
+1. Full structured generateContent request: HTTP404/NOT_FOUND.
+2. Models List: HTTP200,53 models, requested2.5Flash advertised for generateContent.
+3. Minimal synthetic request, without schema/thinking fields and with store=false:
+   HTTP404/NOT_FOUND. Classification of the provider message states the model is
+   no longer available to new users. No raw message/body, project ID or key printed.
+
+Thus presence/listing is not evidence of generation access. This is an external
+model-availability blocker, not a reason to weaken structured validation, auth,
+rate/time bounds or switch to OpenAI. Actual-key equality checks found no key in
+owned API/harness/smoke logs or stored message/response content. API26924 and PG
+were stopped; generated temporary DB password removed. Sanitized machine-readable
+result: gemini-real-smoke-attempt.json. No production/source/test change this resume;
+prior local209backend/209frontend/44Python PASS remains valid for unchanged code.
+
+GP09 / AI-06 / AI-11 is now attempted FAILED/BLOCKED, superseding NOT RUN/key-absent
+status in earlier entries. Issue12 remains OPEN; no commit, push, CI, closure or
+next feature. Keep all dirty PB008 work for resume. The previous configuration
+explicitly selected2.5Flash; switching to another model changes that requirement.
+Proposed resolution: PO selects/authorizes a currently available Gemini model,
+then adapt its documented thinking configuration, update contract/smoke tests,
+run real synthetic smoke and complete DoD/publication only after PASS.
+
+Official references inspected31/08/2026:
+[API key types](https://ai.google.dev/gemini-api/docs/generate-content/api-key),
+[model deprecations](https://ai.google.dev/gemini-api/docs/deprecations),
+[Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing#gemini-3.5-flash).
+The pricing table lists a free tier for gemini-3.5-flash, which Models List also
+advertised here; generation access/quota for a replacement is not yet verified.
+No alternate-model request or key/IAM/billing mutation was performed.
+
+31/08/2026 blocker receipt: Issue12 comment5480129340 updated, remains OPEN. Final main761f3b47e692be69b4c81aa619cbbf4f03d42e88;21 modified +18 untracked, empty index, no commit/push. New path for this resume: specs/PB-008/test-evidence/gemini-real-smoke-attempt.json. Actual-key equality scan across39 task files found no key.
+
+
+31/08/2026 — PO approves Gemini default gemini-3.5-flash; PB-008 resumes IN_PROGRESS.
+Previous 2.5 Flash failure evidence retained. Model override stays server-configurable;
+no provider-specific business logic, new dependency or fallback. Local regression
+and real synthetic structured/persistence/isolation smoke pending for this revision.
+Issue #12 approval receipt: https://github.com/tranbaohoang10/AITrading/issues/12#issuecomment-5480218688
+
+
+31/08/2026 — Gemini3.5Flash real synthetic smoke PASS (two actual provider turns).
+Structured answers validated by the production adapter and persisted at sequences
+2/4; independently computed context hashes/counts1/3 match. Same-owner and other-
+owner decoys excluded, owner/binding/CSRF denied, replay creates no duplicate.
+Actual API12520→14444 restart retained sessions, exact messages and durable turns.
+Owned DB contains two SUCCEEDED Gemini3.5Flash attempts and exactly two assistants;
+no failed attempt, fake answer or raw provider output in evidence. Key equality
+checks found no key in API/harness/smoke logs or stored messages. Both synthetic
+accounts signed out. Evidence: test-evidence/gemini35-real-smoke.json and
+test-evidence/gemini35-checks.json (211backend/209frontend/44Python, audits PASS).
+PB008 is IN_PROGRESS pending publication, exact GitHub SHA and actual CI; do not
+infer DONE from local smoke. Previous2.5Flash404 evidence remains historical.

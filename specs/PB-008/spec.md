@@ -1,5 +1,10 @@
 # PB-008 — Quant / AI provider boundary
 
+> Current amendment, 31/08/2026: [provider-neutral.md](provider-neutral.md) and
+> [provider-neutral-test-cases.md](provider-neutral-test-cases.md) supersede the
+> mandatory OpenAI configuration below. This original document is preserved as
+> initial PB-008 history; unchanged lifecycle/security requirements still apply.
+
 31/08/2026. Issue [#12](https://github.com/tranbaohoang10/AITrading/issues/12)
 created before code. Dependencies PB-004/PB-005 DONE. No credit/payment/live trading.
 

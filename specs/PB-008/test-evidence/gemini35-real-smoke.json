@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "syntheticDataOnly": true,
+  "realGemini": true,
+  "actualApiDownUpObserved": true,
+  "sessionAndMessagesSurvivedRestart": true,
+  "ownerBindingCsrfDenied": true,
+  "noDuplicateOrFakeAssistant": true,
+  "sameAndOtherOwnerDecoysExcluded": true,
+  "contextHashVerified": true,
+  "realProviderTurns": 2,
+  "configuration": {
+    "configured": true,
+    "provider": "gemini",
+    "model": "gemini-3.5-flash"
+  },
+  "messageCount": 4,
+  "messageSnapshotSha256": "556bb07e1740462a837989cffc680058bc913eb1c593354b4e8569454c85b89a"
+}

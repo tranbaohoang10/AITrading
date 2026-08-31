@@ -46,3 +46,33 @@ it('distinguishes unconfigured503 from uncertain DB/network503 and validates ava
   network.mockResolvedValueOnce(response({ headerName: 'X-CSRF-TOKEN', token: 'synthetic' })).mockResolvedValueOnce(unavailable)
   await expect(startAi(intent, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toMatchObject({ status: 503 })
 })
+
+it('accepts Gemini selection without relabelling existing OpenAI turns and fails closed on unknown selection', async () => {
+  for (const configuration of [
+    { configured: true, provider: 'gemini', model: 'gemini-3.5-flash' },
+    { configured: false, provider: 'gemini', model: null },
+    { configured: false, provider: null, model: null },
+  ]) {
+    network.mockResolvedValueOnce(response(configuration))
+    expect(await getAiConfiguration('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).toEqual(configuration)
+  }
+  for (const provider of ['openai', 'gemini']) {
+    network.mockResolvedValueOnce(response({ ...success, provider }))
+    expect((await getAiTurn(intent, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).provider).toBe(provider)
+  }
+  for (const configuration of [{ configured: true, provider: null, model: 'model' }, { configured: true, provider: 'unknown', model: 'model' }, { configured: false, provider: 'secret-like-value', model: null }]) {
+    network.mockResolvedValueOnce(response(configuration))
+    await expect(getAiConfiguration('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Invalid AI service response')
+  }
+  network.mockResolvedValueOnce(response({ ...success, provider: 'unknown' }))
+  await expect(getAiTurn(intent, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow('Invalid AI service response')
+})
+
+it('bounds JSON and hides malformed response fragments that could contain secrets', async () => {
+  for (const body of ['synthetic-secret-not-json', '{"synthetic-secret":', ' '.repeat(65537), new Uint8Array([0xff])]) {
+    network.mockResolvedValueOnce(new Response(body))
+    await expect(getAiConfiguration('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).rejects.toThrow(/^Invalid AI service response\. Check status before retrying\.$/)
+  }
+  network.mockResolvedValueOnce(response({ ...success, provider: 'gemini', state: 'FAILED', errorCode: 'AI_RATE_LIMITED', assistantSequence: null }))
+  expect(await getAiTurn(intent, 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')).toMatchObject({ provider: 'gemini', errorCode: 'AI_RATE_LIMITED' })
+})

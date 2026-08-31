@@ -1,0 +1,63 @@
+{
+  "date": "31/08/2026",
+  "issue": 12,
+  "baseline": "761f3b47e692be69b4c81aa619cbbf4f03d42e88",
+  "passed": false,
+  "status": "FAILED_BLOCKED",
+  "syntheticDataOnly": true,
+  "provider": "gemini",
+  "model": "gemini-2.5-flash",
+  "keyPresence": {
+    "Process": false,
+    "User": true,
+    "Machine": false
+  },
+  "keyDelivery": "Windows User environment to owned API child environment only; no file or command-line key",
+  "applicationSmoke": {
+    "exitCode": 1,
+    "turnState": "FAILED",
+    "errorCode": "AI_PROVIDER_REJECTED",
+    "assistantCount": 0,
+    "restartReached": false
+  },
+  "officialRestDiagnostic": {
+    "httpStatus": 404,
+    "status": "NOT_FOUND",
+    "fullStructuredRequest": true,
+    "rawResponseEmitted": false
+  },
+  "modelsList": {
+    "httpStatus": 200,
+    "modelsReturned": 53,
+    "requestedModelAdvertisesGenerateContent": true
+  },
+  "minimalSyntheticRequest": {
+    "httpStatus": 404,
+    "status": "NOT_FOUND",
+    "schemaAndThinkingConfigRemoved": true,
+    "store": false,
+    "providerMessageClassification": {
+      "noLongerAvailable": true,
+      "newUsers": true
+    }
+  },
+  "secretChecks": {
+    "keyFoundInApiHarnessSmokeLogs": false,
+    "keyFoundInStoredMessagesOrAiResponses": false,
+    "keyValueEmitted": false
+  },
+  "cleanup": {
+    "ownedApiPid": 26924,
+    "ownedCluster": "pg-test-1lrfxa5s",
+    "apiAndPostgresStopped": true,
+    "temporaryDatabasePasswordRemoved": true
+  },
+  "conclusion": "The requested model rejects this new-user access despite Models List advertising it. No schema/parser relaxation, API-key rotation, IAM change or alternate-model invocation attempted.",
+  "publication": {
+    "commit": false,
+    "push": false,
+    "newCi": false,
+    "issueClosed": false,
+    "nextFeatureStarted": false
+  }
+}

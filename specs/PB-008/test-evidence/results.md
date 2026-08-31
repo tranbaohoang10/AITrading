@@ -96,3 +96,8 @@ CI33362744818 both jobs success; downloaded JUnit105/0/0/0 and OSV118PASS verifi
 git diff --check and staged diff check PASS; working tree clean after delivery.
 AI-T11 PASS. Issue12 remains OPEN/BLOCKED for AI-T10, comment5474429092. No false
 DoD completion; next independent READY feature PB-011 now Issue13.
+
+31/08/2026 provider-neutral amendment: this original OpenAI-only evidence is
+preserved. Current Gemini selection, V13, tests and publication stop condition
+are tracked in provider-neutral-results.md. OpenAI is optional, and no previous
+CI/commit certifies the uncommitted Gemini amendment or its real-provider smoke.

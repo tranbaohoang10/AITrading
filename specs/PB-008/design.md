@@ -1,5 +1,10 @@
 # PB-008 design — 31/08/2026, Issue #12
 
+> Current amendment, 31/08/2026: [provider-neutral.md](provider-neutral.md) and
+> [provider-neutral-test-cases.md](provider-neutral-test-cases.md) supersede the
+> mandatory OpenAI configuration below. This original document is preserved as
+> initial PB-008 history; unchanged lifecycle/security requirements still apply.
+
 OpenAI Responses REST via maintained Java21 HttpClient; no new SDK dependency.
 Fixed https://api.openai.com/v1/responses, no redirects, no request-selectable URL,
 proxy/header/model/key or tools. Server OPENAI_API_KEY and AITRADING_AI_MODEL are

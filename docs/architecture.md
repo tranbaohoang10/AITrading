@@ -17,7 +17,7 @@ flowchart LR
   API[Spring Boot Java21 API]
   DB[(PostgreSQL / Flyway)]
   Python[Offline Python DSL engine PB-010]
-  Provider[OpenAI Responses - external smoke pending]
+  Provider[Selected AiProvider: Gemini or optional OpenAI - real smoke pending]
   Browser -->|same-origin REST, HttpOnly session and CSRF| API
   API -->|JDBC, owned application schema| DB
   API -->|frozen owned input, bounded supervised jobs PB-011| Python
@@ -145,3 +145,12 @@ verification protect UI state. JournalWorkspace reuses CandleChart with its own
 owned source, never the global selected market. At most10×500 candle scan locates
 the100-bar window by actual time through gaps. Source deletion preserves monetary
 values but removes chart access. Sequence/class/ERD: specs/PB-013/design.md.
+
+31/08/2026 PB-008 provider-neutral amendment: AiService/AiTurnStore use AiProvider,
+selected once at startup by AiProviderConfiguration. GeminiProvider and optional
+OpenAiProvider share bounded AiHttpTransport/AiProviderProtocol. Fixed provider
+HTTPS destinations, no user URL/tools or automatic fallback. V13 widens only the
+provider check to openai/gemini, retaining V6 and old provenance. Current diagrams,
+privacy/security/AC and evidence: specs/PB-008/provider-neutral.md. Historical
+OpenAI-only description above records the initial implementation, not the current
+mandatory provider. Real Gemini smoke is required before PB008 DONE.

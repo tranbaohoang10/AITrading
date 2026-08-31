@@ -256,12 +256,33 @@ Run `python -m unittest discover -s python/tests -v`. See the
 
 ## AI provider boundary (PB-008 — external smoke pending)
 
-The server uses the official OpenAI Responses endpoint through Java HttpClient,
-with strict structured output and no tools. It is disabled by default. Configure
-`AITRADING_AI_ENABLED=true`, `AITRADING_AI_MODEL` with an available structured-output
-model, and `OPENAI_API_KEY` privately in the server process environment. Never put
-the key in source, browser settings, `.env`, screenshots, chat or Issues. Restart
-the API after changing configuration. No default model or account access is assumed.
+Business logic depends on the neutral `AiProvider` contract. Select one adapter at
+server startup: official Gemini Developer API (`generateContent`) or optional
+OpenAI Responses, both through Java21 HttpClient without an SDK dependency.
+AI is disabled by default. Gemini prototype configuration in the **server process
+environment**, with the key supplied privately by the operator:
+
+```text
+AITRADING_AI_PROVIDER=gemini
+GEMINI_API_KEY=<server-side secret; do not paste into chat>
+AITRADING_AI_MODEL=gemini-3.5-flash
+AITRADING_AI_ENABLED=true
+```
+
+Do not copy a real key into this document, source, browser settings, `.env`, logs,
+screenshots, chat or Issues. Restart the API after changing configuration. The
+selector defaults to `gemini`; its absent/empty model defaults to `gemini-3.5-flash`.
+`AITRADING_AI_MODEL` overrides that default; enabled/key remain explicit. Unknown or
+incomplete configuration fails closed without a fake answer or fallback. Optional
+OpenAI uses `AITRADING_AI_PROVIDER=openai`, `OPENAI_API_KEY` and an available
+structured-output `AITRADING_AI_MODEL`. Only the selected adapter's key is used;
+OpenAI credentials or paid OpenAI access are not a prototype prerequisite.
+
+**Gemini free-tier smoke: synthetic test accounts and prompts only; never real
+private user data.** The UI displays this warning. Google's published
+[pricing/data-use table](https://ai.google.dev/gemini-api/docs/pricing) states that
+free-tier content may be used to improve products. Free quota/model access is
+account-dependent; neither free availability nor zero retention is guaranteed.
 
 Sign in, select an owned conversation, save a user message, and click Check AI
 availability. Ask AI sends only that conversation's latest at most20 saved messages
@@ -280,14 +301,30 @@ persistence, but cannot guarantee cancellation of provider billing. An expired
 Limits:20s whole provider exchange,256KiB response,2048 output tokens,100 attempts
 per conversation,one pending per conversation,four concurrent provider calls per
 API process; starts10/reads300/cancels30 per account/15min, in addition to existing
-chat write limits. No transaction spans the external request. `store:false` is not
-a zero-retention guarantee; provider/account data policies apply. Do not send
+chat write limits. No transaction spans the external request. Both adapters' `store:false`
+is not a zero-retention guarantee; each provider/account data policy applies. Do not send
 secrets. Output is untrusted research text, never trade execution or guaranteed advice.
 
-Local HTTP-stub/real PostgreSQL and UI tests are separate from the required real
-configured-provider smoke. That smoke is currently **BLOCKED** on server credentials;
-Issue #12 remains open. See [design](specs/PB-008/design.md),
-[test cases](specs/PB-008/test-cases.md) and [evidence](specs/PB-008/test-evidence/results.md).
+Local loopback HTTP/real PostgreSQL and UI tests are separate from the required
+real Gemini smoke. Issue #12 stays open until that smoke, publication and CI meet
+DoD. See the current [provider-neutral amendment](specs/PB-008/provider-neutral.md),
+[test cases](specs/PB-008/provider-neutral-test-cases.md) and
+[evidence](specs/PB-008/test-evidence/provider-neutral-results.md). Original OpenAI
+CNPM/evidence remain as historical records. V13 permits Gemini without changing
+V6 or relabelling historical OpenAI attempts.
+
+`python scripts/test_backend.py` strips both real provider keys from its test child
+environment. `--serve` intentionally inherits operator configuration. For an owned
+unconfigured restart smoke, start it with AI disabled and selector Gemini, then run
+`python scripts/smoke_ai.py --owned tmp/pg-test-<printed-id> --report tmp/ai-smoke.json`.
+Only after secure Gemini configuration, use a fresh owned `--serve` harness and
+append `--real-gemini` to the smoke command. It creates new synthetic accounts,
+checks isolation/CSRF/replay, and restarts only that owned API. It never requests a
+key on the command line or substitutes a stub for a real-provider result.
+The smoke expects `gemini-3.5-flash` by default; use `--model` or its process
+`AITRADING_AI_MODEL` to match an explicitly configured alternate model. It verifies
+two synthetic turns and their exact context hashes, excludes decoy conversations,
+and compares persisted messages after restart. Do not pass private data to it.
 
 ## Owned backtest API jobs (PB-011)
 

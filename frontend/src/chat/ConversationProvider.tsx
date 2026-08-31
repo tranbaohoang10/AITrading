@@ -185,7 +185,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     catch (error) {
       if (generation !== lifetime.current || epoch !== aiEpoch.current) return
       if (!original && (knownRejection(error) || error instanceof ai.AiUnconfigured)) { pendingAi.current = null; setUncertain(false) }
-      if (error instanceof ai.AiUnconfigured) setAiConfiguration({ configured: false, provider: 'openai', model: null })
+      if (error instanceof ai.AiUnconfigured) setAiConfiguration(previous => ({ configured: false, provider: previous?.provider ?? null, model: null }))
       setAiError(errorText(error))
     } finally { if (generation === lifetime.current && epoch === aiEpoch.current) end() }
   }

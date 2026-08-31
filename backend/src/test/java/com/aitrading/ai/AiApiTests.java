@@ -35,6 +35,7 @@ class AiApiTests {
         final JsonMapper json=JsonMapper.builder().build();
         final AtomicInteger calls=new AtomicInteger();
         final AtomicBoolean configured=new AtomicBoolean(true);
+        final AtomicBoolean gemini=new AtomicBoolean(false);
         final List<JsonNode> requests=Collections.synchronizedList(new ArrayList<>());
         final AtomicReference<CountDownLatch> gate=new AtomicReference<>(new CountDownLatch(0));
         final AtomicReference<CountDownLatch> seen=new AtomicReference<>(new CountDownLatch(1));
@@ -42,27 +43,39 @@ class AiApiTests {
         final HttpServer server;
         final ExecutorService executor=Executors.newVirtualThreadPerTaskExecutor();
         final OpenAiProvider delegate;
+        final GeminiProvider geminiDelegate;
         ProbeProvider() throws Exception {
             server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);server.setExecutor(executor);
-            server.createContext("/responses",exchange->{
+            server.createContext("/",exchange->{
                 calls.incrementAndGet();requests.add(json.readTree(exchange.getRequestBody().readAllBytes()));seen.get().countDown();
                 try {
                     gate.get().await(8,TimeUnit.SECONDS);
                     Map<String,Object> content=mode.get().equals("refusal")?Map.of("type","refusal","refusal","Synthetic refusal"):
                             Map.of("type","output_text","text",json.writeValueAsString(new AiAnswer("answer","Synthetic provider response <script>inert</script>",List.of("Local HTTP fixture only"))));
                     byte[] bytes=json.writeValueAsBytes(Map.of("status","completed","output",List.of(Map.of("type","message","role","assistant","status","completed","content",List.of(content)))));
+                    if(exchange.getRequestURI().getPath().endsWith(":generateContent")) {
+                        bytes=json.writeValueAsBytes(mode.get().equals("refusal")?Map.of("promptFeedback",Map.of("blockReason","SAFETY")):
+                                Map.of("candidates",List.of(Map.of("finishReason","STOP","content",Map.of("role","model","parts",List.of(Map.of("text",content.get("text"))))))));
+                    }
                     exchange.getResponseHeaders().set("Content-Type","application/json");exchange.sendResponseHeaders(200,bytes.length);exchange.getResponseBody().write(bytes);
                 }catch(InterruptedException interrupted){Thread.currentThread().interrupt();}catch(java.io.IOException cancelled){}
                 finally{exchange.close();}
             });server.start();
             delegate=new OpenAiProvider(true,"synthetic-project-test-key-not-real","configured-test-model",URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/responses"),Duration.ofSeconds(5));
+            geminiDelegate=new GeminiProvider(true,"synthetic-gemini-test-key-not-real","gemini-3.5-flash",URI.create("http://127.0.0.1:"+server.getAddress().getPort()+"/v1beta/models/gemini-3.5-flash:generateContent"),Duration.ofSeconds(5));
         }
-        @Override public Configuration configuration(){return new Configuration(configured.get(),"openai",configured.get()?"configured-test-model":null);}
-        @Override public AiAnswer answer(List<ContextMessage> context){return delegate.answer(context);}
+        @Override public Configuration configuration(){return new Configuration(configured.get(),gemini.get()?"gemini":"openai",configured.get()?(gemini.get()?"gemini-3.5-flash":"configured-test-model"):null);}
+        @Override public AiAnswer answer(List<ContextMessage> context){return (gemini.get()?geminiDelegate:delegate).answer(context);}
+        List<String> capturedContext(int index) {
+            JsonNode request=requests.get(index);var result=new ArrayList<String>();
+            if(request.has("input"))for(var item:request.get("input"))result.add(item.get("content").asString());
+            else for(var item:request.get("contents"))result.add(item.get("parts").get(0).get("text").asString());
+            return result;
+        }
         void reset(){gate.get().countDown();gate.set(new CountDownLatch(0));seen.set(new CountDownLatch(1));calls.set(0);requests.clear();configured.set(true);mode.set("answer");}
         void block(int expected){gate.set(new CountDownLatch(1));seen.set(new CountDownLatch(expected));}
         void await() throws Exception{assertThat(seen.get().await(4,TimeUnit.SECONDS)).isTrue();}
-        @Override public void close(){gate.get().countDown();delegate.shutdown();server.stop(0);executor.shutdownNow();}
+        @Override public void close(){gate.get().countDown();delegate.shutdown();geminiDelegate.close();server.stop(0);executor.shutdownNow();}
     }
     @LocalServerPort int port;
     @Autowired JdbcTemplate jdbc;
@@ -76,12 +89,13 @@ class AiApiTests {
     final JsonMapper json=JsonMapper.builder().build();
     record Actor(HttpClient client,String csrf,UUID id,String email) { }
     Actor a,b;
+    boolean useGemini(){return false;}
     @BeforeAll static void ownedDatabase(){
         assertThat(System.getenv("AITRADING_TEST_CLUSTER")).isNotBlank();
         assertThat(Path.of(System.getenv("AITRADING_TEST_CLUSTER")).toAbsolutePath().normalize().startsWith(Path.of("..").toAbsolutePath().normalize().resolve("tmp"))).isTrue();
     }
     @BeforeEach void setup() throws Exception {
-        probe.reset();jdbc.update("DELETE FROM trading.spring_session");jdbc.update("DELETE FROM trading.auth_rate_bucket");jdbc.update("DELETE FROM trading.app_user");
+        probe.reset();probe.gemini.set(useGemini());jdbc.update("DELETE FROM trading.spring_session");jdbc.update("DELETE FROM trading.auth_rate_bucket");jdbc.update("DELETE FROM trading.app_user");
         a=actor("ai-a@example.test");b=actor("ai-b@example.test");
     }
     @AfterEach void release(){probe.gate.get().countDown();}
@@ -132,7 +146,7 @@ class AiApiTests {
         var anonymous=new Actor(HttpClient.newHttpClient(),null,null,"");tree(call(anonymous,"GET","/api/ai/capabilities",null),401);
         assertThat(send(a,"POST",route,json.writeValueAsString(payload),null,Map.of()).statusCode()).isEqualTo(403);
         assertThat(send(a,"POST",route,json.writeValueAsString(payload),a.csrf(),Map.of("Origin","https://untrusted.invalid")).statusCode()).isEqualTo(403);
-        for(String key:List.of("ownerId","model","endpoint","tools","role","content")) {
+        for(String key:List.of("ownerId","model","endpoint","tools","role","content","provider","GEMINI_API_KEY")) {
             var invalid=body(request,2,1);invalid.put(key,"untrusted");tree(call(a,"POST",route,invalid),400);
         }
         assertThat(probe.calls.get()).isZero();
@@ -174,12 +188,12 @@ class AiApiTests {
         tree(call(a,"POST",path(id),body(UUID.randomUUID(),25,25)),409);
         var turn=tree(call(a,"POST",path(id),body(UUID.randomUUID(),26,25)),200);
         assertThat(turn.get("contextStart").asLong()).isEqualTo(6);assertThat(turn.get("contextEnd").asLong()).isEqualTo(25);assertThat(turn.get("contextCount").asInt()).isEqualTo(20);
-        assertThat(probe.requests.getFirst().get("input").get(0).get("content").asString()).isEqualTo("message-6");
+        assertThat(probe.capturedContext(0).getFirst()).isEqualTo("message-6");
         tree(call(a,"POST",path(id),body(UUID.randomUUID(),27,26)),409);
         UUID large=conversation(a,"x".repeat(4000));for(int i=0;i<4;i++)conversations.append(user(a),large,UUID.randomUUID(),"y".repeat(4000));
         var capped=tree(call(a,"POST",path(large),body(UUID.randomUUID(),6,5)),200);
         assertThat(capped.get("contextCount").asInt()).isEqualTo(4);assertThat(capped.get("contextStart").asLong()).isEqualTo(2);
-        assertThat(probe.requests.getLast().get("input").size()).isEqualTo(4);
+        assertThat(probe.capturedContext(probe.requests.size()-1)).hasSize(4);
     }
     @Test void cancellationAndConcurrentEditDiscardPendingOutput() throws Exception {
         for(boolean cancel:new boolean[]{true,false}) {
