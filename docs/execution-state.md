@@ -204,3 +204,27 @@ under exec session 89309 on 127.0.0.1:5173, then intentionally stopped for a cle
 install to release Windows native-module locks. Do not reuse that terminal handle.
 Browser screenshots and exact evidence are in specs/PB-001/test-evidence/.
 Do not treat the mock shell as a working authenticated/AI/backtest product.
+
+## 31/08/2026 — PB-011 completed / PB-012 begins
+
+PB-011 code bfebd5fd93fdb9c61268c665a8ab50ec52a4f861 and documentation
+bcdeaff0b7a5105226d2645a903bb7a5f4c1d9e9 verified on origin/main/GitHub.
+CI33365234612 and33365494850 success, JUnit122/0 failures, OSV118 PASS.
+Issue13 CLOSED/COMPLETED; comment5474821388. Issue14 created before PB-012 code.
+PB-012 replaces authenticated backtest demo with actual saved job results and
+frozen candle charts. PB-008 remains blocked on project server AI key, not DONE.
+No product work repeated and no protected mvp-ui re-review file changed.
+
+## 31/08/2026 — PB-012 local verification complete, publication next
+
+Issue14 OPEN, direct main. Real saved job setup/history/result/trades/curves/frozen
+chart implemented without new engine semantics, dependency or migration. Local
+131frontend (26new),123backend,40Python,6verifier,6canonical,6engineUIfixtures PASS;
+lint/type/build/npm0/JavaOSV118 PASS. Browser1600/900/390, same job/source deletion,
+JVM7216→26576 restart and cross-tab account mismatch verified. Owned databases
+_gmy4pie/xq_as13o stopped with credential files removed; browser accounts signed
+out and viewport reset. Vite may remain available; no production service touched.
+Evidence in specs/PB-012/test-evidence. Next: inspect/stage exact scope, commit
+Refs14+13 (includes PB-011 completion checkpoint), normal push, exact GitHub SHA
+and actual CI, close14 only if PASS. Then PB-013 is the next independent READY
+P1 feature. PB-008 remains BLOCKED#12; no provider key/smoke and no DONE claim.

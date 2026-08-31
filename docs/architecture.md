@@ -118,3 +118,13 @@ protect lifecycle transitions. Source IDs are provenance, not source-cascade FKs
 account deletion cascades jobs, while explicit terminal job deletion removes
 snapshots/results. Full sequence/class/ERD: specs/PB-011/design.md. Python semantics
 remain PB-010; web charts/controls are PB-012, notifications PB-022.
+
+PB-012 adds BacktestProvider inside the authenticated identity-keyed subtree.
+Explicit saved-input submission and owned job selection drive ResultView,
+EquityChart, TradeList and reused CandleChart. Per-operation epochs invalidate late
+job/result/chart replies; uncertain mutations retain their original UUID, including
+when a retry itself is rejected. No implicit engine invocation or browser storage.
+BacktestStore reads bounded candle windows from V7 input_json only after current
+credential/owner/state checks. Source deletion does not change these bars. No new
+ERD entity/migration/dependency or Python accounting change. Sequence/class/UI and
+threat/test contracts: specs/PB-012/design.md and test-cases.md.

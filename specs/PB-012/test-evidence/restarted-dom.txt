@@ -1,0 +1,233 @@
+- complementary "Global navigation":
+  - generic "AI Trading": AT
+  - navigation "Primary":
+    - button "Workspace":
+    - button "AI Strategy":
+    - button "Backtest":
+    - button "My Code":
+    - button "Trading Journal":
+    - button "Strategies":
+  - button "Settings":
+  - button "Account":
+- region "AI Chat":
+  - heading "Quant / Research conversations" [level=2]
+  - paragraph: Private saved messages · AI requests are always explicit
+  - button "New Chat"
+  - button "Refresh list"
+  - paragraph: No conversations yet. Start a New Chat.
+  - navigation "Saved conversations"
+  - generic: Select a conversation or start a New Chat. Messages are saved to your account; strategy generation will be connected separately.
+  - region "AI provider controls":
+    - button "Check AI availability"
+    - generic: Provider availability not checked.
+    - paragraph: Ask AI sends up to 20 recent saved messages from this conversation to the configured provider. Provider retention policies apply. Do not include secrets. Research output may be wrong; no trades are executed.
+    - button "Ask AI" [disabled]
+- separator "Resize AI Chat"
+- main "Trading Workspace":
+  - paragraph: Workspace / Market data
+  - heading "AI Trading Platform" [level=1]
+  - generic: Private research
+  - button "Backtest":
+    - text: Backtest
+  - tablist "Workspace views":
+    - tab "Chart"
+    - tab "Strategy DSL"
+    - tab "Pine Script"
+    - tab "MQL5"
+    - tab "Backtest Results" [selected]
+    - tab "Trades"
+  - tabpanel "Backtest Results":
+    - region "Backtest Results":
+      - heading "Backtesting" [level=2]
+      - paragraph: Owned saved snapshots · Python engine · explicit execution
+      - button "Refresh jobs and inputs"
+      - generic "New backtest"
+      - paragraph: Runs a saved VALIDATED revision only. Unsaved editor changes are not included. Select each input explicitly.
+      - text: Saved strategy
+      - combobox "Backtest strategy":
+        - option "Choose strategy" [selected]
+        - option "PB012 <script>inert</script> hand run"
+      - text: Validated revision
+      - combobox "Backtest revision" [disabled]:
+        - option "Choose saved revision" [selected]
+      - text: Owned dataset
+      - combobox "Backtest dataset":
+        - option "Choose dataset" [selected]
+      - button "Start saved backtest" [disabled]
+      - paragraph: Choose a validated revision and matching gap-free dataset.
+      - text: Saved job history
+      - combobox "Backtest job":
+        - option "Choose a job"
+        - option "2026-08-31T07:15:34.032186Z · PB012 <script>inert</script> hand run r2 · SUCCEEDED" [selected]
+      - status: SUCCEEDED · PB012 <script>inert</script> hand run r2 · PB012 hand-calculated candles
+      - paragraph: Job e927bc1a-b681-4c03-9233-eb689e21c0fb
+      - button "Refresh selected job"
+      - button "Delete job…"
+      - heading "Stored result · TEST_USD / 1h" [level=3]
+      - button "Export result JSON"
+      - paragraph: SYNTHETIC · Unverified research data. Historical results do not guarantee future profit.
+      - generic "Actual backtest metrics":
+        - term: breakeven Trades
+        - definition: "0"
+        - term: closed Net Pnl
+        - definition: "100"
+        - term: closed Trades
+        - definition: "1"
+        - term: final Balance
+        - definition: "1100"
+        - term: final Equity
+        - definition: "1100"
+        - term: initial Capital
+        - definition: "1000"
+        - term: losing Trades
+        - definition: "0"
+        - term: max Drawdown Pct
+        - definition: "0"
+        - term: net Profit
+        - definition: "100"
+        - term: profit Factor
+        - definition: Undefined
+        - term: return Pct
+        - definition: "10"
+        - term: total Fees
+        - definition: "0"
+        - term: win Rate Pct
+        - definition: "100"
+        - term: winning Trades
+        - definition: "1"
+      - region "Equity and drawdown":
+        - heading "Equity · bar close" [level=4]
+        - img "Equity":
+          - generic: 2024-01-01
+          - generic: 2024-01-01
+        - heading "Drawdown % · bar close" [level=4]
+        - img "Drawdown %":
+          - generic: 2024-01-01
+          - generic: 2024-01-01
+        - text: Inspect result bar · UTC
+        - slider "Result bar index": "0"
+        - generic "Exact selected result bar":
+          - term: bar
+          - definition: "0"
+          - term: close Time
+          - definition: 2024-01-01T01:00:00Z
+          - term: balance
+          - definition: "1000"
+          - term: equity
+          - definition: "1000"
+          - term: drawdown Pct
+          - definition: "0"
+          - term: unrealized Gross
+          - definition: "0"
+        - paragraph: Geometry uses display precision; inspected values retain exact engine decimal strings. Drawdown can exceed 100% under leverage.
+      - region "Actual backtest trades":
+        - heading "Closed trades · 1" [level=3]
+        - generic "Trade 1 · long · Net 100 · RULE_EXIT"
+        - heading "Open position at dataset end" [level=3]
+        - paragraph: No open position.
+      - region "Frozen run chart":
+        - heading "Frozen run candles and events" [level=3]
+        - paragraph: "Yellow: SIGNAL at close · green: ENTRY · red: EXIT. Markers locate event bars; exact prices/times are below. This chart is independent of the current market selection."
+        - img "TEST_USD frozen backtest candlesticks, 3 candles in UTC":
+          - generic: "110.8"
+          - generic: "107.9"
+          - generic: "105"
+          - generic: "102.1"
+          - generic: "99.2"
+          - generic "SIGNAL · bar 0 · event 1"
+          - generic "ENTRY · bar 1 · event 2"
+          - generic "SIGNAL · bar 1 · event 3"
+          - generic "EXIT · bar 2 · event 4"
+          - generic "SIGNAL · bar 2 · event 5"
+          - generic: 01-01 00:00
+          - generic: 01-01 02:00
+        - button "Previous candle"
+        - text: Inspect candle
+        - slider "Candle index": "2"
+        - button "Next candle" [disabled]
+        - generic "Selected candle values":
+          - term: Candle open time · UTC
+          - definition: 2024-01-01T02:00:00Z
+          - term: open
+          - definition: "110"
+          - term: high
+          - definition: "110"
+          - term: low
+          - definition: "110"
+          - term: close
+          - definition: "110"
+          - term: volume
+          - definition: "10"
+        - button "Earlier run candles" [disabled]
+        - generic: Bars 0–2 / 3
+        - button "Later run candles" [disabled]
+        - generic "Events in this candle window"
+      - generic "Run provenance, execution policy and exact DSL" [active]
+      - generic "Run provenance":
+        - term: job Id
+        - definition: e927bc1a-b681-4c03-9233-eb689e21c0fb
+        - term: strategy Id
+        - definition: 533ddeba-7cf6-42a4-980a-d8cecfc0bfaa
+        - term: revision
+        - definition: "2"
+        - term: dataset Id
+        - definition: 49bb9230-05d8-4669-996c-b055e2a62484
+        - term: input Hash
+        - definition: 38a8086659b4719bac0995ec08fcb4c07d62aa9ba213ce381805ad76d3ed428f
+        - term: dsl Hash
+        - definition: 1f2d91257909c518dfc6a582b41064cc74fc4e16aed175abaf2f6ce87af4b62e
+        - term: data Hash
+        - definition: c56f14c79abdd70323708c59de4b5a014a63d27dbc38089ec46b35d77c956876
+        - term: result Hash
+        - definition: b04fd6e6beb34cea4e48d341fe1057854d82da10d6059ccfbded44fa48353494
+        - term: created At
+        - definition: 2026-08-31T07:15:34.032186Z
+        - term: finished At
+        - definition: 2026-08-31T07:15:34.490843Z
+        - term: engine Version
+        - definition: 1.0.0
+        - term: minimum Bars
+        - definition: "1"
+      - generic "Frozen source":
+        - term: closed Through
+        - definition: 2024-01-01T03:00:00Z
+        - term: count
+        - definition: "3"
+        - term: data Hash
+        - definition: c56f14c79abdd70323708c59de4b5a014a63d27dbc38089ec46b35d77c956876
+        - term: end
+        - definition: 2024-01-01T02:00:00Z
+        - term: source Type
+        - definition: SYNTHETIC
+        - term: start
+        - definition: 2024-01-01T00:00:00Z
+        - term: symbol
+        - definition: TEST_USD
+        - term: timeframe
+        - definition: 1h
+        - term: timezone
+        - definition: UTC
+        - term: source Verified
+        - definition: "false"
+      - generic "Execution policy":
+        - term: commission Bps
+        - definition: "0"
+        - term: fill
+        - definition: next_bar_open
+        - term: max Positions
+        - definition: "1"
+        - term: missing Candles
+        - definition: reject
+        - term: same Bar Exit
+        - definition: stop_first
+        - term: signal
+        - definition: bar_close
+        - term: slippage Bps
+        - definition: "0"
+        - term: spread Bps
+        - definition: "0"
+      - generic: "{\"execution\":{\"commissionBps\":0,\"fill\":\"next_bar_open\",\"maxPositions\":1,\"missingCandles\":\"reject\",\"sameBarExit\":\"stop_first\",\"signal\":\"bar_close\",\"slippageBps\":0,\"spreadBps\":0},\"indicators\":[],\"labels\":[\"synthetic\",\"not a recommendation\"],\"market\":{\"symbol\":\"TEST_USD\",\"timeframe\":\"1h\",\"timezone\":\"UTC\"},\"name\":\"Synthetic hand-calculated next-open example\",\"risk\":{\"allocationPct\":100,\"initialCapital\":1000,\"leverage\":1,\"stopLossPct\":50,\"takeProfitPct\":100},\"rules\":{\"longEntry\":{\"kind\":\"compare\",\"left\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"op\":\"gt\",\"right\":{\"kind\":\"constant\",\"value\":0}},\"longExit\":{\"kind\":\"compare\",\"left\":{\"field\":\"close\",\"kind\":\"series\",\"lag\":0},\"op\":\"gt\",\"right\":{\"kind\":\"constant\",\"value\":0}},\"shortEntry\":null,\"shortExit\":null},\"schemaVersion\":\"1.0.0\"}"
+      - list:
+        - listitem: Unverified research data; historical results do not guarantee profit.
+        - listitem: No funding, liquidation, broker tick/lot or live-order simulation.
+        - listitem: Protective execution time is only known within its candle.

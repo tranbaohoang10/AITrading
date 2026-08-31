@@ -1,8 +1,14 @@
 import { equityPoints } from '../data/mockData'
 import { useTrading } from '../context/TradingContext'
 import { Icon } from './Icon'
+import { useBacktest } from '../backtest/BacktestContext'
+import { BacktestWorkspace } from '../backtest/BacktestWorkspace'
 
 export function BacktestResults() {
+  const actual = useBacktest()
+  return actual ? <BacktestWorkspace /> : <MockBacktestResults />
+}
+function MockBacktestResults() {
   const { metrics, backtestStatus, runBacktest } = useTrading()
   const points = equityPoints.map((value, index) => `${index * (600 / (equityPoints.length - 1))},${120 - value}`).join(' ')
 

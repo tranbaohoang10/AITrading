@@ -36,3 +36,8 @@ artifacts describe implemented boundaries without claiming the feature DONE.
 process/resource/lifecycle/security contracts and separate tests. Actual HTTP/
 Python/PostgreSQL result and JVM restart evidence are under specs/PB-011. No UI
 source change or new screenshot requirement; real web integration remains PB-012.
+
+31/08/2026: PB-012 adds explicit backtest UI use cases, sequence/class diagrams,
+frozen-candle API and real metrics/trades/event visualizations. V7 ERD is reused;
+no new table. Detailed tests, actual engine UI fixtures and real responsive browser
+evidence are in specs/PB-012. This does not claim AI/provider work is complete.

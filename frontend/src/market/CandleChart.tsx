@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import type { CandlePage } from './api'
+import type { Candle } from './api'
 import { buttonClass } from '../auth/AuthForm'
 
-export function CandleChart({ page }: { page: CandlePage }) {
+export function CandleChart({ page, markers = [], frozen = false }: { page: { dataset: { symbol: string }; items: Candle[] }; markers?: { id: number; barIndex: number; kind: string }[]; frozen?: boolean }) {
   const [index, setIndex] = useState(Math.max(0, page.items.length - 1))
   const svg = useRef<SVGSVGElement>(null), [viewWidth, setViewWidth] = useState(900)
   useEffect(() => {
@@ -20,12 +20,17 @@ export function CandleChart({ page }: { page: CandlePage }) {
   const x = (i: number) => left + (i + .5) * width / count
   const bodyWidth = Math.max(1, Math.min(18, width / count * .65))
   return <div className="flex shrink-0 flex-col gap-3">
-    <svg ref={svg} viewBox={`0 0 ${viewWidth} 270`} className="h-[270px] w-full shrink-0 border border-slate-800 bg-slate-950" role="img" aria-label={`${page.dataset.symbol} imported candlesticks, ${count} candles in UTC`}
+    <svg ref={svg} viewBox={`0 0 ${viewWidth} 270`} className="h-[270px] w-full shrink-0 border border-slate-800 bg-slate-950" role="img" aria-label={`${page.dataset.symbol} ${frozen ? 'frozen backtest' : 'imported'} candlesticks, ${count} candles in UTC`}
       onClick={event => { const rect = event.currentTarget.getBoundingClientRect(); setIndex(Math.max(0, Math.min(count - 1, Math.floor(((event.clientX - rect.left) / rect.width * viewWidth - left) / width * count)))) }}>
       {Array.from({ length: 5 }, (_, i) => {
         const price = upper - (upper - lower) * i / 4, screenY = y(price)
         const label = Math.abs(price) >= 1e8 || (price !== 0 && Math.abs(price) < 1e-3) ? price.toExponential(3) : Number(price.toPrecision(6)).toString()
         return <g key={i}><line x1={left} x2={left + width} y1={screenY} y2={screenY} stroke="#263244" /><text x={left + width + 8} y={screenY + 4} fill="#94a3b8" fontSize="11" fontFamily="monospace">{label}</text></g>
+      })}
+      {markers.filter(m => m.barIndex >= page.items[0].ordinal && m.barIndex <= page.items[count - 1].ordinal).map(m => {
+        const at = m.barIndex - page.items[0].ordinal, color = m.kind === 'ENTRY' ? '#34d399' : m.kind === 'EXIT' ? '#fb7185' : '#fbbf24'
+        const markerY = m.kind === 'ENTRY' ? 30 : m.kind === 'EXIT' ? 45 : 60
+        return <g key={m.id}><title>{`${m.kind} · bar ${m.barIndex} · event ${m.id}`}</title><circle cx={x(at)} cy={markerY} r="4" fill={color} /></g>
       })}
       <rect x={x(index) - width / count / 2} y={top} width={width / count} height={height} fill="#94a3b8" opacity=".12" />
       {page.items.map((candle, i) => {

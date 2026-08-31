@@ -104,6 +104,22 @@ public class BacktestStore {
         lockUser(user);if(!owned(user,id,false).state().equals("SUCCEEDED"))throw ResourceFailure.conflict();
         return jdbc.queryForObject("SELECT result_json FROM trading.backtest_job WHERE id=? AND owner_id=?",String.class,id,user.id());
     }
+    public record FrozenCandle(int ordinal,String time,String open,String high,String low,String close,String volume){}
+    public record FrozenPage(UUID jobId,String inputHash,String dataHash,String symbol,int start,int total,List<FrozenCandle> items){}
+    @Transactional public FrozenPage candles(UserPrincipal user,UUID id,String start,int limit) {
+        lockUser(user);var job=owned(user,id,false);
+        if(!job.state().equals("SUCCEEDED"))throw ResourceFailure.conflict();
+        int from=MarketService.integer(start,0,0,job.candleCount());
+        if(limit<1||limit>500)throw new IllegalArgumentException("Invalid limit");
+        String input=jdbc.queryForObject("SELECT input_json FROM trading.backtest_job WHERE id=? AND owner_id=?",String.class,id,user.id());
+        var rows=BacktestJson.parse(input.getBytes(StandardCharsets.UTF_8),BacktestJson.MAX_INPUT).get("dataset").get("candles");
+        var items=new ArrayList<FrozenCandle>();
+        for(int i=from;i<Math.min(from+limit,job.candleCount());i++) {
+            var c=rows.get(i);items.add(new FrozenCandle(i,c.get("timestamp").asString(),c.get("open").asString(),c.get("high").asString(),
+                    c.get("low").asString(),c.get("close").asString(),c.get("volume").asString()));
+        }
+        return new FrozenPage(id,job.inputHash(),job.dataHash(),job.symbol(),from,job.candleCount(),List.copyOf(items));
+    }
     @Transactional public Page list(UserPrincipal user,int limit,String cursor) {
         lockUser(user);String sql="SELECT * FROM trading.backtest_job WHERE owner_id=? ";List<Job> rows;
         if(cursor==null)rows=jdbc.query(sql+"ORDER BY created_at DESC,id DESC LIMIT ?",this::row,user.id(),limit+1);

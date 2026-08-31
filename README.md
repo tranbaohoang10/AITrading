@@ -308,8 +308,8 @@ memory and Unix address space are different measures. Resource setup is mandator
 and fail-closed; this is not a sandbox for arbitrary uploaded code. No credentials
 are inherited by the worker. Source/engine/version/hash provenance is retained.
 
-No new frontend controls or result charts are included in PB-011; PB-012 replaces
-the remaining backtest demo panes. Existing offline simulation limitations apply.
+PB-011 introduced the job API; PB-012 connects the authenticated Backtest Results
+and Trades panes to those actual saved jobs. Existing simulation limitations apply.
 See [job design](specs/PB-011/design.md), [tests](specs/PB-011/test-cases.md) and
 [evidence](specs/PB-011/test-evidence/results.md).
 
@@ -318,3 +318,27 @@ with --serve, then run `python scripts/smoke_backtest.py --owned tmp/pg-test-...
 with the exact owned directory it printed and `--report tmp/job-smoke.json`.
 This creates only synthetic local data, restarts that owned API and verifies
 session/job/result persistence. Create that harness's stop-api sentinel afterward.
+
+### Backtest workspace (PB-012)
+
+Open Backtest, choose an owned saved strategy, a VALIDATED revision and a matching
+gap-free dataset, inspect the saved DSL/costs, then explicitly Start saved backtest.
+Unsaved editor text is never executed. Refresh selected job to observe real state;
+there is no estimated progress or automatic retry. Uncertain submissions retain
+one request ID; keep the page open and use Retry same job request. On reload,
+inspect saved job history before starting another job. Cancel/retry/delete follow
+the server lifecycle; cancellation and deletion require explicit UI confirmation.
+
+Successful runs show actual exact-string metrics, equity/drawdown, closed trades,
+open position, costs, provenance and JSON export. Undefined ratios are not zero.
+The frozen chart reads GET /api/backtests/{id}/candles?start=0&limit=100 (limit1–500),
+independently of the currently selected market dataset. It remains available after
+source deletion; the route requires current credentials, ownership and SUCCEEDED.
+Markers identify global event bars; protective exits retain BAR_INTERVAL precision,
+not a guessed intrabar timestamp. Inspect exact prices/times and event details.
+Desktop/tablet/mobile share provider state; historical mock-shell fixtures are not
+used inside the authenticated backtest panes. No live trading or AI execution.
+
+See [PB-012 design](specs/PB-012/design.md) and [test cases](specs/PB-012/test-cases.md).
+`python scripts/backtest_ui_fixtures.py --check` reconciles six synthetic UI fixtures
+with the real unchanged engine and hand-calculated outcomes; CI runs this check.

@@ -1,7 +1,13 @@
 import { useTrading } from '../context/TradingContext'
 import type { ViewportMode } from '../types'
+import { useBacktest } from '../backtest/BacktestContext'
+import { BacktestWorkspace } from '../backtest/BacktestWorkspace'
 
 export function TradesView({ mode }: { mode: ViewportMode }) {
+  const actual = useBacktest()
+  return actual ? <BacktestWorkspace tradesOnly /> : <MockTradesView mode={mode} />
+}
+function MockTradesView({ mode }: { mode: ViewportMode }) {
   const { trades } = useTrading()
 
   return (

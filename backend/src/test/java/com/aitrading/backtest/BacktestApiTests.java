@@ -109,6 +109,32 @@ class BacktestApiTests {
         create(a,source,UUID.randomUUID());tree(call(a,"POST","/api/backtests",body(UUID.randomUUID(),source)),409);
         assertThat(jdbc.queryForObject("SELECT count(*) FROM trading.backtest_job",Long.class)).isEqualTo(2);
     }
+    @Test void frozenCandleWindowsAreOwnedBoundedAndSurviveSourceDeletion()throws Exception {
+        UUID id=createHttp(a,source);
+        tree(call(a,"GET",path(id)+"/candles",null),409);
+        complete(store.claim());
+        strategies.delete(user(a),source.strategy(),2);market.delete(user(a),source.dataset(),source.dataHash());
+        var first=tree(call(a,"GET",path(id)+"/candles?start=0&limit=2",null),200);
+        assertThat(first.get("jobId").asString()).isEqualTo(id.toString());
+        assertThat(first.get("dataHash").asString()).isEqualTo(source.dataHash());
+        assertThat(first.get("inputHash").asString()).isEqualTo(store.get(user(a),id).inputHash());
+        assertThat(first.get("items").size()).isEqualTo(2);
+        assertThat(first.get("items").get(1).get("open").asString()).isEqualTo("100");
+        var last=tree(call(a,"GET",path(id)+"/candles?start=2&limit=500",null),200);
+        assertThat(last.get("items").size()).isEqualTo(1);
+        assertThat(last.get("items").get(0).get("ordinal").asInt()).isEqualTo(2);
+        assertThat(last.get("items").get(0).get("time").asString()).isEqualTo("2024-01-01T02:00:00Z");
+        assertThat(tree(call(a,"GET",path(id)+"/candles?start=3",null),200).get("items").size()).isZero();
+        for(String query:List.of("start=-1","start=4","start=1.5","start=abc","limit=0","limit=501","limit=1.5"))
+            tree(call(a,"GET",path(id)+"/candles?"+query,null),400);
+        tree(call(b,"GET",path(id)+"/candles",null),404);
+        tree(call(a,"GET",path(UUID.randomUUID())+"/candles",null),404);
+        var anonymous=new Actor(HttpClient.newHttpClient(),null,null,"anonymous");
+        tree(call(anonymous,"GET",path(id)+"/candles",null),401);
+        assertThat(first.toString()).doesNotContain("ownerId","credentialVersion","canonicalDsl",a.email());
+        jdbc.update("UPDATE trading.app_user SET credential_version=credential_version+1 WHERE id=?",a.id());
+        tree(call(a,"GET",path(id)+"/candles",null),401);
+    }
     @Test void frozenSnapshotSurvivesSourceDeletionAndRetryUsesExactInput()throws Exception {
         UUID key=UUID.randomUUID();var first=create(a,source,key);
         strategies.delete(user(a),source.strategy(),2);market.delete(user(a),source.dataset(),source.dataHash());
