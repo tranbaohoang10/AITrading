@@ -1,0 +1,87 @@
+{
+  "date": "31/08/2026",
+  "backend": {
+    "tests": 183,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "notificationIntegrationTests": 9,
+  "frontend": {
+    "tests": 201,
+    "notificationTests": 8,
+    "failures": 0
+  },
+  "python": {
+    "tests": 44,
+    "failures": 0
+  },
+  "verificationTools": 6,
+  "canonicalFixtures": 6,
+  "backtestUiFixtures": 6,
+  "javaDependencies": {
+    "count": 118,
+    "findings": [],
+    "passed": true
+  },
+  "npmVulnerabilities": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "browser": {
+    "actualApi": true,
+    "desktop": [
+      1600,
+      1000
+    ],
+    "tablet": [
+      900,
+      1000
+    ],
+    "mobile": [
+      390,
+      844
+    ],
+    "crossAccountIsolation": true,
+    "viewportReset": true,
+    "syntheticUsersSignedOut": true
+  },
+  "restartSmoke": {
+    "passed": true,
+    "synthetic": true,
+    "realHttpPythonPostgres": true,
+    "actualApiDownUpObserved": true,
+    "sessionAndUnreadReadStateSurvivedRestart": true,
+    "stableReadReplay": true,
+    "terminalReplayNoDuplicate": true,
+    "jobDeletionPreservesNotification": true,
+    "browserFixture": true,
+    "page": {
+      "items": [
+        {
+          "id": "2",
+          "jobId": "63b222b7-c8ee-47a9-8eb3-2bc8da30e979",
+          "state": "SUCCEEDED",
+          "errorCode": null,
+          "createdAt": "2026-08-31T13:09:42.409898Z",
+          "readAt": null
+        },
+        {
+          "id": "1",
+          "jobId": "243c1b9d-d6a9-4cec-a8d5-e5a80d1eef84",
+          "state": "SUCCEEDED",
+          "errorCode": null,
+          "createdAt": "2026-08-31T13:09:41.616801Z",
+          "readAt": "2026-08-31T13:09:42.566537Z"
+        }
+      ],
+      "nextCursor": null,
+      "unreadCount": 1
+    }
+  },
+  "publicationAndCi": "PENDING"
+}

@@ -1,0 +1,78 @@
+- complementary "Global navigation":
+  - generic "AI Trading": AT
+  - navigation "Primary":
+    - button "Workspace":
+    - button "AI Strategy":
+    - button "Backtest":
+    - button "My Code":
+    - button "Trading Journal":
+    - button "Strategies":
+  - button "Settings":
+  - button "Account":
+- region "AI Chat":
+  - heading "Quant / Research conversations" [level=2]
+  - paragraph: Private saved messages · AI requests are always explicit
+  - button "New Chat"
+  - button "Refresh list"
+  - paragraph: No conversations yet. Start a New Chat.
+  - navigation "Saved conversations"
+  - generic: Select a conversation or start a New Chat. Messages are saved to your account; strategy generation will be connected separately.
+  - region "AI provider controls":
+    - button "Check AI availability"
+    - generic: Provider availability not checked.
+    - paragraph: Ask AI sends up to 20 recent saved messages from this conversation to the configured provider. Provider retention policies apply. Do not include secrets. Research output may be wrong; no trades are executed.
+    - button "Ask AI" [disabled]
+- separator "Resize AI Chat"
+- main "Trading Workspace":
+  - paragraph: Workspace / TEST_USD
+  - heading "AI Trading Platform" [level=1]
+  - generic: Private research
+  - button "Backtest":
+    - text: Backtest
+  - tablist "Workspace views":
+    - tab "Chart"
+    - tab "Strategy DSL"
+    - tab "Pine Script"
+    - tab "MQL5"
+    - tab "Backtest Results" [selected]
+    - tab "Trades"
+  - tabpanel "Backtest Results":
+    - region "Backtest Results":
+      - heading "Backtesting" [level=2]
+      - paragraph: Owned saved snapshots · Python engine · explicit execution
+      - button "Refresh jobs and inputs"
+      - region "Backtest notifications":
+        - heading "Backtest notifications" [level=3]
+        - paragraph: Completion, failure and cancellation inbox. Check or refresh to retrieve updates; no realtime or external messages. Metadata is retained for 30 days.
+        - button "Refresh notifications"
+        - paragraph: "Unread: 1"
+        - list:
+          - paragraph: Backtest succeeded · Unread
+          - time: 2026-08-31T13:09:42.409898Z
+          - paragraph: "Job ID: 63b222b7-c8ee-47a9-8eb3-2bc8da30e979"
+          - button "Mark notification 2 read": Mark read
+          - button "Open job 63b222b7-c8ee-47a9-8eb3-2bc8da30e979": Open job
+          - paragraph: Backtest succeeded · Read
+          - time: 2026-08-31T13:09:41.616801Z
+          - paragraph: "Job ID: 243c1b9d-d6a9-4cec-a8d5-e5a80d1eef84"
+          - button "Open job 243c1b9d-d6a9-4cec-a8d5-e5a80d1eef84": Open job
+        - paragraph: Jobs completed before notifications were enabled are not backfilled. Deleted jobs may no longer open.
+      - generic "New backtest"
+      - paragraph: Runs a saved VALIDATED revision only. Unsaved editor changes are not included. Select each input explicitly.
+      - text: Saved strategy
+      - combobox "Backtest strategy":
+        - option "Choose strategy" [selected]
+        - option "Synthetic notification strategy"
+      - text: Validated revision
+      - combobox "Backtest revision" [disabled]:
+        - option "Choose saved revision" [selected]
+      - text: Owned dataset
+      - combobox "Backtest dataset":
+        - option "Choose dataset" [selected]
+        - option "Synthetic notification data · TEST_USD / 1h · 3 bars · SYNTHETIC"
+      - button "Start saved backtest" [disabled]
+      - paragraph: Choose a validated revision and matching gap-free dataset.
+      - text: Saved job history
+      - combobox "Backtest job":
+        - option "Choose a job" [selected]
+        - option "2026-08-31T13:09:41.751288Z · Synthetic notification strategy r2 · SUCCEEDED"

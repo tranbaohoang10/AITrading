@@ -3,6 +3,7 @@ import { buttonClass, inputClass } from '../auth/AuthForm'
 import { useBacktest } from './BacktestContext'
 import { activeJob } from './api'
 import { ResultView } from './ResultView'
+import { NotificationPanel } from '../notification/NotificationPanel'
 
 export function BacktestWorkspace({ tradesOnly = false }: { tradesOnly?: boolean }) {
   const context = useBacktest()!, initial = useRef(context.load)
@@ -13,6 +14,7 @@ export function BacktestWorkspace({ tradesOnly = false }: { tradesOnly?: boolean
   const matching = !!dataset && !!revision && dataset.symbol === revision.symbol && dataset.timeframe === revision.timeframe && dataset.gapCount === 0 && dataset.candleCount >= (revision.minimumBars ?? Infinity)
   return <section aria-label={tradesOnly ? 'Backtest Trades' : 'Backtest Results'} className="h-full overflow-y-auto p-4 text-slate-200 sm:p-5">
     <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-lg font-semibold">{tradesOnly ? 'Backtest trades' : 'Backtesting'}</h2><p className="mt-1 text-xs text-slate-500">Owned saved snapshots · Python engine · explicit execution</p></div><button className={buttonClass} disabled={locked} onClick={() => void context.load()}>Refresh jobs and inputs</button></div>
+    {!tradesOnly && <NotificationPanel locked={locked} onOpenJob={id => void context.select(id)} />}
     {context.error && <p role="alert" className="mb-4 border-l-2 border-amber-400 p-3 text-sm text-amber-200">{context.error}</p>}
     {context.uncertain && <div role="status" className="mb-4 space-y-3 border border-amber-800 p-3 text-sm"><p>Request outcome is uncertain. Keep this page open; retry uses the same request ID and cannot create a duplicate job.</p><button className={buttonClass} disabled={context.busy} onClick={() => void context.retryIntent()}>Retry same job request</button></div>}
     {!tradesOnly && <details open className="mb-5 border border-slate-800 p-4"><summary className="cursor-pointer text-sm font-semibold">New backtest</summary>

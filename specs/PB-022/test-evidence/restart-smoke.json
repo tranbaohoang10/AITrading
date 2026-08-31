@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "synthetic": true,
+  "realHttpPythonPostgres": true,
+  "actualApiDownUpObserved": true,
+  "sessionAndUnreadReadStateSurvivedRestart": true,
+  "stableReadReplay": true,
+  "terminalReplayNoDuplicate": true,
+  "jobDeletionPreservesNotification": true,
+  "browserFixture": true,
+  "page": {
+    "items": [
+      {
+        "id": "2",
+        "jobId": "63b222b7-c8ee-47a9-8eb3-2bc8da30e979",
+        "state": "SUCCEEDED",
+        "errorCode": null,
+        "createdAt": "2026-08-31T13:09:42.409898Z",
+        "readAt": null
+      },
+      {
+        "id": "1",
+        "jobId": "243c1b9d-d6a9-4cec-a8d5-e5a80d1eef84",
+        "state": "SUCCEEDED",
+        "errorCode": null,
+        "createdAt": "2026-08-31T13:09:41.616801Z",
+        "readAt": "2026-08-31T13:09:42.566537Z"
+      }
+    ],
+    "nextCursor": null,
+    "unreadCount": 1
+  }
+}

@@ -19,3 +19,5 @@
   Production untouched; corrective full regression/CI pending, Issue19 not closed.
 
 - 31/08/2026: Additional audit-only transport fix hides native malformed-JSON snippets,7frontend audit tests. Corrective174backend/193frontend/build/lint PASS; y5k1dw_f stopped/password removed. Publish normal compensating commit, never amend first commit; verify fresh CI before closing19.
+
+- 31/08/2026: Corrective401f969 verified on GitHub main; CI33393395877 SUCCESS, actual174backend/193frontend/44Python/Java118. Issue19 CLOSED/COMPLETED with comment5478611069. PB022/Issue20 starts independently.

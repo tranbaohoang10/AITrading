@@ -1,0 +1,169 @@
+- complementary "Global navigation":
+  - generic "AI Trading": AT
+  - navigation "Primary":
+    - button "Workspace":
+    - button "AI Strategy":
+    - button "Backtest":
+    - button "My Code":
+    - button "Trading Journal":
+    - button "Strategies":
+  - button "Settings":
+  - button "Account":
+- button "Open AI Chat":
+  - text: Chat
+- main "Trading Workspace":
+  - paragraph: Workspace / TEST_USD
+  - heading "AI Trading Platform" [level=1]
+  - generic: Private research
+  - button "Backtest":
+    - text: Backtest
+  - tablist "Workspace views":
+    - tab "Chart"
+    - tab "Strategy DSL"
+    - tab "Pine Script"
+    - tab "MQL5"
+    - tab "Backtest Results" [selected]
+    - tab "Trades"
+  - tabpanel "Backtest Results":
+    - region "Backtest Results":
+      - heading "Backtesting" [level=2]
+      - paragraph: Owned saved snapshots · Python engine · explicit execution
+      - button "Refresh jobs and inputs"
+      - region "Backtest notifications":
+        - heading "Backtest notifications" [level=3]
+        - paragraph: Completion, failure and cancellation inbox. Check or refresh to retrieve updates; no realtime or external messages. Metadata is retained for 30 days.
+        - button "Refresh notifications"
+        - paragraph: "Unread: 0"
+        - list:
+          - paragraph: Backtest succeeded · Read
+          - time: 2026-08-31T13:09:42.409898Z
+          - paragraph: "Job ID: 63b222b7-c8ee-47a9-8eb3-2bc8da30e979"
+          - button "Open job 63b222b7-c8ee-47a9-8eb3-2bc8da30e979": Open job
+          - paragraph: Backtest succeeded · Read
+          - time: 2026-08-31T13:09:41.616801Z
+          - paragraph: "Job ID: 243c1b9d-d6a9-4cec-a8d5-e5a80d1eef84"
+          - button "Open job 243c1b9d-d6a9-4cec-a8d5-e5a80d1eef84": Open job
+        - paragraph: Jobs completed before notifications were enabled are not backfilled. Deleted jobs may no longer open.
+      - generic "New backtest"
+      - paragraph: Runs a saved VALIDATED revision only. Unsaved editor changes are not included. Select each input explicitly.
+      - text: Saved strategy
+      - combobox "Backtest strategy":
+        - option "Choose strategy" [selected]
+        - option "Synthetic notification strategy"
+      - text: Validated revision
+      - combobox "Backtest revision" [disabled]:
+        - option "Choose saved revision" [selected]
+      - text: Owned dataset
+      - combobox "Backtest dataset":
+        - option "Choose dataset" [selected]
+        - option "Synthetic notification data · TEST_USD / 1h · 3 bars · SYNTHETIC"
+      - button "Start saved backtest" [disabled]
+      - paragraph: Choose a validated revision and matching gap-free dataset.
+      - text: Saved job history
+      - combobox "Backtest job":
+        - option "Choose a job"
+        - option "2026-08-31T13:09:41.751288Z · Synthetic notification strategy r2 · SUCCEEDED" [selected]
+      - status: SUCCEEDED · Synthetic notification strategy r2 · Synthetic notification data
+      - paragraph: Job 63b222b7-c8ee-47a9-8eb3-2bc8da30e979
+      - button "Refresh selected job"
+      - button "Delete job…"
+      - heading "Stored result · TEST_USD / 1h" [level=3]
+      - button "Export result JSON"
+      - paragraph: SYNTHETIC · Unverified research data. Historical results do not guarantee future profit.
+      - generic "Actual backtest metrics":
+        - term: breakeven Trades
+        - definition: "0"
+        - term: closed Net Pnl
+        - definition: "100"
+        - term: closed Trades
+        - definition: "1"
+        - term: final Balance
+        - definition: "1100"
+        - term: final Equity
+        - definition: "1100"
+        - term: initial Capital
+        - definition: "1000"
+        - term: losing Trades
+        - definition: "0"
+        - term: max Drawdown Pct
+        - definition: "0"
+        - term: net Profit
+        - definition: "100"
+        - term: profit Factor
+        - definition: Undefined
+        - term: return Pct
+        - definition: "10"
+        - term: total Fees
+        - definition: "0"
+        - term: win Rate Pct
+        - definition: "100"
+        - term: winning Trades
+        - definition: "1"
+      - region "Equity and drawdown":
+        - heading "Equity · bar close" [level=4]
+        - img "Equity":
+          - generic: 2024-01-01
+          - generic: 2024-01-01
+        - heading "Drawdown % · bar close" [level=4]
+        - img "Drawdown %":
+          - generic: 2024-01-01
+          - generic: 2024-01-01
+        - text: Inspect result bar · UTC
+        - slider "Result bar index": "0"
+        - generic "Exact selected result bar":
+          - term: bar
+          - definition: "0"
+          - term: close Time
+          - definition: 2024-01-01T01:00:00Z
+          - term: balance
+          - definition: "1000"
+          - term: equity
+          - definition: "1000"
+          - term: drawdown Pct
+          - definition: "0"
+          - term: unrealized Gross
+          - definition: "0"
+        - paragraph: Geometry uses display precision; inspected values retain exact engine decimal strings. Drawdown can exceed 100% under leverage.
+      - region "Actual backtest trades":
+        - heading "Closed trades · 1" [level=3]
+        - generic "Trade 1 · long · Net 100 · RULE_EXIT"
+        - heading "Open position at dataset end" [level=3]
+        - paragraph: No open position.
+      - region "Frozen run chart":
+        - heading "Frozen run candles and events" [level=3]
+        - paragraph: "Yellow: SIGNAL at close · green: ENTRY · red: EXIT. Markers locate event bars; exact prices/times are below. This chart is independent of the current market selection."
+        - img "TEST_USD frozen backtest candlesticks, 3 candles in UTC":
+          - generic: "110.8"
+          - generic: "107.9"
+          - generic: "105"
+          - generic: "102.1"
+          - generic: "99.2"
+          - generic "SIGNAL · bar 0 · event 1"
+          - generic "ENTRY · bar 1 · event 2"
+          - generic "SIGNAL · bar 1 · event 3"
+          - generic "EXIT · bar 2 · event 4"
+          - generic "SIGNAL · bar 2 · event 5"
+          - generic: 01-01 00:00
+          - generic: 01-01 02:00
+        - button "Previous candle"
+        - text: Inspect candle
+        - slider "Candle index": "2"
+        - button "Next candle" [disabled]
+        - generic "Selected candle values":
+          - term: Candle open time · UTC
+          - definition: 2024-01-01T02:00:00Z
+          - term: open
+          - definition: "110"
+          - term: high
+          - definition: "110"
+          - term: low
+          - definition: "110"
+          - term: close
+          - definition: "110"
+          - term: volume
+          - definition: "10"
+        - button "Earlier run candles" [disabled]
+        - generic: Bars 0–2 / 3
+        - button "Later run candles" [disabled]
+        - generic "Events in this candle window"
+      - generic "Run provenance, execution policy and exact DSL"

@@ -481,3 +481,26 @@ and audit reads, not all provider/worker/write permissions. This is a scoped
 operational trail, not forensic completeness or a compliance guarantee. See
 [operations/retention runbook](docs/operations-audit.md),
 [design](specs/PB-024/design.md) and [test cases](specs/PB-024/test-cases.md).
+
+## PB-022 — backtest notification inbox
+
+Backtest → Check notifications retrieves your completion/failure/cancellation
+inbox and unread count. Refresh/older pages fetch actual server state; Mark read
+persists acknowledgement and Open job uses the existing private result view.
+This is an inbox checked on demand, not realtime push, email or external messages.
+No notification is invented for jobs already completed before V12 was installed.
+
+V12 creates one notification atomically when a job transitions from queued/running
+to terminal. Repeated callbacks do not duplicate it; a retry is a separate job.
+If notification persistence fails, the job transaction rolls back and existing
+lease recovery applies. Metadata contains only job ID, fixed state/error and
+timestamps, never strategy text, prompts, trade data or credentials.
+
+GET `/api/backtests/notifications?limit=25&before=<id>` and POST
+`/api/backtests/notifications/{id}/read` (body `{}`) require current account/session;
+POST additionally requires CSRF. Existing backtest read300/mutate30 per15minutes
+budgets apply. Read acknowledgement is idempotent. Deleted jobs leave their notices
+until retention; opening an unavailable job reports an error. Account deletion
+cascades notices. Retention hides rows after30days and purges at most5000/minute;
+operators monitor cleanup lag/disk as described in the audit runbook. See
+[design](specs/PB-022/design.md) and [test cases](specs/PB-022/test-cases.md).

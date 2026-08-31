@@ -6,5 +6,7 @@
 - [x] Implement owned API and Account UI.
 - [x] Execute automated negative/failure/concurrency and regression tests.
 - [x] Execute actual restart and browser responsive/two-user proof.
-- [ ] Review full diff/staged scope; publish and verify exact GitHub SHA/CI.
-- [ ] Update/close Issue after DoD; continue independent READY backlog.
+- [x] Review full diff/staged scope; publish and verify exact GitHub SHA/CI.
+- [x] Update/close Issue after DoD; continue independent READY backlog.
+
+31/08/2026:401f969/CI33393395877 verified174backend/193frontend/44Python/Java118. Issue19 completed; PB022 continues.

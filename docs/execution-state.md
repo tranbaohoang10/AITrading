@@ -416,3 +416,20 @@ PB022 only has ignored tmp/pb022-issue.md draft and source analysis; no Issue/co
 Do not call PB024 DONE or start PB022 implementation until current CI verified.
 
 PB024 corrective local174backend/193frontend PASS. Added audit-only fixed JSON error mapping for malformed success/account responses with regression test. Backend production untouched. All owned APIs/PG stopped. Next scoped corrective commit/push then exactCI, keep Issue19 open until verified; PB022 no code.
+
+
+## 31/08/2026 — PB024 DONE; PB022 active
+
+Corrective401f9691a35a536127effd65746ddeeeb608beab pushed/verified; CI33393395877 SUCCESS with downloaded174JUnit/0fail/error/skip,193frontend/44Python/Java118. Issue19 CLOSED/COMPLETED, comment5478611069. First CI failure retained. Clean tree at selection. PB022 Issue20 created before code; CNPM/test design exists. Implement owner-only backtest notifications/read state, then full tests/browser/restart/push/CI. Do not redo DONE features. PB008/015/016 still blocked externally; full goal remains active.
+
+## 31/08/2026 — PB022 local verification complete
+
+V12/transactional notifications, owned API/read state and explicit Backtest inbox.
+Final183backend/201frontend/44Python PASS;9notification integration/8frontend cases,
+verifier/canonical/UI fixtures6each,JavaOSV118/npm0. Actual API25120→27124 with same
+PGtk5uhr1k and browser1600/900/390/read/reload/deleted-job/two-user isolation PASS.
+All owned API/PG stopped/password removed (final regressionc7cvipq_); synthetic
+browser users signed out and viewport reset. No applied migration/engine/dependency/
+CI changes or protected mvp-ui edits. Pending scoped main commit/push/exactCI and
+Issue20 completed closure. Then reassess external AI/Pine/MQL blockers and backlog;
+never claim blocked target/provider tests DONE or redo completed features.
