@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "synthetic": true,
+  "realHttpPythonPostgres": true,
+  "actualApiDownUpObserved": true,
+  "sessionAndJobSurvivedRestart": true,
+  "sourceDeletionPreservesSnapshot": true,
+  "idempotentReplayAfterSourceDeletion": true,
+  "resultHash": "b04fd6e6beb34cea4e48d341fe1057854d82da10d6059ccfbded44fa48353494",
+  "inputHash": "38a8086659b4719bac0995ec08fcb4c07d62aa9ba213ce381805ad76d3ed428f",
+  "netProfit": "100",
+  "closedTrades": 1
+}

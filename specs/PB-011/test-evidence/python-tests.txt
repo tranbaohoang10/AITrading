@@ -1,0 +1,45 @@
+test_bad_market_metadata_dates_time_order_and_gaps (test_engine.ContractTests.test_bad_market_metadata_dates_time_order_and_gaps) ... ok
+test_candle_number_format_range_and_counts (test_engine.ContractTests.test_candle_number_format_range_and_counts) ... ok
+test_complexity_limits_and_trusted_schema_rejection (test_engine.ContractTests.test_complexity_limits_and_trusted_schema_rejection) ... ok
+test_exact_numeric_equivalence_and_no_bool_coercion (test_engine.ContractTests.test_exact_numeric_equivalence_and_no_bool_coercion) ... ok
+test_existing_java_ohlcv_golden_and_all_timeframes (test_engine.ContractTests.test_existing_java_ohlcv_golden_and_all_timeframes) ... ok
+test_market_identity_precision_and_provenance (test_engine.ContractTests.test_market_identity_precision_and_provenance) ... ok
+test_schema_missing_unknown_type_and_unsupported (test_engine.ContractTests.test_schema_missing_unknown_type_and_unsupported) ... ok
+test_semantic_cycles_duplicates_refs_units_and_entry_rules (test_engine.ContractTests.test_semantic_cycles_duplicates_refs_units_and_entry_rules) ... ok
+test_six_java_canonical_and_warmup_goldens (test_engine.ContractTests.test_six_java_canonical_and_warmup_goldens) ... ok
+test_unicode_controls_duplicate_numeric_and_byte_parser_limits (test_engine.ContractTests.test_unicode_controls_duplicate_numeric_and_byte_parser_limits) ... ok
+test_adverse_spread_slippage_on_both_sides (test_engine.ExecutionTests.test_adverse_spread_slippage_on_both_sides) ... ok
+test_combined_costs_and_resizing_after_realized_loss (test_engine.ExecutionTests.test_combined_costs_and_resizing_after_realized_loss) ... ok
+test_dataset_end_zero_trades_pending_exit_and_open_mark (test_engine.ExecutionTests.test_dataset_end_zero_trades_pending_exit_and_open_mark) ... ok
+test_entry_bar_barriers_actual_fill_stop_and_exit_priority (test_engine.ExecutionTests.test_entry_bar_barriers_actual_fill_stop_and_exit_priority) ... ok
+test_losses_negative_equity_and_no_invented_liquidation (test_engine.ExecutionTests.test_losses_negative_equity_and_no_invented_liquidation) ... ok
+test_next_open_long_hand_trade_and_no_forced_close (test_engine.ExecutionTests.test_next_open_long_hand_trade_and_no_forced_close) ... ok
+test_no_implicit_reverse_pyramiding_or_simultaneous_entry (test_engine.ExecutionTests.test_no_implicit_reverse_pyramiding_or_simultaneous_entry) ... ok
+test_short_costs_leverage_and_ledger (test_engine.ExecutionTests.test_short_costs_leverage_and_ledger) ... ok
+test_stops_targets_both_hit_and_gaps_long_short (test_engine.ExecutionTests.test_stops_targets_both_hit_and_gaps_long_short) ... ok
+test_all_family_prefix_invariance_with_future_mutation (test_engine.IndicatorTests.test_all_family_prefix_invariance_with_future_mutation) ... ok
+test_atr_previous_close_and_wilder (test_engine.IndicatorTests.test_atr_previous_close_and_wilder) ... ok
+test_cross_equality_both_directions_and_undefined_not (test_engine.IndicatorTests.test_cross_equality_both_directions_and_undefined_not) ... ok
+test_forward_dag_lag_and_nested_warmup (test_engine.IndicatorTests.test_forward_dag_lag_and_nested_warmup) ... ok
+test_pivots_confirmation_ties_and_original_index_trendline (test_engine.IndicatorTests.test_pivots_confirmation_ties_and_original_index_trendline) ... ok
+test_rsi_flat_up_down_and_wilder_seed (test_engine.IndicatorTests.test_rsi_flat_up_down_and_wilder_seed) ... ok
+test_sma_ema_extrema_full_window_hand_values (test_engine.IndicatorTests.test_sma_ema_extrema_full_window_hand_values) ... ok
+test_three_valued_all_any_and_comparison_operators (test_engine.IndicatorTests.test_three_valued_all_any_and_comparison_operators) ... ok
+test_undefined_source_resets_contiguous_seed (test_engine.IndicatorTests.test_undefined_source_resets_contiguous_seed) ... ok
+test_concurrent_independent_runs (test_engine.WorkerTests.test_concurrent_independent_runs) ... ok
+test_determinism_hash_metadata_neutrality_and_decimal_isolation (test_engine.WorkerTests.test_determinism_hash_metadata_neutrality_and_decimal_isolation) ... ok
+test_documented_example_actual_cli_hand_event_trace (test_engine.WorkerTests.test_documented_example_actual_cli_hand_event_trace) ... ok
+test_inert_malicious_metadata_never_executes (test_engine.WorkerTests.test_inert_malicious_metadata_never_executes) ... ok
+test_maximum_candles_indicators_and_lag_are_bounded (test_engine.WorkerTests.test_maximum_candles_indicators_and_lag_are_bounded) ... ok
+test_real_worker_protocol_no_arguments_or_payload_leak (test_engine.WorkerTests.test_real_worker_protocol_no_arguments_or_payload_leak) ... ok
+test_work_deadline_and_output_limit_fail_closed (test_engine.WorkerTests.test_work_deadline_and_output_limit_fail_closed) ... ok
+test_actual_cpu_limit_terminates_own_busy_child (test_worker_limits.SupervisedWorkerTests.test_actual_cpu_limit_terminates_own_busy_child) ... ok
+test_actual_os_memory_limit_denies_large_allocation (test_worker_limits.SupervisedWorkerTests.test_actual_os_memory_limit_denies_large_allocation) ... ok
+test_actual_supervised_engine_matches_offline_bytes (test_worker_limits.SupervisedWorkerTests.test_actual_supervised_engine_matches_offline_bytes) ... ok
+test_clean_child_environment_and_windows_process_count (test_worker_limits.SupervisedWorkerTests.test_clean_child_environment_and_windows_process_count) ... ok
+test_entrypoint_rejects_arguments_and_invalid_input (test_worker_limits.SupervisedWorkerTests.test_entrypoint_rejects_arguments_and_invalid_input) ... ok
+
+----------------------------------------------------------------------
+Ran 40 tests in 16.854s
+
+OK

@@ -31,3 +31,8 @@ No new ERD or UI; Java jobs are explicitly deferred to PB-011.
 security and separate test cases, plus actual unavailable-provider browser evidence
 at desktop/tablet/mobile sizes. Real configured-provider smoke remains BLOCKED;
 artifacts describe implemented boundaries without claiming the feature DONE.
+
+31/08/2026: PB-011 adds owned job API UC/description/sequence/class/V7 ERD, explicit
+process/resource/lifecycle/security contracts and separate tests. Actual HTTP/
+Python/PostgreSQL result and JVM restart evidence are under specs/PB-011. No UI
+source change or new screenshot requirement; real web integration remains PB-012.

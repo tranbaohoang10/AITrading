@@ -2,7 +2,8 @@
 
 Status: PB-001–PB-007 and PB-010 delivered. PB-008 provider boundary implemented
 and locally tested, disabled by default; real-provider smoke remains blocked on
-credentials. Authenticated backtest jobs remain PB-011, not implemented yet.
+credentials. PB-011 now implements owned API jobs; final verification is in
+progress. Web job controls/result visualization remain PB-012.
 
 PB-004 adds owner-scoped conversation/message APIs and additive FlywayV3. JDBC
 transactions lock current user then owned conversation for quota/idempotency/version
@@ -19,7 +20,7 @@ flowchart LR
   Provider[OpenAI Responses - external smoke pending]
   Browser -->|same-origin REST, HttpOnly session and CSRF| API
   API -->|JDBC, owned application schema| DB
-  API -. bounded validated jobs PB-011 .-> Python
+  API -->|frozen owned input, bounded supervised jobs PB-011| Python
   API -->|explicit bounded context, server-only key, PB-008| Provider
 ```
 
@@ -43,6 +44,7 @@ flowchart TB
   Researcher --> Strategy([Edit and save own draft or validated strategy revisions])
   Researcher --> History([Inspect immutable history and restore as new revision])
   Researcher --> AI([Explicitly ask configured AI; inspect/cancel owned attempt])
+  Researcher --> Job([Submit owned revision/dataset job; inspect/cancel/retry API result])
   Operator((Developer/operator)) --> Start([Start local API and isolated DB tests])
   Operator --> Ready([Inspect minimal readiness])
   Operator --> Offline([Run bounded offline DSL backtest with synthetic or owned data])
@@ -106,3 +108,13 @@ hidden replay or fake success. The explicit React controls share existing keyed
 conversation state. Fixed HTTPS endpoint/no redirects/no tools; body and whole
 request bounds; server secrets never returned. See specs/PB-008/design.md for
 sequence/class/ERD. Local stub evidence does not certify actual provider access.
+
+PB-011 adds BacktestController/Store/Scheduler/PythonWorker/BacktestJson and V7.
+Owned validated strategy revision and dataset are frozen into a bounded canonical
+input before queue admission. Worker arguments/entrypoint are fixed; sanitized
+environment, OS resource limits and bounded pipe/wall supervision protect the
+trusted engine. Global DB admission/claim limits and current-owner credentials
+protect lifecycle transitions. Source IDs are provenance, not source-cascade FKs;
+account deletion cascades jobs, while explicit terminal job deletion removes
+snapshots/results. Full sequence/class/ERD: specs/PB-011/design.md. Python semantics
+remain PB-010; web charts/controls are PB-012, notifications PB-022.

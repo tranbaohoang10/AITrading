@@ -63,6 +63,7 @@ def main() -> int:
                AITRADING_DB_USER="prototype_test", AITRADING_DB_PASSWORD=secret,
                AITRADING_TEST_CLUSTER=str(data), AITRADING_TEST_PG_CTL=pg_ctl,
                AITRADING_TEST_DB_PORT=str(port))
+    env.update(AITRADING_PYTHON_EXECUTABLE=sys.executable, AITRADING_PROJECT_ROOT=str(ROOT))
     start_attempted = False
     try:
         subprocess.run([initdb, "-D", str(data), "-U", "prototype_test", "--auth=scram-sha-256",

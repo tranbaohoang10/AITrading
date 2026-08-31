@@ -5,6 +5,38 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+LATEST PB-011 final122backend PASS on owned pg-test-x6wz4_ss, stopped/password
+removed;105frontend/40Python/6verifier/6canonical/build/lint/audits PASS. Actual
+API restart smoke PASS before independent watchdog strengthening; watchdog
+slow-status test now also PASS. Evidence assembly/scope/commit/push/actualCI next.
+Compile-only failure from duplicate timeout variable fixed and documented; no
+test disabled. All owned API/DB stopped. Full backlog goal remains active; after
+Issue13 completion selectPB-012, leavePB-008/Issue12 blocked on real AI smoke/key.
+
+LATEST PB-011: firstfull120backend PASS,4Java/Python boundary tests PASS and40
+Python tests PASS. Actual HTTP scheduler/hand result/source-delete/JVMrestart
+smoke PASS, API16744→25152; owned pg-test-_hzojso1 stopped/password removed.
+Smokescript first expected register201 but existing API returns202; corrected
+fixture expectation, full smoke rerunPASS. Final expanded121backend running35085
+on pg-test-5rh67xzi; frontendregression94492, verifier6/canonical6/compileallPASS.
+No new Java feature delivery yet; need final audits/docs/evidence/scope/commit/
+push/exactSHA/CI and close13. Then PB-012 next READY. Do not stop fullbuild.
+
+LATEST PB-011 Issue13: design before code;5 actual supervised-Python tests PASS
+(Windows CPU/memory/no-child, exact offline output, clean env/protocol). New V7,
+BacktestJson/Store/Worker/Scheduler/Controller and narrow matcher/rate/harness edits
+implemented, compile running; no Java job tests yet. Must finish thorough real
+HTTP/PG/Python/race/restart/resource/result validation and all regression/evidence
+before commit. No PB-011 delivery yet; main HEAD72ff79e. PB-008 staysblocked/open12.
+
+LATEST: PB-008 local implementation delivered72ff79e0d891eb4241d837b08705d232a1266e5d,
+normal push/exactSHA/CI33362744818 PASS; downloaded105JUnit/OSV118verified. Issue12
+OPEN/BLOCKED only real-provider smoke/key, comment5474429092. No external AI calls.
+PB-011 next READY, Issue13 created before code; full CNPM/test design exists.
+Next implement frozen owned backtest jobs + bounded Java/Python supervision, not
+UI visualization (PB-012). Full backlog remains goal. No active owned API/DB;
+Vite94064 remains; browser signed out/reset. Prior checkpoints are historical.
+
 LATEST: PB-008 local105backend/105frontend/35Python/6verifier/6canonical PASS;
 build/lint/audits PASS (OSV118), evidence recorded. Owned pg-test-_v_spmgo stopped,
 credential removed. Browser API already stopped. Scope/commit/push/actualCI next;

@@ -41,6 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/datasets", "/api/datasets/**").authenticated()
                         .requestMatchers("/api/strategies", "/api/strategies/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/ai/capabilities").authenticated()
+                        .requestMatchers("/api/backtests", "/api/backtests/**").authenticated()
                         .anyRequest().denyAll())
                 .csrf(Customizer.withDefaults())
                 .addFilterBefore(new AuthInputFilter(new HashSet<>(Arrays.asList(origins.split(",")))), CsrfFilter.class)

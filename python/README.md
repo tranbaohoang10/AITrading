@@ -17,7 +17,7 @@ stdin until EOF, one JSON response on stdout. `-I` isolates environment/cwd modu
 resolution; launcher adds only its own fixed package directory. No arguments are
 supported. Limit2MiB input/32MiB output; cooperative15s/5million operation budget.
 The caller must supervise idle input, hard process timeout, memory and output pipe
-limits. PB-011 will implement that Java job boundary. Never expose this worker as
+limits. PB-011 implements that Java job boundary below. Never expose this worker as
 an unauthenticated service or pass commands/paths from a request.
 
 Portable synthetic example without PowerShell text-pipeline encoding changes:
@@ -59,5 +59,10 @@ over-budget input, exit3 for internal/configuration failure. No traceback, input
 echo or partial result. Callers must check exit code and response shape; never
 treat a failed process as a zero-trade successful backtest.
 
-No frontend button invokes this worker yet. Owned immutable snapshot selection,
-Java process isolation/cancellation and durable job/result API are PB-011.
+No frontend button invokes this worker yet; PB-012 owns the web controls/results.
+PB-011 uses run_supervised_backtest.py, which installs mandatory OS CPU/memory
+limits before loading this unchanged engine. Java supplies fixed arguments,
+sanitized environment and bounded pipes/wall time/cancellation. See the
+[owned job API design](../specs/PB-011/design.md). Five additional Python tests
+exercise actual child CPU/memory/protocol/environment limits; no limit is applied
+to the test runner itself. This is not an arbitrary-code execution sandbox.

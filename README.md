@@ -231,8 +231,8 @@ PB-007 delivery:6de03ea, Actions33358050136 PASS, Issue #10 completed.
 The standard-library engine revalidates Strategy DSL1.0.0 and a matching contiguous
 closed UTC OHLCV dataset, then computes causal indicators, next-open fills, costs,
 SL/TP, trades and marked equity. Output includes per-bar/event traces and a hashed
-run card. It is an offline research worker; the web application does not start jobs
-until PB-011. No external source, live trading or profitability is implied.
+run card. PB-011 adds the owned API job boundary below; web controls/visualization
+remain PB-012. No external source, live trading or profitability is implied.
 
 Run `python -m unittest discover -s python/tests -v`. See the
 [worker setup and synthetic example](python/README.md),
@@ -273,3 +273,48 @@ Local HTTP-stub/real PostgreSQL and UI tests are separate from the required real
 configured-provider smoke. That smoke is currently **BLOCKED** on server credentials;
 Issue #12 remains open. See [design](specs/PB-008/design.md),
 [test cases](specs/PB-008/test-cases.md) and [evidence](specs/PB-008/test-evidence/results.md).
+
+## Owned backtest API jobs (PB-011)
+
+Set `AITRADING_PYTHON_EXECUTABLE` to the absolute path of Python3.12+ and optionally
+`AITRADING_PROJECT_ROOT` to this trusted checkout root before starting the API.
+Keep the Python sources and bundled DSL schema together. The disposable test
+harness sets these paths automatically from its actual interpreter/checkout.
+No pip dependency, shell command, API key or external market service is needed.
+Missing setup returns WORKER_UNCONFIGURED; it never produces demo results.
+
+Authenticated `POST /api/backtests` accepts exactly requestId,strategyId,revision,
+datasetId. Use a saved VALIDATED revision and your own contiguous matching dataset
+with enough warm-up bars. The server freezes input/hash/provenance, then its
+bounded scheduler runs the trusted Python engine. GET /api/backtests lists owned
+metadata; GET /api/backtests/{id} reports QUEUED/RUNNING/SUCCEEDED/FAILED/CANCELLED,
+without fabricated progress percentages. GET .../{id}/result returns actual
+successful persisted JSON, otherwise409. Monetary values are decimal strings.
+These routes require the normal session/CSRF controls, never caller owner IDs.
+
+POST .../{id}/cancel with `{}` acknowledges cancellation; late output cannot
+publish. POST .../{id}/retry with a new requestId copies only a FAILED/CANCELLED
+job's frozen input. Same request identity replays the stored operation; changed
+intent409. DELETE .../{id} with `{}` removes only an owned terminal job. Deleting
+the original strategy/dataset does not delete the job snapshot or result. Do not
+use source deletion to erase private job data; delete the job separately.
+
+Limits:20 stored jobs/account,100/database;2 active/account,16 queued-or-running/
+database,two running/database; request starts/retries10,reads300,cancel/delete30
+per account/15min. Queued jobs expire after5min; interrupted running leases expire
+after60s without automatic replay. Python has a25s supervisor wall limit,20s CPU,
+512MiB OS memory limit,2MiB input/32MiB output and4KiB stderr. Windows committed
+memory and Unix address space are different measures. Resource setup is mandatory
+and fail-closed; this is not a sandbox for arbitrary uploaded code. No credentials
+are inherited by the worker. Source/engine/version/hash provenance is retained.
+
+No new frontend controls or result charts are included in PB-011; PB-012 replaces
+the remaining backtest demo panes. Existing offline simulation limitations apply.
+See [job design](specs/PB-011/design.md), [tests](specs/PB-011/test-cases.md) and
+[evidence](specs/PB-011/test-evidence/results.md).
+
+To reproduce the synthetic API/restart smoke, first start the disposable harness
+with --serve, then run `python scripts/smoke_backtest.py --owned tmp/pg-test-...`
+with the exact owned directory it printed and `--report tmp/job-smoke.json`.
+This creates only synthetic local data, restarts that owned API and verifies
+session/job/result persistence. Create that harness's stop-api sentinel afterward.

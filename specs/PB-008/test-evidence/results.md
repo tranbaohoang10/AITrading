@@ -88,3 +88,11 @@ promise upstream billing reversal. No new dependency or applied migration edit.
 
 Pending scoped commit/push and actual CI. Leave Issue #12 open until AI-T10 and
 all DoD requirements pass. Continue independent READY backlog work meanwhile.
+
+31/08/2026 update: commit72ff79e0d891eb4241d837b08705d232a1266e5d normal-pushed
+2a3cf20..72ff79e to origin/main; ls-remote and GitHub commit API agree. Actual
+CI33362744818 both jobs success; downloaded JUnit105/0/0/0 and OSV118PASS verified.
+38-file scope/protected blob/Markdown/limited secret-signature checks PASS;
+git diff --check and staged diff check PASS; working tree clean after delivery.
+AI-T11 PASS. Issue12 remains OPEN/BLOCKED for AI-T10, comment5474429092. No false
+DoD completion; next independent READY feature PB-011 now Issue13.
