@@ -433,3 +433,33 @@ browser users signed out and viewport reset. No applied migration/engine/depende
 CI changes or protected mvp-ui edits. Pending scoped main commit/push/exactCI and
 Issue20 completed closure. Then reassess external AI/Pine/MQL blockers and backlog;
 never claim blocked target/provider tests DONE or redo completed features.
+
+## 31/08/2026 — PB022 DONE; no independent READY remains
+
+Feature commit85cb6bcb34fea06e630d67b85bb7366fd7d018b5 pushed fast-forward from
+401f969, exact local/origin/GitHub main verified. CI33397113925 SUCCESS, downloaded
+183JUnit/0fail/error/skip,9notification cases;201frontend/44Python/JavaOSV118/npm0.
+Issue20 CLOSED/COMPLETED, comment5479107614.38 reviewed feature files; protected
+historical mvp-ui blobs unchanged. All owned API/PG stopped/password removed;
+synthetic browser users signed out and viewport reset. Vite may still be serving.
+
+Backlog dependency analysis:14DONE,3BLOCKED,8PLANNED,2DEFERRED_OPTIONAL. No READY
+feature remains after PB022. This is not whole-prototype completion. Current
+external requirements:
+
+1. PB008/#12: presence-only OPENAI_API_KEY absent Process/User/Machine again.
+   Configure project server key/model/enabled securely; resume real-provider smoke
+   before NL strategy, journal AI, private RAG/image and integrated acceptance.
+2. PB015/#17: official browser target still anonymous (Join for free); prior
+   Add-to-chart Sign in gate unresolved. Need authorized Pine compile/runtime
+   session and actual prepared event fixtures, not parser/source-only claims.
+3. PB016/#18: actual MQL5 initialization/OnStart/event/negative CSV still NOT RUN.
+   Prior computer-use permission timed out; no retry or workaround without new
+   authorization. Need a working authorized target session. Compilation8/8 already
+   verified, do not redo it as a substitute for runtime evidence.
+
+Resume: inspect actual branch/remotes/status, these Issues and external access.
+If a blocker is resolved, continue that Issue's remaining tests/work, then select
+newly READY backlog by priority. Do not restart DONE features, close blocked Issues,
+change stack/permissions or call all-backlog DONE. Final checkpoint changes only
+delivery/test-status/backlog documentation, no production/source/test change.

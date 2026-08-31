@@ -82,3 +82,13 @@ and password file removed. Parsed all21 JUnit XML suites and asserted exact tota
 and presence of the new race test. Frontend/source/engine/dependencies unchanged
 since their201/44/lint/build/audit PASS. Local requirements all pass; exact published
 SHA and actual GitHub CI remain the last delivery checks.
+
+## Verified delivery
+
+Commit85cb6bcb34fea06e630d67b85bb7366fd7d018b5 pushed fast-forward from401f969;
+local/origin/GitHub SHA matched. CI33397113925 SUCCESS; downloaded JUnit183/0fail/
+error/skip,9notification tests,201frontend/44Python/JavaOSV118/no findings/npm0.
+Build/lint/verifiers all pass. Issue20 CLOSED/COMPLETED31/08/2026,
+[completion evidence](https://github.com/tranbaohoang10/AITrading/issues/20#issuecomment-5479107614).
+R01 publication gate now PASS. No independent READY item remains; external
+provider/Pine/MQL blockers are recorded without treating their checks as DONE.

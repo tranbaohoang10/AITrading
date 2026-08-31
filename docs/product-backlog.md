@@ -58,7 +58,7 @@ with test-evidence as needed. Every AC must map to meaningful execution evidence
 | PB-019 | Chart/image analysis | PB-006, PB-008, PB-018 | P2 | PLANNED | not created | Separate visible evidence/inference/confidence/missing data; OCR/image input bounded; strategy draft only on user request/review | Image type/size, metadata, prompt injection; no inferred profitable signals | Synthetic chart fixtures, unclear/truncated images, vision-provider errors; explicit limitations |
 | PB-020 | Broker/exchange connection and paper orders | PB-003, PB-011, PB-024 | P2 | DEFERRED_OPTIONAL | not created | Assessment: CSV research covers prototype; add only when a specific authorized broker is selected; read-only/paper/demo default | External account secrets/order/withdrawal risk; live-money prohibited | Future sandbox integration/risk/idempotency required; no mock called broker integration |
 | PB-021 | External market-data connector | PB-006, PB-024 | P2 | DEFERRED_OPTIONAL | not created | Assessment: owned CSV provides real datasets without paid API dependency; revisit provider/license when selected | Provider keys, licensing, SSRF/rate limits | Future provider contract/outage/gap tests; CSV remains in scope |
-| PB-022 | Notifications | PB-011 | P2 | IN_PROGRESS | [#20](https://github.com/tranbaohoang10/AITrading/issues/20) | In-app backtest completion/error notifications; owner-only unread/read state; no unsolicited external messages | Ownership, event duplication, no sensitive content leakage | Exactly-once user-visible event behavior, failure/restart/read state |
+| PB-022 | Notifications | PB-011 | P2 | DONE | [#20](https://github.com/tranbaohoang10/AITrading/issues/20) | Delivered85cb6bc; CI33397113925 SUCCESS; Issue20 completed;183backend/201frontend/44Python, actual browser/restart/read/races/retention/owner isolation | Ownership, event duplication, no sensitive content leakage | One persisted event per terminal job; failure/restart/read state |
 | PB-023 | Security hardening and adversarial regression | PB-003, PB-004, PB-007, PB-011, PB-013, PB-018 | P0 | PLANNED | not created | Full applicable threat matrix, dependency/secret scan, headers/CORS/CSRF/session/rate limits, no unresolved high/critical | All user-requested attack classes assessed with evidence or reasoned N/A | Automated two-user malicious-input tests plus real local integrations; never attack third parties |
 | PB-024 | Audit and operational diagnostics | PB-002, PB-003 | P1 | DONE | [#19](https://github.com/tranbaohoang10/AITrading/issues/19) | Auth/resource/job events traceable via request IDs; retention/redaction; safe health/error reporting | No tokens/passwords/private prompts in logs; append-only events and ownership | Sensitive-field leakage tests, correlation, audit persistence and failures |
 | PB-025 | System integration and failure recovery | PB-004, PB-009, PB-012, PB-014, PB-017, PB-018, PB-019, PB-022, PB-023, PB-024 | P1 | PLANNED | not created | End-to-end account→chat→DSL→backtest→journal→export/RAG; restarts/errors recover without mixing users | Trust boundaries and data-loss safeguards across real services | Browser+API+DB+Python journeys, provider unavailable, migrations, concurrency |
@@ -85,3 +85,24 @@ only on an old log/status. Verify each completed Issue's pushed SHA. Select high
 priority READY item, create Issue, design/test/implement, verify, commit/push and
 close completed; update backlog in the next traceable checkpoint. Never claim the
 whole goal DONE until all required non-optional items and final readiness pass.
+
+## 31/08/2026 — Current delivery and blocker checkpoint
+
+PB02285cb6bc/CI33397113925 verified, Issue20 CLOSED/COMPLETED.14DONE,3BLOCKED,
+8PLANNED waiting on dependencies,2DEFERRED_OPTIONAL; no independent READY item.
+Required backlog is not complete. Do not redo DONE items or loosen their DoD.
+
+- PB008/#12: project OPENAI_API_KEY still absent in Process/User/Machine in the
+  presence-only recheck. Operator configures server key, model and enabled flag
+  securely, then resume actual-provider smoke; never paste credentials into Git
+  or Issues, reuse Codex credentials, or count stub results as actual AI.
+- PB015/#17: current official target still shows anonymous Join for free; prior
+  Add-to-chart Sign in blocker remains. Need authorized Pine editor/compiler/runtime
+  session; prepared synthetic fixtures are not execution evidence.
+- PB016/#18: official compile8/8 PASS already; actual target initialization/OnStart
+  and CSV negatives still unverified. Prior app-control approval timed out; no new
+  authorization received and no retry/bypass. Need accessible authorized runtime.
+
+PB009/014/018 wait on PB008; PB017 waits on PB015/016; PB019 waits on PB008/018;
+PB023 needs PB018; PB025/026 require the integrated chain. Broker/feed optional
+items remain explicitly deferred, not a substitute for the blocked required work.

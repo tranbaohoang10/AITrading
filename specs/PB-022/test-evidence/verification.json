@@ -83,5 +83,25 @@
       "unreadCount": 1
     }
   },
-  "publicationAndCi": "PENDING"
+  "publicationAndCi": {
+    "commit": "85cb6bcb34fea06e630d67b85bb7366fd7d018b5",
+    "push": "fast-forward 401f969..85cb6bc main -> main",
+    "githubShaVerified": true,
+    "run": 33397113925,
+    "conclusion": "success",
+    "downloadedJUnit": {
+      "tests": 183,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "frontendTests": 201,
+    "pythonTests": 44,
+    "javaPackages": 118,
+    "javaFindings": [],
+    "issue": 20,
+    "state": "CLOSED",
+    "stateReason": "COMPLETED",
+    "comment": 5479107614
+  }
 }

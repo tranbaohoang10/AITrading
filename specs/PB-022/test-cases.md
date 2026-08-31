@@ -58,3 +58,7 @@ Final local checkpoint: N01–N10 PASS in183backend/0fail/error/skip, including 
 NotificationApiTests and the real finish/cancel race. U01–U03 PASS as recorded.
 R01 local build/test/audits/browser PASS; publication and exact CI still pending.
 See verification.json and results.md. No tests skipped or security assertions removed.
+
+Final R01 delivery PASS:85cb6bc/CI33397113925 SUCCESS, actual downloaded183backend/
+201frontend/44Python/Java118. Issue20 completed(comment5479107614); all PB022
+AC1–5/DoD satisfied. This does not certify unfinished provider/Pine/MQL features.
