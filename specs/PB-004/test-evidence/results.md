@@ -36,6 +36,14 @@ failures. A second isolated run of17 chat tests also PASS. Lint and typecheck/bu
 passed on the corrected implementation. Final Java33/0/0/0 and verifier6 tests
 remain passing with no backend changes since that run. Publication still pending.
 
+## Delivery verified — 31/08/2026
+
+Commitcc99d4d12f5481bdea1b509b68de0712e08afc8a pushed fast-forward and confirmed
+by GitHub API/ls-remote. Actions33350972824 completed/success on that exact SHA,
+frontend/backend both PASS. Downloaded JUnit33/0/0/0 and OSV118 passed. Issue7 is
+CLOSED/completed; evidence https://github.com/tranbaohoang10/AITrading/issues/7#issuecomment-5472994718 .
+CHAT-21 publication is now PASS; earlier pending records remain historical.
+
 Security: owner predicate on every read and locked write; version checks at
 mutation boundary; no client role/owner; idempotency and per-user atomic limits;
 bounded strict JSON/text/page sizes; SQL placeholders; React text rendering.

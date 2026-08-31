@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "Confirmed structure line",
+  "labels": [
+    "Dow Theory",
+    "trendline"
+  ],
+  "market": {
+    "symbol": "BTC_USDT",
+    "timeframe": "1h",
+    "timezone": "UTC"
+  },
+  "indicators": [
+    {
+      "id": "line",
+      "type": "TRENDLINE",
+      "pivotRef": "peaks"
+    },
+    {
+      "id": "peaks",
+      "type": "PIVOT_HIGH",
+      "left": 2,
+      "right": 2
+    }
+  ],
+  "rules": {
+    "longEntry": {
+      "kind": "cross",
+      "direction": "above",
+      "left": {
+        "kind": "series",
+        "field": "close",
+        "lag": 0
+      },
+      "right": {
+        "kind": "indicator",
+        "id": "line",
+        "lag": 0
+      }
+    },
+    "shortEntry": null,
+    "longExit": null,
+    "shortExit": null
+  },
+  "risk": {
+    "initialCapital": 10000,
+    "allocationPct": 10,
+    "leverage": 1,
+    "stopLossPct": 2,
+    "takeProfitPct": 4
+  },
+  "execution": {
+    "signal": "bar_close",
+    "fill": "next_bar_open",
+    "sameBarExit": "stop_first",
+    "missingCandles": "reject",
+    "maxPositions": 1,
+    "commissionBps": 5,
+    "spreadBps": 2,
+    "slippageBps": 1
+  }
+}

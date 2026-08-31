@@ -1,0 +1,506 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aitrading:strategy-dsl:1.0.0",
+  "title": "AITrading Strategy DSL 1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "name",
+    "labels",
+    "market",
+    "indicators",
+    "rules",
+    "risk",
+    "execution"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 40
+      },
+      "minItems": 0,
+      "maxItems": 10
+    },
+    "market": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "symbol",
+        "timeframe",
+        "timezone"
+      ],
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,31}$"
+        },
+        "timeframe": {
+          "enum": [
+            "1m",
+            "5m",
+            "15m",
+            "30m",
+            "1h",
+            "4h",
+            "1d"
+          ]
+        },
+        "timezone": {
+          "const": "UTC"
+        }
+      }
+    },
+    "indicators": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/indicator"
+      },
+      "minItems": 0,
+      "maxItems": 32
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "longEntry",
+        "shortEntry",
+        "longExit",
+        "shortExit"
+      ],
+      "properties": {
+        "longEntry": {
+          "$ref": "#/$defs/optionalRule"
+        },
+        "shortEntry": {
+          "$ref": "#/$defs/optionalRule"
+        },
+        "longExit": {
+          "$ref": "#/$defs/optionalRule"
+        },
+        "shortExit": {
+          "$ref": "#/$defs/optionalRule"
+        }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "initialCapital",
+        "allocationPct",
+        "leverage",
+        "stopLossPct",
+        "takeProfitPct"
+      ],
+      "properties": {
+        "initialCapital": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 1000000000000.0,
+          "multipleOf": 1e-08
+        },
+        "allocationPct": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 100,
+          "multipleOf": 1e-08
+        },
+        "leverage": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 1e-08
+        },
+        "stopLossPct": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 50,
+          "multipleOf": 1e-08
+        },
+        "takeProfitPct": {
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 100,
+          "multipleOf": 1e-08
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal",
+        "fill",
+        "sameBarExit",
+        "missingCandles",
+        "maxPositions",
+        "commissionBps",
+        "spreadBps",
+        "slippageBps"
+      ],
+      "properties": {
+        "signal": {
+          "const": "bar_close"
+        },
+        "fill": {
+          "const": "next_bar_open"
+        },
+        "sameBarExit": {
+          "const": "stop_first"
+        },
+        "missingCandles": {
+          "const": "reject"
+        },
+        "maxPositions": {
+          "const": 1
+        },
+        "commissionBps": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "multipleOf": 1e-08
+        },
+        "spreadBps": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "multipleOf": 1e-08
+        },
+        "slippageBps": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "multipleOf": 1e-08
+        }
+      }
+    }
+  },
+  "$defs": {
+    "operand": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "field",
+            "lag"
+          ],
+          "properties": {
+            "kind": {
+              "const": "series"
+            },
+            "field": {
+              "enum": [
+                "open",
+                "high",
+                "low",
+                "close",
+                "volume"
+              ]
+            },
+            "lag": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "value"
+          ],
+          "properties": {
+            "kind": {
+              "const": "constant"
+            },
+            "value": {
+              "type": "number",
+              "minimum": -1000000000000.0,
+              "maximum": 1000000000000.0,
+              "multipleOf": 1e-08
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "id",
+            "lag"
+          ],
+          "properties": {
+            "kind": {
+              "const": "indicator"
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^[a-z][a-z0-9_]{0,31}$"
+            },
+            "lag": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2000
+            }
+          }
+        }
+      ]
+    },
+    "indicator": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "type",
+            "source",
+            "period"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^[a-z][a-z0-9_]{0,31}$"
+            },
+            "type": {
+              "enum": [
+                "SMA",
+                "EMA",
+                "RSI",
+                "HIGHEST",
+                "LOWEST"
+              ]
+            },
+            "source": {
+              "$ref": "#/$defs/operand"
+            },
+            "period": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 2000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "type",
+            "period"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^[a-z][a-z0-9_]{0,31}$"
+            },
+            "type": {
+              "const": "ATR"
+            },
+            "period": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 2000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "type",
+            "left",
+            "right"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^[a-z][a-z0-9_]{0,31}$"
+            },
+            "type": {
+              "enum": [
+                "PIVOT_HIGH",
+                "PIVOT_LOW"
+              ]
+            },
+            "left": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "right": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "type",
+            "pivotRef"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^[a-z][a-z0-9_]{0,31}$"
+            },
+            "type": {
+              "const": "TRENDLINE"
+            },
+            "pivotRef": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32,
+              "pattern": "^[a-z][a-z0-9_]{0,31}$"
+            }
+          }
+        }
+      ]
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "op",
+            "left",
+            "right"
+          ],
+          "properties": {
+            "kind": {
+              "const": "compare"
+            },
+            "op": {
+              "enum": [
+                "gt",
+                "gte",
+                "lt",
+                "lte",
+                "eq",
+                "neq"
+              ]
+            },
+            "left": {
+              "$ref": "#/$defs/operand"
+            },
+            "right": {
+              "$ref": "#/$defs/operand"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "direction",
+            "left",
+            "right"
+          ],
+          "properties": {
+            "kind": {
+              "const": "cross"
+            },
+            "direction": {
+              "enum": [
+                "above",
+                "below"
+              ]
+            },
+            "left": {
+              "$ref": "#/$defs/operand"
+            },
+            "right": {
+              "$ref": "#/$defs/operand"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "children"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "all",
+                "any"
+              ]
+            },
+            "children": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/condition"
+              },
+              "minItems": 2,
+              "maxItems": 8
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "child"
+          ],
+          "properties": {
+            "kind": {
+              "const": "not"
+            },
+            "child": {
+              "$ref": "#/$defs/condition"
+            }
+          }
+        }
+      ]
+    },
+    "optionalRule": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/condition"
+        }
+      ]
+    }
+  }
+}

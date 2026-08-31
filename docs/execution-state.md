@@ -5,6 +5,21 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+LATEST CURRENT: PB-005 / Issue8 implemented, final local56backend/57frontend/
+6verifier/6canonical checks PASS; builds/lint/audits pass, no migration/dependency/UI
+change. Schema validation only, not a runtime engine. Local test clusters stopped,
+last pg-test-i__9peiw credential file removed. Scoped34file delivery now needs
+commit/push and actualCI before closing8. Then PB-006 is next READY. Full backlog
+goal stays active. Earlier checkpoints below are historical.
+
+LATEST: PB-004 DONE atcc99d4d12f5481bdea1b509b68de0712e08afc8a, normal push
+and GitHub confirmed. CI33350972824 both jobs PASS, downloaded JUnit33/0/0/0 and
+OSV118 passed; Issue7 CLOSED/completed. Frontend57 and chat-only repeat17 PASS.
+PB-005 Issue8 created before any DSL code; spec exists and design starts now.
+Current product goal remains the entire required backlog. Vite94064 may still be
+running; all owned API/DB clusters were stopped. Revalidate handles, not old logs.
+Earlier checkpoint text below records PB-004's pre-publication state.
+
 PB-003 DONE:8015f21 implementation +099d6a52f503a2930a130915877d1f92680eebeb
 recovery-test correction pushed/verified. Actions33349231331 success both jobs;
 downloaded JUnit22/0/0/0 and OSV118 passed; Issue6 CLOSED/completed. First CI

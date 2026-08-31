@@ -25,11 +25,13 @@ public class AuthInputFilter extends OncePerRequestFilter {
         if (origin != null && !origins.contains(origin)) {
             ApiErrors.write(request, response, 403, ApiErrors.Code.FORBIDDEN); return;
         }
-        if (request.getContentLengthLong() > MAX_BODY) {
+        int maxBody = request.getMethod().equals("POST") && request.getRequestURI().equals("/api/dsl/validate")
+                ? com.aitrading.dsl.DslValidator.MAX_BYTES : MAX_BODY;
+        if (request.getContentLengthLong() > maxBody) {
             ApiErrors.write(request, response, 413, ApiErrors.Code.INVALID_REQUEST); return;
         }
-        byte[] body = request.getInputStream().readNBytes(MAX_BODY + 1);
-        if (body.length > MAX_BODY) {
+        byte[] body = request.getInputStream().readNBytes(maxBody + 1);
+        if (body.length > maxBody) {
             ApiErrors.write(request, response, 413, ApiErrors.Code.INVALID_REQUEST); return;
         }
         Map<String, String[]> parameters = new LinkedHashMap<>();

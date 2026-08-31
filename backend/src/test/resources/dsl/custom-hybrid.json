@@ -1,0 +1,106 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "Custom hybrid – nghiên cứu 🧪",
+  "labels": [
+    "custom",
+    "hybrid"
+  ],
+  "market": {
+    "symbol": "BTC_USDT",
+    "timeframe": "1h",
+    "timezone": "UTC"
+  },
+  "indicators": [
+    {
+      "id": "range",
+      "type": "ATR",
+      "period": 14
+    },
+    {
+      "id": "floor",
+      "type": "LOWEST",
+      "source": {
+        "kind": "series",
+        "field": "low",
+        "lag": 0
+      },
+      "period": 10
+    },
+    {
+      "id": "trough",
+      "type": "PIVOT_LOW",
+      "left": 3,
+      "right": 2
+    }
+  ],
+  "rules": {
+    "longEntry": {
+      "kind": "any",
+      "children": [
+        {
+          "kind": "compare",
+          "op": "gt",
+          "left": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "right": {
+            "kind": "indicator",
+            "id": "trough",
+            "lag": 0
+          }
+        },
+        {
+          "kind": "not",
+          "child": {
+            "kind": "compare",
+            "op": "lt",
+            "left": {
+              "kind": "series",
+              "field": "close",
+              "lag": 0
+            },
+            "right": {
+              "kind": "indicator",
+              "id": "floor",
+              "lag": 0
+            }
+          }
+        }
+      ]
+    },
+    "shortEntry": null,
+    "longExit": {
+      "kind": "compare",
+      "op": "gt",
+      "left": {
+        "kind": "indicator",
+        "id": "range",
+        "lag": 0
+      },
+      "right": {
+        "kind": "constant",
+        "value": 50
+      }
+    },
+    "shortExit": null
+  },
+  "risk": {
+    "initialCapital": 10000,
+    "allocationPct": 10,
+    "leverage": 1,
+    "stopLossPct": 2,
+    "takeProfitPct": 4
+  },
+  "execution": {
+    "signal": "bar_close",
+    "fill": "next_bar_open",
+    "sameBarExit": "stop_first",
+    "missingCandles": "reject",
+    "maxPositions": 1,
+    "commissionBps": 5,
+    "spreadBps": 2,
+    "slippageBps": 1
+  }
+}

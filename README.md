@@ -52,7 +52,7 @@ and [CNPM index](docs/cnpm-index.md) track that run separately from governance #
 The frontend foundation is recovered from feature/mvp-ui with provenance in
 [PB-001](specs/PB-001/spec.md). It currently demonstrates responsive workspace,
 read-only sample scripts and labelled synthetic chat/backtest data. It does **not**
-yet implement a connected AI provider, persistent research content or real backtests.
+yet implement a connected AI provider or real backtests. PB-004 now persists private chat.
 PB-003 adds real authentication/account persistence around that demo workspace.
 
 From frontend/ with Node 22.12+ (verified Node 24.8.0) and npm:
@@ -132,7 +132,7 @@ Secure cookies and an explicit AITRADING_ALLOWED_ORIGINS value. Forwarding heade
 are not trusted by default; do not expose the development proxy or HTTP API publicly.
 The current feature is not a production identity/security certification.
 
-## Persistent conversations (PB-004, verification in progress)
+## Persistent conversations (PB-004 delivered)
 
 Sign in, open AI Chat on mobile/tablet or use the desktop chat pane. New Chat
 creates an owned conversation. Save message persists text; it does not call an AI
@@ -147,3 +147,24 @@ pages50/default100max. Lists sort by creation time, newest first, so rename/send
 does not shift page boundaries. Conversation deletion permanently removes its
 messages; it is distinct from preserving Git/governance history. Do not store
 secrets in research prompts. Provider/context generation follows PB-008.
+
+PB-004 delivery: cc99d4d, Actions33350972824 PASS, Issue #7 completed.
+
+## Neutral Strategy DSL (PB-005, verification in progress)
+
+Authenticated API: GET /api/dsl/schema and /api/dsl/capabilities; POST
+/api/dsl/validate with application/json and the session's X-CSRF-TOKEN. The POST
+takes the document directly and returns `{valid,document,errors}`. A valid document
+contains canonicalJson, SHA256 hash, schemaVersion, validatorVersion and minimumBars;
+invalid semantics return422 with bounded diagnostics, malformed JSON400. No save,
+backtest, AI call or code execution occurs. Python/Pine/MQL5 runtimes are explicitly
+not implemented yet. A hash is a fingerprint, not authorization or a signature.
+
+Schema1.0.0 and [design/indicator semantics](specs/PB-005/design.md) define closed-bar,
+next-open execution, confirmed pivots, typed measurable rules, risk and resource
+bounds. [Neutral fixtures](backend/src/test/resources/dsl) are synthetic examples,
+not profitable-strategy recommendations. Existing mock DSL is deliberately rejected.
+PB-007 will provide owned draft/version storage and UI. No new dependency or migration.
+
+Run `python scripts/check_dsl_fixtures.py` to verify canonical bytes/hash independently;
+the ordinary backend test harness also runs DSL unit and real authenticated HTTP tests.

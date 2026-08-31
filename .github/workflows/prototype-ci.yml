@@ -48,6 +48,8 @@ jobs:
         run: echo '7a9ce74cff467ca1bf60a4fcd9f05185acceda4d0f382434d393e17864262c5d  backend/gradle/wrapper/gradle-wrapper.jar' | sha256sum --check
       - name: Verification tools fail closed
         run: python3 -m unittest discover -s scripts -p 'test_verification_tools.py' -v
+      - name: Independent DSL canonical fixtures
+        run: python3 scripts/check_dsl_fixtures.py
       - name: Real PostgreSQL integration and build
         env:
           AITRADING_TEST_PG_BIN: /usr/lib/postgresql/16/bin

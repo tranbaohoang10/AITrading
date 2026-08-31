@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "Measured three-bar price gap",
+  "labels": [
+    "ICT",
+    "SMC"
+  ],
+  "market": {
+    "symbol": "BTC_USDT",
+    "timeframe": "1h",
+    "timezone": "UTC"
+  },
+  "indicators": [],
+  "rules": {
+    "longEntry": {
+      "kind": "compare",
+      "op": "gt",
+      "left": {
+        "kind": "series",
+        "field": "low",
+        "lag": 0
+      },
+      "right": {
+        "kind": "series",
+        "field": "high",
+        "lag": 2
+      }
+    },
+    "shortEntry": {
+      "kind": "compare",
+      "op": "lt",
+      "left": {
+        "kind": "series",
+        "field": "high",
+        "lag": 0
+      },
+      "right": {
+        "kind": "series",
+        "field": "low",
+        "lag": 2
+      }
+    },
+    "longExit": null,
+    "shortExit": null
+  },
+  "risk": {
+    "initialCapital": 10000,
+    "allocationPct": 10,
+    "leverage": 1,
+    "stopLossPct": 2,
+    "takeProfitPct": 4
+  },
+  "execution": {
+    "signal": "bar_close",
+    "fill": "next_bar_open",
+    "sameBarExit": "stop_first",
+    "missingCandles": "reject",
+    "maxPositions": 1,
+    "commissionBps": 5,
+    "spreadBps": 2,
+    "slippageBps": 1
+  }
+}

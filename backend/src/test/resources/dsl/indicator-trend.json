@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "EMA SMA RSI trend",
+  "labels": [
+    "trend",
+    "EMA",
+    "SMA",
+    "RSI"
+  ],
+  "market": {
+    "symbol": "BTC_USDT",
+    "timeframe": "1h",
+    "timezone": "UTC"
+  },
+  "indicators": [
+    {
+      "id": "fast",
+      "type": "EMA",
+      "source": {
+        "kind": "series",
+        "field": "close",
+        "lag": 0
+      },
+      "period": 5
+    },
+    {
+      "id": "slow",
+      "type": "SMA",
+      "source": {
+        "kind": "series",
+        "field": "close",
+        "lag": 0
+      },
+      "period": 20
+    },
+    {
+      "id": "momentum",
+      "type": "RSI",
+      "source": {
+        "kind": "series",
+        "field": "close",
+        "lag": 0
+      },
+      "period": 14
+    }
+  ],
+  "rules": {
+    "longEntry": {
+      "kind": "all",
+      "children": [
+        {
+          "kind": "cross",
+          "direction": "above",
+          "left": {
+            "kind": "indicator",
+            "id": "fast",
+            "lag": 0
+          },
+          "right": {
+            "kind": "indicator",
+            "id": "slow",
+            "lag": 0
+          }
+        },
+        {
+          "kind": "compare",
+          "op": "gt",
+          "left": {
+            "kind": "indicator",
+            "id": "momentum",
+            "lag": 0
+          },
+          "right": {
+            "kind": "constant",
+            "value": 50
+          }
+        }
+      ]
+    },
+    "shortEntry": null,
+    "longExit": {
+      "kind": "compare",
+      "op": "lt",
+      "left": {
+        "kind": "series",
+        "field": "close",
+        "lag": 0
+      },
+      "right": {
+        "kind": "indicator",
+        "id": "slow",
+        "lag": 0
+      }
+    },
+    "shortExit": null
+  },
+  "risk": {
+    "initialCapital": 10000,
+    "allocationPct": 10,
+    "leverage": 1,
+    "stopLossPct": 2,
+    "takeProfitPct": 4
+  },
+  "execution": {
+    "signal": "bar_close",
+    "fill": "next_bar_open",
+    "sameBarExit": "stop_first",
+    "missingCandles": "reject",
+    "maxPositions": 1,
+    "commissionBps": 5,
+    "spreadBps": 2,
+    "slippageBps": 1
+  }
+}

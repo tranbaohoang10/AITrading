@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "1.0.0",
+  "name": "Volume breakout research",
+  "labels": [
+    "Wyckoff",
+    "volume"
+  ],
+  "market": {
+    "symbol": "BTC_USDT",
+    "timeframe": "1h",
+    "timezone": "UTC"
+  },
+  "indicators": [
+    {
+      "id": "volume_mean",
+      "type": "SMA",
+      "source": {
+        "kind": "series",
+        "field": "volume",
+        "lag": 0
+      },
+      "period": 20
+    },
+    {
+      "id": "range_high",
+      "type": "HIGHEST",
+      "source": {
+        "kind": "series",
+        "field": "high",
+        "lag": 1
+      },
+      "period": 20
+    }
+  ],
+  "rules": {
+    "longEntry": {
+      "kind": "all",
+      "children": [
+        {
+          "kind": "compare",
+          "op": "gt",
+          "left": {
+            "kind": "series",
+            "field": "volume",
+            "lag": 0
+          },
+          "right": {
+            "kind": "indicator",
+            "id": "volume_mean",
+            "lag": 0
+          }
+        },
+        {
+          "kind": "compare",
+          "op": "gt",
+          "left": {
+            "kind": "series",
+            "field": "close",
+            "lag": 0
+          },
+          "right": {
+            "kind": "indicator",
+            "id": "range_high",
+            "lag": 0
+          }
+        }
+      ]
+    },
+    "shortEntry": null,
+    "longExit": null,
+    "shortExit": null
+  },
+  "risk": {
+    "initialCapital": 10000,
+    "allocationPct": 10,
+    "leverage": 1,
+    "stopLossPct": 2,
+    "takeProfitPct": 4
+  },
+  "execution": {
+    "signal": "bar_close",
+    "fill": "next_bar_open",
+    "sameBarExit": "stop_first",
+    "missingCandles": "reject",
+    "maxPositions": 1,
+    "commissionBps": 5,
+    "spreadBps": 2,
+    "slippageBps": 1
+  }
+}

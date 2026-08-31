@@ -35,6 +35,8 @@ flowchart TB
   Researcher --> Register([Register local account])
   Researcher --> Login([Sign in / out])
   Researcher --> Account([Update own name / password])
+  Researcher --> Chat([Manage private conversations and messages])
+  Researcher --> DSL([Validate neutral Strategy DSL draft])
   Operator((Developer/operator)) --> Start([Start local API and isolated DB tests])
   Operator --> Ready([Inspect minimal readiness])
 ```
@@ -50,3 +52,11 @@ spring_session_attributes and auth_rate_bucket; its implemented ERD/class/sequen
 diagrams are in specs/PB-003/design.md. Later
 features own their additive migrations and ownership foreign keys. Never invent a
 completed overall ERD from planned tables. PB-026 reconciles this file with code.
+
+PB-005 adds stateless DslController → DslValidator → bundled DslSchema. All routes
+are session protected; POST is CSRF protected and bounded64KiB (other writes16KiB).
+Typed DAG/units/risk/complexity validation precedes deterministic canonical/hash
+creation; no interpreter/provider/target engine executes this data. No new ERD
+entity: PB-007 will own immutable persisted strategy versions. PB-004's V3
+conversation/message entities and owner constraints remain as documented in its
+design; delivered cc99d4d / Issue7 completed. PB-005 publication still pending.

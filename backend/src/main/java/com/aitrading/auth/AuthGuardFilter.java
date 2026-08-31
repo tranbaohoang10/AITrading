@@ -31,6 +31,8 @@ public class AuthGuardFilter extends OncePerRequestFilter {
             }
             String path = request.getRequestURI();
             boolean allowed = true;
+            if (user != null && path.startsWith("/api/dsl/"))
+                allowed = limits.allow("dsl-user", user.id().toString(), 120);
             if (user != null && (path.equals("/api/conversations") || path.startsWith("/api/conversations/"))
                     && !java.util.Set.of("GET", "HEAD", "OPTIONS").contains(request.getMethod()))
                 allowed = limits.allow("chat-user", user.id().toString(), 120);
