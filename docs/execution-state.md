@@ -3,6 +3,21 @@
 Started 30/08/2026. Active goal: complete the master prototype backlog, not only
 planning or one feature. User explicitly authorizes continuous execution on main.
 
+## Current checkpoint — 31/08/2026
+
+PB-003 DONE:8015f21 implementation +099d6a52f503a2930a130915877d1f92680eebeb
+recovery-test correction pushed/verified. Actions33349231331 success both jobs;
+downloaded JUnit22/0/0/0 and OSV118 passed; Issue6 CLOSED/completed. First CI
+33348966758 failed immediate DB-pool recovery assertion, retained in evidence.
+Current feature PB-004, Issue7 created before code; spec/design/tests/tasks exist.
+Persistence/backend-owner checks and real chat UI implemented. Final local Java33,
+frontend57 (+17 chat-only repeat), verifier6 tests PASS; builds/lint/npm audit0 and
+OSV118 no findings. Real browser A/B, API restart, desktop/mobile/tablet verified.
+All owned test APIs/DBs stopped and credentials files removed; Vite94064 remains
+on127.0.0.1:5173. PB-004 needs scoped commit/push and actualCI before closing7.
+No provider/DSL implementation in PB-004. Next after PB-004 is PB-005.
+Prior execution narrative below is historical; revalidate process handles before use.
+
 Baseline: main/origin at 295131b; clean working tree. Existing stash ref observed
 in git log; left untouched. feature/mvp-ui remains at 0029c82, with its two old
 re-review records protected. No product file changed before master backlog creation.

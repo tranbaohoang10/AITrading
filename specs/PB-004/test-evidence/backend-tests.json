@@ -1,0 +1,58 @@
+{
+  "counts": {
+    "tests": 33,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "classes": [
+    {
+      "name": "com.aitrading.AiTradingApplicationTests",
+      "tests": [
+        "databaseMigrationAndRepeatValidationAreRealAndIdempotent()",
+        "healthHasMinimalJsonAndSecurityHeaders()",
+        "allPrivateRoutesAndGeneratedLoginAreDeniedWithoutHtmlOrRequestEcho()",
+        "unsafeMethodsRemainCsrfProtectedAndUnsupportedMethodsDoNotBypassSecurity()",
+        "forgedIdentityRequestIdAndCorsOriginAreNotTrusted()",
+        "maliciousPathIsRejectedAndIgnoredQueryCannotExecuteSql()",
+        "databaseExceptionDetailsAreNeverInHealthResponse()",
+        "actualDatabaseOutageReturns503AndRestartRestoresReadinessWithoutRemigration()"
+      ]
+    },
+    {
+      "name": "com.aitrading.AuthenticationTests",
+      "tests": [
+        "csrfSessionCreationIsAlsoIpLimited()",
+        "profileCannotSelectOrChangeAnotherUserAndUnknownFieldsAreRejected()",
+        "invalidCredentialsAndCsrfNeverAuthenticate()",
+        "registrationRejectsInvalidNullBoundaryAndMassAssignmentFields()",
+        "logoutExpiryAndForgedCookieAreDenied()",
+        "staleCredentialSnapshotCannotOverwritePasswordOrAuthorizeRacedLogin()",
+        "concurrentRegistrationCreatesExactlyOneUser()",
+        "httpsSessionCookieUsesSecureHttpOnlyAndSameSiteWithoutDomain()",
+        "registrationUsesDistinctArgon2idSaltsAndGenericDuplicateAcknowledgement()",
+        "passwordChangeRequiresCurrentPasswordAndRevokesAllSessions()",
+        "authenticatedRequestFailsClosedDuringActualDatabaseOutageAndRecovers()",
+        "atomicThrottleAllowsOnlyLimitAndDoesNotTrustForwardedIp()",
+        "loginRotatesSessionAndCsrfAndDoesNotSerializePasswords()",
+        "oversizedMalformedAmbiguousAndForeignOriginRequestsFailSafely()"
+      ]
+    },
+    {
+      "name": "com.aitrading.ConversationTests",
+      "tests": [
+        "actualDatabaseOutageFailsClosedAndRetryPreservesContextWithoutDuplicateMessage()",
+        "authCsrfOriginsAndRevokedCredentialsFailAtActualMutationBoundary()",
+        "keysetPagesStayOwnerScopedAndStableUnderRenameAndAppend()",
+        "concurrentDistinctMessagesHaveContiguousSequencesAndStaleMutationsConflict()",
+        "messagePagesDoNotShiftWhenNewMessagesArrive()",
+        "everyReadAndWriteRejectsAnotherOwnerAndMissingResourcesUniformly()",
+        "validationBoundariesAndUnknownSecurityFieldsAreRejected()",
+        "concurrentCreateAndAppendReplaysReturnExactlyOneResource()",
+        "perUserMutationThrottleIsAtomicAndDoesNotTrustForwardedHeaders()",
+        "quotaChecksSerializeConcurrentRequestsAndAllowExistingReplayAtLimit()",
+        "ownedCrudPersistsExactTextMetadataAndCascadeWithoutOtherUserDataLoss()"
+      ]
+    }
+  ]
+}

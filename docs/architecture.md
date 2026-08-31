@@ -1,7 +1,13 @@
 # Prototype architecture and CNPM physical view
 
-Status: PB-001/PB-002 delivered; PB-003 auth implemented, verification in progress. Diagrams distinguish
+Status: PB-001/PB-002/PB-003 delivered; PB-004 persistent conversations implemented, verification in progress. Diagrams distinguish
 current boundaries from future modules. No AI/trading runtime is claimed yet.
+
+PB-004 adds owner-scoped conversation/message APIs and additive FlywayV3. JDBC
+transactions lock current user then owned conversation for quota/idempotency/version
+checks. React chat state lives below the authenticated identity root, above the
+responsive renderers; delayed responses cannot mix contexts. Detailed sequence,
+class and ERD views are in specs/PB-004/design.md. No new infrastructure/dependency.
 
 ```mermaid
 flowchart LR

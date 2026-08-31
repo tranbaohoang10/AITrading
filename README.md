@@ -98,7 +98,7 @@ Applied Flyway migrations are never edited/reset. Test clusters are retained und
 tmp/ after shutdown for diagnosis; they are never committed. Actual verification
 and limitations live in specs/PB-002/test-cases.md, not inferred from setup commands.
 
-## Authentication (PB-003, verification in progress)
+## Authentication (PB-003 delivered)
 
 The real UI entrypoint requires a server-verified account. Start the API on
 loopback8080 and Vite on127.0.0.1:5173; /api is proxied to the backend. Register a
@@ -108,7 +108,9 @@ Never reuse a real service password for testing. Passwords are Argon2id-hashed;
 sessions live server-side in PostgreSQL with HttpOnly/SameSite cookies and CSRF.
 Use Account in desktop/mobile navigation to edit your name, change password or
 sign out. Password change revokes all sessions and requires signing in again.
-Chat/trading views remain clearly labelled demos until their own backlog delivery.
+PB-003 is verified on GitHub at099d6a5, Actions33349231331 success, Issue6 completed.
+PB-004 replaces the authenticated chat demo; chart/strategy/backtest samples remain
+explicitly labelled until their own features.
 
 For a completely disposable browser-test workspace, with installed PostgreSQL
 binaries and JAVA_HOME pointing to Java21, run from repository root:
@@ -129,3 +131,19 @@ For deployment beyond this local machine, provide TLS at a trusted endpoint,
 Secure cookies and an explicit AITRADING_ALLOWED_ORIGINS value. Forwarding headers
 are not trusted by default; do not expose the development proxy or HTTP API publicly.
 The current feature is not a production identity/security certification.
+
+## Persistent conversations (PB-004, verification in progress)
+
+Sign in, open AI Chat on mobile/tablet or use the desktop chat pane. New Chat
+creates an owned conversation. Save message persists text; it does not call an AI
+provider yet. Select past conversations, rename, delete with confirmation, and
+load more/earlier pages. Reload messages before retrying a stale-version conflict.
+After an uncertain network save, Retry save keeps the same request ID and text
+to avoid duplication. No automatic unsafe replay occurs.
+
+Prototype limits:100 conversations/account,2000 messages/conversation,4000 characters
+per message,120 mutations/account/15min; list pages20/default50max and message
+pages50/default100max. Lists sort by creation time, newest first, so rename/send
+does not shift page boundaries. Conversation deletion permanently removes its
+messages; it is distinct from preserving Git/governance history. Do not store
+secrets in research prompts. Provider/context generation follows PB-008.

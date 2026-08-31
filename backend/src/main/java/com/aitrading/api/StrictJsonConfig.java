@@ -11,7 +11,11 @@ import tools.jackson.databind.type.LogicalType;
 public class StrictJsonConfig {
     @Bean
     JsonMapperBuilderCustomizer requireActualStrings() {
-        return builder -> builder.withCoercionConfig(LogicalType.Textual, coercion -> {
+        return builder -> builder.withCoercionConfig(LogicalType.Integer, coercion -> {
+            coercion.setCoercion(CoercionInputShape.Float, CoercionAction.Fail);
+            coercion.setCoercion(CoercionInputShape.String, CoercionAction.Fail);
+            coercion.setCoercion(CoercionInputShape.Boolean, CoercionAction.Fail);
+        }).withCoercionConfig(LogicalType.Textual, coercion -> {
             coercion.setCoercion(CoercionInputShape.Integer, CoercionAction.Fail);
             coercion.setCoercion(CoercionInputShape.Float, CoercionAction.Fail);
             coercion.setCoercion(CoercionInputShape.Boolean, CoercionAction.Fail);

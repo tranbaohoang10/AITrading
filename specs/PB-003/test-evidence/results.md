@@ -67,3 +67,12 @@ was removed. Rerun local and actual CI before claiming the correction successful
 Correction local rerun31/08/2026: Java21/owned pg-test-eieztlv4 locked clean build
 and all22 JUnit tests PASS, zero failures/errors/skips, safe cluster shutdown and
 password removal verified. No dependency or frontend change in the correction.
+
+## Delivery verified — 31/08/2026
+
+Normal push and GitHub main verified at099d6a52f503a2930a130915877d1f92680eebeb.
+Actions33349231331 completed/success on that exact SHA, both frontend/backend.
+Downloaded artifact confirms22 JUnit tests,0 failures/errors/skips;118-coordinate
+dependency audit passed. Issue6 updated with AC evidence and CLOSED/completed:
+https://github.com/tranbaohoang10/AITrading/issues/6#issuecomment-5472783716 .
+AUTH-14 publication now PASS; earlier pending/failure entries remain historical.

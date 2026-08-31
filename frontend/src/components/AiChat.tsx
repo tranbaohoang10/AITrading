@@ -1,9 +1,16 @@
 import { useTrading } from '../context/TradingContext'
 import { Icon } from './Icon'
+import { useAuth } from '../auth/AuthContext'
+import { PersistentChat } from '../chat/PersistentChat'
 
 const quickActions = ['Build a trend strategy', 'Define risk rules', 'Explain this mock setup']
 
 export function AiChat() {
+  const auth = useAuth()
+  return auth ? <PersistentChat /> : <DemoChat />
+}
+
+function DemoChat() {
   const { messages, prompt, setPrompt, generateStrategy, generationStatus, generationError } = useTrading()
 
   return (

@@ -18,6 +18,10 @@ public class ApiExceptionHandler {
     public ResponseEntity<?> invalid(HttpServletRequest request) { return error(request, 400, ApiErrors.Code.INVALID_REQUEST); }
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<?> unauthorized(HttpServletRequest request) { return error(request, 401, ApiErrors.Code.UNAUTHORIZED); }
+    @ExceptionHandler(ResourceFailure.class)
+    public ResponseEntity<?> resource(HttpServletRequest request, ResourceFailure failure) {
+        return error(request, failure.status(), failure.status() == 404 ? ApiErrors.Code.NOT_FOUND : ApiErrors.Code.CONFLICT);
+    }
     @ExceptionHandler({DataAccessException.class, TransactionException.class})
     public ResponseEntity<?> unavailable(HttpServletRequest request) { return error(request, 503, ApiErrors.Code.UNAVAILABLE); }
 }
