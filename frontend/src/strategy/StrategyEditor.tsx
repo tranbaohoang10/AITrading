@@ -30,7 +30,7 @@ export function StrategyEditor() {
     </div>
     <div className={`grid min-h-0 flex-1 ${market ? '2xl:grid-cols-2' : ''}`}>
       <div className={`${showChart && market ? 'hidden 2xl:block' : ''} min-h-0 min-w-0 overflow-y-auto p-4`}>
-        <p className="mb-3 text-xs leading-5 text-slate-400">Private immutable revisions · validation does not run AI or a backtest. Use Pine Script to export a saved VALIDATED revision for research.</p>
+        <p className="mb-3 text-xs leading-5 text-slate-400">Private immutable revisions · validation does not run AI or a backtest. Use Pine Script or MQL5 to export a saved VALIDATED revision for research.</p>
         {s.listLoading && <p role="status">Loading strategies…</p>}
         {s.loading && <p role="status">Loading strategy…</p>}
         {s.error && <p role="alert" className="mb-3 break-words text-sm text-rose-300">{s.error}</p>}

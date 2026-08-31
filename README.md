@@ -431,3 +431,32 @@ revisions are saved. Up to100 artifacts/account; existing strategy rates apply
 (300 reads/60 writes per15min). Deleting the strategy cascades its artifacts.
 V9 adds the artifact table; no existing migration/dependency/stack change.
 See [design](specs/PB-015/design.md) and [test cases](specs/PB-015/test-cases.md).
+
+## PB-016 — experimental MQL5 research export
+
+Select a saved VALIDATED strategy, then open MQL5. Generate/reload its private
+immutable artifact, inspect revision/DSL/code hashes and versions, then copy or
+download `.mq5` text. Unsaved drafts remain unchanged and are not exported. V10
+adds the owned artifact table; GET/POST
+`/api/strategies/{id}/versions/{revision}/mql5` follows the same account, CSRF,
+quota/rate and replay rules as Pine. No existing migration/dependency changed.
+
+This is a **CSV research script**, not a live EA, broker integration or native
+Strategy Tester strategy. It never places orders, reads broker prices or loads
+DLLs. Put a plain UTF-8 CSV named `research.csv` in the terminal's local
+`MQL5/Files` sandbox, compile source with official MetaEditor and explicitly set
+ConfirmCsvSymbol/ConfirmCsvTimeframe from the saved DSL before running the script
+in an authorized initialized target environment. Input header is exactly
+`timestamp,open,high,low,close,volume`; timestamps use UTC `YYYY-MM-DDTHH:mm:ssZ`.
+All bars must be closed, aligned and contiguous, at most5000 rows/1MiB. The script
+rejects paths/traversal and malformed OHLCV before reporting simulation output.
+It does not infer broker timezone or treat tick volume as real volume.
+
+Target limits are16 indicators, period/lag200, pivot sides100, warm-up4500 and
+128KiB source. Binary doubles differ from Python Decimal34 and can alter boundary
+signals. No broker lots/ticks/margin/funding/liquidation or profit guarantee.
+Eight synthetic exports compiled with official MetaEditor with zero errors and
+warnings; **actual MQL runtime/event and negative CSV verification remain pending**.
+Do not treat local tests/compiler success as runtime certification. See
+[target evidence/procedure](specs/PB-016/test-evidence/target-validation.md),
+[design](specs/PB-016/design.md) and [test cases](specs/PB-016/test-cases.md).

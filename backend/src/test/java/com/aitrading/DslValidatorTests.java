@@ -44,7 +44,7 @@ class DslValidatorTests {
             assertThat(result.document().validatorVersion()).isEqualTo("1.0.0");
         }
         assertThat(validator.capabilities().get("operation")).isEqualTo("validation_only");
-        assertThat(validator.capabilities().get("runtimeStatus")).isEqualTo(Map.of("python","offline_engine_implemented","pine","experimental_export_unverified","mql5","not_implemented"));
+        assertThat(validator.capabilities().get("runtimeStatus")).isEqualTo(Map.of("python","offline_engine_implemented","pine","experimental_export_unverified","mql5","experimental_export_unverified"));
     }
 
     @Test void canonicalPreservesExactDecimalsUnicodeAndEquivalentNumericForms() throws Exception {

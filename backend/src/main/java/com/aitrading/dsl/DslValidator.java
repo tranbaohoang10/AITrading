@@ -43,7 +43,7 @@ public final class DslValidator {
     public String schemaJson() { return schemaJson; }
     public Map<String, Object> capabilities() {
         return Map.of("schemaVersion", VERSION, "validatorVersion", VERSION, "operation", "validation_only",
-                "runtimeStatus", Map.of("python", "offline_engine_implemented", "pine", "experimental_export_unverified", "mql5", "not_implemented"),
+                "runtimeStatus", Map.of("python", "offline_engine_implemented", "pine", "experimental_export_unverified", "mql5", "experimental_export_unverified"),
                 "maxBytes", MAX_BYTES, "maxIndicators", 32, "maxConditions", 128, "maxConditionDepth", 8,
                 "maxMinimumBars", 10000, "canonicalization", "aitrading-canonical-1");
     }

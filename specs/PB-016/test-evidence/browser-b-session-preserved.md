@@ -1,0 +1,40 @@
+- complementary "Global navigation":
+  - generic "AI Trading": AT
+  - navigation "Primary":
+    - button "Workspace":
+    - button "AI Strategy":
+    - button "Backtest":
+    - button "My Code":
+    - button "Trading Journal":
+    - button "Strategies":
+  - button "Settings":
+  - button "Account" [active]:
+- region "AI Chat":
+  - heading "Quant / Research conversations" [level=2]
+  - paragraph: Private saved messages · AI requests are always explicit
+  - button "New Chat"
+  - button "Refresh list"
+  - paragraph: No conversations yet. Start a New Chat.
+  - navigation "Saved conversations"
+  - generic: Select a conversation or start a New Chat. Messages are saved to your account; strategy generation will be connected separately.
+  - region "AI provider controls":
+    - button "Check AI availability"
+    - generic: Provider availability not checked.
+    - paragraph: Ask AI sends up to 20 recent saved messages from this conversation to the configured provider. Provider retention policies apply. Do not include secrets. Research output may be wrong; no trades are executed.
+    - button "Ask AI" [disabled]
+- separator "Resize AI Chat"
+- region "Account":
+  - heading "Account" [level=2]
+  - paragraph: pb016-b@example.test
+  - paragraph: PB016 synthetic B
+  - text: Display name
+  - textbox "Display name": PB016 synthetic B
+  - button "Save display name"
+  - heading "Change password" [level=3]
+  - paragraph: All sessions will end. Sign in again with your new password.
+  - text: Current password
+  - textbox "Current password"
+  - text: New password
+  - textbox "New password"
+  - button "Change password"
+  - button "Sign out"

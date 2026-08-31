@@ -330,3 +330,53 @@ collection/bypass. Do not call PB-015 DONE or infer event parity from source/tes
 After safe checkpoint select PB-016, the next independent READY feature. PB-008
 remains OPEN/BLOCKED#12 for project AI credentials/real-provider smoke. Full goal
 remains active; no all-backlog completion claim.
+
+## 31/08/2026 — PB-015 published; PB-016 local work and target boundary
+
+PB-015 checkpoint60964d5714b74f2580f896fa7654503dfd8d5b85 pushed normally;
+local/origin/GitHub main identical. CI33382521115 SUCCESS; downloaded actual
+152backend/176frontend/42Python/JavaOSV118. Issue17 comment5477092546 retains
+OPEN/BLOCKED because official Pine runtime requires authorized TradingView login.
+PB-027 remains DONE, no repeated implementation.
+
+PB-016 Issue18 created before code. MQL5 generator directly from DSL, V10 immutable
+owned artifact/API and real desktop/mobile tab implemented. Research CSV script
+only, no orders/network/DLL/broker. Local163backend/186frontend/42Python/audits,
+8official MetaEditor fixture compiles0errors/0warnings, browser/draft/A-B/restart
+verified. Final review added finite-account rejection and Windows device filename
+rejection; final backend regression tmp/pb016-backend-final4.log in progress, then
+refresh official compiler report/goldens and final smoke before scoped publication.
+
+Owned browser API5256→21520/PG6sjuvufm stopped via sentinel; password removed.
+Backend clustersw67ef0k0,ckm45cxt,2jkckbkq,v34xtr_u stopped/password removed.
+One clean attempt failed because browser JVM held JAR; stopped it, no forced delete.
+One Python CPU probe timed out under concurrent load; unchanged42 passed on retry.
+See PB016 results/revision history for all limitations.
+
+Actual MQL runtime NOT RUN: isolated script probe initialization failed after wait;
+service probe only compiled. Computer Use app approval timed out; PO notified,
+no UI retry/bypass after timeout. Product output stays experimental script, not a
+service/EA. Existing MetaQuotes signed compiler runs as normal CLI verification;
+no owner terminal profile/account copied/changed. No terminal remains intentionally
+running; inspect process/path before further target actions. Do not close Issue18
+without actual target/event/negative CSV checks. After safe PB016 checkpoint,
+PB024 is next independent READY P1 if external blockers remain; PB022 later P2.
+PB008/Issue12 still needs project AI key/real-provider smoke. Recheck credential
+presence without printing values at feature boundary. Full goal remains active.
+
+## 31/08/2026 — PB-016 final local checkpoint ready for publication
+
+Final frozen source163backend/186frontend/44Python PASS; JavaOSV118/npm0;
+verifier/canonical/UI fixtures6each. Official MetaEditor8fixtures zero errors/
+warnings, hashes equal reviewed goldens after finite-account/device-filename
+guards. Final API smoke27456→26396/PGzoftr_bz PASS, codehash1d213cce...;
+all owned API/PG stopped/password removed, including final abe6tr9u regression.
+Source/CI unchanged since tests except evidence/docs. Browser test users signed
+out. No protected mvp-ui file touched. PB016 Issue18 remains OPEN/BLOCKED for
+actual official runtime/negative cases, not a local test failure.
+
+Next: run exact scope/diff/staged checks, commit Vietnamese Refs18+17, normal
+push main and verify exact GitHub SHA/actual CI, update Issue18 without closing.
+Then recheck blockers/READY order and continue PB024 (audit diagnostics) if AI
+and target access still unavailable. Do not stop the full autonomous goal after
+publishing this checkpoint or redo DONE features.

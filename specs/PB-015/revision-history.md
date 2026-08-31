@@ -12,3 +12,8 @@
   and generated credential files removed. Earlier compile/type/fixture-count
   failures recorded in results.md. Official target validation remains unavailable;
   publication checkpoint next, Issue17 must remain open pending target execution.
+
+- 31/08/2026: publication checkpoint60964d5714b74f2580f896fa7654503dfd8d5b85,
+  exact local/origin/GitHub main SHA verified; CI33382521115 SUCCESS. Downloaded
+  actual152backend/176frontend/42Python/JavaOSV118 PASS. Issue17 comment5477092546
+  retains OPEN/BLOCKED for official Pine; PB-016/#18 selected next independently.

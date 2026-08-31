@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "synthetic": true,
+  "realHttpPostgres": true,
+  "actualApiDownUpObserved": true,
+  "sessionAndArtifactSurvivedRestart": true,
+  "idempotentReplayBeforeAndAfterRestart": true,
+  "sourceDeleteRemovesExport": true,
+  "dslHash": "93552dae78712326cabe76cb51e828c0336984e2ba5e75bbe381331a872f84dd",
+  "codeHash": "1d213ccea9d0c415bcb92bdd8f66515caf9ef63b7bc9eea4a4abfe959d609af2",
+  "generatorVersion": "mql5-research-1.0.0",
+  "officialMQL5Runtime": "NOT_RUN"
+}

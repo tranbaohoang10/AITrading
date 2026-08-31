@@ -7,9 +7,13 @@
 - [x] Replace authenticated Pine mock with real export view and frontend tests.
 - [x] Run real browser, persistence/restart, regression/build/lint/security audits.
 - [ ] Run official Pine compiler/runtime against synthetic event fixtures.
-- [ ] Inspect scope/diff, commit/push main, verify exact SHA and CI.
+- [x] Inspect scope/diff, commit/push main, verify exact SHA and CI.
 - [ ] Complete Issue only if all AC/DoD pass; otherwise preserve exact blocker and continue independent READY work.
 
 Local final:152 backend,176 frontend,42 Python,6 verifier,6 canonical and6 UI
 fixtures PASS; lint/build/JavaOSV118/npm0 PASS. Official Pine is BLOCKED/NOT RUN;
 source snapshots and synthetic assertion scripts are preparation only.
+
+31/08/2026 publication verified60964d5714b74f2580f896fa7654503dfd8d5b85;
+CI33382521115 SUCCESS, downloaded152backend/176frontend/42Python and JavaOSV118.
+Issue17 kept OPEN/BLOCKED, comment5477092546; continued independent PB-016/#18.

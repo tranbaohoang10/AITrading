@@ -1,0 +1,40 @@
+- complementary "Global navigation":
+  - generic "AI Trading": AT
+  - navigation "Primary":
+    - button "Workspace":
+    - button "AI Strategy":
+    - button "Backtest":
+    - button "My Code":
+    - button "Trading Journal":
+    - button "Strategies":
+  - button "Settings":
+  - button "Account":
+- region "AI Chat":
+  - heading "Quant / Research conversations" [level=2]
+  - paragraph: Private saved messages · AI requests are always explicit
+  - button "New Chat"
+  - button "Refresh list"
+  - paragraph: No conversations yet. Start a New Chat.
+  - navigation "Saved conversations"
+  - generic: Select a conversation or start a New Chat. Messages are saved to your account; strategy generation will be connected separately.
+  - region "AI provider controls":
+    - button "Check AI availability"
+    - generic: Provider availability not checked.
+    - paragraph: Ask AI sends up to 20 recent saved messages from this conversation to the configured provider. Provider retention policies apply. Do not include secrets. Research output may be wrong; no trades are executed.
+    - button "Ask AI" [disabled]
+- separator "Resize AI Chat"
+- main "Trading Workspace":
+  - paragraph: Workspace / Market data
+  - heading "AI Trading Platform" [level=1]
+  - generic: Private research
+  - button "Backtest":
+    - text: Backtest
+  - tablist "Workspace views":
+    - tab "Chart"
+    - tab "Strategy DSL"
+    - tab "Pine Script"
+    - tab "MQL5" [active] [selected]
+    - tab "Backtest Results"
+    - tab "Trades"
+  - tabpanel "MQL5":
+    - generic: Select a saved strategy in Strategy DSL to export MQL5.

@@ -1,0 +1,81 @@
+{
+  "compiler": "H:\\AITrading\\tmp\\pb016-target\\MetaEditor64.exe",
+  "compilerHash": "05718f3fa55f3f59fd2f024d8c433b457fbd58fcf39e947a16ccdad00a614ec7",
+  "ownedDirectory": "H:\\AITrading\\tmp\\mql5-compile-53ot40dk",
+  "officialCompilationPassed": true,
+  "officialRuntimeStatus": "NOT_RUN",
+  "fixtures": [
+    {
+      "fixture": "causal-all-indicators",
+      "codeHash": "df83a0822e5e716ade8318aa97b4e58078e072f7ca7fb876f7b2acf522786d2a",
+      "processExitCode": 1,
+      "diagnostics": "\r\n\r\nH:\\AITrading\\tmp\\mql5-compile-53ot40dk\\causal-all-indicators.mq5 : information: compiling H:\\AITrading\\tmp\\mql5-compile-53ot40dk\\causal-all-indicators.mq5\r\n : information: generating code\r\n : information: generating code 3%\r\n : information: generating code 6%\r\n : information: generating code 9%\r\n : information: generating code 12%\r\n : information: generating code 15%\r\n : information: generating code 18%\r\n : information: generating code 21%\r\n : information: generating code 24%\r\n : information: generating code 27%\r\n : information: generating code 30%\r\n : information: generating code 33%\r\n : information: generating code 36%\r\n : information: generating code 39%\r\n : information: generating code 42%\r\n : information: generating code 45%\r\n : information: generating code 48%\r\n : information: generating code 51%\r\n : information: generating code 54%\r\n : information: generating code 57%\r\n : information: generating code 60%\r\n : information: generating code 63%\r\n : information: generating code 66%\r\n : information: generating code 69%\r\n : information: generating code 72%\r\n : information: generating code 75%\r\n : information: generating code 78%\r\n : information: generating code 81%\r\n : information: generating code 84%\r\n : information: generating code 87%\r\n : information: generating code 90%\r\n : information: generating code 93%\r\n : information: generating code 95%\r\n : information: generating code 100%\r\n : information: code generated\r\nResult: 0 errors, 0 warnings, 4369 ms elapsed, cpu='X64 Regular'\r\n",
+      "compilerPassed": true,
+      "runtimeStatus": "NOT_RUN",
+      "executableHash": "15cec45626a2c45e7fcbebe375b61ae73906d91b683b01cf3b0268b2619698ed"
+    },
+    {
+      "fixture": "costs-both-hit-gap",
+      "codeHash": "fd277827826316318d099621f2418cf0bd7e48356e1ac05504fa1492adf952eb",
+      "processExitCode": 1,
+      "diagnostics": "\r\n\r\nH:\\AITrading\\tmp\\mql5-compile-53ot40dk\\costs-both-hit-gap.mq5 : information: compiling H:\\AITrading\\tmp\\mql5-compile-53ot40dk\\costs-both-hit-gap.mq5\r\n : information: generating code\r\n : information: generating code 3%\r\n : information: generating code 6%\r\n : information: generating code 9%\r\n : information: generating code 12%\r\n : information: generating code 15%\r\n : information: generating code 18%\r\n : information: generating code 21%\r\n : information: generating code 24%\r\n : information: generating code 27%\r\n : information: generating code 30%\r\n : information: generating code 33%\r\n : information: generating code 36%\r\n : information: generating code 39%\r\n : information: generating code 42%\r\n : information: generating code 45%\r\n : information: generating code 48%\r\n : information: generating code 51%\r\n : information: generating code 54%\r\n : information: generating code 57%\r\n : information: generating code 60%\r\n : information: generating code 63%\r\n : information: generating code 66%\r\n : information: generating code 69%\r\n : information: generating code 72%\r\n : information: generating code 75%\r\n : information: generating code 78%\r\n : information: generating code 81%\r\n : information: generating code 84%\r\n : information: generating code 87%\r\n : information: generating code 90%\r\n : information: generating code 93%\r\n : information: generating code 95%\r\n : information: generating code 100%\r\n : information: code generated\r\nResult: 0 errors, 0 warnings, 2355 ms elapsed, cpu='X64 Regular'\r\n",
+      "compilerPassed": true,
+      "runtimeStatus": "NOT_RUN",
+      "executableHash": "49729828744ba7478798f43067f63c1a3b8bcfbd65ebb6abb474b156bf252c55"
+    },
+    {
+      "fixture": "hand-next-open",
+      "codeHash": "18245f7af4a259243095294897ee767a0ed4f2e5c87c5487e08948921c8a9b89",
+      "processExitCode": 1,
+      "diagnostics": "\r\n\r\nH:\\AITrading\\tmp\\mql5-compile-53ot40dk\\hand-next-open.mq5 : information: compiling H:\\AITrading\\tmp\\mql5-compile-53ot40dk\\hand-next-open.mq5\r\n : information: generating code\r\n : information: generating code 3%\r\n : information: generating code 6%\r\n : information: generating code 9%\r\n : information: generating code 12%\r\n : information: generating code 15%\r\n : information: generating code 18%\r\n : information: generating code 21%\r\n : information: generating code 24%\r\n : information: generating code 27%\r\n : information: generating code 30%\r\n : information: generating code 33%\r\n : information: generating code 36%\r\n : information: generating code 39%\r\n : information: generating code 42%\r\n : information: generating code 45%\r\n : information: generating code 48%\r\n : information: generating code 51%\r\n : information: generating code 54%\r\n : information: generating code 57%\r\n : information: generating code 60%\r\n : information: generating code 63%\r\n : information: generating code 66%\r\n : information: generating code 69%\r\n : information: generating code 72%\r\n : information: generating code 75%\r\n : information: generating code 78%\r\n : information: generating code 81%\r\n : information: generating code 84%\r\n : information: generating code 87%\r\n : information: generating code 90%\r\n : information: generating code 93%\r\n : information: generating code 95%\r\n : information: generating code 100%\r\n : information: code generated\r\nResult: 0 errors, 0 warnings, 3798 ms elapsed, cpu='X64 Regular'\r\n",
+      "compilerPassed": true,
+      "runtimeStatus": "NOT_RUN",
+      "executableHash": "06a199d5983a253e87d1a3afefd6ac4af34ac2af442ed7e8b5d44a744b5ea349"
+    },
+    {
+      "fixture": "long-target-cap",
+      "codeHash": "ec377c87e7cb655a732450b6f27f830e0cb37e86d4d6ff239227b7150344a0f4",
+      "processExitCode": 1,
+      "diagnostics": "\r\n\r\nH:\\AITrading\\tmp\\mql5-compile-53ot40dk\\long-target-cap.mq5 : information: compiling H:\\AITrading\\tmp\\mql5-compile-53ot40dk\\long-target-cap.mq5\r\n : information: generating code\r\n : information: generating code 3%\r\n : information: generating code 6%\r\n : information: generating code 9%\r\n : information: generating code 12%\r\n : information: generating code 15%\r\n : information: generating code 18%\r\n : information: generating code 21%\r\n : information: generating code 24%\r\n : information: generating code 27%\r\n : information: generating code 30%\r\n : information: generating code 33%\r\n : information: generating code 36%\r\n : information: generating code 39%\r\n : information: generating code 42%\r\n : information: generating code 45%\r\n : information: generating code 48%\r\n : information: generating code 51%\r\n : information: generating code 54%\r\n : information: generating code 57%\r\n : information: generating code 60%\r\n : information: generating code 63%\r\n : information: generating code 66%\r\n : information: generating code 69%\r\n : information: generating code 72%\r\n : information: generating code 75%\r\n : information: generating code 78%\r\n : information: generating code 81%\r\n : information: generating code 84%\r\n : information: generating code 87%\r\n : information: generating code 90%\r\n : information: generating code 93%\r\n : information: generating code 95%\r\n : information: generating code 100%\r\n : information: code generated\r\nResult: 0 errors, 0 warnings, 3331 ms elapsed, cpu='X64 Regular'\r\n",
+      "compilerPassed": true,
+      "runtimeStatus": "NOT_RUN",
+      "executableHash": "4c625eb371ea78004d6c1fc315ef2263797f1f58f35cc4f804339596300eacdb"
+    },
+    {
+      "fixture": "nonpositive-equity",
+      "codeHash": "f6d62cfc57c0de80b1a23fede2a50733c9648d35fded6b0fd30ef5d42785f246",
+      "processExitCode": 1,
+      "diagnostics": "\r\n\r\nH:\\AITrading\\tmp\\mql5-compile-53ot40dk\\nonpositive-equity.mq5 : information: compiling H:\\AITrading\\tmp\\mql5-compile-53ot40dk\\nonpositive-equity.mq5\r\n : information: generating code\r\n : information: generating code 3%\r\n : information: generating code 6%\r\n : information: generating code 9%\r\n : information: generating code 12%\r\n : information: generating code 15%\r\n : information: generating code 18%\r\n : information: generating code 21%\r\n : information: generating code 24%\r\n : information: generating code 27%\r\n : information: generating code 30%\r\n : information: generating code 33%\r\n : information: generating code 36%\r\n : information: generating code 39%\r\n : information: generating code 42%\r\n : information: generating code 45%\r\n : information: generating code 48%\r\n : information: generating code 51%\r\n : information: generating code 54%\r\n : information: generating code 57%\r\n : information: generating code 60%\r\n : information: generating code 63%\r\n : information: generating code 66%\r\n : information: generating code 69%\r\n : information: generating code 72%\r\n : information: generating code 75%\r\n : information: generating code 78%\r\n : information: generating code 81%\r\n : information: generating code 84%\r\n : information: generating code 87%\r\n : information: generating code 90%\r\n : information: generating code 93%\r\n : information: generating code 95%\r\n : information: generating code 100%\r\n : information: code generated\r\nResult: 0 errors, 0 warnings, 2223 ms elapsed, cpu='X64 Regular'\r\n",
+      "compilerPassed": true,
+      "runtimeStatus": "NOT_RUN",
+      "executableHash": "697320350318d2ecb73f4df24b81efe133f13c23e06b73082907df92e256737b"
+    },
+    {
+      "fixture": "rule-exit-before-barriers",
+      "codeHash": "a5e81695897ca4c1af71b54dfeea61bafeb134e2d5ed885ca2aa3575eac49dd5",
+      "processExitCode": 1,
+      "diagnostics": "\r\n\r\nH:\\AITrading\\tmp\\mql5-compile-53ot40dk\\rule-exit-before-barriers.mq5 : information: compiling H:\\AITrading\\tmp\\mql5-compile-53ot40dk\\rule-exit-before-barriers.mq5\r\n : information: generating code\r\n : information: generating code 3%\r\n : information: generating code 6%\r\n : information: generating code 9%\r\n : information: generating code 12%\r\n : information: generating code 15%\r\n : information: generating code 18%\r\n : information: generating code 21%\r\n : information: generating code 24%\r\n : information: generating code 27%\r\n : information: generating code 30%\r\n : information: generating code 33%\r\n : information: generating code 36%\r\n : information: generating code 39%\r\n : information: generating code 42%\r\n : information: generating code 45%\r\n : information: generating code 48%\r\n : information: generating code 51%\r\n : information: generating code 54%\r\n : information: generating code 57%\r\n : information: generating code 60%\r\n : information: generating code 63%\r\n : information: generating code 66%\r\n : information: generating code 69%\r\n : information: generating code 72%\r\n : information: generating code 75%\r\n : information: generating code 78%\r\n : information: generating code 81%\r\n : information: generating code 84%\r\n : information: generating code 87%\r\n : information: generating code 90%\r\n : information: generating code 93%\r\n : information: generating code 95%\r\n : information: generating code 100%\r\n : information: code generated\r\nResult: 0 errors, 0 warnings, 1841 ms elapsed, cpu='X64 Regular'\r\n",
+      "compilerPassed": true,
+      "runtimeStatus": "NOT_RUN",
+      "executableHash": "59020cd2ee845d19ecbce133bd1dca843fe451dc15cf137971d0587802a5f96e"
+    },
+    {
+      "fixture": "short-target-cap",
+      "codeHash": "7587dbf9c4fd099efbb0775d11f92e86977e837e05868c8659280f4fd972f41d",
+      "processExitCode": 1,
+      "diagnostics": "\r\n\r\nH:\\AITrading\\tmp\\mql5-compile-53ot40dk\\short-target-cap.mq5 : information: compiling H:\\AITrading\\tmp\\mql5-compile-53ot40dk\\short-target-cap.mq5\r\n : information: generating code\r\n : information: generating code 3%\r\n : information: generating code 6%\r\n : information: generating code 9%\r\n : information: generating code 12%\r\n : information: generating code 15%\r\n : information: generating code 18%\r\n : information: generating code 21%\r\n : information: generating code 24%\r\n : information: generating code 27%\r\n : information: generating code 30%\r\n : information: generating code 33%\r\n : information: generating code 36%\r\n : information: generating code 39%\r\n : information: generating code 42%\r\n : information: generating code 45%\r\n : information: generating code 48%\r\n : information: generating code 51%\r\n : information: generating code 54%\r\n : information: generating code 57%\r\n : information: generating code 60%\r\n : information: generating code 63%\r\n : information: generating code 66%\r\n : information: generating code 69%\r\n : information: generating code 72%\r\n : information: generating code 75%\r\n : information: generating code 78%\r\n : information: generating code 81%\r\n : information: generating code 84%\r\n : information: generating code 87%\r\n : information: generating code 90%\r\n : information: generating code 93%\r\n : information: generating code 95%\r\n : information: generating code 100%\r\n : information: code generated\r\nResult: 0 errors, 0 warnings, 2325 ms elapsed, cpu='X64 Regular'\r\n",
+      "compilerPassed": true,
+      "runtimeStatus": "NOT_RUN",
+      "executableHash": "f6ba4f407d85e69f59debad9634011aa933e07b5179d8f8832ca6e74e402bb0c"
+    },
+    {
+      "fixture": "simultaneous-entries",
+      "codeHash": "64a0fb03bcfe0ab188c89080cff3e321f5c75fce39c0d29f82e8b91edd0d5727",
+      "processExitCode": 1,
+      "diagnostics": "\r\n\r\nH:\\AITrading\\tmp\\mql5-compile-53ot40dk\\simultaneous-entries.mq5 : information: compiling H:\\AITrading\\tmp\\mql5-compile-53ot40dk\\simultaneous-entries.mq5\r\n : information: generating code\r\n : information: generating code 3%\r\n : information: generating code 6%\r\n : information: generating code 9%\r\n : information: generating code 12%\r\n : information: generating code 15%\r\n : information: generating code 18%\r\n : information: generating code 21%\r\n : information: generating code 24%\r\n : information: generating code 27%\r\n : information: generating code 30%\r\n : information: generating code 33%\r\n : information: generating code 36%\r\n : information: generating code 39%\r\n : information: generating code 42%\r\n : information: generating code 45%\r\n : information: generating code 48%\r\n : information: generating code 51%\r\n : information: generating code 54%\r\n : information: generating code 57%\r\n : information: generating code 60%\r\n : information: generating code 63%\r\n : information: generating code 66%\r\n : information: generating code 69%\r\n : information: generating code 72%\r\n : information: generating code 75%\r\n : information: generating code 78%\r\n : information: generating code 81%\r\n : information: generating code 84%\r\n : information: generating code 87%\r\n : information: generating code 90%\r\n : information: generating code 93%\r\n : information: generating code 95%\r\n : information: generating code 100%\r\n : information: code generated\r\nResult: 0 errors, 0 warnings, 3245 ms elapsed, cpu='X64 Regular'\r\n",
+      "compilerPassed": true,
+      "runtimeStatus": "NOT_RUN",
+      "executableHash": "016ffa78b7b5f690e8b99cd5c371ca7959dfe292d9ff764ffc59801d95eee09a"
+    }
+  ]
+}

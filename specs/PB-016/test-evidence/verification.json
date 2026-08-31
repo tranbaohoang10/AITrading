@@ -1,0 +1,54 @@
+{
+  "date": "31/08/2026",
+  "backend": {
+    "tests": 163,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "frontend": {
+    "tests": 186,
+    "failed": 0
+  },
+  "python": {
+    "tests": 44,
+    "failed": 0
+  },
+  "verificationTools": 6,
+  "canonicalFixtures": 6,
+  "backtestUiFixtures": 6,
+  "javaDependencies": {
+    "count": 118,
+    "findings": [],
+    "passed": true
+  },
+  "npmVulnerabilities": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "officialCompiler": {
+    "fixtures": 8,
+    "errors": 0,
+    "warnings": 0,
+    "passed": true
+  },
+  "finalApiRestartSmoke": {
+    "passed": true,
+    "synthetic": true,
+    "realHttpPostgres": true,
+    "actualApiDownUpObserved": true,
+    "sessionAndArtifactSurvivedRestart": true,
+    "idempotentReplayBeforeAndAfterRestart": true,
+    "sourceDeleteRemovesExport": true,
+    "dslHash": "93552dae78712326cabe76cb51e828c0336984e2ba5e75bbe381331a872f84dd",
+    "codeHash": "1d213ccea9d0c415bcb92bdd8f66515caf9ef63b7bc9eea4a4abfe959d609af2",
+    "generatorVersion": "mql5-research-1.0.0",
+    "officialMQL5Runtime": "NOT_RUN"
+  },
+  "officialRuntime": "NOT_RUN",
+  "featureDoD": false
+}
