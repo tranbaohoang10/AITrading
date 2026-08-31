@@ -43,3 +43,27 @@ temporary password removed. Frontend lint/build and all40 tests passed; npm audi
 Six verifier tests passed; fresh OSV118-coordinate scan returned no findings.
 No product source changed during this re-verification. GitHub CI remains required
 after commit/push; prior local/browser evidence above is retained.
+
+## First published CI failure and recovery-test correction
+
+Commit8015f21 pushed normally; Actions33348966758 passed frontend but failed one
+of22 backend cases on Ubuntu/PostgreSQL16. Downloaded JUnit evidence pinpoints the
+post-restart /me assertion: expected200, actual503; the preceding outage503 check
+passed. This is not recorded as a successful delivery.
+
+The original assertion conflated pg_ctl server startup with client-pool recovery.
+The locked [HikariCP7.0.2 source](https://github.com/brettwooldridge/HikariCP/blob/HikariCP-7.0.2/src/main/java/com/zaxxer/hikari/pool/HikariPool.java)
+uses a500ms alive-check bypass and asynchronous connection replacement. A transient
+503 immediately after rapid Linux restart is consistent with stale pooled
+connections; local Windows restart timing did not expose it. Do not alter private
+Hikari system properties or automatically replay unsafe application mutations.
+
+The recovery test now polls only safe GET /me for at most15s using the existing
+Awaitility dependency. Every response must be200 or sanitized503;401/500 fail
+immediately. Success still requires the identical authenticated user's profile;
+permanent unavailability times out as failure. No auth/security assertion or test
+was removed. Rerun local and actual CI before claiming the correction successful.
+
+Correction local rerun31/08/2026: Java21/owned pg-test-eieztlv4 locked clean build
+and all22 JUnit tests PASS, zero failures/errors/skips, safe cluster shutdown and
+password removal verified. No dependency or frontend change in the correction.

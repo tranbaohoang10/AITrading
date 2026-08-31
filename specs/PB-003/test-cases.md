@@ -50,6 +50,12 @@ compile/API-lock setup errors were repaired, not reclassified as successful test
 
 ### Current case status after final local run
 
+Subsequent publication: Actions33348966758 failed AUTH-12's immediate recovery
+assertion (503 after pg_ctl restart, not200). Local statuses below remain historical
+local results. The corrected recovery criterion requires same-session/same-user200
+within15s, permitting only sanitized503 while the pool reconnects;401/500 fail.
+AUTH-14 remains pending until the compensating commit passes actual CI.
+
 | Cases | Actual result | Status | Evidence |
 | --- | --- | --- | --- |
 | AUTH-01–03 | Valid/invalid boundaries, normalized unique emails, distinct Argon2id salt/parameters, duplicate acknowledgement and four concurrent registrations verified | PASS | backend-auth-tests.json |

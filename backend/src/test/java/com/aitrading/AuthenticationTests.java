@@ -310,6 +310,21 @@ class AuthenticationTests {
                     .redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.appendTo(controlLog.toFile())).start().waitFor();
             assertThat(started).isZero();
         }
-        assertThat(profile(signedIn).get("email").asString()).isEqualTo("a@example.test");
+        // pg_ctl readiness is not pool readiness: Hikari validates idle connections
+        // outside its 500ms alive-bypass window and replaces dead ones asynchronously.
+        // Retry only this safe read, not login/password writes, and never accept a
+        // lost session (401), generic server error (500), or a different identity.
+        org.awaitility.Awaitility.await().atMost(Duration.ofSeconds(15))
+                .pollInterval(Duration.ofMillis(100)).until(() -> {
+                    var recovered = get(signedIn, "/api/auth/me");
+                    assertThat(recovered.statusCode()).isIn(200, 503);
+                    if (recovered.statusCode() == 503) {
+                        assertThat(recovered.body()).contains("UNAVAILABLE")
+                                .doesNotContain(PASSWORD, "jdbc", "Exception", "$argon2");
+                        return false;
+                    }
+                    assertThat(json.readTree(recovered.body()).get("email").asString()).isEqualTo("a@example.test");
+                    return true;
+                });
     }
 }
