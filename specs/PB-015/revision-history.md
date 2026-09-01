@@ -24,3 +24,11 @@
   compiled and was added to chart but also produced no log entry; console repeats
   `Fetch:https://undefined/ping. TypeError: Failed to fetch`. Record as external
   TradingView subsystem blocker, not PASS; retain Issue17 OPEN/BLOCKED.
+
+- 01/09/2026: Chrome Incognito isolation proves Pine Logs can render the minimal
+  `PB015_LOG_SUBSYSTEM_OK` output and the full `hand-next-open` four-bar actual
+  event/accounting trace with its assertion-PASS record. The next fixture,
+  `costs-both-hit-gap`, immediately reproduced the TradingView
+  `Fetch:https://undefined/ping. TypeError: Failed to fetch` failure and returned
+  no logs. No retry or other fixture run. This is partial target evidence only;
+  Issue17 remains OPEN/BLOCKED pending all eight traces.

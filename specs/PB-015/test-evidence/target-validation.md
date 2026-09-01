@@ -1,4 +1,4 @@
-# Official Pine validation — PARTIAL / Pine Logs BLOCKED
+# Official Pine validation — PARTIAL / intermittent Pine Logs BLOCKED
 
 31/08/2026. Actual anonymous TradingView chart and Pine Editor are reachable.
 Clicking **Add to chart** on the editor's untouched default indicator opened
@@ -58,3 +58,20 @@ the authenticated page console repeatedly reported `Fetch:https://undefined/ping
 TypeError: Failed to fetch`. Details are in [pine-logs-diagnostic.md](pine-logs-diagnostic.md).
 This is a TradingView-side/UI runtime blocker, so no fixture is rerun and PB-015
 must stay OPEN/BLOCKED.
+
+## 01/09/2026 Chrome Incognito isolation and partial official trace
+
+A clean, Product-Owner-authenticated Chrome Incognito session successfully showed
+the independent `PB015_LOG_SUBSYSTEM_OK` entries. In that same session,
+`hand-next-open.pine` with browser-only `trace=true` emitted all four actual event/
+accounting bars, `DATASET_END`, and its official assertion-PASS line. Its final
+bar was `exit=1`, `exitReason=1`, `exitSignalBar=2`, `exitFill=120`,
+`closedNet=200`, `balance=1200`, `equity=1200`, matching its pinned Python/
+assertion fixture.
+
+The next intended trace, `costs-both-hit-gap`, did not return any Pine Logs after
+its official update; the console resumed repeated `Fetch:https://undefined/ping.
+TypeError: Failed to fetch` errors. No retry occurred and the remaining seven
+fixtures were not run. See [the subsystem diagnostic](pine-logs-diagnostic.md).
+The evidence is partial and #17 remains OPEN/BLOCKED until all eight actual traces
+are collected and compared.
