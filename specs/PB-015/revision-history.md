@@ -17,3 +17,10 @@
   exact local/origin/GitHub main SHA verified; CI33382521115 SUCCESS. Downloaded
   actual152backend/176frontend/42Python/JavaOSV118 PASS. Issue17 comment5477092546
   retains OPEN/BLOCKED for official Pine; PB-016/#18 selected next independently.
+
+- 01/09/2026: authenticated TradingView session compiled and Updated on chart all
+  eight assertion fixtures and eight generated exports without diagnostics/runtime.error.
+  Pine Logs nevertheless remained loading. A separate minimal `log.info()` v6 script
+  compiled and was added to chart but also produced no log entry; console repeats
+  `Fetch:https://undefined/ping. TypeError: Failed to fetch`. Record as external
+  TradingView subsystem blocker, not PASS; retain Issue17 OPEN/BLOCKED.

@@ -1,4 +1,4 @@
-# Official Pine validation — NOT RUN
+# Official Pine validation — PARTIAL / Pine Logs BLOCKED
 
 31/08/2026. Actual anonymous TradingView chart and Pine Editor are reachable.
 Clicking **Add to chart** on the editor's untouched default indicator opened
@@ -47,3 +47,14 @@ This export is an experimental **research indicator**, not native Strategy Teste
 an EA, order routing or a guarantee of financial performance. Do not close Issue17
 or claim PB-015 DONE without the target verification above. Independent backlog
 work can continue while authorized external access is unavailable.
+
+## 01/09/2026 authenticated validation and subsystem diagnostic
+
+All eight assertion fixtures and eight generated exports were officially compiled
+and Updated on chart without compiler diagnostics or `runtime.error`. The remaining
+required evidence is the actual per-fixture Pine Logs event trace. Pine Logs stayed
+on its loading state even for the independent minimal v6 `log.info()` diagnostic;
+the authenticated page console repeatedly reported `Fetch:https://undefined/ping.
+TypeError: Failed to fetch`. Details are in [pine-logs-diagnostic.md](pine-logs-diagnostic.md).
+This is a TradingView-side/UI runtime blocker, so no fixture is rerun and PB-015
+must stay OPEN/BLOCKED.
