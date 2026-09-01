@@ -90,3 +90,13 @@ was made in that session. `short-target-cap`, `nonpositive-equity`,
 `rule-exit-before-barriers`, `simultaneous-entries`, and `causal-all-indicators`
 remain untouched. The intermittent `undefined/ping` console failure remains the
 external blocker; two fixtures have complete official PASS traces, six do not.
+
+## 01/09/2026 fresh long-target-cap reproduction
+
+In another new authenticated Chrome Incognito session, `long-target-cap` was
+executed from the default Pine editor, then Pine Logs was opened. Its three
+expected event/accounting bar records reappeared and match the prepared assertion
+values, but its `DATASET_END` and assertion-PASS records again did not appear.
+The page console emitted `Fetch:https://undefined/ping. TypeError: Failed to fetch`
+after the wait. This is a repeatable partial trace, not PASS evidence. No retry or
+next-fixture execution occurred in that session; #17 remains OPEN/BLOCKED.

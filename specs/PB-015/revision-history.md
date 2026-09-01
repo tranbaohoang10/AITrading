@@ -39,3 +39,9 @@
   retry followed and five fixtures were untouched. The recurring undefined/ping
   console error remains an external intermittent Pine Logs blocker. Two complete
   fixture traces are now official PASS; Issue17 remains OPEN/BLOCKED.
+
+- 01/09/2026: another new clean Incognito/default-editor execution reproduced the
+  exact `long-target-cap` partial state: its three expected bars appeared, but
+  DATASET_END/assertion PASS did not, followed by undefined/ping. No retry and no
+  next fixture. This confirms the partial evidence is repeatable without meeting
+  the DoD; Issue17 remains OPEN/BLOCKED.

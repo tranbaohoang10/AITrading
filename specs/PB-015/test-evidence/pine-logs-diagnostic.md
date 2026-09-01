@@ -83,3 +83,22 @@ No retry of `long-target-cap` occurred in this session. `short-target-cap`,
 `causal-all-indicators` were not run. Official PASS evidence now exists only for
 `hand-next-open` and `costs-both-hit-gap`; the incomplete `long-target-cap` trace
 and the five untouched fixtures keep Issue #17 OPEN/BLOCKED.
+
+## Fresh long-target-cap reproduction — 01/09/2026
+
+Product Owner opened another clean authenticated Chrome Incognito session. Codex
+started `long-target-cap` again from the untouched default Pine editor, pasted the
+prepared assertion fixture with only browser-local `trace=true`, added it to chart,
+and opened Pine Logs. This is a new official execution, not a reuse of the earlier
+partial trace.
+
+The three expected event/accounting bars appeared and matched the fixture:
+`1000` balance/equity at bar zero and one, then target `exitReason=3`,
+`exitFill=200`, `closedNet=1000`, `balance=2000`, `equity=2000` at bar two.
+After an explicit wait, no `DATASET_END` or assertion-PASS line appeared. The
+console then recorded `Fetch:https://undefined/ping. TypeError: Failed to fetch`
+from the TradingView static bundle. No retry occurred and no next fixture was run.
+
+This fresh reproduction confirms that `long-target-cap` is still PARTIAL, not
+PASS. Complete official PASS traces remain exactly `hand-next-open` and
+`costs-both-hit-gap`; Issue #17 remains OPEN/BLOCKED.
