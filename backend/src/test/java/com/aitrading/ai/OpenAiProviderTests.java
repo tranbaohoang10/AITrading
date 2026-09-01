@@ -82,6 +82,12 @@ class OpenAiProviderTests {
         assertThat(request.get("instructions").asString()).contains("AITrading Strategy DSL 1.0.0","method-neutral").doesNotContain(KEY);
         assertThat(request.get("tools").isEmpty()).isTrue();assertThat(request.get("store").asBoolean()).isFalse();
     }
+    @Test void journalEvaluationUsesProviderNeutralClosedRubricSchema() {
+        var items=AiJournalEvaluation.CRITERIA.stream().map(c->Map.of("criterion",c,"score",10,"evidence","Synthetic","feedback","Improve detail")).toList();
+        var value=Map.of("kind","evaluation","summary","Synthetic review","rubric",items,"strengths",List.of(),"improvements",List.of("Add risk"),"questions",List.of(),"disclaimer","Research feedback only; not financial advice or a profitability guarantee.");
+        response.set(envelope(json.writeValueAsString(Map.of("result",value))));var result=provider(Duration.ofSeconds(3)).evaluateJournal(context());assertThat(result.score()).isEqualTo(40);
+        var request=captured.get();assertThat(request.get("max_output_tokens").asInt()).isEqualTo(4096);assertThat(request.get("text").get("format").get("name").asString()).isEqualTo("journal_evaluation_v1");assertThat(request.get("instructions").asString()).contains("not financial advice").doesNotContain(KEY);assertThat(request.get("tools").isEmpty()).isTrue();
+    }
     @Test void disabledMissingAndInvalidConfigurationNeverCallsProvider() {
         for(var provider:List.of(new OpenAiProvider(false,KEY,"test-model"),new OpenAiProvider(true,"","test-model"),
                 new OpenAiProvider(true,KEY,""),new OpenAiProvider(true,KEY,"bad\nmodel"),new OpenAiProvider(true,"bad\r\nkey","test-model"))) {

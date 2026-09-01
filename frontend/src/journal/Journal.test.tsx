@@ -5,11 +5,13 @@ import { AuthContext } from '../auth/AuthContext'
 import { ApiError, currentUser } from '../auth/api'
 import * as api from './api'
 import * as market from '../market/api'
+import * as evaluation from './evaluationApi'
 import { fixture, key, summaryFixture } from './fixtures'
 
 vi.mock('./api', async original => ({ ...await original<typeof import('./api')>(), list: vi.fn(), summary: vi.fn(), get: vi.fn(), save: vi.fn(), remove: vi.fn() }))
 vi.mock('../market/api', async original => ({ ...await original<typeof import('../market/api')>(), listDatasets: vi.fn(), getDataset: vi.fn(), candles: vi.fn() }))
 vi.mock('../auth/api', async original => ({ ...await original<typeof import('../auth/api')>(), currentUser: vi.fn() }))
+vi.mock('./evaluationApi', async original => ({ ...await original<typeof import('./evaluationApi')>(), latest: vi.fn(), start: vi.fn(), cancel: vi.fn() }))
 const first = fixture(), second = { ...fixture(2), netPnl: '-1', data: { ...fixture(2).data, entryReason: 'Second reason' } }
 const dataset: market.Dataset = { id: key(50), name: 'Linked real fixture', symbol: 'TEST_USD', timeframe: '1h', timezone: 'UTC', sourceKind: 'SYNTHETIC', sourceLabel: 'Test only', rawHash: 'a'.repeat(64), dataHash: 'b'.repeat(64), formatVersion: 'ohlcv-v1', candleCount: 3, gapCount: 1, firstTime: '2024-01-01T00:00:00Z', lastTime: '2024-01-01T03:00:00Z', createdAt: first.createdAt }
 const candles: market.Candle[] = [0, 1, 3].map((hour, ordinal) => ({ ordinal, time: `2024-01-01T0${hour}:00:00Z`, open: '100', high: '110', low: '90', close: '105', volume: '1' }))
@@ -22,6 +24,7 @@ beforeEach(() => {
   vi.mocked(api.get).mockImplementation(async id => id === second.id ? second : first)
   vi.mocked(api.save).mockImplementation(async (id, input) => ({ requestId: input.requestId, appliedVersion: input.expectedVersion + 1, entry: { ...first, id: id ?? first.id, version: input.expectedVersion + 1, data: input.entry } }))
   vi.mocked(api.remove).mockResolvedValue(undefined)
+  vi.mocked(evaluation.latest).mockResolvedValue(null)
   vi.mocked(market.listDatasets).mockResolvedValue({ items: [dataset], nextCursor: null })
   vi.mocked(market.getDataset).mockResolvedValue(dataset)
   vi.mocked(market.candles).mockImplementation(async (_dataset, limit, start = 0) => ({ dataset, start, total: 3, items: candles.slice(start, start + limit) }))
@@ -33,6 +36,13 @@ it('renders exact real totals, inert reasons and explicit saved/no-chart distinc
   expect(within(screen.getByLabelText('Realized journal totals')).getByText('Net P&L').nextElementSibling).toHaveTextContent('0.027 USD')
   expect(screen.getByText('No chart linked to this saved entry.')).toBeInTheDocument()
   expect(api.save).not.toHaveBeenCalled()
+})
+it('evaluates only the saved reason, renders grounded rubric inertly and blocks dirty drafts', async () => {
+  const result: evaluation.Evaluation = { journalId:first.id,requestId:key(70),expectedVersion:1,snapshotHash:'a'.repeat(64),provider:'gemini',model:'gemini-3.5-flash',state:'READY',errorCode:null,score:50,
+    result:{kind:'evaluation',summary:'<script>inert summary</script>',rubric:[['specificity',15],['evidence',15],['risk',10],['invalidation',10]].map(([criterion,score])=>({criterion:criterion as evaluation.Item['criterion'],score:score as number,evidence:'<script>inert reason</script>',feedback:'Synthetic feedback'})),strengths:[],improvements:['Define invalidation'],questions:[],disclaimer:'Research feedback only; not financial advice or a profitability guarantee.'},createdAt:first.createdAt,expiresAt:first.createdAt,updatedAt:first.updatedAt }
+  vi.mocked(evaluation.start).mockResolvedValue(result);render(<App />);await select();fireEvent.click(screen.getByRole('button',{name:'Evaluate saved reason'}));await screen.findByText('Reason quality: 50/100')
+  expect(evaluation.start).toHaveBeenCalledWith(first.id,1,expect.any(String),undefined);expect(document.querySelector('script')).toBeNull();expect(screen.getByLabelText('AI journal evaluation')).toHaveTextContent('inert summary')
+  fireEvent.change(screen.getByLabelText('Entry reason'),{target:{value:'unsaved private draft'}});expect(screen.getByRole('button',{name:'Evaluate saved reason'})).toBeDisabled();expect(screen.getByText(/unsaved text is never sent/)).toBeInTheDocument()
 })
 it('guards dirty new/selection/refresh, preserves draft on cancellation and across view changes', async () => {
   const view = render(<App />);await select();fireEvent.change(screen.getByLabelText('Journal notes'), { target: { value: 'Unsaved unique note' } })

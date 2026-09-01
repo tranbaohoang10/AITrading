@@ -33,6 +33,9 @@ public final class OpenAiProvider implements AiProvider {
     @Override public AiProposal propose(List<ContextMessage> context) {
         return AiProposal.decode(decodeText(send(context,AiProposalProtocol.INSTRUCTIONS,AiProposalProtocol.SCHEMA,"strategy_proposal_v1",8192)),key);
     }
+    @Override public AiJournalEvaluation evaluateJournal(List<ContextMessage> context) {
+        return AiJournalEvaluation.decode(decodeText(send(context,AiJournalProtocol.INSTRUCTIONS,AiJournalProtocol.SCHEMA,"journal_evaluation_v1",4096)),key);
+    }
     private byte[] send(List<ContextMessage> context,String instructions,Map<String,Object> schema,String schemaName,int tokens) {
         if(!configuration.configured())throw new AiFailure(AiFailure.Code.AI_UNCONFIGURED);
         AiProviderProtocol.validateContext(context);

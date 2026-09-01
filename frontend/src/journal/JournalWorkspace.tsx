@@ -4,6 +4,7 @@ import { Modal } from '../components/Modal'
 import { CandleChart } from '../market/CandleChart'
 import { useJournal } from './JournalContext'
 import { monthFilter } from './JournalProvider'
+import { JournalEvaluationPanel } from './JournalEvaluationPanel'
 import { timeframes, type Filter, type Input, type Values } from './api'
 
 const pnlClass = (value: string | null) => value === null || /^-?0(\.0+)?$/.test(value) ? 'text-slate-300' : value.startsWith('-') ? 'text-rose-300' : 'text-emerald-300'
@@ -29,7 +30,7 @@ export function JournalWorkspace() {
   const submit = (event: FormEvent) => { event.preventDefault(); void journal.save() }
   const matching = journal.datasets.filter(dataset => dataset.symbol === draft.symbol && dataset.timeframe === draft.timeframe)
   return <section className="h-full overflow-y-auto bg-slate-950 p-4 text-slate-100 sm:p-6" aria-label="Private Trading Journal">
-    <header className="mb-5 flex flex-wrap items-start justify-between gap-3"><div><h1 className="text-xl font-semibold">Trading Journal</h1><p className="mt-1 text-xs text-slate-400">Private manual trade records · no broker orders or AI scoring</p></div>
+    <header className="mb-5 flex flex-wrap items-start justify-between gap-3"><div><h1 className="text-xl font-semibold">Trading Journal</h1><p className="mt-1 text-xs text-slate-400">Private manual trade records · optional saved-reason AI review · no broker orders</p></div>
       <div className="flex flex-wrap gap-2"><button className={buttonClass} disabled={locked} onClick={journal.newEntry}>New journal entry</button><button className={buttonClass} disabled={locked} onClick={journal.refresh}>Refresh journal</button></div></header>
     {journal.error && <p role="alert" className="mb-4 border border-rose-900 bg-rose-950/20 p-3 text-sm text-rose-200">{journal.error}</p>}
     {journal.notice && <p role="status" className="mb-4 text-sm text-emerald-300">{journal.notice}</p>}
@@ -94,6 +95,7 @@ export function JournalWorkspace() {
           {journal.chartError && <div className="space-y-3"><p role="alert" className="text-sm text-amber-200">Linked chart unavailable. {journal.chartError} Journal values are unchanged.</p><button className={buttonClass} onClick={() => { void journal.loadChart() }}>Retry linked chart</button></div>}
           {journal.chart && <><p className="text-xs text-slate-400">{journal.chart.dataset.name} · {journal.chart.dataset.sourceKind} · {journal.chart.dataset.timeframe} · gaps {journal.chart.dataset.gapCount}</p><CandleChart key={`${selected.id}:${journal.chart.start}`} page={journal.chart} /><div className="flex flex-wrap gap-2"><button className={buttonClass} disabled={journal.chartLoading || journal.chart.start === 0} onClick={() => { void journal.loadChart(Math.max(0, (journal.chart?.start ?? 0) - 100)) }}>Earlier chart window</button><button className={buttonClass} disabled={journal.chartLoading || journal.chart.start + journal.chart.items.length >= journal.chart.total} onClick={() => { void journal.loadChart((journal.chart?.start ?? 0) + 100) }}>Later chart window</button></div></>}
           {journal.chartWarning && <p className="text-xs leading-5 text-slate-400">{journal.chartWarning}</p>}
+          <JournalEvaluationPanel entry={selected} dirty={journal.dirty} />
         </>}
       </aside>
     </div>

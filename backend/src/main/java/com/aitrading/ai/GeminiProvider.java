@@ -31,6 +31,9 @@ public final class GeminiProvider implements AiProvider {
     @Override public AiProposal propose(List<ContextMessage> context) {
         return AiProposal.decode(decodeText(send(context,AiProposalProtocol.INSTRUCTIONS,AiProposalProtocol.SCHEMA,8192)),key);
     }
+    @Override public AiJournalEvaluation evaluateJournal(List<ContextMessage> context) {
+        return AiJournalEvaluation.decode(decodeText(send(context,AiJournalProtocol.INSTRUCTIONS,AiJournalProtocol.SCHEMA,4096)),key);
+    }
     private byte[] send(List<ContextMessage> context,String instructions,Map<String,Object> schema,int tokens) {
         if(!configuration.configured())throw new AiFailure(AiFailure.Code.AI_UNCONFIGURED);
         AiProviderProtocol.validateContext(context);

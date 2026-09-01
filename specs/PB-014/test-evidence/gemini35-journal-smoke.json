@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "syntheticDataOnly": true,
+  "realGemini": true,
+  "model": "gemini-3.5-flash",
+  "structuredRubricValidated": true,
+  "groundingValidated": true,
+  "scoreValidated": true,
+  "ownerIsolationVerified": true,
+  "idempotentReplay": true,
+  "actualApiDownUpObserved": true,
+  "privateNotesExcludedFromContext": true
+}

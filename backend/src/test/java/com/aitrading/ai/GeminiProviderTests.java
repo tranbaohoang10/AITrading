@@ -121,6 +121,12 @@ class GeminiProviderTests {
         for(byte[] bytes:List.of(new byte[]{(byte)0xff},"{}{}".getBytes(),"null".getBytes(),"[]".getBytes(),"{\"candidates\":[]}".getBytes()))
             failure(()->GeminiProvider.decode(bytes),AiFailure.Code.AI_INVALID_RESPONSE);
     }
+    @Test void journalEvaluationUsesClosedRubricSchemaAndNoTools() {
+        var items=AiJournalEvaluation.CRITERIA.stream().map(c->Map.of("criterion",c,"score",10,"evidence","Synthetic","feedback","Improve detail")).toList();
+        var value=Map.of("kind","evaluation","summary","Synthetic review","rubric",items,"strengths",List.of(),"improvements",List.of("Add risk"),"questions",List.of(),"disclaimer","Research feedback only; not financial advice or a profitability guarantee.");
+        response.set(rawEnvelope(json.writeValueAsString(Map.of("result",value))));assertThat(provider(Duration.ofSeconds(3)).evaluateJournal(context()).score()).isEqualTo(40);
+        var request=captured.get();assertThat(request.get("generationConfig").get("maxOutputTokens").asInt()).isEqualTo(4096);assertThat(request.get("generationConfig").get("responseJsonSchema").get("properties").get("result").has("anyOf")).isTrue();assertThat(request.get("systemInstruction").toString()).contains("not financial advice").doesNotContain(KEY);assertThat(request.get("tools").isEmpty()).isTrue();
+    }
     @Test void strategyProposalUsesSeparateNeutralSchemaAndTokenBudget() {
         var value=new LinkedHashMap<String,Object>();value.put("kind","clarification");value.put("explanation","Synthetic missing rules");value.put("assumptions",List.of());value.put("questions",List.of("Risk size?"));value.put("dslJson",null);
         response.set(rawEnvelope(json.writeValueAsString(Map.of("result",value))));

@@ -610,3 +610,20 @@ Downloaded CI artifact independently confirms235 tests,0 failures,0 errors,
 0 skipped and dependency audit0 findings. Issue21 was closed as completed only
 after this evidence. PB009 is DONE. Next READY by priority/ID is PB014, followed
 by PB018; PB015/PB016 retain their actual Pine/MQL5 runtime blockers.
+
+## 01/09/2026 — PB-014 selected / Issue #22
+
+Selected highest-priority READY PB014 after PB009 completion. Created Issue22
+before code with Use Case, AC, diagrams, data/UI/security/test requirements and
+DoD. Implementing provider-neutral, owner/version/hash-bound journal evaluation;
+no DONE feature is rebuilt and no external Pine/MQL runtime claim is changed.
+
+## 01/09/2026 — PB-014 local and real-provider verification PASS
+
+Implemented provider-neutral four-part reason rubric, V15 durable owner/version/hash
+lifecycle, trusted evidence/score checks and saved-version UI. Clean backend251,
+frontend216, Python44, verifier6, npm0 and OSV118/0 PASS. Real Gemini3.5Flash
+synthetic journal smoke PASS across structured grounding, replay, cross-owner denial
+and actual API restart; notes excluded from provider context. Disposable API/PG
+stopped and password removed. PB014 remains IN_PROGRESS only for scoped publication,
+exact GitHub SHA/CI and Issue22 completion.

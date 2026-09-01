@@ -77,6 +77,17 @@ class AiApiTests {
                 default -> new AiProposal("proposal","Synthetic validated proposal; no execution.",List.of("Synthetic fixture"),List.of(),fixture());
             };
         }
+        @Override public AiJournalEvaluation evaluateJournal(List<ContextMessage> context) {
+            calls.incrementAndGet();requests.add(json.valueToTree(context));seen.get().countDown();
+            try{gate.get().await(8,TimeUnit.SECONDS);}catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new AiFailure(AiFailure.Code.AI_CANCELLED);}
+            if(mode.get().equals("rate"))throw new AiFailure(AiFailure.Code.AI_RATE_LIMITED);
+            if(mode.get().equals("malformed-evidence"))return evaluation("not present in reason");
+            if(mode.get().equals("insufficient"))return new AiJournalEvaluation("insufficient","More evidence is required.",List.of(),List.of(),List.of("Record a measurable trigger."),List.of("Which closed-bar trigger supported entry?"),"Research feedback only; not financial advice or a profitability guarantee.");
+            return evaluation("closed candle breakout");
+        }
+        private AiJournalEvaluation evaluation(String evidence){return new AiJournalEvaluation("evaluation","The saved reason is measurable but can define risk better.",List.of(
+                new AiJournalEvaluation.Item("specificity",20,evidence,"Name the exact threshold."),new AiJournalEvaluation.Item("evidence",18,evidence,"Record the observed value."),
+                new AiJournalEvaluation.Item("risk",8,evidence,"Add risk size."),new AiJournalEvaluation.Item("invalidation",7,evidence,"Add invalidation.")),List.of("Uses a closed candle."),List.of("Define risk and invalidation."),List.of(),"Research feedback only; not financial advice or a profitability guarantee.");}
         private String fixture() {
             try(var input=ProbeProvider.class.getResourceAsStream("/dsl/indicator-trend.json")){return new String(Objects.requireNonNull(input).readAllBytes(),StandardCharsets.UTF_8);}
             catch(java.io.IOException impossible){throw new IllegalStateException("Fixture unavailable");}
