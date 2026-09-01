@@ -115,7 +115,9 @@ claim of exhaustive secret scanning. No dependency/lockfile/applied-migration ch
 ## Scope and publication
 
 This final evidence change contains only PB-015 runtime records and current
-backlog/execution documentation. Complete scope/diff verification, exact
-commit/main push and actual CI must be recorded before publication is verified and
-Issue17 is closed. PB-017 becomes READY only after that closure; do not redo DONE
-features or call the entire backlog complete.
+backlog/execution documentation. Evidence commit
+`bb015be6ceec3909cfebf9c5e74222003db0bebd` was normal-pushed, matched GitHub
+main exactly and passed Actions run `33518039202` (frontend and backend, including
+PostgreSQL integration and dependency verification). PB-015 AC/DoD is complete;
+PB-017 is the next READY feature. Do not redo DONE features or call the entire
+backlog complete.

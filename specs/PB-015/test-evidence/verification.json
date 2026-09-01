@@ -163,6 +163,12 @@
     "instrumentation": "Browser-only compact log delivery; pinned runtime/assertions unchanged",
     "evidence": "official-traces/verification.json"
   },
-  "featureDoD": false,
-  "localAndTargetDoD": true
+  "featureDoD": true,
+  "localAndTargetDoD": true,
+  "publication": {
+    "commit": "bb015be6ceec3909cfebf9c5e74222003db0bebd",
+    "githubMainExact": true,
+    "ciRun": 33518039202,
+    "ciConclusion": "SUCCESS"
+  }
 }

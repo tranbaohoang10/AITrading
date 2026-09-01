@@ -8,12 +8,16 @@
 - [x] Run real browser, persistence/restart, regression/build/lint/security audits.
 - [x] Run official Pine compiler/runtime against synthetic event fixtures.
 - [x] Inspect scope/diff, commit/push main, verify exact SHA and CI.
-- [ ] Complete Issue only if all AC/DoD pass; otherwise preserve exact blocker and continue independent READY work.
+- [x] Complete Issue only after all AC/DoD pass; publication evidence is
+  `bb015be6ceec3909cfebf9c5e74222003db0bebd` / CI `33518039202` SUCCESS.
 
 Current regression:288 backend,226 frontend,44 Python,6 verifier,6 canonical and6
 UI fixtures PASS; lint/build/JavaOSV121/npm0 PASS. Official Pine compile/update and
 all eight complete synthetic event/accounting traces PASS; exact target evidence is
 under `test-evidence/official-traces`. Publication SHA/CI remains before completion.
+
+Final publication: evidence commit `bb015be6ceec3909cfebf9c5e74222003db0bebd`
+matched GitHub main; Actions `33518039202` SUCCESS.
 
 31/08/2026 publication verified60964d5714b74f2580f896fa7654503dfd8d5b85;
 CI33382521115 SUCCESS, downloaded152backend/176frontend/42Python and JavaOSV118.

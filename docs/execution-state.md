@@ -20,6 +20,16 @@ OSV121/0. The disposable PostgreSQL cluster stopped and its credentials file was
 removed. Issue17 remains OPEN only until scoped commit, normal main push, exact
 GitHub SHA and CI verification. PB017 remains PLANNED until that closure.
 
+## 01/09/2026 — PB-015 DONE; PB-017 READY
+
+Evidence commit `bb015be6ceec3909cfebf9c5e74222003db0bebd` was pushed by a
+normal fast-forward update and matched GitHub `main` exactly. Actions run
+`33518039202` completed SUCCESS: frontend and backend jobs passed, including real
+PostgreSQL integration and resolved Java dependency verification. PB-015 now meets
+all AC/DoD with eight complete official Pine traces and no unresolved
+high/critical finding. PB-017 dependencies PB-010, PB-015 and PB-016 are DONE, so
+PB-017 is the next READY feature and requires its own Issue before implementation.
+
 ## 01/09/2026 — PB-016 official portable runtime PASS; publication pending
 
 The isolated portable terminal was explicitly launched from

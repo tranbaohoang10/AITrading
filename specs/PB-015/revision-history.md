@@ -78,3 +78,6 @@
   compact trace through DATASET_END and original assertion PASS, and matched the
   prepared Python event/accounting values. Official runtime evidence is now 8/8
   PASS; full regression/security checks pass and publication SHA/CI is pending.
+- 01/09/2026: evidence commit `bb015be6ceec3909cfebf9c5e74222003db0bebd`
+  matched GitHub main after a normal push; Actions run `33518039202` completed
+  SUCCESS. PB-015 satisfies AC/DoD and PB-017 becomes READY.
