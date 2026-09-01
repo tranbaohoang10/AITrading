@@ -3,13 +3,16 @@ import { AuthContext } from '../auth/AuthContext'
 import { ApiError } from '../auth/api'
 import { App as Shell } from '../App'
 import { ConversationProvider } from '../chat/ConversationProvider'
+import { ConversationContext, type ChatState } from '../chat/ConversationContext'
 import { MarketContext, type MarketState } from '../market/MarketContext'
 import { StrategyEditor } from './StrategyEditor'
 import { StrategyProvider } from './StrategyProvider'
 import * as api from './api'
+import * as generationApi from './generationApi'
 import sample from './sample.json'
 
 vi.mock('./api', async original => ({ ...await original<typeof import('./api')>(), listStrategies: vi.fn(), getRevision: vi.fn(), history: vi.fn(), createStrategy: vi.fn(), saveRevision: vi.fn(), validateDraft: vi.fn(), deleteStrategy: vi.fn() }))
+vi.mock('./generationApi', async original => ({ ...await original<typeof import('./generationApi')>(), latest: vi.fn(), start: vi.fn(), get: vi.fn(), decide: vi.fn() }))
 vi.mock('../chat/api', async original => ({ ...await original<typeof import('../chat/api')>(), listConversations: async () => ({ items: [], nextCursor: null }) }))
 vi.mock('../market/DatasetChart', () => ({ DatasetChart: () => <div>Chart context fixture</div> }))
 const first: api.Revision = { strategyId: '00000000-0000-0000-0000-000000000001', revision: 1, title: 'Research A', draftText: '', status: 'DRAFT', canonicalJson: null, hash: null, schemaVersion: null, validatorVersion: null, minimumBars: null, symbol: null, timeframe: null, createdAt: '2024-01-01T00:00:00Z' }
@@ -30,6 +33,7 @@ beforeEach(() => {
   vi.mocked(api.saveRevision).mockImplementation(async (id, body) => ({ ...first, strategyId: id, revision: body.expectedRevision + 1, title: body.title, draftText: body.draftText, status: body.mode, ...(body.mode === 'VALIDATED' ? { ...valid.document!, symbol: 'BTC_USDT', timeframe: '1h' } : {}) }))
   vi.mocked(api.validateDraft).mockResolvedValue(valid)
   vi.mocked(api.deleteStrategy).mockResolvedValue(undefined)
+  vi.mocked(generationApi.latest).mockResolvedValue(null)
 })
 const choose = async (item = first) => {
   await screen.findByRole('option', { name: `${item.title} · r${item.revision}` })
@@ -178,6 +182,24 @@ it('preserves drafts through workspace aliases and mobile navigation', async () 
   fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
   const nav = screen.getByRole('dialog', { name: 'Mobile navigation' }); fireEvent.click(within(nav).getByRole('button', { name: 'Strategy DSL' }))
   expect(screen.getByLabelText('Strategy JSON')).toHaveValue('persist across navigation')
+})
+
+it('keeps an AI DSL proposal inert until explicit confirmed acceptance', async () => {
+  const conversation = { id: '33333333-3333-4333-8333-333333333333', title: 'Synthetic rules', version: 2, createdAt: first.createdAt, updatedAt: first.createdAt, lastMessage: 'Synthetic request' }
+  const proposal: generationApi.Generation = { strategyId: first.strategyId, requestId: '44444444-4444-4444-8444-444444444444', conversationId: conversation.id,
+    expectedRevision: 1, expectedConversationVersion: 2, sourceSequence: 1, contextStart: 1, contextCount: 1, contextHash: 'a'.repeat(64), provider: 'gemini', model: 'gemini-3.5-flash', state: 'READY', errorCode: null,
+    proposal: { kind: 'proposal', explanation: 'Synthetic proposal', assumptions: [], questions: [], dslJson: '{"label":"<script>inert</script>"}' }, dslHash: 'b'.repeat(64), acceptedRevision: null,
+    createdAt: first.createdAt, expiresAt: first.createdAt, updatedAt: first.createdAt }
+  vi.mocked(generationApi.start).mockResolvedValue(proposal)
+  vi.mocked(generationApi.decide).mockResolvedValue({ ...proposal, state: 'ACCEPTED', acceptedRevision: 2 })
+  const chat = { selected: conversation, messages: [{ sequence: 1, requestId: '55555555-5555-4555-8555-555555555555', role: 'user', content: 'Synthetic request', createdAt: first.createdAt }], draft: '', messagesLoading: false, messageError: '',
+    aiConfiguration: { configured: true, provider: 'gemini', model: 'gemini-3.5-flash' }, aiChecking: false, checkAiConfiguration: vi.fn() } as unknown as ChatState
+  render(<AuthContext.Provider value={{ user: { id: 'a', email: 'a@example.test', displayName: 'a' }, update: vi.fn(), clear }}><ConversationContext.Provider value={chat}><StrategyProvider><StrategyEditor /></StrategyProvider></ConversationContext.Provider></AuthContext.Provider>)
+  await choose(); fireEvent.click(screen.getByRole('button', { name: 'Generate proposal' }))
+  expect(await screen.findByLabelText('AI DSL proposal preview')).toHaveTextContent('<script>inert</script>')
+  expect(api.saveRevision).not.toHaveBeenCalled(); expect(generationApi.start).toHaveBeenCalledWith(expect.objectContaining({ strategyId: first.strategyId, conversationId: conversation.id, expectedRevision: 1, expectedConversationVersion: 2, sourceSequence: 1 }), 'a')
+  fireEvent.click(screen.getByRole('button', { name: 'Accept as validated revision' })); expect(generationApi.decide).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: 'Confirm action' })); await waitFor(() => expect(generationApi.decide).toHaveBeenCalledWith(proposal, 'accept', 'a'))
 })
 
 it('warns on saved validated market mismatch but never invents a match from edited draft text', async () => {

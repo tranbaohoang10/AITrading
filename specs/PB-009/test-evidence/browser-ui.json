@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "date": "01/09/2026",
+  "syntheticDataOnly": true,
+  "provider": "gemini",
+  "model": "gemini-3.5-flash",
+  "realProviderProposalState": "READY",
+  "inertDslPreviewVisible": true,
+  "explicitAcceptConfirmationVisible": true,
+  "confirmationCancelledWithoutSave": true,
+  "mobileViewport": { "width": 390, "height": 844, "documentWidth": 390, "documentScrollWidth": 390 },
+  "mobileProposalAndPreviewVisible": true,
+  "localApiAndDatabaseStopped": true
+}

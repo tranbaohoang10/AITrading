@@ -7,5 +7,6 @@ public interface AiProvider extends AutoCloseable {
     record ContextMessage(String role, String content) { }
     Configuration configuration();
     AiAnswer answer(List<ContextMessage> context);
+    default AiProposal propose(List<ContextMessage> context) { throw new AiFailure(AiFailure.Code.AI_UNCONFIGURED); }
     @Override default void close() { }
 }

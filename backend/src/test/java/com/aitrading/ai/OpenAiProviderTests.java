@@ -72,6 +72,16 @@ class OpenAiProviderTests {
         assertThat(request.has("previous_response_id")).isFalse();assertThat(request.has("conversation")).isFalse();
         assertThat(OpenAiProvider.ENDPOINT.toString()).isEqualTo("https://api.openai.com/v1/responses");
     }
+    @Test void strategyProposalUsesSeparateNeutralSchemaAndTokenBudget() {
+        var value=new LinkedHashMap<String,Object>();value.put("kind","clarification");value.put("explanation","Synthetic missing rules");value.put("assumptions",List.of());value.put("questions",List.of("Risk size?"));value.put("dslJson",null);
+        response.set(envelope(json.writeValueAsString(Map.of("result",value))));
+        assertThat(provider(Duration.ofSeconds(3)).propose(context()).kind()).isEqualTo("clarification");
+        var request=captured.get();assertThat(request.get("max_output_tokens").asInt()).isEqualTo(8192);
+        assertThat(request.get("text").get("format").get("name").asString()).isEqualTo("strategy_proposal_v1");
+        assertThat(request.get("text").get("format").get("schema").get("properties").get("result").has("anyOf")).isTrue();
+        assertThat(request.get("instructions").asString()).contains("AITrading Strategy DSL 1.0.0","method-neutral").doesNotContain(KEY);
+        assertThat(request.get("tools").isEmpty()).isTrue();assertThat(request.get("store").asBoolean()).isFalse();
+    }
     @Test void disabledMissingAndInvalidConfigurationNeverCallsProvider() {
         for(var provider:List.of(new OpenAiProvider(false,KEY,"test-model"),new OpenAiProvider(true,"","test-model"),
                 new OpenAiProvider(true,KEY,""),new OpenAiProvider(true,KEY,"bad\nmodel"),new OpenAiProvider(true,"bad\r\nkey","test-model"))) {

@@ -1,12 +1,15 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { ApiError } from '../auth/api'
+import { ConversationContext } from '../chat/ConversationContext'
 import * as api from './api'
+import * as generationApi from './generationApi'
 import { StrategyContext } from './StrategyContext'
 
 type Pending = { kind: 'create'; payload: { requestId: string; title: string } } | { kind: 'save'; id: string; payload: api.Save } | { kind: 'delete'; selected: api.Revision }
 export function StrategyProvider({ children }: { children: ReactNode }) {
   const auth = useAuth()
+  const chat = useContext(ConversationContext)
   const [items, setItems] = useState<api.Brief[]>([]), [nextCursor, setNextCursor] = useState<string | null>(null)
   const [selected, setSelected] = useState<api.Revision | null>(null), selectedRef = useRef<api.Revision | null>(null)
   const [title, setTitle] = useState(''), [draft, setDraft] = useState('')
@@ -14,7 +17,10 @@ export function StrategyProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false), [listLoading, setListLoading] = useState(false), [validating, setValidating] = useState(false)
   const [validation, setValidation] = useState<api.Validation | null>(null), [error, setError] = useState(''), [notice, setNotice] = useState('')
   const [versions, setVersions] = useState<api.Brief[]>([]), [nextBefore, setNextBefore] = useState<number | null>(null), [preview, setPreview] = useState<api.Revision | null>(null), [historyLoading, setHistoryLoading] = useState(false)
-  const life = useRef(0), readEpoch = useRef(0), listEpoch = useRef(0), validationEpoch = useRef(0), historyEpoch = useRef(0), previewEpoch = useRef(0)
+  const [generation, setGeneration] = useState<generationApi.Generation | null>(null), [generationBusy, setGenerationBusy] = useState(false)
+  const [generationUncertain, setGenerationUncertain] = useState(false), [generationError, setGenerationError] = useState('')
+  const pendingGeneration = useRef<generationApi.GenerationIntent | null>(null)
+  const life = useRef(0), readEpoch = useRef(0), listEpoch = useRef(0), validationEpoch = useRef(0), historyEpoch = useRef(0), previewEpoch = useRef(0), generationEpoch = useRef(0)
   const dirty = !!selected && (title !== selected.title || draft !== selected.draftText)
   const blocked = () => writing.current || pending.current !== null
   const errorText = (e: unknown) => { if (e instanceof ApiError && e.status === 401) auth?.clear(); return e instanceof Error ? e.message : 'Strategy service unavailable.' }
@@ -71,7 +77,7 @@ export function StrategyProvider({ children }: { children: ReactNode }) {
   }
   useEffect(() => {
     void loadList()
-    return () => { life.current++; readEpoch.current++; listEpoch.current++; validationEpoch.current++; historyEpoch.current++; previewEpoch.current++ }
+    return () => { life.current++; readEpoch.current++; listEpoch.current++; validationEpoch.current++; historyEpoch.current++; previewEpoch.current++; generationEpoch.current++ }
   }, [])
   useEffect(() => {
     if (!dirty && !uncertain && !busy) return
@@ -126,6 +132,48 @@ export function StrategyProvider({ children }: { children: ReactNode }) {
   }
   const remove = async () => blocked() || !selectedRef.current ? false : execute({ kind: 'delete', selected: selectedRef.current })
   const retry = async () => pending.current ? execute(pending.current) : false
+  const applyGeneration = (value: generationApi.Generation) => {
+    setGeneration(value); setGenerationError(value.state === 'FAILED' ? generationApi.failure(value.errorCode) : '')
+    if (value.state === 'PENDING') {
+      pendingGeneration.current = { strategyId: value.strategyId, requestId: value.requestId, conversationId: value.conversationId, expectedRevision: value.expectedRevision, expectedConversationVersion: value.expectedConversationVersion, sourceSequence: value.sourceSequence }
+      setGenerationUncertain(true)
+    } else { pendingGeneration.current = null; setGenerationUncertain(false) }
+  }
+  const generationOperation = async (statusOnly = false) => {
+    const strategy = selectedRef.current, conversation = chat?.selected, latest = chat?.messages.at(-1), previous = pendingGeneration.current
+    if (!strategy || !conversation || generationBusy || (!previous && (statusOnly || dirty || chat.draft.trim() || chat.messagesLoading || !!chat.messageError || !latest || latest.role !== 'user'))) return
+    const intent = previous ?? { strategyId: strategy.strategyId, requestId: crypto.randomUUID(), conversationId: conversation.id, expectedRevision: strategy.revision, expectedConversationVersion: conversation.version, sourceSequence: latest!.sequence }
+    if (intent.strategyId !== strategy.strategyId || intent.conversationId !== conversation.id) return
+    const epoch = ++generationEpoch.current; pendingGeneration.current = intent; setGenerationBusy(true); setGenerationUncertain(true); setGenerationError('')
+    if (!previous) setGeneration(null)
+    try {
+      const result = await (statusOnly ? generationApi.get(intent, auth?.user.id) : generationApi.start(intent, auth?.user.id))
+      if (epoch === generationEpoch.current && selectedRef.current?.strategyId === intent.strategyId) applyGeneration(result)
+    } catch (e) {
+      if (epoch !== generationEpoch.current) return
+      if (!previous && generationApi.definite(e)) { pendingGeneration.current = null; setGenerationUncertain(false) }
+      setGenerationError(errorText(e))
+    } finally { if (epoch === generationEpoch.current) setGenerationBusy(false) }
+  }
+  const decideGeneration = async (action: 'accept' | 'reject' | 'cancel') => {
+    const current = generation, strategy = selectedRef.current
+    if (!current || !strategy || generationBusy || current.strategyId !== strategy.strategyId || current.conversationId !== chat?.selected?.id) return
+    const epoch = ++generationEpoch.current; setGenerationBusy(true); setGenerationError('')
+    try {
+      const result = await generationApi.decide(current, action, auth?.user.id)
+      if (epoch !== generationEpoch.current) return
+      applyGeneration(result)
+      if (result.state === 'ACCEPTED') { await select(result.strategyId); setNotice(`Accepted AI proposal as validated revision ${result.acceptedRevision}.`) }
+    } catch (e) { if (epoch === generationEpoch.current) { setGenerationUncertain(!generationApi.definite(e)); setGenerationError(errorText(e)) } }
+    finally { if (epoch === generationEpoch.current) setGenerationBusy(false) }
+  }
+  useEffect(() => {
+    const id = selected?.strategyId
+    const epoch = ++generationEpoch.current; pendingGeneration.current = null; setGeneration(null); setGenerationUncertain(false); setGenerationError(''); setGenerationBusy(false)
+    if (!id) return
+    void generationApi.latest(id, auth?.user.id).then(value => { if (epoch === generationEpoch.current) { if (value) applyGeneration(value) } }).catch(e => { if (epoch === generationEpoch.current) setGenerationError(errorText(e)) })
+  }, [selected?.strategyId])
   return <StrategyContext.Provider value={{ items, nextCursor, selected, title, draft, dirty, busy, loading, listLoading, validating, uncertain, error, notice, validation, versions, nextBefore, preview, historyLoading,
-    edit, replace, select, loadList, loadHistory, inspect, closePreview: () => { previewEpoch.current++; setPreview(null) }, validate, create, save, retry, remove }}>{children}</StrategyContext.Provider>
+    generation, generationBusy, generationUncertain, generationError, edit, replace, select, loadList, loadHistory, inspect, closePreview: () => { previewEpoch.current++; setPreview(null) }, validate, create, save, retry, remove,
+    generateProposal: () => generationOperation(), checkGeneration: () => generationOperation(true), acceptGeneration: () => decideGeneration('accept'), rejectGeneration: () => decideGeneration('reject'), cancelGeneration: () => decideGeneration('cancel') }}>{children}</StrategyContext.Provider>
 }

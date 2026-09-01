@@ -121,6 +121,15 @@ class GeminiProviderTests {
         for(byte[] bytes:List.of(new byte[]{(byte)0xff},"{}{}".getBytes(),"null".getBytes(),"[]".getBytes(),"{\"candidates\":[]}".getBytes()))
             failure(()->GeminiProvider.decode(bytes),AiFailure.Code.AI_INVALID_RESPONSE);
     }
+    @Test void strategyProposalUsesSeparateNeutralSchemaAndTokenBudget() {
+        var value=new LinkedHashMap<String,Object>();value.put("kind","clarification");value.put("explanation","Synthetic missing rules");value.put("assumptions",List.of());value.put("questions",List.of("Risk size?"));value.put("dslJson",null);
+        response.set(rawEnvelope(json.writeValueAsString(Map.of("result",value))));
+        assertThat(provider(Duration.ofSeconds(3)).propose(context()).kind()).isEqualTo("clarification");
+        var request=captured.get();assertThat(request.get("generationConfig").get("maxOutputTokens").asInt()).isEqualTo(8192);
+        assertThat(request.get("generationConfig").get("responseJsonSchema").get("properties").get("result").has("anyOf")).isTrue();
+        assertThat(request.get("systemInstruction").toString()).contains("AITrading Strategy DSL 1.0.0","method-neutral").doesNotContain(KEY);
+        assertThat(request.get("tools").isEmpty()).isTrue();assertThat(request.get("store").asBoolean()).isFalse();
+    }
     @Test void optionalThoughtSignatureIsValidatedAndDiscardedWithoutRelaxingAnswerSchema() {
         var answer=new AiAnswer("answer","Synthetic answer only",List.of());
         var text=json.writeValueAsString(answer);

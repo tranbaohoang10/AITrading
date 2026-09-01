@@ -6,9 +6,14 @@ import java.util.concurrent.*;
 
 /** Fixed bounds, no redirect or automatic application retry, no raw provider errors. */
 final class AiHttpTransport implements AutoCloseable {
+    private static final Semaphore ACTIVE=new Semaphore(4);
     private final HttpClient client=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5))
             .followRedirects(HttpClient.Redirect.NEVER).build();
     byte[] send(HttpRequest request,Duration timeout) {
+        if(!ACTIVE.tryAcquire())throw new AiFailure(AiFailure.Code.AI_BUSY);
+        try{return exchange(request,timeout);}finally{ACTIVE.release();}
+    }
+    private byte[] exchange(HttpRequest request,Duration timeout) {
         CompletableFuture<HttpResponse<byte[]>> pending;
         try{pending=client.sendAsync(request,ignored->new BoundedBodySubscriber(AiProviderProtocol.MAX_RESPONSE));}
         catch(RuntimeException failure){throw new AiFailure(AiFailure.Code.AI_PROVIDER_UNAVAILABLE);}

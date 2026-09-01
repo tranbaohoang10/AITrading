@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { buttonClass, inputClass } from '../auth/AuthForm'
+import { ConversationContext } from '../chat/ConversationContext'
 import { Modal } from '../components/Modal'
 import { DatasetChart } from '../market/DatasetChart'
 import { useMarket } from '../market/MarketContext'
@@ -7,13 +8,16 @@ import { useStrategy } from './StrategyContext'
 import sample from './sample.json'
 
 export function StrategyEditor() {
-  const s = useStrategy()!, market = useMarket()
+  const s = useStrategy()!, market = useMarket(), chat = useContext(ConversationContext)
   const [showChart, setShowChart] = useState(false), [newOpen, setNewOpen] = useState(false), [newTitle, setNewTitle] = useState('')
   const [confirm, setConfirm] = useState<null | { message: string; action: () => void }>(null)
   const blocked = s.busy || s.uncertain || s.loading
   const replace = (action: () => void) => { if (s.dirty) setConfirm({ message: 'Replace unsaved editor changes? Saved revisions will remain unchanged.', action }); else action() }
   const chooseSample = () => replace(() => s.replace(s.title, JSON.stringify(sample, null, 2)))
   const selected = s.selected
+  const latestUser = chat?.messages.at(-1)?.role === 'user' ? chat.messages.at(-1)! : null
+  const proposalSourceMatches = !!chat?.selected && (!s.generation || s.generation.conversationId === chat.selected.id)
+  const canGenerate = !!selected && !!chat?.selected && !!latestUser && !!chat.aiConfiguration?.configured && !chat.draft.trim() && !chat.messagesLoading && !chat.messageError && !s.dirty && !s.generationBusy && !s.generationUncertain
   const mismatch = selected?.status === 'VALIDATED' && market?.selected && (selected.symbol !== market.selected.symbol || selected.timeframe !== market.selected.timeframe)
   return <section aria-label="My Script" className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
     <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-slate-800 p-3">
@@ -38,6 +42,37 @@ export function StrategyEditor() {
         {s.uncertain && <div className="my-3 space-y-2"><p className="text-xs text-amber-200">Outcome uncertain. The editor is locked until the original request is retried. Do not reload while unsaved data matters.</p><button className={buttonClass} disabled={s.busy} onClick={() => void s.retry()}>Retry strategy request</button></div>}
         {!selected && !s.loading && <p className="py-8 text-sm text-slate-400">Create a strategy or select one from your private list. Nothing is saved or run automatically.</p>}
         {selected && <>
+          {chat && <section aria-label="AI strategy proposal" className="mb-4 space-y-3 border border-slate-700 bg-slate-950/60 p-3 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold">AI strategy proposal</h3><button className={buttonClass} disabled={chat.aiChecking || s.generationBusy} onClick={() => void chat.checkAiConfiguration()}>{chat.aiChecking ? 'Checking AI…' : 'Check AI availability'}</button></div>
+            <p className="leading-5 text-slate-400">Uses the selected private conversation as bounded context. The provider returns inert structured JSON; validation and explicit acceptance are required before one immutable revision is saved. Nothing is executed or backtested.</p>
+            {chat.aiConfiguration && <p>Provider: {chat.aiConfiguration.configured ? `${chat.aiConfiguration.provider} · ${chat.aiConfiguration.model}` : 'not configured'}</p>}
+            {chat.aiConfiguration?.provider === 'gemini' && <p className="text-amber-200">Only synthetic/test data may be sent during prototype provider verification. Review private content before generating.</p>}
+            {!chat.selected && <p className="text-amber-200">Select a private conversation first.</p>}
+            {chat.selected && !latestUser && <p className="text-amber-200">The selected conversation needs a latest saved user message.</p>}
+            {chat.draft.trim() && <p className="text-amber-200">Save or clear the unsaved chat draft before generating.</p>}
+            {s.dirty && <p className="text-amber-200">Save or reload strategy editor changes before generating.</p>}
+            {s.generationError && <p role="alert" className="break-words text-rose-300">{s.generationError}</p>}
+            {s.generationUncertain && <p className="text-amber-200">Provider outcome is pending or uncertain. Check the original request; do not create a replacement request.</p>}
+            <div className="flex flex-wrap gap-2">
+              <button className={buttonClass} disabled={!canGenerate} onClick={() => void s.generateProposal()}>{s.generationBusy ? 'Working…' : 'Generate proposal'}</button>
+              {s.generationUncertain && <button className={buttonClass} disabled={s.generationBusy || !proposalSourceMatches} onClick={() => void s.checkGeneration()}>Check proposal status</button>}
+              {s.generation?.state === 'PENDING' && <button className={buttonClass} disabled={s.generationBusy || !proposalSourceMatches} onClick={() => void s.cancelGeneration()}>Cancel proposal</button>}
+            </div>
+            {s.generation && <div className="space-y-2 border-t border-slate-800 pt-3">
+              <p>State: <strong>{s.generation.state}</strong> · {s.generation.provider} / {s.generation.model}</p>
+              <p className="break-all text-slate-400">Frozen context: messages {s.generation.contextStart}–{s.generation.sourceSequence} ({s.generation.contextCount}) · SHA-256 {s.generation.contextHash}</p>
+              {!proposalSourceMatches && <p className="text-amber-200">Select the proposal's original conversation before changing its state.</p>}
+              {s.generation.proposal && <><p className="whitespace-pre-wrap">{s.generation.proposal.explanation}</p>
+                {!!s.generation.proposal.assumptions.length && <ul className="list-disc space-y-1 pl-5">{s.generation.proposal.assumptions.map((value, index) => <li key={index}>{value}</li>)}</ul>}
+                {s.generation.proposal.kind === 'clarification' && <div><p className="font-semibold">Clarification required</p><ul className="list-disc space-y-1 pl-5">{s.generation.proposal.questions.map((value, index) => <li key={index}>{value}</li>)}</ul></div>}
+                {s.generation.proposal.dslJson && <pre aria-label="AI DSL proposal preview" className="max-h-72 overflow-auto whitespace-pre-wrap break-all border border-slate-800 p-2 font-mono text-[11px]">{s.generation.proposal.dslJson}</pre>}</>}
+              {(s.generation.state === 'READY' || s.generation.state === 'CLARIFICATION') && <div className="flex flex-wrap gap-2">
+                {s.generation.state === 'READY' && <button className={buttonClass} disabled={s.generationBusy || !proposalSourceMatches || s.dirty} onClick={() => setConfirm({ message: 'Accept this validated AI proposal as exactly one new immutable strategy revision? This does not execute, export, or backtest it.', action: () => void s.acceptGeneration() })}>Accept as validated revision</button>}
+                <button className={buttonClass} disabled={s.generationBusy || !proposalSourceMatches} onClick={() => void s.rejectGeneration()}>Reject proposal</button>
+              </div>}
+              {s.generation.state === 'ACCEPTED' && <p className="text-emerald-300">Accepted as immutable revision {s.generation.acceptedRevision}.</p>}
+            </div>}
+          </section>}
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs"><span>Saved r{selected.revision} · {selected.status}</span><span className={s.dirty ? 'text-amber-200' : 'text-slate-400'}>{s.dirty ? 'Unsaved changes' : 'Editor matches saved revision'}</span></div>
           <label className="mb-3 block space-y-1 text-xs">Strategy title<input className={inputClass} maxLength={120} disabled={blocked} value={s.title} onChange={event => s.edit('title', event.target.value)} /></label>
           <label className="block space-y-1 text-xs">Strategy JSON<textarea aria-label="Strategy JSON" className={`${inputClass} min-h-72 resize-y font-mono text-xs leading-5`} spellCheck={false} disabled={blocked} value={s.draft} onChange={event => s.edit('draft', event.target.value)} /></label>

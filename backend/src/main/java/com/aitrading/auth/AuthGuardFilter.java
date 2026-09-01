@@ -58,9 +58,10 @@ public class AuthGuardFilter extends OncePerRequestFilter {
             if (user != null && (path.equals("/api/conversations") || path.startsWith("/api/conversations/"))
                     && !java.util.Set.of("GET", "HEAD", "OPTIONS").contains(request.getMethod()))
                 allowed = limits.allow("chat-user", user.id().toString(), 120);
-            if (user != null && (path.equals("/api/ai/capabilities") || (path.startsWith("/api/conversations/") && path.contains("/ai-turns")))) {
+            if (user != null && (path.equals("/api/ai/capabilities") || (path.startsWith("/api/conversations/") && path.contains("/ai-turns"))
+                    || (path.startsWith("/api/strategies/") && path.contains("/generations")))) {
                 boolean read=java.util.Set.of("GET","HEAD","OPTIONS").contains(request.getMethod());
-                String purpose=read?"ai-read":path.endsWith("/cancel")?"ai-cancel":"ai-start";
+                String purpose=read?"ai-read":path.endsWith("/cancel") || path.endsWith("/accept") || path.endsWith("/reject")?"ai-cancel":"ai-start";
                 allowed=allowed && limits.allow(purpose,user.id().toString(),read?300:purpose.equals("ai-cancel")?30:10);
             }
             if (user != null && (path.equals("/api/backtests") || path.startsWith("/api/backtests/"))) {

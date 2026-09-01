@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "syntheticDataOnly": true,
+  "realGemini": true,
+  "model": "gemini-3.5-flash",
+  "actualApiDownUpObserved": true,
+  "ownerIsolationVerified": true,
+  "contextHashVerified": true,
+  "structuredDslValidated": true,
+  "acceptedRevisionPersisted": true,
+  "rejectedWithoutRevision": true,
+  "noChatAssistantOrAutomaticExecution": true,
+  "realProviderProposals": 2
+}

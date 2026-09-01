@@ -28,16 +28,25 @@ public final class OpenAiProvider implements AiProvider {
     @Override public void close(){transport.close();}
     public void shutdown(){close();}
     @Override public AiAnswer answer(List<ContextMessage> context) {
+        return AiProviderProtocol.withoutSecret(decode(send(context,AiProviderProtocol.INSTRUCTIONS,AiProviderProtocol.SCHEMA,"quant_answer_v1",2048)),key);
+    }
+    @Override public AiProposal propose(List<ContextMessage> context) {
+        return AiProposal.decode(decodeText(send(context,AiProposalProtocol.INSTRUCTIONS,AiProposalProtocol.SCHEMA,"strategy_proposal_v1",8192)),key);
+    }
+    private byte[] send(List<ContextMessage> context,String instructions,Map<String,Object> schema,String schemaName,int tokens) {
         if(!configuration.configured())throw new AiFailure(AiFailure.Code.AI_UNCONFIGURED);
         AiProviderProtocol.validateContext(context);
-        var body=Map.of("model",configuration.model(),"instructions",AiProviderProtocol.INSTRUCTIONS,"input",context,
-                "text",Map.of("format",Map.of("type","json_schema","name","quant_answer_v1","strict",true,"schema",AiProviderProtocol.SCHEMA)),
-                "store",false,"stream",false,"tools",List.of(),"tool_choice","none","max_output_tokens",2048,"truncation","disabled");
+        var body=Map.of("model",configuration.model(),"instructions",instructions,"input",context,
+                "text",Map.of("format",Map.of("type","json_schema","name",schemaName,"strict",true,"schema",schema)),
+                "store",false,"stream",false,"tools",List.of(),"tool_choice","none","max_output_tokens",tokens,"truncation","disabled");
         var request=HttpRequest.newBuilder(endpoint).timeout(timeout).header("Content-Type","application/json")
                 .header("Authorization","Bearer "+key).POST(HttpRequest.BodyPublishers.ofByteArray(AiProviderProtocol.JSON.writeValueAsBytes(body))).build();
-        return AiProviderProtocol.withoutSecret(decode(transport.send(request,timeout)),key);
+        return transport.send(request,timeout);
     }
     static AiAnswer decode(byte[] bytes) {
+        return AiProviderProtocol.answer(decodeText(bytes));
+    }
+    private static String decodeText(byte[] bytes) {
         JsonNode root=AiProviderProtocol.decode(bytes);
         if(root==null || !root.isObject() || !root.has("status"))throw new AiFailure(AiFailure.Code.AI_INVALID_RESPONSE);
         if(!"completed".equals(root.path("status").asString()))throw new AiFailure(AiFailure.Code.AI_INCOMPLETE);
@@ -55,8 +64,7 @@ public final class OpenAiProvider implements AiProvider {
             throw new AiFailure(AiFailure.Code.AI_INVALID_RESPONSE);
         JsonNode content=message.path("content").get(0);
         if("refusal".equals(content.path("type").asString()))throw new AiFailure(AiFailure.Code.AI_REFUSED);
-        if(!"output_text".equals(content.path("type").asString()) || !content.path("text").isString()
-                || content.path("text").asString().length()>16384)throw new AiFailure(AiFailure.Code.AI_INVALID_RESPONSE);
-        return AiProviderProtocol.answer(content.get("text").asString());
+        if(!"output_text".equals(content.path("type").asString()) || !content.path("text").isString())throw new AiFailure(AiFailure.Code.AI_INVALID_RESPONSE);
+        return content.get("text").asString();
     }
 }

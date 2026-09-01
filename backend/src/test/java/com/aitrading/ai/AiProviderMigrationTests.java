@@ -37,7 +37,7 @@ class AiProviderMigrationTests {
         var before=jdbc.queryForMap("SELECT * FROM trading.ai_turn WHERE request_id=?",request);
         assertThatThrownBy(()->jdbc.update("UPDATE trading.ai_turn SET provider='gemini' WHERE request_id=?",request))
                 .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
-        var current=Flyway.configure().dataSource(url,user,password).schemas("trading").load();
+        var current=Flyway.configure().dataSource(url,user,password).schemas("trading").target("13").load();
         assertThat(current.migrate().migrationsExecuted).isEqualTo(1);
         current.validate();
         assertThat(current.info().current().getVersion().toString()).isEqualTo("13");

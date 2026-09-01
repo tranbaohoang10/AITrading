@@ -66,9 +66,25 @@ class AiApiTests {
         }
         @Override public Configuration configuration(){return new Configuration(configured.get(),gemini.get()?"gemini":"openai",configured.get()?(gemini.get()?"gemini-3.5-flash":"configured-test-model"):null);}
         @Override public AiAnswer answer(List<ContextMessage> context){return (gemini.get()?geminiDelegate:delegate).answer(context);}
+        @Override public AiProposal propose(List<ContextMessage> context) {
+            calls.incrementAndGet();requests.add(json.valueToTree(context));seen.get().countDown();
+            try{gate.get().await(8,TimeUnit.SECONDS);}catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new AiFailure(AiFailure.Code.AI_CANCELLED);}
+            return switch(mode.get()) {
+                case "clarification" -> new AiProposal("clarification","More measurable rules are required.",List.of(),List.of("What is the explicit risk size?"),null);
+                case "invalid-proposal" -> new AiProposal("proposal","Synthetic invalid fixture.",List.of(),List.of(),"{}");
+                case "rate" -> throw new AiFailure(AiFailure.Code.AI_RATE_LIMITED);
+                case "unavailable" -> throw new AiFailure(AiFailure.Code.AI_PROVIDER_UNAVAILABLE);
+                default -> new AiProposal("proposal","Synthetic validated proposal; no execution.",List.of("Synthetic fixture"),List.of(),fixture());
+            };
+        }
+        private String fixture() {
+            try(var input=ProbeProvider.class.getResourceAsStream("/dsl/indicator-trend.json")){return new String(Objects.requireNonNull(input).readAllBytes(),StandardCharsets.UTF_8);}
+            catch(java.io.IOException impossible){throw new IllegalStateException("Fixture unavailable");}
+        }
         List<String> capturedContext(int index) {
             JsonNode request=requests.get(index);var result=new ArrayList<String>();
-            if(request.has("input"))for(var item:request.get("input"))result.add(item.get("content").asString());
+            if(request.isArray())for(var item:request)result.add(item.get("content").asString());
+            else if(request.has("input"))for(var item:request.get("input"))result.add(item.get("content").asString());
             else for(var item:request.get("contents"))result.add(item.get("parts").get(0).get("text").asString());
             return result;
         }

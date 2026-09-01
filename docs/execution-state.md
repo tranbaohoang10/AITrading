@@ -575,3 +575,28 @@ Earlier2.5Flash model rejection and intermediate fixture timeout remain historic
 Owned smoke API/PG stopped, temporary DB password removed. No protected mvp-ui,
 stack, dependency, governance, CI or security weakening. Next READY by priority/ID:
 PB-009; PB-014/PB-018 also newly READY. Existing DONE work is not repeated.
+
+## 01/09/2026 — PB-009 local/real-provider DoD PASS; publication pending
+
+Selected highest-priority READY PB009 after PB008 DONE and created Issue21 before
+code. Added provider-neutral proposal/clarification union to AiProvider, Gemini and
+optional OpenAI; V14 owned durable generation attempts; exact strategy/conversation
+version and latest-user binding; frozen20-message/16000-character context/hash;
+40-second lease, shared rate/four-call concurrency and explicit revalidated accept.
+No AI result executes code, appends chat, changes editor or starts backtest/export.
+
+Initial real Gemini attempt returned AI_INVALID_RESPONSE because output combined a
+proposal and questions; FAILED persisted with no revision. Replaced the loose wire
+shape with mutually exclusive official JSON Schema anyOf branches, retained strict
+application validation, and did not retry/fallback/fabricate. Final production-path
+Gemini3.5Flash smoke: two synthetic real proposals, one ACCEPTED as validated r2,
+one REJECTED with r1 unchanged; context hash, owner denial, replay and API restart
+PASS. Real browser READY/inert preview/confirmation PASS at desktop and 390x844
+without horizontal overflow. API/PG/Vite stopped; temporary passwords removed.
+
+Final local evidence: backend235 PASS plus bootJar/dependency inventory; frontend
+213 PASS plus build/lint and npm audit0; Python44 PASS; OSV118 dependencies0
+findings; git diff --check PASS. Evidence under specs/PB-009/test-evidence. PB009
+remains IN_PROGRESS only for scoped commit, normal main push, exact GitHub SHA/CI,
+then backlog/Issue completion. PB014 and PB018 remain READY; PB015/PB016 remain
+externally blocked on TradingView/Pine and MQL5 runtimes.

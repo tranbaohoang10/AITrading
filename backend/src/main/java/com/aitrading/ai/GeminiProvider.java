@@ -26,19 +26,28 @@ public final class GeminiProvider implements AiProvider {
     @Override public Configuration configuration(){return configuration;}
     @Override public void close(){transport.close();}
     @Override public AiAnswer answer(List<ContextMessage> context) {
+        return AiProviderProtocol.withoutSecret(decode(send(context,AiProviderProtocol.INSTRUCTIONS,AiProviderProtocol.SCHEMA,2048)),key);
+    }
+    @Override public AiProposal propose(List<ContextMessage> context) {
+        return AiProposal.decode(decodeText(send(context,AiProposalProtocol.INSTRUCTIONS,AiProposalProtocol.SCHEMA,8192)),key);
+    }
+    private byte[] send(List<ContextMessage> context,String instructions,Map<String,Object> schema,int tokens) {
         if(!configuration.configured())throw new AiFailure(AiFailure.Code.AI_UNCONFIGURED);
         AiProviderProtocol.validateContext(context);
         var contents=context.stream().map(m->Map.of("role",m.role().equals("assistant")?"model":"user",
                 "parts",List.of(Map.of("text",m.content())))).toList();
-        var body=Map.of("systemInstruction",Map.of("parts",List.of(Map.of("text",AiProviderProtocol.INSTRUCTIONS))),
-                "contents",contents,"tools",List.of(),"store",false,"generationConfig",Map.of("candidateCount",1,"maxOutputTokens",2048,
-                        "responseMimeType","application/json","responseJsonSchema",AiProviderProtocol.SCHEMA,
+        var body=Map.of("systemInstruction",Map.of("parts",List.of(Map.of("text",instructions))),
+                "contents",contents,"tools",List.of(),"store",false,"generationConfig",Map.of("candidateCount",1,"maxOutputTokens",tokens,
+                        "responseMimeType","application/json","responseJsonSchema",schema,
                         "thinkingConfig",Map.of("includeThoughts",false)));
         var request=HttpRequest.newBuilder(endpoint).timeout(timeout).header("Content-Type","application/json")
                 .header("x-goog-api-key",key).POST(HttpRequest.BodyPublishers.ofByteArray(AiProviderProtocol.JSON.writeValueAsBytes(body))).build();
-        return AiProviderProtocol.withoutSecret(decode(transport.send(request,timeout)),key);
+        return transport.send(request,timeout);
     }
     static AiAnswer decode(byte[] bytes) {
+        return AiProviderProtocol.answer(decodeText(bytes));
+    }
+    private static String decodeText(byte[] bytes) {
         JsonNode root=AiProviderProtocol.decode(bytes);
         if(!root.isObject())throw invalid();
         if(root.hasNonNull("error"))throw new AiFailure(AiFailure.Code.AI_PROVIDER_UNAVAILABLE);
@@ -67,7 +76,7 @@ public final class GeminiProvider implements AiProvider {
             if(!signature.isString() || signature.asString().isEmpty())throw invalid();
             try{Base64.getDecoder().decode(signature.asString());}catch(IllegalArgumentException malformed){throw invalid();}
         }
-        return AiProviderProtocol.answer(part.get("text").asString());
+        return part.get("text").asString();
     }
     private static AiFailure invalid(){return new AiFailure(AiFailure.Code.AI_INVALID_RESPONSE);}
 }
