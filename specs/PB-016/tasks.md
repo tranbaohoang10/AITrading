@@ -6,7 +6,7 @@
 - [x] Add actual compiler/target fixtures and API/DB/security/concurrency tests.
 - [x] Connect MQL5 UI and meaningful frontend tests.
 - [x] Run browser/restart and local regression/build/lint/audits.
-- [ ] Execute official target events/negative CSV/device-name/numeric-overflow cases.
+- [x] Execute official target events/negative CSV/device-name/numeric-overflow cases.
 - [x] Review exact diff/stage; commit/push main; verify SHA and CI.
 - [ ] Close completed only after all DoD; otherwise preserve precise blocker.
 
@@ -26,3 +26,7 @@ All owned API/PG stopped/password removed. Scope/publication/CI and Issue update
 remain next. Runtime NOT RUN; keep Issue18 open and continue independent work.
 
 31/08/2026 publication:239c1bc main verified; CI33388361245 SUCCESS, actual163backend/186frontend/44Python/Java118. Issue18 remains OPEN/BLOCKED; comment5477882015. PB024 continues independently.
+
+01/09/2026: isolated portable MT5 runtime completed. All eight actual event/accounting
+traces verify PASS and all prepared negative paths fail closed; the final `future.csv`
+case emitted `ERROR: CSV_INVALID row 2`. Publication/CI/Issue closure remain pending.

@@ -1,4 +1,4 @@
-# Official MQL5 target verification — compilation PASS, runtime NOT RUN
+# Official MQL5 target verification — compilation and runtime PASS
 
 31/08/2026, MetaTrader5 build6140. Existing installed MetaEditor64 and terminal64
 had valid Authenticode signatures for MetaQuotes Ltd. Their binaries were copied
@@ -19,7 +19,7 @@ official zero-error/zero-warning result and a newly created nonempty executable.
 Initial warning62 (CSV row counter shadowing global count) was fixed by renaming
 only that local variable. No warning suppression or compiler substitute was used.
 
-## Runtime attempts and exact limitation
+## Historical runtime attempts and exact limitation
 
 An isolated default script probe compiled0/0 and loaded on EURUSD/H1 but did not
 produce its OnStart marker/file. Terminal reported initialization failure after
@@ -30,7 +30,19 @@ attempts; the subsequent app approval timed out. UI attempts stopped and PO was
 notified asynchronously. No authentication or app-approval workaround was used.
 Generated product output remains a research script, not the service probe.
 
-## Remaining official procedure
+## Completed official runtime procedure
+
+On 01/09/2026, the isolated portable executable was launched explicitly as
+`H:\AITrading\tmp\pb016-target\terminal64.exe /portable`; its process path and
+PB016_SYNTH,H1 window were confirmed before any interaction. Its Open an Account
+dialog was cancelled. No account was created or used, Algo Trading stayed off and
+New Order remained disabled. The eight prepared positive fixture traces were actual
+MT5 Experts output and all verify PASS with the command below. The target also
+executed all prepared CSV negatives. The final missing `future.csv` case logged
+`ERROR: CSV_INVALID row 2` at 15:30:10.017, with no successful result. See
+[official runtime evidence](official-runtime.md) and `runtime-logs/`.
+
+The following procedure is retained as the reproducible method, not an unrun gap:
 
 Use an authorized target session/window and initialized chart environment. Keep
 trading disabled; no broker login or money operation is part of this test. Put

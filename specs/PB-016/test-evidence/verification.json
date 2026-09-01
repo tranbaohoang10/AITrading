@@ -1,5 +1,5 @@
 {
-  "date": "31/08/2026",
+  "date": "01/09/2026",
   "backend": {
     "tests": 163,
     "failures": 0,
@@ -47,8 +47,9 @@
     "dslHash": "93552dae78712326cabe76cb51e828c0336984e2ba5e75bbe381331a872f84dd",
     "codeHash": "1d213ccea9d0c415bcb92bdd8f66515caf9ef63b7bc9eea4a4abfe959d609af2",
     "generatorVersion": "mql5-research-1.0.0",
-    "officialMQL5Runtime": "NOT_RUN"
+    "officialMQL5Runtime": "PASS"
   },
-  "officialRuntime": "NOT_RUN",
-  "featureDoD": false
+  "officialRuntime": "PASS",
+  "officialRuntimeEvidence": "official-runtime.md; eight actual portable MT5 traces verified against Python fixtures; actual future.csv rejected at row 2",
+  "featureDoD": true
 }

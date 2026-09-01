@@ -1,4 +1,5 @@
 #property strict
+#property script_show_inputs
 // AITrading mql5-research-1.0.0 | schema 1.0.0 | validator 1.0.0
 // Strategy 11111111-1111-1111-1111-111111111111 revision 2 | DSL SHA256 0ac226620d3c129ad3fc3785d9113210cf5c015bcbbc91b40b274fdf7b52e4f5
 // RESEARCH ONLY: CSV simulation, not native Strategy Tester or live trading.

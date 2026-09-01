@@ -134,6 +134,7 @@ public final class Mql5Generator {
         }
         String emit() {
             line("#property strict");
+            line("#property script_show_inputs");
             line("// AITrading "+VERSION+" | schema "+revision.schemaVersion()+" | validator "+revision.validatorVersion());
             line("// Strategy "+revision.strategyId()+" revision "+revision.revision()+" | DSL SHA256 "+revision.hash());
             line("// RESEARCH ONLY: CSV simulation, not native Strategy Tester or live trading.");

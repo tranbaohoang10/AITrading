@@ -26,7 +26,7 @@ class Mql5GeneratorTests {
     @Test void deterministicArtifactContainsOnlyBoundedResearchRuntimeAndExactProvenance() throws Exception {
         var source = revision(fixture("price-action")); var a = generator.generate(source); var b = generator.generate(source);
         assertThat(a).isEqualTo(b); assertThat(a.codeHash()).isEqualTo(Mql5Generator.hash(a.code()));
-        assertThat(a.code()).startsWith("#property strict\n").contains(source.hash(),"revision 2",Mql5Generator.VERSION,"RESEARCH ONLY", "Csv(CsvFilename", "sim.pending=0", "sim.OpenBar");
+        assertThat(a.code()).startsWith("#property strict\n#property script_show_inputs\n").contains(source.hash(),"revision 2",Mql5Generator.VERSION,"RESEARCH ONLY", "Csv(CsvFilename", "sim.pending=0", "sim.OpenBar");
         assertThat(a.code()).doesNotContain("OrderSend(", "CTrade", "WebRequest(", "#import", "ShellExecute", "Neutral price research");
         assertThat(a.code()).contains("SafeFilename", "CSV_INVALID", "rowCount>=5000", "value>=0.00000001", "ConfirmCsvSymbol");
         assertThat(a.code()).contains("ERROR: NUMERIC_RANGE", "if(!Process(rows[i])) return 1", "Defined(sim.closedNet)");

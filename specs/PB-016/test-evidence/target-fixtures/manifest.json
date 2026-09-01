@@ -3,48 +3,48 @@
     "name": "causal-all-indicators",
     "symbol": "BTC_USDT",
     "timeframe": "1h",
-    "runtimeStatus": "NOT_RUN"
+    "runtimeStatus": "PASS"
   },
   {
     "name": "costs-both-hit-gap",
     "symbol": "BTC_USDT",
     "timeframe": "1h",
-    "runtimeStatus": "NOT_RUN"
+    "runtimeStatus": "PASS"
   },
   {
     "name": "hand-next-open",
     "symbol": "BTC_USDT",
     "timeframe": "1h",
-    "runtimeStatus": "NOT_RUN"
+    "runtimeStatus": "PASS"
   },
   {
     "name": "long-target-cap",
     "symbol": "BTC_USDT",
     "timeframe": "1h",
-    "runtimeStatus": "NOT_RUN"
+    "runtimeStatus": "PASS"
   },
   {
     "name": "nonpositive-equity",
     "symbol": "BTC_USDT",
     "timeframe": "1h",
-    "runtimeStatus": "NOT_RUN"
+    "runtimeStatus": "PASS"
   },
   {
     "name": "rule-exit-before-barriers",
     "symbol": "BTC_USDT",
     "timeframe": "1h",
-    "runtimeStatus": "NOT_RUN"
+    "runtimeStatus": "PASS"
   },
   {
     "name": "short-target-cap",
     "symbol": "BTC_USDT",
     "timeframe": "1h",
-    "runtimeStatus": "NOT_RUN"
+    "runtimeStatus": "PASS"
   },
   {
     "name": "simultaneous-entries",
     "symbol": "BTC_USDT",
     "timeframe": "1h",
-    "runtimeStatus": "NOT_RUN"
+    "runtimeStatus": "PASS"
   }
 ]

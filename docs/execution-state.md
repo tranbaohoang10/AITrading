@@ -5,6 +5,21 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+## 01/09/2026 — PB-016 official portable runtime PASS; publication pending
+
+The isolated portable terminal was explicitly launched from
+`H:\AITrading\tmp\pb016-target\terminal64.exe /portable`; process path and
+PB016_SYNTH,H1 were confirmed. The Open an Account prompt was cancelled, no broker
+account was used, Algo Trading stayed off and New Order remained disabled. Eight
+actual MQL5 event/accounting traces now verify PASS against their prepared Python
+fixtures. Actual target negatives including `future.csv` pass fail-closed checks;
+the final future input emitted `ERROR: CSV_INVALID row 2`, no result. Full backend
+regression via disposable PostgreSQL harness PASS; direct Gradle invocation without
+the required owned-DB harness failed as designed and is retained as environmental
+misuse, not a product failure. PB016 awaits scoped commit, normal push, exact SHA,
+CI and Issue #18 completion. PB015/#17 remains OPEN/BLOCKED by Pine Logs; PB017
+still depends on PB015 and PB016.
+
 LATEST PB-011 final122backend PASS on owned pg-test-x6wz4_ss, stopped/password
 removed;105frontend/40Python/6verifier/6canonical/build/lint/audits PASS. Actual
 API restart smoke PASS before independent watchdog strengthening; watchdog

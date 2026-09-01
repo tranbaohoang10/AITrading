@@ -1,9 +1,10 @@
 # PB-016 verification results — 31/08/2026 — Refs #18
 
-Local implementation checkpoint; **feature DoD is not complete**. Official MQL5
-compilation is PASS; actual MQL runtime/event and CSV negative execution are
-NOT RUN, as explained in [target validation](target-validation.md). No script,
-mock log, Python run or source snapshot substitutes for target execution.
+Local implementation checkpoint plus official target evidence. MetaEditor
+compilation and actual MQL runtime/event/CSV-negative execution are PASS, as
+recorded in [target validation](target-validation.md) and
+[official runtime evidence](official-runtime.md). No script, mock log, Python run
+or source snapshot substitutes for target execution.
 
 ## Local evidence
 
@@ -81,8 +82,8 @@ strict body/IDs, malicious names, hash integrity, quota races/idempotency, actua
 rollback, source deletion, rates and oversized body. Existing password/Argon2id,
 brute-force, session and private workspace regression remains enabled. No URL,
 upload, HTML execution, DLL, shell, broker/order or new password/token API.
-CSV sandbox/path/format checks are implemented, **actual target negative tests
-remain unverified**. Numerical double limitations are explicit; no live execution
+CSV sandbox/path/format checks were additionally executed on the actual target and
+failed closed, including future data and device-name rejection. Numerical double limitations are explicit; no live execution
 or target-parity claim. Generic SSRF/new JWT/upload attacks are N/A to this API.
 
 No unrelated/protected re-review, governance, stack, dependency, CI, applied
@@ -109,4 +110,5 @@ generator. [Final restart report](restart-smoke-final.json) records exact codeha
 `1d213ccea9d0c415bcb92bdd8f66515caf9ef63b7bc9eea4a4abfe959d609af2`, replay/session
 and deletion after actual restart. Synthetic user signed out; harness then stopped
 via its own sentinel and password removed. [Final verification](verification.json)
-separates local/official compilation PASS from official runtime NOT RUN/DoDfalse.
+now records runtime PASS/DoDtrue. Publication and CI verification remain required
+before closing Issue18.

@@ -34,3 +34,10 @@
   No runtime certification; commit/push/CI checkpoint and open Issue update next.
 
 - 31/08/2026: Normal push239c1bc verified on GitHub main. CI33388361245 SUCCESS with downloaded163backend/186frontend/44Python/Java118. Issue18 comment5477882015 retains OPEN/BLOCKED for actual target runtime. No protected historical file changed.
+
+- 01/09/2026: launched only `H:\AITrading\tmp\pb016-target\terminal64.exe /portable`;
+  verified that exact process path and synthetic PB016_SYNTH,H1 chart. Cancelled its
+  Open an Account prompt, kept Algo Trading off, and used no broker account/order.
+  Eight already captured official traces verify PASS against their Python fixtures.
+  Completed the remaining actual `future.csv` negative on target: `ERROR: CSV_INVALID
+  row 2`, with no END result. See test-evidence/official-runtime.md.
