@@ -7,4 +7,4 @@
 - [x] Complete backend/frontend/security tests and audits.
 - [x] Real Gemini synthetic RAG, restart/owner/citation evidence.
 - [x] Scope and exact-secret review.
-- [ ] Commit/push exact CI, DoD/Issue completion.
+- [x] Commit/push exact CI, DoD/Issue completion.

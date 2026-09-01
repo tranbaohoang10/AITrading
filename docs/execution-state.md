@@ -659,3 +659,11 @@ two-owner/CSRF/account isolation, persisted retrieval and actual API restart. Th
 owned API/PG stopped and temporary password was removed. PB018 remains IN_PROGRESS
 only for scope/secret review, commit, normal push, exact GitHub SHA/CI and Issue23
 completion.
+
+## 01/09/2026 — PB-018 DONE; Issue #23 completed
+
+Feature commit18c0def2e0a46cd541294df6f35a21aa27700816 was normal-pushed and
+verified exactly on GitHub main. Actions run33469897224 SUCCESS; downloaded CI
+artifact independently confirms270 tests with0 failures/errors/skips and121
+resolved Java dependencies with0 findings. PB018 DoD is complete; Issue23 can be
+closed completed. The next READY item by authoritative priority is PB023.
