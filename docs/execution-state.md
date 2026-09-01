@@ -5,6 +5,21 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+## 01/09/2026 — PB-015 official Pine target 8/8 PASS; publication pending
+
+The existing linked TradingView validation slot was reused only through Update on
+chart. No completed fixture was rerun. `simultaneous-entries` and
+`causal-all-indicators` each restored their exact pinned SHA after compact-trace
+round-trip, compiled without diagnostics and emitted one complete official log
+through DATASET_END and original assertion PASS. All values matched the prepared
+expected arrays/Python references; PB-015 now has 8/8 complete official traces.
+
+Final regression/security verification passes: backend288/0, frontend226/0,
+Python44/0, verifier6/0, canonical6 and UI6, lint/build, npm audit0, and Java
+OSV121/0. The disposable PostgreSQL cluster stopped and its credentials file was
+removed. Issue17 remains OPEN only until scoped commit, normal main push, exact
+GitHub SHA and CI verification. PB017 remains PLANNED until that closure.
+
 ## 01/09/2026 — PB-016 official portable runtime PASS; publication pending
 
 The isolated portable terminal was explicitly launched from

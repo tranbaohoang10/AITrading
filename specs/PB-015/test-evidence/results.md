@@ -1,8 +1,10 @@
 # PB-015 verification record — 31/08/2026
 
-Issue17; base main7e741be. **Local implementation is experimental. Official Pine
-compiler/runtime validation is unavailable, so feature DoD is not met.** No native
-Strategy Tester, event parity, trading performance or independent-review claim.
+Issue17; base main7e741be. The implementation remains an experimental research
+indicator rather than native Strategy Tester. Official Pine compilation and all
+eight synthetic runtime traces now PASS; publication SHA/CI remains before the
+feature DoD can be marked complete. No trading-performance or independent-review
+claim is made.
 
 ## Local execution
 
@@ -87,10 +89,13 @@ synthetic browser accounts signed out. No production service or real broker used
 - Source review caught missing UTC-epoch alignment in the initial emitted chart
   guard; added explicit start modulo interval/date bounds and minimum price. Source
   snapshots and assertion fixtures were regenerated before final verification.
-- Official TradingView compiler/runtime, real chart guard execution and event
-  comparison remain **NOT RUN/BLOCKED** on authorized target sign-in. Generated
-  fixture success strings and local source tests are not PASS evidence.
-  [Exact remaining procedure](target-validation.md). No account/auth workaround.
+- Official TradingView compiler/update validation passed for all eight generated
+  exports and assertion fixtures. Eight complete official event/accounting traces
+  contain DATASET_END and a PASS emitted after the original assertions; every
+  logged value matches the pinned expected arrays/Python within the declared
+  tolerance. Browser-only compaction changed only log delivery and round-tripped
+  to each pinned source hash. [Target evidence](target-validation.md). No account,
+  authentication, broker or chart-security workaround was used.
 
 ## Security applicability
 
@@ -109,9 +114,8 @@ claim of exhaustive secret scanning. No dependency/lockfile/applied-migration ch
 
 ## Scope and publication
 
-Only PB-015 and the traceable PB-027 completion checkpoint are included. The two
-protected historic mvp-ui re-review files are unchanged and excluded. Complete
-scope/diff verification, exact commit/main push and actual CI must be recorded
-before calling publication verified. Even with passing CI, Issue17 remains open
-while official target verification is missing. Continue the next independent READY
-item; do not redo DONE features or call the entire backlog complete.
+This final evidence change contains only PB-015 runtime records and current
+backlog/execution documentation. Complete scope/diff verification, exact
+commit/main push and actual CI must be recorded before publication is verified and
+Issue17 is closed. PB-017 becomes READY only after that closure; do not redo DONE
+features or call the entire backlog complete.

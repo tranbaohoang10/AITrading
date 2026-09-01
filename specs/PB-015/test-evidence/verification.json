@@ -1,27 +1,27 @@
 {
-  "date": "31/08/2026",
+  "date": "01/09/2026",
   "backend": {
-    "tests": 152,
+    "tests": 288,
     "failures": 0,
     "errors": 0,
     "skipped": 0
   },
   "frontend": {
-    "tests": 176,
+    "tests": 226,
     "failures": 0
   },
   "python": {
-    "tests": 42,
+    "tests": 44,
     "failures": 0
   },
   "verifierTests": 6,
   "canonicalFixtures": 6,
   "backtestUiFixtures": 6,
   "javaAudit": {
-    "checkedAt": "2026-08-31T10:20:43.550847+00:00",
+    "checkedAt": "2026-09-01T21:05:09.260875+07:00",
     "source": "https://api.osv.dev/v1/querybatch",
     "scope": "resolved Java compile/runtime/test dependencies",
-    "count": 118,
+    "count": 121,
     "coordinates": [
       "biz.aQute.bnd:biz.aQute.bnd.annotation:7.1.0",
       "ch.qos.logback:logback-classic:1.5.38",
@@ -45,6 +45,9 @@
       "net.minidev:json-smart:2.6.0",
       "org.apache.logging.log4j:log4j-api:2.25.5",
       "org.apache.logging.log4j:log4j-to-slf4j:2.25.5",
+      "org.apache.pdfbox:fontbox:3.0.8",
+      "org.apache.pdfbox:pdfbox-io:3.0.8",
+      "org.apache.pdfbox:pdfbox:3.0.8",
       "org.apache.tomcat.embed:tomcat-embed-core:11.0.24",
       "org.apache.tomcat.embed:tomcat-embed-el:11.0.24",
       "org.apache.tomcat.embed:tomcat-embed-websocket:11.0.24",
@@ -154,8 +157,12 @@
     "total": 0
   },
   "officialPine": {
-    "status": "BLOCKED_NOT_RUN",
-    "reason": "Authorized target sign-in unavailable; anonymous Add to chart opens Sign in."
+    "status": "PASS",
+    "fixtures": 8,
+    "completeTraces": 8,
+    "instrumentation": "Browser-only compact log delivery; pinned runtime/assertions unchanged",
+    "evidence": "official-traces/verification.json"
   },
-  "featureDoD": false
+  "featureDoD": false,
+  "localAndTargetDoD": true
 }

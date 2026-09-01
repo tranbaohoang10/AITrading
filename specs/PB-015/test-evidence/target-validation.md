@@ -1,4 +1,4 @@
-# Official Pine validation — PARTIAL / intermittent Pine Logs BLOCKED
+# Official Pine validation — PASS (8/8 official runtime traces)
 
 31/08/2026. Actual anonymous TradingView chart and Pine Editor are reachable.
 Clicking **Add to chart** on the editor's untouched default indicator opened
@@ -160,3 +160,32 @@ the chart displayed balance/equity `1000`, but Pine Logs failed to open. Without
 its compact trace, DATASET_END, and assertion result it remains PARTIAL. No retry
 or `causal-all-indicators` execution occurred. Six of eight official fixture
 traces are PASS; PB-015 and Issue #17 remain OPEN/BLOCKED.
+
+## 01/09/2026 final clean-slot continuation — 8/8 PASS
+
+The same existing on-chart validation slot remained linked to Pine Editor and was
+updated without adding an indicator. No previously completed fixture was rerun.
+Each browser-only compact transform retained the synthetic OHLCV, simulator/rule
+logic, expected values, assertions and state-mutation order; only log delivery was
+compacted. The actual editor was emptied before each paste and contained exactly
+one version directive, indicator and `Simulation` type.
+
+- `simultaneous-entries` restored pinned SHA-256
+  `181915d5241b6cda3dae5190ffeb72cdf24e8e69ba41e4d901865e05925b2361`.
+  Its official four-bar trace contains one `SIMULTANEOUS_ENTRIES` skip per bar,
+  no entry/exit/trade, balance/equity `1000`, `DATASET_END` with
+  `cancelledPending=0; openSide=0`, and `ASSERTIONS=PASS`.
+- `causal-all-indicators` restored pinned SHA-256
+  `535b352e14f3071dd883079f05f2fe3c09b107a186cf3fadcf67c0616dc0c677`.
+  Its official 24-bar trace matched all 384 logged values from 16 pinned expected
+  arrays and all 120 Python bar/time/accounting comparisons. Seven entries and
+  seven rule exits matched Python exactly by bar, side, signal bar, fill and fee.
+  It ended at balance/equity `1738.9619400908134`, then
+  `DATASET_END: cancelledPending=1; openSide=0 | ASSERTIONS=PASS`.
+
+The exact logs and machine-readable comparison summary are preserved under
+[`official-traces`](official-traces/verification.json). All eight official fixture
+traces now contain their complete bar/event/accounting records, dataset-end state
+and a PASS emitted only after the original assertions. The pinned repository
+fixtures were not modified. PB-015 target validation is complete; publication,
+exact remote SHA and CI remain the final Issue #17 completion steps.

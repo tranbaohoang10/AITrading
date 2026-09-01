@@ -221,3 +221,24 @@ Six fixtures now have official PASS traces: `hand-next-open`,
 `costs-both-hit-gap`, `long-target-cap`, `short-target-cap`,
 `nonpositive-equity`, and `rule-exit-before-barriers`. Issue #17 remains
 OPEN/BLOCKED on `simultaneous-entries` and `causal-all-indicators`.
+
+## Final clean-slot recovery — simultaneous and causal PASS — 01/09/2026
+
+The Pine Logs spinner recovered after one bounded wait for each final execution;
+neither fixture was retried. `simultaneous-entries` produced four complete skip
+records, `DATASET_END: cancelledPending=0; openSide=0`, and `ASSERTIONS=PASS`.
+`causal-all-indicators` produced 24 complete records, seven entries, seven rule
+exits, final balance/equity `1738.9619400908134`,
+`DATASET_END: cancelledPending=1; openSide=0`, and `ASSERTIONS=PASS`.
+
+Both compact transforms round-tripped to their pinned SHA-256 values before the
+official Update-on-chart executions. The exact copied Pine Logs are retained in
+[`simultaneous-entries.txt`](official-traces/simultaneous-entries.txt) and
+[`causal-all-indicators.txt`](official-traces/causal-all-indicators.txt); the
+field-by-field comparison counts are in
+[`verification.json`](official-traces/verification.json). No pinned source,
+runtime semantics, fixture input, assertion or expected value changed.
+
+Official runtime status is now 8/8 PASS. The earlier intermittent
+`https://undefined/ping` observations remain truthful historical evidence, but no
+longer block the completed target set.

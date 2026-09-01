@@ -34,7 +34,7 @@ Migration mới cho immutable export artifact FK đến strategy revision; owner
 Assess BOLA/IDOR, CSRF/session/revocation, injection/XSS, resource limits, concurrency and sensitive-data/log exposure. Không submit private strategy tới TradingView; target tests chỉ synthetic fixture. Không bypass TradingView login hoặc dùng credentials Codex.
 
 ## Test Requirements
-CNPM + separate detailed test Markdown; generator semantics/negative fixtures; real HTTP/PostgreSQL ownership/CSRF/immutability/concurrency/quota; frontend/error/late responses; actual browser; full applicable regression/build/lint/audits; official target evidence. Current observed external dependency: anonymous Pine Editor Add to chart opens Sign in; no compiler/runtime result yet.
+CNPM + separate detailed test Markdown; generator semantics/negative fixtures; real HTTP/PostgreSQL ownership/CSRF/immutability/concurrency/quota; frontend/error/late responses; actual browser; full applicable regression/build/lint/audits; official target evidence. Official authenticated target evidence is complete for all eight pinned synthetic fixtures; compact logging is test-only and does not alter runtime/assertion semantics.
 
 ## Definition of Done
 All AC pass with explicit evidence and no unresolved high/critical finding; docs/test MD current; exact scope reviewed; normal main push/exact SHA/CI verified. If official target access stays unavailable, publish safe local work/checkpoint if justified but keep Issue OPEN/BLOCKED, do not certify Pine runtime or stop other independent backlog items.

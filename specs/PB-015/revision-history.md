@@ -72,3 +72,9 @@
   `simultaneous-entries` compiled/updated but Pine Logs would not open, so it is
   PARTIAL and `causal-all-indicators` did not run. Six of eight traces now PASS;
   Issue #17 remains OPEN/BLOCKED.
+- 01/09/2026: reused the same linked Update-on-chart slot without rerunning the six
+  completed fixtures. `simultaneous-entries` and `causal-all-indicators` each
+  round-tripped to the exact pinned SHA, compiled, emitted one complete official
+  compact trace through DATASET_END and original assertion PASS, and matched the
+  prepared Python event/accounting values. Official runtime evidence is now 8/8
+  PASS; full regression/security checks pass and publication SHA/CI is pending.

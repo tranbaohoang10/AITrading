@@ -1,0 +1,54 @@
+{
+  "date": "01/09/2026",
+  "target": "TradingView official Pine v6 runtime",
+  "execution": "existing linked PB-015 validation slot; Update on chart only",
+  "instrumentation": "browser-only compact trace; pinned repository fixtures unchanged",
+  "fixtures": {
+    "simultaneous-entries": {
+      "pinnedSha256": "181915d5241b6cda3dae5190ffeb72cdf24e8e69ba41e4d901865e05925b2361",
+      "restoredSha256": "181915d5241b6cda3dae5190ffeb72cdf24e8e69ba41e4d901865e05925b2361",
+      "roundTripExact": true,
+      "editorCounts": {
+        "version": 1,
+        "indicator": 1,
+        "simulationType": 1
+      },
+      "bars": 4,
+      "pineExpectedFieldValuesCompared": 64,
+      "pythonBarValuesCompared": 20,
+      "pineMismatches": 0,
+      "pythonMismatches": 0,
+      "datasetEnd": {
+        "cancelledPending": 0,
+        "openSide": 0
+      },
+      "assertions": "PASS",
+      "log": "official-traces/simultaneous-entries.txt"
+    },
+    "causal-all-indicators": {
+      "pinnedSha256": "535b352e14f3071dd883079f05f2fe3c09b107a186cf3fadcf67c0616dc0c677",
+      "restoredSha256": "535b352e14f3071dd883079f05f2fe3c09b107a186cf3fadcf67c0616dc0c677",
+      "roundTripExact": true,
+      "editorCounts": {
+        "version": 1,
+        "indicator": 1,
+        "simulationType": 1
+      },
+      "bars": 24,
+      "pineExpectedFieldValuesCompared": 384,
+      "pythonBarValuesCompared": 120,
+      "pineMismatches": 0,
+      "pythonMismatches": 0,
+      "entries": 7,
+      "entriesMatchPython": true,
+      "exits": 7,
+      "exitsMatchPython": true,
+      "datasetEnd": {
+        "cancelledPending": 1,
+        "openSide": 0
+      },
+      "assertions": "PASS",
+      "log": "official-traces/causal-all-indicators.txt"
+    }
+  }
+}
