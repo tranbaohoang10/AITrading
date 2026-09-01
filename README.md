@@ -145,7 +145,8 @@ and ignored temporary file, removed on shutdown; do not paste them in Issues.
 Ordinary integration verification remains python scripts/test_backend.py.
 
 For deployment beyond this local machine, provide TLS at a trusted endpoint,
-Secure cookies and an explicit AITRADING_ALLOWED_ORIGINS value. Forwarding headers
+set `SERVER_SERVLET_SESSION_COOKIE_SECURE=true`, and provide an explicit
+`AITRADING_ALLOWED_ORIGINS` value. Forwarding headers
 are not trusted by default; do not expose the development proxy or HTTP API publicly.
 The current feature is not a production identity/security certification.
 

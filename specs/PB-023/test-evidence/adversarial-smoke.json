@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "syntheticDataOnly": true,
+  "externalTargetsContacted": false,
+  "securityHeaders": true,
+  "cookieBoundary": true,
+  "anonymousAndForgedBearerDenied": true,
+  "csrfOriginAndExpectedAccountDenied": true,
+  "ownerIsolation": true,
+  "strictDuplicateAndBodyBounds": true,
+  "hostilePayloadPersistedAsInertData": true,
+  "rateLimitAndOwnerIndependentBudget": true,
+  "actualApiDownUpObserved": true,
+  "sessionAndOwnerDataSurvivedRestart": true,
+  "authorizedStateSha256": "7ce30177e22055e310424f4178e6b71900cca4966358aebec1417ecfa7318cc2"
+}

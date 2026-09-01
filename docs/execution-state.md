@@ -667,3 +667,10 @@ verified exactly on GitHub main. Actions run33469897224 SUCCESS; downloaded CI
 artifact independently confirms270 tests with0 failures/errors/skips and121
 resolved Java dependencies with0 findings. PB018 DoD is complete; Issue23 can be
 closed completed. The next READY item by authoritative priority is PB023.
+
+## 01/09/2026 — PB-023 selected / Issue #24
+
+Selected newly READY P0 PB023 after PB018 DONE and created Issue24 before code.
+Scope is integrated threat assessment, actual two-owner adversarial HTTP/DB evidence
+and fixes for concrete findings; no DONE feature is rebuilt, no external service is
+attacked and Pine/MQL runtime blockers are unchanged.

@@ -73,6 +73,10 @@ class AiTradingApplicationTests {
         assertThat(response.headers().firstValue("X-Frame-Options")).contains("DENY");
         assertThat(response.headers().firstValue("Content-Security-Policy").orElseThrow()).contains("default-src 'none'");
         assertThat(response.headers().firstValue("Cache-Control").orElseThrow()).contains("no-store");
+        assertThat(response.headers().firstValue("Referrer-Policy")).contains("no-referrer");
+        assertThat(response.headers().firstValue("Permissions-Policy").orElseThrow()).contains("camera=()", "payment=()", "usb=()");
+        assertThat(response.headers().firstValue("Cross-Origin-Resource-Policy")).contains("same-origin");
+        assertThat(response.headers().firstValue("X-Permitted-Cross-Domain-Policies")).contains("none");
         assertThat(response.headers().firstValue("Set-Cookie")).isEmpty();
     }
 
