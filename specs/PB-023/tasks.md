@@ -5,4 +5,4 @@
 - [x] Apply narrowly scoped hardening and automated regression tests.
 - [x] Run two-owner actual HTTP/PostgreSQL adversarial/restart smoke.
 - [x] Run full backend/frontend/Python, dependency and exact-secret checks.
-- [ ] Review scope, commit/push exact CI and close Issue after DoD.
+- [x] Review scope, commit/push exact CI and close Issue after DoD.
