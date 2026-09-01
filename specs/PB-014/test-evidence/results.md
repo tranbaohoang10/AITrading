@@ -24,3 +24,7 @@
 The result assesses saved reason quality only. It is not financial advice, a trade
 signal or evidence of profitability. External model wording remains nondeterministic;
 trusted schema, evidence and score validation remain authoritative.
+
+Publication: feature edfdc48d149e18655eb2df1408040f6a170d3e1d is exact on
+GitHub main. Actions run33465379086 SUCCESS; downloaded artifact records253 tests,
+0 failures/errors/skips and dependency audit0 findings. Issue22 completed.

@@ -627,3 +627,10 @@ synthetic journal smoke PASS across structured grounding, replay, cross-owner de
 and actual API restart; notes excluded from provider context. Disposable API/PG
 stopped and password removed. PB014 remains IN_PROGRESS only for scoped publication,
 exact GitHub SHA/CI and Issue22 completion.
+
+## 01/09/2026 — PB-014 DONE; Issue #22 completed
+
+Feature edfdc48d149e18655eb2df1408040f6a170d3e1d was normal-pushed and
+verified exactly on GitHub main. Actions run33465379086 SUCCESS; downloaded
+artifact confirms253 tests with0 failures/errors/skips and dependency audit0.
+Issue22 closed completed after evidence. PB014 is DONE; next READY is PB018.

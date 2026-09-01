@@ -6,3 +6,6 @@
 - 01/09/2026, Asia/Ho_Chi_Minh: clean backend251, frontend216, Python44,
   verifier6, npm/OSV audits PASS. Real Gemini3.5Flash synthetic evaluation,
   grounding, replay, owner isolation and actual restart PASS. Publication pending.
+- 01/09/2026, Asia/Ho_Chi_Minh: feature edfdc48 published and exact GitHub SHA
+  verified. CI33465379086 SUCCESS; artifact253/0/0/0, dependency audit0. Issue22
+  closed completed and backlog changed to DONE.

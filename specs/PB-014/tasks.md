@@ -6,5 +6,5 @@
 - [x] Add saved-version UI with dirty-draft block and disclaimer.
 - [x] Complete provider/API/PG/frontend/security tests and local audits.
 - [x] Run real Gemini synthetic smoke, restart/isolation and responsive UI evidence.
-- [ ] Review scope/secrets/diff, commit/push exact SHA and CI.
-- [ ] Complete DoD, backlog and Issue; continue next READY.
+- [x] Review scope/secrets/diff, commit/push exact SHA and CI.
+- [x] Complete DoD, backlog and Issue; continue next READY.
