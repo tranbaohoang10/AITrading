@@ -63,3 +63,12 @@
   two retained temporary AITrading indicators and no slot. Current browser control
   could not remove them. No compile/runtime/log result and no next fixture; #17
   remains OPEN/BLOCKED.
+
+- 01/09/2026: the existing indicator became the persistent Update-on-chart slot.
+  Actual editor inspection proved the earlier CE10285 came from two concatenated
+  scripts; a sanitation update cleared it. `short-target-cap`,
+  `nonpositive-equity`, and `rule-exit-before-barriers` then produced complete
+  compact official traces matching Python, DATASET_END, and assertions.
+  `simultaneous-entries` compiled/updated but Pine Logs would not open, so it is
+  PARTIAL and `causal-all-indicators` did not run. Six of eight traces now PASS;
+  Issue #17 remains OPEN/BLOCKED.

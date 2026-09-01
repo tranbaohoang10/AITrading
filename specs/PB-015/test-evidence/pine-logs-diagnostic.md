@@ -159,3 +159,65 @@ the chart. Attempts to remove those temporary chart indicators did not take effe
 through the current browser control session. No runtime execution, Pine Logs,
 DATASET_END or assertion output resulted. This remains NOT RUN, not partial/PASS;
 no later fixture was started.
+
+## Persistent-slot compact continuation — 01/09/2026
+
+The existing on-chart AITrading indicator was linked to Pine Editor and reused
+exclusively through **Update on chart**. Before each execution, the editor was
+proved empty, the compact transform round-tripped byte-for-byte to the pinned
+fixture SHA-256, and the actual editor contained exactly one `//@version=6`, one
+`indicator(...)`, one `type Simulation`, and one fixture body. Only trace
+instrumentation changed; OHLCV, runtime/rule logic, expected values, assertions,
+and state-mutation order were unchanged. The earlier CE10285 was confirmed as two
+concatenated editor scripts and cleared by a successful sanitation update.
+
+### short-target-cap — official compact runtime PASS
+
+Pinned/restored SHA-256:
+`362b17203018292b56c82db63fe313c79d85b6e5a5c4cc950e355e5112082188`.
+
+```text
+PB015_COMPACT short-target-cap: bar=0,openMs=1704067200000,closeMs=1704070800000,signal=-1,entry=0,entrySignalBar=-1,entryFill=null,entryFee=null,quantity=0,skipOpen=0,skipClose=0,exit=0,exitReason=0,exitSignalBar=-1,exitFill=null,exitFee=null,closedNet=null,balance=1000,equity=1000 | bar=1,openMs=1704070800000,closeMs=1704074400000,signal=0,entry=-1,entrySignalBar=0,entryFill=100,entryFee=0,quantity=10,skipOpen=0,skipClose=0,exit=0,exitReason=0,exitSignalBar=-1,exitFill=null,exitFee=null,closedNet=null,balance=1000,equity=1000 | bar=2,openMs=1704074400000,closeMs=1704078000000,signal=-1,entry=0,entrySignalBar=-1,entryFill=null,entryFee=null,quantity=10,skipOpen=0,skipClose=0,exit=-1,exitReason=3,exitSignalBar=-1,exitFill=50,exitFee=0,closedNet=500,balance=1500,equity=1500 | DATASET_END: cancelledPending=-1; openSide=0 | ASSERTIONS=PASS
+```
+
+All three bars match Python, including short entry `100`, target exit `50`,
+quantity `10`, closed net `500`, and final balance/equity `1500`.
+
+### nonpositive-equity — official compact runtime PASS
+
+Pinned/restored SHA-256:
+`5698188dda44a5a2fe2286328690532376ee0c7ccd37e59f8db65c1aaebc8160`.
+
+```text
+PB015_COMPACT nonpositive-equity: bar=0,openMs=1704067200000,closeMs=1704070800000,signal=-1,entry=0,entrySignalBar=-1,entryFill=null,entryFee=null,quantity=0,skipOpen=0,skipClose=0,exit=0,exitReason=0,exitSignalBar=-1,exitFill=null,exitFee=null,closedNet=null,balance=1000,equity=1000 | bar=1,openMs=1704070800000,closeMs=1704074400000,signal=0,entry=-1,entrySignalBar=0,entryFill=100,entryFee=0,quantity=100,skipOpen=0,skipClose=0,exit=0,exitReason=0,exitSignalBar=-1,exitFill=null,exitFee=null,closedNet=null,balance=1000,equity=1000 | bar=2,openMs=1704074400000,closeMs=1704078000000,signal=-1,entry=0,entrySignalBar=-1,entryFill=null,entryFee=null,quantity=100,skipOpen=0,skipClose=0,exit=-1,exitReason=2,exitSignalBar=-1,exitFill=1000,exitFee=0,closedNet=-90000,balance=-89000,equity=-89000 | bar=3,openMs=1704078000000,closeMs=1704081600000,signal=-1,entry=0,entrySignalBar=-1,entryFill=null,entryFee=null,quantity=100,skipOpen=1,skipClose=0,exit=0,exitReason=0,exitSignalBar=-1,exitFill=null,exitFee=null,closedNet=null,balance=-89000,equity=-89000 | DATASET_END: cancelledPending=-1; openSide=0 | ASSERTIONS=PASS
+```
+
+All four bars match Python, including short stop `1000`, closed net `-90000`,
+final balance/equity `-89000`, and `skipOpen=1` after nonpositive equity.
+
+### rule-exit-before-barriers — official compact runtime PASS
+
+Pinned/restored SHA-256:
+`899600adcb2f567496eaa8837bebcc7f66acbeb237d2e537f923a5ceccf9ff25`.
+
+```text
+PB015_COMPACT rule-exit-before-barriers: bar=0,openMs=1704067200000,closeMs=1704070800000,signal=1,entry=0,entrySignalBar=-1,entryFill=null,entryFee=null,quantity=0,skipOpen=0,skipClose=0,exit=0,exitReason=0,exitSignalBar=-1,exitFill=null,exitFee=null,closedNet=null,balance=1000,equity=1000 | bar=1,openMs=1704070800000,closeMs=1704074400000,signal=2,entry=1,entrySignalBar=0,entryFill=100,entryFee=0,quantity=10,skipOpen=0,skipClose=0,exit=0,exitReason=0,exitSignalBar=-1,exitFill=null,exitFee=null,closedNet=null,balance=1000,equity=1000 | bar=2,openMs=1704074400000,closeMs=1704078000000,signal=1,entry=0,entrySignalBar=-1,entryFill=null,entryFee=null,quantity=10,skipOpen=0,skipClose=0,exit=1,exitReason=1,exitSignalBar=1,exitFill=40,exitFee=0,closedNet=-600,balance=400,equity=400 | DATASET_END: cancelledPending=1; openSide=0 | ASSERTIONS=PASS
+```
+
+All three bars match Python: rule exit executes at next open `40` before
+barriers, with signal bar `1`, closed net `-600`, and balance/equity `400`.
+
+### simultaneous-entries — PARTIAL, Pine Logs unavailable
+
+The compact transform restored pinned SHA-256
+`181915d5241b6cda3dae5190ffeb72cdf24e8e69ba41e4d901865e05925b2361`.
+The editor was empty before paste and contained exactly one version, indicator,
+`Simulation` type, and fixture body. Update on chart completed without compiler
+diagnostics and the chart displayed balance/equity `1000`. Pine Logs then failed
+to open, so no official compact log, DATASET_END, or assertion result exists.
+This is PARTIAL, not PASS. No retry or `causal-all-indicators` run occurred.
+
+Six fixtures now have official PASS traces: `hand-next-open`,
+`costs-both-hit-gap`, `long-target-cap`, `short-target-cap`,
+`nonpositive-equity`, and `rule-exit-before-barriers`. Issue #17 remains
+OPEN/BLOCKED on `simultaneous-entries` and `causal-all-indicators`.

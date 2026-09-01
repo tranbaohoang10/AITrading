@@ -134,3 +134,29 @@ refused Add to chart because the Basic account chart retained two temporary
 AITrading indicators and had no indicator slot available. Removal controls did
 not apply through the current browser control session. No runtime evidence exists;
 `short-target-cap` remains NOT RUN and #17 remains OPEN/BLOCKED.
+
+## 01/09/2026 persistent validation-slot continuation
+
+The existing linked indicator was reused only through Update on chart. The prior
+CE10285 was traced to two concatenated editor scripts; after a successful minimal
+sanitation update, every fixture started from a verified-empty editor and its
+compact transform restored the pinned fixture byte-for-byte.
+
+Complete official compact runtime traces now PASS for:
+
+- `short-target-cap`: three bars, short entry `100`, target exit `50`, closed net
+  `500`, final balance/equity `1500`, `cancelledPending=-1`, `openSide=0`;
+- `nonpositive-equity`: four bars, stop exit `1000`, closed net `-90000`, final
+  balance/equity `-89000`, and subsequent `skipOpen=1`;
+- `rule-exit-before-barriers`: three bars, rule exit at next open `40`, signal bar
+  `1`, closed net `-600`, final balance/equity `400`.
+
+Every actual field matched the prepared Python event/accounting fixtures and each
+single official log contained DATASET_END plus `ASSERTIONS=PASS`. Full logs and
+SHA proofs are in [pine-logs-diagnostic.md](pine-logs-diagnostic.md).
+
+`simultaneous-entries` compiled and updated from one verified compact fixture, and
+the chart displayed balance/equity `1000`, but Pine Logs failed to open. Without
+its compact trace, DATASET_END, and assertion result it remains PARTIAL. No retry
+or `causal-all-indicators` execution occurred. Six of eight official fixture
+traces are PASS; PB-015 and Issue #17 remain OPEN/BLOCKED.
