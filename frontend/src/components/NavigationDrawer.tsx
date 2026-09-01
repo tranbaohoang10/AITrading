@@ -21,6 +21,7 @@ const routeMap: Record<string, MobileView> = {
   'my-code': 'my-code',
   'trading-journal': 'trading-journal',
   documents: 'documents',
+  'image-analysis': 'image-analysis',
   strategies: 'strategies',
   settings: 'settings',
   account: 'account',

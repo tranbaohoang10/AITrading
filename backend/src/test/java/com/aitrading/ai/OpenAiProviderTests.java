@@ -72,6 +72,10 @@ class OpenAiProviderTests {
         assertThat(request.has("previous_response_id")).isFalse();assertThat(request.has("conversation")).isFalse();
         assertThat(OpenAiProvider.ENDPOINT.toString()).isEqualTo("https://api.openai.com/v1/responses");
     }
+    @Test void imageAnalysisUsesDataImageAndClosedSchemaWithoutTools() {
+        var result=new AiImageAnalysis(List.of(new AiImageAnalysis.Evidence("E1","Synthetic candle","center")),List.of(),List.of(new AiImageAnalysis.Inference("Possible rise",List.of("E1"))),List.of("No timeframe"),.6,List.of("Static image only"));response.set(envelope(json.writeValueAsString(result)));
+        assertThat(provider(Duration.ofSeconds(3)).analyzeImage(new AiProvider.ImageRequest(new byte[32],"Synthetic chart?"))).isEqualTo(result);var request=captured.get();assertThat(request.at("/input/0/content/0/text").asString()).isEqualTo("Synthetic chart?");assertThat(request.at("/input/0/content/1/image_url").asString()).startsWith("data:image/png;base64,");assertThat(request.get("tools").isEmpty()).isTrue();assertThat(request.at("/text/format/name").asString()).isEqualTo("chart_image_analysis_v1");
+    }
     @Test void strategyProposalUsesSeparateNeutralSchemaAndTokenBudget() {
         var value=new LinkedHashMap<String,Object>();value.put("kind","clarification");value.put("explanation","Synthetic missing rules");value.put("assumptions",List.of());value.put("questions",List.of("Risk size?"));value.put("dslJson",null);
         response.set(envelope(json.writeValueAsString(Map.of("result",value))));

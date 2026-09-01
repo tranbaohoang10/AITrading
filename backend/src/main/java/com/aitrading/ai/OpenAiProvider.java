@@ -36,6 +36,17 @@ public final class OpenAiProvider implements AiProvider {
     @Override public AiJournalEvaluation evaluateJournal(List<ContextMessage> context) {
         return AiJournalEvaluation.decode(decodeText(send(context,AiJournalProtocol.INSTRUCTIONS,AiJournalProtocol.SCHEMA,"journal_evaluation_v1",4096)),key);
     }
+    @Override public AiImageAnalysis analyzeImage(ImageRequest image) {
+        AiImageProtocol.validate(image);if(!configuration.configured())throw new AiFailure(AiFailure.Code.AI_UNCONFIGURED);
+        String data="data:image/png;base64,"+Base64.getEncoder().encodeToString(image.pngBytes());
+        var content=List.of(Map.of("type","input_text","text",image.question()),Map.of("type","input_image","image_url",data,"detail","high"));
+        var body=Map.of("model",configuration.model(),"instructions",AiImageProtocol.INSTRUCTIONS,"input",List.of(Map.of("role","user","content",content)),
+                "text",Map.of("format",Map.of("type","json_schema","name","chart_image_analysis_v1","strict",true,"schema",AiImageProtocol.SCHEMA)),
+                "store",false,"stream",false,"tools",List.of(),"tool_choice","none","max_output_tokens",4096,"truncation","disabled");
+        var request=HttpRequest.newBuilder(endpoint).timeout(timeout).header("Content-Type","application/json").header("Authorization","Bearer "+key)
+                .POST(HttpRequest.BodyPublishers.ofByteArray(AiProviderProtocol.JSON.writeValueAsBytes(body))).build();
+        return AiImageProtocol.withoutSecret(AiImageProtocol.decode(decodeText(transport.send(request,timeout))),key);
+    }
     private byte[] send(List<ContextMessage> context,String instructions,Map<String,Object> schema,String schemaName,int tokens) {
         if(!configuration.configured())throw new AiFailure(AiFailure.Code.AI_UNCONFIGURED);
         AiProviderProtocol.validateContext(context);

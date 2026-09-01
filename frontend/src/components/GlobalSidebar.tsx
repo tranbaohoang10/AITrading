@@ -14,6 +14,7 @@ export const navigationItems: NavigationItem[] = [
   { label: 'My Code', icon: 'code', action: 'my-code' },
   { label: 'Trading Journal', icon: 'journal', action: 'trading-journal' },
   { label: 'Documents', icon: 'layers', action: 'documents' },
+  { label: 'Image Analysis', icon: 'chart', action: 'image-analysis' },
   { label: 'Strategies', icon: 'layers', action: 'strategies' },
   { label: 'Settings', icon: 'settings', action: 'settings' },
   { label: 'Account', icon: 'user', action: 'account' },

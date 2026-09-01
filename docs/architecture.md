@@ -156,3 +156,10 @@ OpenAI-only description above records the initial implementation, not the curren
 mandatory provider. Real Gemini smoke is required before PB008 DONE.
 
 31/08/2026: PB008 Gemini3.5Flash real synthetic smoke and delivery CI verified; Issue12 completed. Historical smoke-pending entries above are superseded by PB008 final evidence.
+
+01/09/2026 PB019: ImageAnalysisController→ImageAnalysisService uses the same
+provider-neutral AiProvider. The service accepts no URL/path, bounds PNG/JPEG bytes
+and decoded pixels, re-encodes a metadata-free PNG, then validates a closed
+AiImageAnalysis schema. V17 persists owner/request/source hashes, canonical bytes,
+dimensions, structured result and provider provenance. UI text remains inert and
+does not mutate Strategy DSL. See specs/PB-019/design.md and test-cases.md.

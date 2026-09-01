@@ -27,7 +27,7 @@ public class AuthInputFilter extends OncePerRequestFilter {
         }
         String mediaType=request.getContentType()==null?"":request.getContentType().split(";")[0];
         boolean documentMultipart=request.getMethod().equals("POST")&&mediaType.equalsIgnoreCase("multipart/form-data")
-                && (request.getRequestURI().equals("/api/documents")||request.getRequestURI().matches("/api/documents/[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/versions"));
+                && (request.getRequestURI().equals("/api/documents")||request.getRequestURI().equals("/api/image-analyses")||request.getRequestURI().matches("/api/documents/[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/versions"));
         if(documentMultipart){
             if(request.getContentLengthLong()>2_252_800L){ApiErrors.write(request,response,413,ApiErrors.Code.INVALID_REQUEST);return;}
             // Keep the original servlet request: the bounded multipart resolver must own its stream.

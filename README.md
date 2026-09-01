@@ -327,6 +327,14 @@ The smoke expects `gemini-3.5-flash` by default; use `--model` or its process
 two synthetic turns and their exact context hashes, excludes decoy conversations,
 and compares persisted messages after restart. Do not pass private data to it.
 
+PB-019 extends the same selected `AiProvider` with private chart-image analysis.
+The API accepts only bounded PNG/JPEG uploads, decodes and re-encodes them as a
+metadata-free canonical PNG, and never accepts a URL. Results separate visible
+evidence, visible text, inference, confidence, missing data and limitations; they
+cannot create or accept Strategy DSL. For the required synthetic real-provider
+check, run `scripts/smoke_image_analysis.py` only against a fresh owned `--serve`
+harness. Never use real user charts or put a provider key on the command line.
+
 ## Owned backtest API jobs (PB-011)
 
 Set `AITRADING_PYTHON_EXECUTABLE` to the absolute path of Python3.12+ and optionally

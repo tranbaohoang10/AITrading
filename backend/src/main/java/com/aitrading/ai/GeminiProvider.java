@@ -34,6 +34,15 @@ public final class GeminiProvider implements AiProvider {
     @Override public AiJournalEvaluation evaluateJournal(List<ContextMessage> context) {
         return AiJournalEvaluation.decode(decodeText(send(context,AiJournalProtocol.INSTRUCTIONS,AiJournalProtocol.SCHEMA,4096)),key);
     }
+    @Override public AiImageAnalysis analyzeImage(ImageRequest image) {
+        AiImageProtocol.validate(image);if(!configuration.configured())throw new AiFailure(AiFailure.Code.AI_UNCONFIGURED);
+        var parts=List.of(Map.of("text",image.question()),Map.of("inlineData",Map.of("mimeType","image/png","data",Base64.getEncoder().encodeToString(image.pngBytes()))));
+        var body=Map.of("systemInstruction",Map.of("parts",List.of(Map.of("text",AiImageProtocol.INSTRUCTIONS))),"contents",List.of(Map.of("role","user","parts",parts)),
+                "tools",List.of(),"store",false,"generationConfig",Map.of("candidateCount",1,"maxOutputTokens",4096,"responseMimeType","application/json","responseJsonSchema",AiImageProtocol.SCHEMA,"thinkingConfig",Map.of("includeThoughts",false)));
+        var request=HttpRequest.newBuilder(endpoint).timeout(timeout).header("Content-Type","application/json").header("x-goog-api-key",key)
+                .POST(HttpRequest.BodyPublishers.ofByteArray(AiProviderProtocol.JSON.writeValueAsBytes(body))).build();
+        return AiImageProtocol.withoutSecret(AiImageProtocol.decode(decodeText(transport.send(request,timeout))),key);
+    }
     private byte[] send(List<ContextMessage> context,String instructions,Map<String,Object> schema,int tokens) {
         if(!configuration.configured())throw new AiFailure(AiFailure.Code.AI_UNCONFIGURED);
         AiProviderProtocol.validateContext(context);

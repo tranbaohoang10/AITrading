@@ -121,6 +121,11 @@ class GeminiProviderTests {
         for(byte[] bytes:List.of(new byte[]{(byte)0xff},"{}{}".getBytes(),"null".getBytes(),"[]".getBytes(),"{\"candidates\":[]}".getBytes()))
             failure(()->GeminiProvider.decode(bytes),AiFailure.Code.AI_INVALID_RESPONSE);
     }
+    @Test void imageAnalysisUsesInlineCanonicalBytesAndStrictSchema() {
+        var result=new AiImageAnalysis(List.of(new AiImageAnalysis.Evidence("E1","Synthetic candle","center")),List.of(),List.of(new AiImageAnalysis.Inference("Possible rise",List.of("E1"))),List.of("No timeframe"),.6,List.of("Static image only"));response.set(envelope(result));
+        assertThat(provider(Duration.ofSeconds(3)).analyzeImage(new AiProvider.ImageRequest(new byte[32],"Synthetic chart?"))).isEqualTo(result);
+        var request=captured.get();var parts=request.at("/contents/0/parts");assertThat(parts.get(0).get("text").asString()).isEqualTo("Synthetic chart?");assertThat(parts.get(1).at("/inlineData/mimeType").asString()).isEqualTo("image/png");assertThat(parts.get(1).at("/inlineData/data").asString()).isEqualTo(Base64.getEncoder().encodeToString(new byte[32]));assertThat(request.get("tools").isEmpty()).isTrue();assertThat(request.at("/generationConfig/responseJsonSchema/additionalProperties").asBoolean()).isFalse();
+    }
     @Test void journalEvaluationUsesClosedRubricSchemaAndNoTools() {
         var items=AiJournalEvaluation.CRITERIA.stream().map(c->Map.of("criterion",c,"score",10,"evidence","Synthetic","feedback","Improve detail")).toList();
         var value=Map.of("kind","evaluation","summary","Synthetic review","rubric",items,"strengths",List.of(),"improvements",List.of("Add risk"),"questions",List.of(),"disclaimer","Research feedback only; not financial advice or a profitability guarantee.");

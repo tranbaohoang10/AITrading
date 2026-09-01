@@ -22,11 +22,12 @@ import { JournalWorkspace } from '../journal/JournalWorkspace'
 import { PineWorkspace } from '../pine/PineWorkspace'
 import { Mql5Workspace } from '../mql5/Mql5Workspace'
 import { DocumentWorkspace } from '../document/DocumentWorkspace'
+import { ImageAnalysisWorkspace } from '../image/ImageAnalysisWorkspace'
 
 const mobileTitles: Record<MobileView, string> = {
   'ai-chat': 'AI Chat', chart: 'Chart', 'strategy-dsl': 'Strategy DSL', 'pine-script': 'Pine Script', mql5: 'MQL5',
   'backtest-results': 'Backtest Results', trades: 'Trades', 'my-code': 'My Code', 'trading-journal': 'Trading Journal',
-  strategies: 'Strategies', documents: 'Documents', settings: 'Settings', account: 'Account',
+  strategies: 'Strategies', documents: 'Documents', 'image-analysis': 'Image Analysis', settings: 'Settings', account: 'Account',
 }
 
 const workspaceViews: WorkspaceTab[] = ['chart', 'strategy-dsl', 'pine-script', 'mql5', 'backtest-results', 'trades']
@@ -138,6 +139,7 @@ function MobileContent({ view }: { view: MobileView }) {
     case 'my-code': return <PlaceholderView title="My Code" />
     case 'trading-journal': return journal ? <JournalWorkspace /> : <PlaceholderView title="Trading Journal" />
     case 'documents': return <DocumentWorkspace />
+    case 'image-analysis': return <ImageAnalysisWorkspace />
     case 'strategies': return <PlaceholderView title="Strategies" />
     case 'settings': return <PlaceholderView title="Settings" />
     case 'account': return <AccountView />

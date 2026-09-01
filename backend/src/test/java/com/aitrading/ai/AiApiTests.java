@@ -85,6 +85,13 @@ class AiApiTests {
             if(mode.get().equals("insufficient"))return new AiJournalEvaluation("insufficient","More evidence is required.",List.of(),List.of(),List.of("Record a measurable trigger."),List.of("Which closed-bar trigger supported entry?"),"Research feedback only; not financial advice or a profitability guarantee.");
             return evaluation("closed candle breakout");
         }
+        @Override public AiImageAnalysis analyzeImage(ImageRequest image){
+            calls.incrementAndGet();requests.add(json.valueToTree(Map.of("question",image.question(),"bytes",image.pngBytes().length)));seen.get().countDown();
+            try{gate.get().await(8,TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();throw new AiFailure(AiFailure.Code.AI_CANCELLED);}
+            if(mode.get().equals("rate"))throw new AiFailure(AiFailure.Code.AI_RATE_LIMITED);if(mode.get().equals("refusal"))throw new AiFailure(AiFailure.Code.AI_REFUSED);
+            if(mode.get().equals("invalid-image"))return new AiImageAnalysis(List.of(),List.of(),List.of(new AiImageAnalysis.Inference("unsupported",List.of())),List.of(),.5,List.of("Synthetic limitation"));
+            return new AiImageAnalysis(List.of(new AiImageAnalysis.Evidence("E1","Synthetic green candles rise","center")),List.of("SYNTHETIC"),List.of(new AiImageAnalysis.Inference("Visible upward sequence",List.of("E1"))),List.of("No timeframe or live feed"),.75,List.of("One static synthetic image only; not financial advice."));
+        }
         private AiJournalEvaluation evaluation(String evidence){return new AiJournalEvaluation("evaluation","The saved reason is measurable but can define risk better.",List.of(
                 new AiJournalEvaluation.Item("specificity",20,evidence,"Name the exact threshold."),new AiJournalEvaluation.Item("evidence",18,evidence,"Record the observed value."),
                 new AiJournalEvaluation.Item("risk",8,evidence,"Add risk size."),new AiJournalEvaluation.Item("invalidation",7,evidence,"Add invalidation.")),List.of("Uses a closed candle."),List.of("Define risk and invalidation."),List.of(),"Research feedback only; not financial advice or a profitability guarantee.");}

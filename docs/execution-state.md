@@ -683,3 +683,10 @@ artifact independently confirms270 tests with0 failures/errors/skips and121 Java
 dependencies with0 findings. Local frontend222, Python44, verifier6, two-owner
 adversarial/restart smoke and secret scan PASS. No unresolved high/critical finding.
 The next independent READY item is PB019; Pine/MQL runtime blockers remain unchanged.
+
+## 01/09/2026 — PB-019 selected / Issue #25
+
+Selected PB019 after PB023 DONE. Issue25 and CNPM design define provider-neutral
+bounded PNG/JPEG analysis with canonical metadata-free bytes, strict separation of
+visible evidence/inference/confidence/missing data, owner persistence and inert UI.
+No DONE feature is rebuilt and no Pine/MQL runtime claim is changed.
