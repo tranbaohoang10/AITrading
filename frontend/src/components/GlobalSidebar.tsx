@@ -13,6 +13,7 @@ export const navigationItems: NavigationItem[] = [
   { label: 'Backtest', icon: 'chart', action: 'backtest-results' },
   { label: 'My Code', icon: 'code', action: 'my-code' },
   { label: 'Trading Journal', icon: 'journal', action: 'trading-journal' },
+  { label: 'Documents', icon: 'layers', action: 'documents' },
   { label: 'Strategies', icon: 'layers', action: 'strategies' },
   { label: 'Settings', icon: 'settings', action: 'settings' },
   { label: 'Account', icon: 'user', action: 'account' },

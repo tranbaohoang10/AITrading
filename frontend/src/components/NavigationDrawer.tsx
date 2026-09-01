@@ -20,6 +20,7 @@ const routeMap: Record<string, MobileView> = {
   'backtest-results': 'backtest-results',
   'my-code': 'my-code',
   'trading-journal': 'trading-journal',
+  documents: 'documents',
   strategies: 'strategies',
   settings: 'settings',
   account: 'account',

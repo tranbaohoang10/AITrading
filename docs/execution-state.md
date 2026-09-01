@@ -634,3 +634,28 @@ Feature edfdc48d149e18655eb2df1408040f6a170d3e1d was normal-pushed and
 verified exactly on GitHub main. Actions run33465379086 SUCCESS; downloaded
 artifact confirms253 tests with0 failures/errors/skips and dependency audit0.
 Issue22 closed completed after evidence. PB014 is DONE; next READY is PB018.
+
+## 01/09/2026 — PB-018 selected / Issue #23
+
+Selected PB018 after PB014 DONE and created Issue23 before code. Fixed-stack design
+uses owned PostgreSQL versions/chunks, deterministic lexical retrieval and existing
+provider-neutral AI boundary. Apache PDFBox3.0.8 was selected from the official
+current release because it fixes the traversal CVEs affecting3.0.0–3.0.7. No URL
+fetch, embedded-file extraction, document instruction execution or external vector
+database is introduced.
+
+## 01/09/2026 — PB-018 local and real-provider verification PASS
+
+Implemented owner-only TXT/PDF upload, immutable versions/current chunks, bounded
+deterministic retrieval, append-only RAG attempts/citation snapshots and provider-
+neutral structured answers. Document/credential changes during provider work fail
+stale; no-match calls no provider. UI supports create/version/delete, explicit
+loading/error/empty states and inert citations.
+
+Final local evidence: backend270, frontend221, Python44 and verifier6 tests PASS;
+lint/build/bootJar PASS; npm0 and OSV121/0 PASS. Production-path Gemini3.5Flash
+smoke used synthetic text only and PASSed exact citation hash, upload replay,
+two-owner/CSRF/account isolation, persisted retrieval and actual API restart. The
+owned API/PG stopped and temporary password was removed. PB018 remains IN_PROGRESS
+only for scope/secret review, commit, normal push, exact GitHub SHA/CI and Issue23
+completion.

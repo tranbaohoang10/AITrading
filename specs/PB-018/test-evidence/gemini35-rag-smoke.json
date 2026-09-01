@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "syntheticDataOnly": true,
+  "realGemini": true,
+  "provider": "gemini",
+  "model": "gemini-3.5-flash",
+  "realProviderTurns": 2,
+  "ownerIsolation": true,
+  "csrfAndExpectedAccountBinding": true,
+  "idempotentUpload": true,
+  "exactCitationHashVerified": true,
+  "untrustedContentBoundaryExercised": true,
+  "actualApiDownUpObserved": true,
+  "documentsAndRetrievalSurvivedRestart": true,
+  "documentSnapshotSha256": "f4ca95f3846b43170ead1eb9af35bfaa1d26c799918d588f4171c771846094cf"
+}

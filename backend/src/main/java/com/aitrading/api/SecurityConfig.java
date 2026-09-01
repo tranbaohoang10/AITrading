@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/ai/capabilities").authenticated()
                         .requestMatchers("/api/backtests", "/api/backtests/**").authenticated()
                         .requestMatchers("/api/journal", "/api/journal/**").authenticated()
+                        .requestMatchers("/api/documents", "/api/documents/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/audit").authenticated()
                         .anyRequest().denyAll())
                 .csrf(Customizer.withDefaults())

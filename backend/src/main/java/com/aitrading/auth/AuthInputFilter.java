@@ -25,6 +25,14 @@ public class AuthInputFilter extends OncePerRequestFilter {
         if (origin != null && !origins.contains(origin)) {
             ApiErrors.write(request, response, 403, ApiErrors.Code.FORBIDDEN); return;
         }
+        String mediaType=request.getContentType()==null?"":request.getContentType().split(";")[0];
+        boolean documentMultipart=request.getMethod().equals("POST")&&mediaType.equalsIgnoreCase("multipart/form-data")
+                && (request.getRequestURI().equals("/api/documents")||request.getRequestURI().matches("/api/documents/[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/versions"));
+        if(documentMultipart){
+            if(request.getContentLengthLong()>2_252_800L){ApiErrors.write(request,response,413,ApiErrors.Code.INVALID_REQUEST);return;}
+            // Keep the original servlet request: the bounded multipart resolver must own its stream.
+            chain.doFilter(request,response);return;
+        }
         int maxBody = request.getMethod().equals("POST") && request.getRequestURI().equals("/api/dsl/validate")
                 ? com.aitrading.dsl.DslValidator.MAX_BYTES : MAX_BODY;
         if (request.getMethod().equals("POST") && request.getRequestURI().equals("/api/datasets/import"))

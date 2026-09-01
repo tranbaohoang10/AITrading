@@ -13,6 +13,7 @@ export type MobileView =
   | 'ai-chat'
   | 'my-code'
   | 'trading-journal'
+  | 'documents'
   | 'strategies'
   | 'settings'
   | 'account'
