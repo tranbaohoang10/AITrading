@@ -16,9 +16,10 @@ fixtures. Actual target negatives including `future.csv` pass fail-closed checks
 the final future input emitted `ERROR: CSV_INVALID row 2`, no result. Full backend
 regression via disposable PostgreSQL harness PASS; direct Gradle invocation without
 the required owned-DB harness failed as designed and is retained as environmental
-misuse, not a product failure. PB016 awaits scoped commit, normal push, exact SHA,
-CI and Issue #18 completion. PB015/#17 remains OPEN/BLOCKED by Pine Logs; PB017
-still depends on PB015 and PB016.
+misuse, not a product failure. PB016 was published as
+93f96c88a847b574c22f62e311fac39ed82586d1 and CI33488433090 SUCCESS. Issue #18
+is eligible for completed closure. PB015/#17 remains OPEN/BLOCKED by Pine Logs;
+PB017 is blocked only on PB015.
 
 LATEST PB-011 final122backend PASS on owned pg-test-x6wz4_ss, stopped/password
 removed;105frontend/40Python/6verifier/6canonical/build/lint/audits PASS. Actual
