@@ -102,3 +102,29 @@ from the TradingView static bundle. No retry occurred and no next fixture was ru
 This fresh reproduction confirms that `long-target-cap` is still PARTIAL, not
 PASS. Complete official PASS traces remain exactly `hand-next-open` and
 `costs-both-hit-gap`; Issue #17 remains OPEN/BLOCKED.
+
+## Compact browser-only long-target-cap diagnostic — 01/09/2026
+
+Before execution, the temporary compact variant was structurally round-tripped to
+the pinned fixture. The recovered SHA-256 was exactly
+`0b872e1ff5020a619fa0c3bb7c9bf15d4821c81c87fe6df93999b2aa956b28a4`.
+Only the browser-local trace instrumentation changed: it accumulated each bar in
+memory, saved the endpoint state before the existing `sim.pending := 0`, and
+replaced eight log deliveries with one final log after every original assertion.
+The synthetic OHLCV, runtime, expected arrays, assertions and state-mutation
+order were unchanged. No pinned repository fixture was modified.
+
+In a new authenticated Incognito session, the single official Pine Logs entry was:
+
+```text
+COMPACT long-target-cap: b=0,sig=1,entry=0,entryFill=null,exit=0,reason=0,exitFill=null,net=null,bal=1000,eq=1000|b=1,sig=0,entry=1,entryFill=100,exit=0,reason=0,exitFill=null,net=null,bal=1000,eq=1000|b=2,sig=1,entry=0,entryFill=null,exit=1,reason=3,exitFill=200,net=1000,bal=2000,eq=2000|DATASET_END: cancelledPending=1;openSide=0;ASSERTIONS=PASS
+```
+
+All values match the pinned expected arrays. `ASSERTIONS=PASS` is emitted after
+the unchanged checks, so this is official runtime PASS evidence for
+`long-target-cap` using temporary test instrumentation. Browser console showed
+only an unrelated settings warning and no `undefined/ping` error. Stop before the
+next fixture: `short-target-cap`, `nonpositive-equity`,
+`rule-exit-before-barriers`, `simultaneous-entries`, and
+`causal-all-indicators` remain unexecuted. Issue #17 stays OPEN/BLOCKED pending
+those complete traces.

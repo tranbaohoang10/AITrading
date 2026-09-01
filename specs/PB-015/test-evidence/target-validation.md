@@ -100,3 +100,19 @@ values, but its `DATASET_END` and assertion-PASS records again did not appear.
 The page console emitted `Fetch:https://undefined/ping. TypeError: Failed to fetch`
 after the wait. This is a repeatable partial trace, not PASS evidence. No retry or
 next-fixture execution occurred in that session; #17 remains OPEN/BLOCKED.
+
+## 01/09/2026 compact long-target-cap official PASS
+
+The repeated missing final delivery was isolated with a browser-only compact trace
+variant. Its round-trip transform recovered the pinned fixture byte-for-byte with
+SHA-256 `0b872e1ff5020a619fa0c3bb7c9bf15d4821c81c87fe6df93999b2aa956b28a4`.
+It changed only logging: three per-bar records were accumulated in memory, endpoint
+state was captured before the original pending reset, and one final log was emitted
+after the unchanged assertions. The one actual Pine Logs record contains all three
+expected bars, `DATASET_END: cancelledPending=1;openSide=0`, and
+`ASSERTIONS=PASS`; full text is in [pine-logs-diagnostic.md](pine-logs-diagnostic.md).
+
+`long-target-cap` is therefore official runtime PASS under test-only compact
+instrumentation. The remaining unexecuted fixtures are `short-target-cap`,
+`nonpositive-equity`, `rule-exit-before-barriers`, `simultaneous-entries`, and
+`causal-all-indicators`. PB-015 remains BLOCKED until their traces are complete.

@@ -45,3 +45,9 @@
   DATASET_END/assertion PASS did not, followed by undefined/ping. No retry and no
   next fixture. This confirms the partial evidence is repeatable without meeting
   the DoD; Issue17 remains OPEN/BLOCKED.
+
+- 01/09/2026: a browser-only compact `long-target-cap` trace variant passed an
+  exact round-trip SHA256 proof against the pinned fixture before execution. Its
+  single official log carried all three bars, endpoint state and ASSERTIONS=PASS;
+  unchanged runtime/assertions therefore PASS. No repository fixture changed and
+  no next fixture ran. Five official traces remain; Issue17 stays OPEN/BLOCKED.
