@@ -75,3 +75,18 @@ TypeError: Failed to fetch` errors. No retry occurred and the remaining seven
 fixtures were not run. See [the subsystem diagnostic](pine-logs-diagnostic.md).
 The evidence is partial and #17 remains OPEN/BLOCKED until all eight actual traces
 are collected and compared.
+
+## 01/09/2026 clean-session continuation
+
+`costs-both-hit-gap` now has complete official evidence: six actual trace bars,
+`DATASET_END`, and the fixture's assertion-PASS line. Its final observed balance
+and equity were `422.6007359013559`; its asserted float values remained within the
+fixture tolerance.
+
+`long-target-cap` was the next sequential fixture. Its three expected bar/exit
+records appeared, including its target exit at `200` and final balance `2000`, but
+Pine Logs did not emit the final `DATASET_END` or assertion-PASS entry. No retry
+was made in that session. `short-target-cap`, `nonpositive-equity`,
+`rule-exit-before-barriers`, `simultaneous-entries`, and `causal-all-indicators`
+remain untouched. The intermittent `undefined/ping` console failure remains the
+external blocker; two fixtures have complete official PASS traces, six do not.

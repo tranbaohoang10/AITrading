@@ -55,3 +55,31 @@ complete eight-fixture actual trace comparison.
 PB-015 therefore remains OPEN/BLOCKED. `hand-next-open` is valid partial official
 runtime evidence only; it is not a substitute for the seven missing fixture traces
 or for the full Definition of Done.
+
+## Clean-session continuation — 01/09/2026
+
+In a new Product-Owner-authenticated Chrome Incognito session, the existing
+official `costs-both-hit-gap` assertion copy was active with its browser-only
+trace switch. Pine Logs responded through all six bars and showed `DATASET_END`
+followed by:
+
+`SYNTHETIC costs-both-hit-gap: all 6 event/indicator/accounting assertions passed in this actual Pine execution.`
+
+The observed final accounting record was `exit=-1`, `exitReason=2`,
+`exitFill=150.105`, `closedNet=-429.1643388640097`,
+`balance=422.6007359013559`, `equity=422.6007359013559`, consistent with the
+pinned assertion fixture's floating-point tolerance.
+
+Pine Logs was confirmed responsive before `long-target-cap` was compiled and
+updated on chart. It returned the expected three bar/exit records, including the
+bar-two target exit (`exitReason=3`, `exitFill=200`, `closedNet=1000`,
+`balance=2000`). It did **not** return `DATASET_END` or the required
+`SYNTHETIC long-target-cap ... assertions passed` line after the log was scrolled
+to its end. Browser console collection continued to contain repeated
+`Fetch:https://undefined/ping. TypeError: Failed to fetch` records.
+
+No retry of `long-target-cap` occurred in this session. `short-target-cap`,
+`nonpositive-equity`, `rule-exit-before-barriers`, `simultaneous-entries`, and
+`causal-all-indicators` were not run. Official PASS evidence now exists only for
+`hand-next-open` and `costs-both-hit-gap`; the incomplete `long-target-cap` trace
+and the five untouched fixtures keep Issue #17 OPEN/BLOCKED.

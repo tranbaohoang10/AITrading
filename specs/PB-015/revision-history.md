@@ -32,3 +32,10 @@
   `Fetch:https://undefined/ping. TypeError: Failed to fetch` failure and returned
   no logs. No retry or other fixture run. This is partial target evidence only;
   Issue17 remains OPEN/BLOCKED pending all eight traces.
+
+- 01/09/2026: new clean Incognito session completed `costs-both-hit-gap` with six
+  actual trace bars, DATASET_END and assertion PASS. The next `long-target-cap`
+  update emitted its three expected bars but not DATASET_END/assertion PASS; no
+  retry followed and five fixtures were untouched. The recurring undefined/ping
+  console error remains an external intermittent Pine Logs blocker. Two complete
+  fixture traces are now official PASS; Issue17 remains OPEN/BLOCKED.
