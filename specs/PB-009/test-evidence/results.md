@@ -29,5 +29,10 @@ The provider-neutral response schema was tightened to an official JSON Schema
 `anyOf` union for mutually exclusive proposal/clarification shapes. Contract tests,
 full regressions and subsequent real smoke then passed; no output was fabricated.
 
+Publication: feature commit 9c1a2111b6f255802489866b44fc6878421aad3c is
+verified on GitHub main. Actions run33462951447 SUCCESS; downloaded artifact has
+235 tests,0 failures,0 errors,0 skipped and dependency audit0 findings. Issue21
+was closed completed after AC/DoD PASS.
+
 Limitations: external output wording remains nondeterministic and is never treated
-as proof of profitability. CI/exact GitHub SHA remain pending until publication.
+as proof of profitability.

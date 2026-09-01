@@ -12,5 +12,9 @@
   no retry/fallback/fake response. Final real smoke PASS with two synthetic actual
   proposals (accept/reject), owner/context/idempotency and actual API restart.
   Browser desktop/mobile, backend235, frontend213, Python44, npm/OSV audits PASS.
-  All disposable services stopped and temporary passwords removed. Publication,
-  exact SHA/CI and Issue closure remain pending.
+  All disposable services stopped and temporary passwords removed.
+- 01/09/2026, Asia/Ho_Chi_Minh: feature commit
+  9c1a2111b6f255802489866b44fc6878421aad3c published by normal fast-forward push;
+  exact GitHub main SHA verified. CI run33462951447 SUCCESS; artifact confirms
+  backend235/0/0/0 and dependency audit0 findings. Issue21 closed completed after
+  AC/DoD evidence; backlog status changed to DONE.

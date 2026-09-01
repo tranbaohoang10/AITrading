@@ -600,3 +600,13 @@ findings; git diff --check PASS. Evidence under specs/PB-009/test-evidence. PB00
 remains IN_PROGRESS only for scoped commit, normal main push, exact GitHub SHA/CI,
 then backlog/Issue completion. PB014 and PB018 remain READY; PB015/PB016 remain
 externally blocked on TradingView/Pine and MQL5 runtimes.
+
+## 01/09/2026 — PB-009 DONE; Issue #21 completed
+
+Published scoped feature commit 9c1a2111b6f255802489866b44fc6878421aad3c by
+normal fast-forward push to origin/main and verified the exact GitHub main SHA.
+GitHub Actions run33462951447 completed SUCCESS: frontend and backend jobs PASS.
+Downloaded CI artifact independently confirms235 tests,0 failures,0 errors,
+0 skipped and dependency audit0 findings. Issue21 was closed as completed only
+after this evidence. PB009 is DONE. Next READY by priority/ID is PB014, followed
+by PB018; PB015/PB016 retain their actual Pine/MQL5 runtime blockers.

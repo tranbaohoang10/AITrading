@@ -7,5 +7,5 @@
 - [x] Automated provider/schema/API/PG/concurrency/frontend/security cases.
 - [x] Full local regression/build/lint/audits and actual browser/restart evidence.
 - [x] Real synthetic Gemini proposal/acceptance smoke; no fake PASS.
-- [ ] Scope/diff/secrets review, Vietnamese Refs #21 commit, normal push/exact CI.
-- [ ] DoD/Issue completed; update backlog and continue next READY.
+- [x] Scope/diff/secrets review, Vietnamese Refs #21 commit, normal push/exact CI.
+- [x] DoD/Issue completed; update backlog and continue next READY.
