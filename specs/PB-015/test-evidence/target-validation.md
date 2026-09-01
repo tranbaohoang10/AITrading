@@ -125,3 +125,12 @@ TradingView editor reported CE10285 duplicate `Simulation` type declarations and
 the account session was disconnected for concurrent browser/device activity.
 No official trace was produced; no retry occurred. `short-target-cap` remains
 NOT RUN and #17 remains OPEN/BLOCKED.
+
+## 01/09/2026 clean-editor retry — chart slot blocker
+
+A default editor was correctly replaced with the one verified compact
+`short-target-cap` source and did not show a compiler diagnostic. TradingView
+refused Add to chart because the Basic account chart retained two temporary
+AITrading indicators and had no indicator slot available. Removal controls did
+not apply through the current browser control session. No runtime evidence exists;
+`short-target-cap` remains NOT RUN and #17 remains OPEN/BLOCKED.

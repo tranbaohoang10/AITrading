@@ -57,3 +57,9 @@
   `Simulation` declarations, then disconnected the concurrent account session.
   No log/trace was accepted as evidence and no retry occurred; Issue17 remains
   OPEN/BLOCKED.
+
+- 01/09/2026: a clean default-editor retry correctly replaced all content with the
+  verified short compact fixture but could not Add to chart: the Basic account had
+  two retained temporary AITrading indicators and no slot. Current browser control
+  could not remove them. No compile/runtime/log result and no next fixture; #17
+  remains OPEN/BLOCKED.

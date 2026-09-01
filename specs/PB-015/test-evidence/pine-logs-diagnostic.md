@@ -143,3 +143,19 @@ TradingView also displayed that the account session had been disconnected becaus
 the account was active from another browser/device. This is not a fixture result
 and is not counted as partial or PASS. No retry occurred in that browser session;
 `short-target-cap` and the four later fixtures remain NOT RUN.
+
+## short-target-cap clean-editor retry — blocked before runtime — 01/09/2026
+
+Product Owner provided a single authenticated Incognito session with a default
+editor. Codex selected all default text and replaced it with the one verified
+compact `short-target-cap` source; the prepared source has exactly one
+`//@version=6`, `indicator(...)`, `type Simulation`, fixture body and compact
+final log, and its round-trip SHA stayed
+`362b17203018292b56c82db63fe313c79d85b6e5a5c4cc950e355e5112082188`.
+
+TradingView did not report a compiler error. It refused **Add to chart** because
+the Basic account already had its maximum two temporary AITrading indicators on
+the chart. Attempts to remove those temporary chart indicators did not take effect
+through the current browser control session. No runtime execution, Pine Logs,
+DATASET_END or assertion output resulted. This remains NOT RUN, not partial/PASS;
+no later fixture was started.
