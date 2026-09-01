@@ -5,4 +5,4 @@
 - [x] Add canonical image boundary, V17 owner persistence and API.
 - [x] Add accessible inert frontend states.
 - [x] Run functional/security/restart/provider/real-Gemini/full regression evidence.
-- [ ] Review, commit/push exact CI and close completed.
+- [x] Review, commit/push exact CI and close completed.

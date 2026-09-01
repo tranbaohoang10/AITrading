@@ -690,3 +690,14 @@ Selected PB019 after PB023 DONE. Issue25 and CNPM design define provider-neutral
 bounded PNG/JPEG analysis with canonical metadata-free bytes, strict separation of
 visible evidence/inference/confidence/missing data, owner persistence and inert UI.
 No DONE feature is rebuilt and no Pine/MQL runtime claim is changed.
+
+## 01/09/2026 — PB-019 DONE / Issue #25
+
+Feature commit43d0e21dd8069c7e567c63dcb154430ddc1da533 was normal-pushed
+and verified exactly on GitHub main. Actions run33474327220 SUCCESS; downloaded
+artifact independently confirms31 suites/288 tests with0 failures/errors/skips
+and121 resolved Java dependencies with0 findings. Local frontend226, Python44,
+verifier6 and real Gemini3.5Flash synthetic image/replay/owner/account/CSRF/restart
+evidence PASS; no key value was exposed. PB019 DoD is complete. No independent
+required feature is READY: PB017 waits on blocked PB015 Pine runtime and PB016 MQL5
+runtime; PB025 then waits on PB017, and PB026 waits on PB025.
