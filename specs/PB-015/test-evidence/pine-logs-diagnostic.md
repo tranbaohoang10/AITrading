@@ -128,3 +128,18 @@ next fixture: `short-target-cap`, `nonpositive-equity`,
 `rule-exit-before-barriers`, `simultaneous-entries`, and
 `causal-all-indicators` remain unexecuted. Issue #17 stays OPEN/BLOCKED pending
 those complete traces.
+
+## short-target-cap compact attempt — NOT RUN — 01/09/2026
+
+The full-field browser-only compact transform for `short-target-cap` passed its
+round-trip check against pinned SHA-256
+`362b17203018292b56c82db63fe313c79d85b6e5a5c4cc950e355e5112082188` before the
+browser action. The current TradingView editor then reported compile error
+`CE10285: Cannot create type with name "Simulation". Enum with the same name is
+already defined.` No compact log, DATASET_END, assertion result or runtime trace
+was emitted.
+
+TradingView also displayed that the account session had been disconnected because
+the account was active from another browser/device. This is not a fixture result
+and is not counted as partial or PASS. No retry occurred in that browser session;
+`short-target-cap` and the four later fixtures remain NOT RUN.

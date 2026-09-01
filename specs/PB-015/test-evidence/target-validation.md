@@ -116,3 +116,12 @@ expected bars, `DATASET_END: cancelledPending=1;openSide=0`, and
 instrumentation. The remaining unexecuted fixtures are `short-target-cap`,
 `nonpositive-equity`, `rule-exit-before-barriers`, `simultaneous-entries`, and
 `causal-all-indicators`. PB-015 remains BLOCKED until their traces are complete.
+
+## 01/09/2026 short-target-cap attempt — no runtime result
+
+The compact transform structurally restored pinned SHA-256
+`362b17203018292b56c82db63fe313c79d85b6e5a5c4cc950e355e5112082188`, but the
+TradingView editor reported CE10285 duplicate `Simulation` type declarations and
+the account session was disconnected for concurrent browser/device activity.
+No official trace was produced; no retry occurred. `short-target-cap` remains
+NOT RUN and #17 remains OPEN/BLOCKED.

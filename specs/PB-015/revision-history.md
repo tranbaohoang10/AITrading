@@ -51,3 +51,9 @@
   single official log carried all three bars, endpoint state and ASSERTIONS=PASS;
   unchanged runtime/assertions therefore PASS. No repository fixture changed and
   no next fixture ran. Five official traces remain; Issue17 stays OPEN/BLOCKED.
+
+- 01/09/2026: `short-target-cap` compact instrumentation passed its structural
+  SHA proof but did not reach runtime: TradingView reported CE10285 duplicate
+  `Simulation` declarations, then disconnected the concurrent account session.
+  No log/trace was accepted as evidence and no retry occurred; Issue17 remains
+  OPEN/BLOCKED.
