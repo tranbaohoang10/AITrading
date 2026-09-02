@@ -70,7 +70,7 @@ export function AppShell() {
     return (
       <div data-layout="desktop" className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
         <GlobalSidebar onNavigate={navigateDesktop} activeAction={platformView ?? 'workspace'} />
-        <div style={{ width: chatWidth }} className="h-full shrink-0"><AiChat /></div>
+        <div style={{ width: chatWidth }} className="h-full shrink-0 border-r border-slate-800"><AiChat /></div>
         <div
           role="separator"
           aria-label="Resize AI Chat"
@@ -84,8 +84,8 @@ export function AppShell() {
             if (event.key === 'ArrowLeft') setChatWidth((width) => Math.max(320, width - 10))
             if (event.key === 'ArrowRight') setChatWidth((width) => Math.min(400, width + 10))
           }}
-          className="group relative w-1 shrink-0 cursor-col-resize bg-slate-800 hover:bg-sky-400 focus-visible:bg-sky-400 focus-visible:outline-none"
-        ><span className="absolute left-1/2 top-1/2 h-12 w-1 -translate-x-1/2 -translate-y-1/2 rounded-sm bg-slate-600 group-hover:bg-sky-300" /></div>
+          className="group relative w-1 shrink-0 cursor-col-resize bg-slate-950 hover:bg-emerald-400 focus-visible:bg-emerald-400 focus-visible:outline-none"
+        ><span className="absolute left-1/2 top-1/2 h-10 w-px -translate-x-1/2 -translate-y-1/2 rounded-sm bg-slate-700 group-hover:bg-emerald-300" /></div>
         {platformView ? <div className="min-w-0 flex-1"><MobileContent view={platformView} /></div> : <TradingWorkspace mode={mode} />}
       </div>
     )
@@ -96,7 +96,7 @@ export function AppShell() {
       <div data-layout="tablet" className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
         <GlobalSidebar compact onNavigate={navigateDesktop} activeAction={platformView ?? 'workspace'} />
         <div className="relative min-w-0 flex-1">
-          <button type="button" aria-label="Open AI Chat" title="Open AI Chat" onClick={() => setTabletChatOpen(true)} className="absolute bottom-5 right-5 z-20 flex min-h-12 items-center gap-2 rounded-sm bg-slate-400 px-4 text-sm font-bold text-slate-950  focus-visible:ring-2 focus-visible:ring-white"><Icon name="chat" />Chat</button>
+          <button type="button" aria-label="Open AI Chat" title="Open AI Chat" onClick={() => setTabletChatOpen(true)} className="primary-button absolute bottom-5 right-5 z-20 flex min-h-11 items-center gap-2 rounded-md px-4 text-sm font-bold focus-visible:ring-2 focus-visible:ring-white"><Icon name="chat" />Assistant</button>
           {platformView ? <MobileContent view={platformView} /> : <TradingWorkspace mode={mode} />}
         </div>
         <Modal open={tabletChatOpen} label="AI Chat" onClose={() => setTabletChatOpen(false)} testId="tablet-chat-drawer">
@@ -110,9 +110,9 @@ export function AppShell() {
 
   return (
     <div data-layout="mobile" className="flex h-screen flex-col overflow-hidden bg-slate-950 text-slate-100">
-      <header className="flex min-h-16 items-center justify-between border-b border-slate-800 px-3">
-        <button type="button" aria-label="Open navigation" title="Open navigation" onClick={() => setDrawerOpen(true)} className="grid min-h-11 min-w-11 place-items-center rounded-sm text-slate-200 hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-sky-400"><Icon name="menu" /></button>
-        <div className="text-center"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sky-300">{brand.name}</p><h1 className="text-sm font-semibold text-white">{mobileTitles[mobileView]}</h1></div>
+      <header className="flex min-h-14 items-center justify-between border-b border-slate-800 px-2">
+        <button type="button" aria-label="Open navigation" title="Open navigation" onClick={() => setDrawerOpen(true)} className="grid min-h-10 min-w-10 place-items-center rounded-md text-slate-300 hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-emerald-400"><Icon name="menu" /></button>
+        <div className="text-center"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300">{brand.name}</p><h1 className="text-xs font-semibold text-white">{mobileTitles[mobileView]}</h1></div>
         <span className="h-11 w-11" aria-hidden="true" />
       </header>
       <NavigationDrawer open={drawerOpen} activeView={mobileView} onClose={() => setDrawerOpen(false)} onSelect={selectMobileView} />

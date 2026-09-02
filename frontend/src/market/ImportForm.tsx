@@ -37,13 +37,13 @@ export function ImportForm({ onComplete, onClose }: { onComplete: () => void; on
     next.onabort = () => setReading(false)
     next.readAsArrayBuffer(chosen)
   }
-  return <form className="mx-auto max-h-[94vh] w-[min(720px,94vw)] space-y-4 overflow-y-auto border border-slate-700 bg-slate-950 p-5 text-slate-100" onSubmit={async event => {
+  return <form className="terminal-panel mx-auto max-h-[94vh] w-[min(720px,94vw)] space-y-4 overflow-y-auto p-4 text-slate-100 sm:p-5" onSubmit={async event => {
     event.preventDefault(); setFileError('')
     if (new TextEncoder().encode(draft.csv).length > 1024 * 1024) { setFileError('CSV must be at most 1 MiB.'); return }
     if (await market.importData(market.uncertain ? undefined : draft)) onComplete()
   }}>
     <div className="flex items-center justify-between gap-4"><h2 className="text-lg font-semibold">Import market data</h2><button type="button" className={buttonClass} disabled={market.busy || market.uncertain} onClick={onClose}>Close import</button></div>
-    <p className="text-xs leading-5 text-slate-400">Owned CSV dataset · UTC closed candles · up to 5,000 rows / 1 MiB. The platform does not verify your declared data source.</p>
+    <details className="help-details"><summary>CSV requirements</summary><p>Owned CSV dataset · UTC closed candles · up to 5,000 rows / 1 MiB. The platform does not verify your declared data source.</p></details>
     <fieldset disabled={disabled} className="space-y-4 disabled:opacity-60">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="space-y-1 text-xs">Dataset name<input className={inputClass} required maxLength={120} value={draft.name} onChange={event => update('name', event.target.value)} /></label>
@@ -61,6 +61,6 @@ export function ImportForm({ onComplete, onClose }: { onComplete: () => void; on
     {fileError && <p role="alert" className="text-sm text-rose-300">{fileError}</p>}
     {market.mutationError && <p role="alert" className="text-sm text-rose-300">{market.mutationError}</p>}
     {market.uncertain && <p className="text-xs text-amber-200">The import outcome is uncertain. Retry uses the same saved request and cannot duplicate the dataset.</p>}
-    <button className={buttonClass} disabled={market.busy || reading} type="submit">{market.busy ? 'Importing…' : market.uncertain ? 'Retry import' : 'Import dataset'}</button>
+    <button className={`${buttonClass} primary-button`} disabled={market.busy || reading} type="submit">{market.busy ? 'Importing…' : market.uncertain ? 'Retry import' : 'Import dataset'}</button>
   </form>
 }

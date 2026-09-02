@@ -20,31 +20,31 @@ export function StrategyEditor() {
   const canGenerate = !!selected && !!chat?.selected && !!latestUser && !!chat.aiConfiguration?.configured && !chat.draft.trim() && !chat.messagesLoading && !chat.messageError && !s.dirty && !s.generationBusy && !s.generationUncertain
   const mismatch = selected?.status === 'VALIDATED' && market?.selected && (selected.symbol !== market.selected.symbol || selected.timeframe !== market.selected.timeframe)
   return <section aria-label="My Script" className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
-    <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-slate-800 p-3">
-      <h2 className="mr-2 text-sm font-semibold">My Script</h2>
-      <label className="flex min-w-0 flex-1 basis-40 items-center gap-2 text-xs text-slate-400">Strategy<select aria-label="Strategy" value={selected?.strategyId ?? ''} disabled={blocked} className="min-w-0 flex-1 border border-slate-700 bg-slate-900 p-2 text-slate-100" onChange={event => { const id = event.target.value; replace(() => void s.select(id)) }}>
+    <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-slate-800 bg-slate-900 px-3 py-2.5">
+      <div className="mr-2"><p className="eyebrow">Strategy</p><h2 className="text-sm font-semibold">DSL Editor</h2></div>
+      <label className="flex min-w-0 flex-1 basis-48 items-center gap-2 text-xs text-slate-500"><span className="sr-only">Strategy</span><select aria-label="Strategy" value={selected?.strategyId ?? ''} disabled={blocked} className="min-h-9 min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-950 px-2 text-slate-100" onChange={event => { const id = event.target.value; replace(() => void s.select(id)) }}>
         <option value="" disabled>Select a strategy</option>
         {selected && !s.items.some(item => item.id === selected.strategyId) && <option value={selected.strategyId}>{selected.title}</option>}
         {s.items.map(item => <option key={item.id} value={item.id}>{item.title} · r{item.revision}</option>)}
       </select></label>
       <button className={buttonClass} disabled={blocked} onClick={() => replace(() => { setNewTitle(''); setNewOpen(true) })}>New strategy</button>
-      <button className={buttonClass} disabled={s.listLoading || blocked} onClick={() => void s.loadList()}>Refresh strategies</button>
+      <button aria-label="Refresh strategies" title="Refresh strategy list" className={buttonClass} disabled={s.listLoading || blocked} onClick={() => void s.loadList()}>Refresh</button>
       {s.nextCursor && <button className={buttonClass} disabled={s.listLoading || blocked} onClick={() => void s.loadList(true)}>More strategies</button>}
       {market && <button className={`${buttonClass} 2xl:hidden`} onClick={() => setShowChart(!showChart)}>{showChart ? 'Show editor' : 'Show chart'}</button>}
     </div>
     <div className={`grid min-h-0 flex-1 ${market ? '2xl:grid-cols-2' : ''}`}>
-      <div className={`${showChart && market ? 'hidden 2xl:block' : ''} min-h-0 min-w-0 overflow-y-auto p-4`}>
-        <p className="mb-3 text-xs leading-5 text-slate-400">Private immutable revisions · validation does not run AI or a backtest. Use Pine Script or MQL5 to export a saved VALIDATED revision for research.</p>
+      <div className={`${showChart && market ? 'hidden 2xl:block' : ''} min-h-0 min-w-0 overflow-y-auto p-3 sm:p-4`}>
+        <details className="help-details mb-3"><summary>Help & workflow</summary><p>Private immutable revisions. Validation does not run AI or a backtest. Pine and MQL5 export only a saved VALIDATED revision.</p></details>
         {s.listLoading && <p role="status">Loading strategies…</p>}
         {s.loading && <p role="status">Loading strategy…</p>}
         {s.error && <p role="alert" className="mb-3 break-words text-sm text-rose-300">{s.error}</p>}
         {s.notice && <p role="status" className="mb-3 text-xs text-emerald-300">{s.notice}</p>}
         {s.uncertain && <div className="my-3 space-y-2"><p className="text-xs text-amber-200">Outcome uncertain. The editor is locked until the original request is retried. Do not reload while unsaved data matters.</p><button className={buttonClass} disabled={s.busy} onClick={() => void s.retry()}>Retry strategy request</button></div>}
-        {!selected && !s.loading && <p className="py-8 text-sm text-slate-400">Create a strategy or select one from your private list. Nothing is saved or run automatically.</p>}
+        {!selected && !s.loading && <div className="py-10 text-center"><h3 className="text-base font-semibold">No strategy</h3><p className="mt-1 text-sm text-slate-500">Create or select a saved strategy.</p></div>}
         {selected && <>
-          {chat && <section aria-label="AI strategy proposal" className="mb-4 space-y-3 border border-slate-700 bg-slate-950/60 p-3 text-xs">
-            <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold">AI strategy proposal</h3><button className={buttonClass} disabled={chat.aiChecking || s.generationBusy} onClick={() => void chat.checkAiConfiguration()}>{chat.aiChecking ? 'Checking AI…' : 'Check AI availability'}</button></div>
-            <p className="leading-5 text-slate-400">Uses the selected private conversation as bounded context. The provider returns inert structured JSON; validation and explicit acceptance are required before one immutable revision is saved. Nothing is executed or backtested.</p>
+          {chat && <details aria-label="AI strategy proposal" className="help-details mb-4"><summary>AI proposal</summary><div className="space-y-3 pb-2 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2"><span className={`status-chip ${chat.aiConfiguration?.configured ? 'status-chip--success' : ''}`}>{chat.aiConfiguration?.configured ? 'AI Connected' : 'AI unchecked'}</span><button className={buttonClass} disabled={chat.aiChecking || s.generationBusy} onClick={() => void chat.checkAiConfiguration()}>{chat.aiChecking ? 'Checking AI…' : 'Check AI availability'}</button></div>
+            <p className="leading-5 text-slate-400">Uses the selected conversation as bounded context. Returned JSON stays inert and requires validation plus explicit acceptance. Nothing is executed or backtested.</p>
             {chat.aiConfiguration && <p>Provider: {chat.aiConfiguration.configured ? `${chat.aiConfiguration.provider} · ${chat.aiConfiguration.model}` : 'not configured'}</p>}
             {chat.aiConfiguration?.provider === 'gemini' && <p className="text-amber-200">Only synthetic/test data may be sent during prototype provider verification. Review private content before generating.</p>}
             {!chat.selected && <p className="text-amber-200">Select a private conversation first.</p>}
@@ -72,15 +72,15 @@ export function StrategyEditor() {
               </div>}
               {s.generation.state === 'ACCEPTED' && <p className="text-emerald-300">Accepted as immutable revision {s.generation.acceptedRevision}.</p>}
             </div>}
-          </section>}
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs"><span>Saved r{selected.revision} · {selected.status}</span><span className={s.dirty ? 'text-amber-200' : 'text-slate-400'}>{s.dirty ? 'Unsaved changes' : 'Editor matches saved revision'}</span></div>
+          </div></details>}
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><span className="sr-only">Saved r{selected.revision} · {selected.status}</span><div className="flex min-w-0 items-center gap-2"><h3 className="truncate text-base font-semibold">{selected.title}</h3><span className={`status-chip ${selected.status === 'VALIDATED' ? 'status-chip--success' : 'status-chip--warning'}`}>{selected.status}</span><span className="text-xs font-mono text-slate-500">r{selected.revision}</span></div><span className={`text-xs ${s.dirty ? 'text-amber-200' : 'text-slate-500'}`}>{s.dirty ? 'Unsaved changes' : 'Editor matches saved revision'}</span></div>
           <label className="mb-3 block space-y-1 text-xs">Strategy title<input className={inputClass} maxLength={120} disabled={blocked} value={s.title} onChange={event => s.edit('title', event.target.value)} /></label>
-          <label className="block space-y-1 text-xs">Strategy JSON<textarea aria-label="Strategy JSON" className={`${inputClass} min-h-72 resize-y font-mono text-xs leading-5`} spellCheck={false} disabled={blocked} value={s.draft} onChange={event => s.edit('draft', event.target.value)} /></label>
-          <p className="my-2 text-[11px] text-slate-500">{new TextEncoder().encode(s.draft).length.toLocaleString()} /65,536 UTF-8 bytes. DRAFT may contain incomplete JSON. Only explicit validated save stores canonical DSL.</p>
+          <label className="block space-y-1 text-xs text-slate-400">Strategy DSL<textarea aria-label="Strategy JSON" className={`${inputClass} min-h-80 resize-y font-mono text-xs leading-5`} spellCheck={false} disabled={blocked} value={s.draft} onChange={event => s.edit('draft', event.target.value)} /></label>
+          <p className="my-2 text-right text-[10px] text-slate-600">{new TextEncoder().encode(s.draft).length.toLocaleString()} / 65,536 bytes</p>
           <div className="flex flex-wrap gap-2">
             <button className={buttonClass} disabled={blocked || !s.title.trim()} onClick={() => void s.save('DRAFT')}>Save draft</button>
-            <button className={buttonClass} disabled={blocked || s.validating} onClick={() => void s.validate()}>{s.validating ? 'Validating…' : 'Validate'}</button>
-            <button className={buttonClass} disabled={blocked || !s.title.trim()} onClick={() => void s.save('VALIDATED')}>Save validated revision</button>
+            <button className={`${buttonClass} primary-button`} disabled={blocked || s.validating} onClick={() => void s.validate()}>{s.validating ? 'Validating…' : 'Validate'}</button>
+            <button aria-label="Save validated revision" className={buttonClass} disabled={blocked || !s.title.trim()} onClick={() => void s.save('VALIDATED')}>Save validated</button>
           </div>
           {s.validation && <div className="my-3 border-l-2 border-slate-600 pl-3 text-xs" role="status">{s.validation.valid ? <p className="text-emerald-300">Current text passes DSL validation. It is not saved by this check.</p> : <><p className="text-amber-200">Current text is not valid DSL.</p><ul className="mt-2 space-y-1 break-all">{s.validation.errors.map((error, i) => <li key={i}>{error.path || '/'} · {error.code}</li>)}</ul></>}</div>}
           <div className="my-4 flex flex-wrap gap-2">

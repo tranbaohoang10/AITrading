@@ -40,16 +40,16 @@ export function TradingWorkspace({ mode }: { mode: ViewportMode }) {
 
   return (
     <main aria-label="Trading Workspace" data-testid="trading-workspace" className="flex h-full min-w-0 flex-1 flex-col bg-slate-950">
-      <header className="flex min-h-16 items-center justify-between gap-3 border-b border-slate-800 px-4">
-        <div className="min-w-0"><p className="truncate text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Workspace / {market ? market.selected?.symbol ?? 'Market data' : 'BTCUSDT'}</p><h1 className="sr-only">AI Trading Platform</h1></div>
+      <header className="flex min-h-14 items-center justify-between gap-3 border-b border-slate-800 px-3 sm:px-4">
+        <div className="flex min-w-0 items-center gap-3"><span className="hidden text-sm font-bold tracking-tight text-slate-100 sm:inline">Quant</span><span className="hidden h-4 w-px bg-slate-700 sm:block"/><p className="truncate text-xs font-semibold text-slate-400">{market ? market.selected?.symbol ?? 'Market data' : 'BTCUSDT'} <span className="text-slate-600">/ Workspace</span></p><h1 className="sr-only">Quant trading workspace</h1></div>
         <div className="flex items-center gap-3">
-          <span className="hidden items-center gap-2 text-xs text-slate-500 sm:flex"><span className="h-2 w-2 rounded-sm bg-slate-400" aria-hidden="true" />{market ? 'Private research' : 'Mock data ready'}</span>
-          <button type="button" onClick={backtest ? () => setActiveTab('backtest-results') : runBacktest} disabled={!backtest && (!!market || backtestStatus === 'loading')} title={backtest ? 'Open saved backtest setup and results' : market ? 'Backtest engine is not connected yet' : undefined} className="flex min-h-10 items-center gap-2 rounded-lg border border-emerald-400/40 bg-emerald-400/10 px-3 text-sm font-semibold text-emerald-300 hover:bg-emerald-400/20 focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-60">
-            <Icon name="play" className="h-4 w-4" />{!backtest && backtestStatus === 'loading' ? 'Running…' : 'Backtest'}
+          <span className="status-chip hidden sm:inline-flex">Private</span>
+          <button type="button" onClick={backtest ? () => setActiveTab('backtest-results') : runBacktest} disabled={!backtest && (!!market || backtestStatus === 'loading')} title={backtest ? 'Open saved backtest setup and results' : market ? 'Backtest engine is not connected yet' : undefined} className="primary-button flex min-h-9 items-center gap-2 rounded-md px-3 text-xs font-bold focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-60">
+            <Icon name="play" className="h-3.5 w-3.5" />{!backtest && backtestStatus === 'loading' ? 'Running…' : 'Backtest'}
           </button>
         </div>
       </header>
-      <div role="tablist" aria-label="Workspace views" className="flex shrink-0 overflow-x-auto border-b border-slate-800 bg-slate-950 px-2 pt-2">
+      <div role="tablist" aria-label="Workspace views" className="flex shrink-0 overflow-x-auto border-b border-slate-800 bg-slate-900 px-2">
         {tabs.map((tab) => (
           <button key={tab.id} role="tab" aria-selected={activeTab === tab.id} tabIndex={activeTab === tab.id ? 0 : -1} aria-controls={`panel-${tab.id}`} id={`tab-${tab.id}`} type="button" onClick={() => setActiveTab(tab.id)} onKeyDown={(event) => {
             const index = tabs.findIndex((item) => item.id === tab.id)
@@ -58,7 +58,7 @@ export function TradingWorkspace({ mode }: { mode: ViewportMode }) {
             event.preventDefault()
             setActiveTab(tabs[next].id)
             document.getElementById(`tab-${tabs[next].id}`)?.focus()
-          }} className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-400 ${activeTab === tab.id ? 'border-sky-400 text-white' : 'border-transparent text-slate-500 hover:text-slate-200'}`}>
+          }} className={`min-h-10 shrink-0 border-b-2 px-3 text-xs font-semibold transition focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-400 ${activeTab === tab.id ? 'border-emerald-400 text-slate-100' : 'border-transparent text-slate-500 hover:text-slate-200'}`}>
             {tab.label}
           </button>
         ))}

@@ -1,2 +1,2 @@
 // Single replacement point for the prototype's visible identity.
-export const brand = { name: 'AI Trading', initials: 'AT' } as const
+export const brand = { name: 'Quant', initials: 'Q' } as const

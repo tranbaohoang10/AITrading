@@ -1,0 +1,16 @@
+# PB-028 — Test cases
+
+| ID | AC | Category | Procedure | Expected | Actual | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| TC-01 | AC-01,02 | Functional/UI | Open authenticated desktop app and inspect shell, navigation, toolbar and chart | Quant identity; dark terminal hierarchy; chart/workspace dominant; existing actions available | Real app inspected at 1440×900; shell, toolbar, chart and actions rendered correctly | PASS |
+| TC-02 | AC-03 | Functional/regression | Create/select conversation, save message, check provider and use Ask AI controls with mocked provider tests | Existing private chat flow works; provider status is compact; policy details remain accessible | Chat regression tests passed; responsive Assistant UI inspected with history, composer and provider status | PASS |
+| TC-03 | AC-04 | Functional/regression | Select strategy, edit JSON, validate/save and inspect Pine/MQL5 workspace | Name/revision/status/actions are clear; existing contracts unchanged | Strategy and target workspace tests passed; desktop strategy workspace inspected | PASS |
+| TC-04 | AC-05 | Functional/regression | Configure/select saved backtest and inspect results | Only returned metrics appear; chart/trades/provenance remain usable | Backtest suites passed; result metrics, chart, trades and provenance use returned fields only | PASS |
+| TC-05 | AC-06 | Functional/regression | Inspect journal and library/document/image flows | P&L is visually clear; AI evaluation and safety/help content remain accessible | Journal, document and image suites passed; secondary guidance remains in Details/Help | PASS |
+| TC-06 | AC-07 | Responsive/accessibility | Inspect real app at 1440px, 1024px and 390px; exercise nav/tabs/actions | No page-level horizontal overflow; controls remain usable; focus/labels remain accessible | Browser checks at 1440×900, 1024×768 and 390×844 reported scroll width equal to viewport width | PASS |
+| TC-07 | AC-08 | Automated regression | `npm test -- --reporter=dot` | All frontend tests pass | 30 files, 226 tests passed | PASS |
+| TC-08 | AC-08 | Static/build | `npm run lint` and `npm run build` | Exit 0 | ESLint exit 0; TypeScript and Vite production build exit 0 | PASS |
+| TC-09 | Security | Security/dependency | Review diff for raw HTML/secrets; run project dependency checker for frontend | No new injection path or secret; no new dependency; applicable audit passes | No dependencies added; `npm audit --audit-level=high` found 0 vulnerabilities; source review found no raw HTML or credentials | PASS |
+| TC-10 | Scope | Change isolation | Inspect `git diff --check`, complete diff and changed paths | Frontend/design/test evidence only; no backend/database/DSL/backtest engine/target logic changes | Changed paths limited to `frontend/` and `specs/PB-028/`; target validators were not run | PASS |
+
+Authentication/authorization, API failure, timeout, concurrency/idempotency, duplicate requests and account isolation are regression-covered by the existing frontend suites because this change does not alter those boundaries. SQL/CSRF/SSRF/path traversal/password storage/database failure are N/A to new behavior: no backend or request contract is changed. XSS remains applicable and is protected by React inert text rendering and existing document/image tests.

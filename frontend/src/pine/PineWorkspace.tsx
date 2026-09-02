@@ -6,7 +6,7 @@ import type { Revision } from '../strategy/api'
 import { exportPine } from './api'
 import type { Artifact } from './api'
 
-const button = 'min-h-11 border border-slate-700 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-sky-400'
+const button = 'min-h-10 rounded-md border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-emerald-400'
 
 export function PineWorkspace() {
   const auth = useAuth(), strategy = useStrategy(), source = strategy?.selected
@@ -62,12 +62,10 @@ function SavedPine({ source, accountId, dirty }: { source: Revision; accountId: 
     finally { if (url) URL.revokeObjectURL(url) }
   }
   return <section aria-label="Pine research export" className="flex h-full min-h-0 flex-col overflow-auto text-sm">
-    <header className="space-y-3 border-b border-slate-800 p-4">
-      <div><h2 className="text-base font-semibold text-slate-100">Pine Script / research export</h2><p className="mt-1 break-words text-slate-400">{source.title} · saved revision {source.revision} · {source.symbol} / {source.timeframe}</p></div>
-      <p className="text-amber-200">Experimental Pine v6 indicator with a closed-bar simulator. Not native Strategy Tester or live orders. Official compiler/runtime validation is pending.</p>
-      <p className="text-slate-400">Requires a matching standard chart and exact contiguous UTC window (up to 5000 bars). Float rounding can change near-threshold signals. Historical results do not guarantee profit.</p>
+    <header className="space-y-3 border-b border-slate-800 p-3 sm:p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="eyebrow">Code export</p><h2 className="text-base font-semibold text-slate-100">Pine Script</h2><p className="mt-1 break-words text-xs text-slate-500">{source.title} · r{source.revision} · {source.symbol} / {source.timeframe}</p></div><span className="status-chip status-chip--warning">Research only</span></div>
       {dirty && <p role="note" className="text-amber-200">Unsaved edits are excluded. This exports saved revision {source.revision} only; your draft stays unchanged.</p>}
-      <p className="break-all font-mono text-xs text-slate-500">DSL SHA256: {source.hash}</p>
+      <details className="help-details"><summary>Export limits & risk</summary><p className="text-amber-200">Experimental Pine v6 indicator with a closed-bar simulator. Not native Strategy Tester or live orders. Official compiler/runtime validation is pending.</p><p>Requires a matching standard chart and exact contiguous UTC window (up to 5000 bars). Float rounding can change near-threshold signals. Historical results do not guarantee profit.</p><p className="break-all font-mono">DSL SHA256: {source.hash}</p></details>
       <div className="flex flex-wrap gap-2">
         <button className={button} disabled={busy} onClick={() => void load(true)}>{busy ? 'Loading…' : artifact ? 'Regenerate / retry saved revision' : 'Generate saved revision'}</button>
         <button className={button} disabled={busy} onClick={() => void load(false)}>Reload export</button>
@@ -78,6 +76,6 @@ function SavedPine({ source, accountId, dirty }: { source: Revision; accountId: 
       {notice && <p role="status" className="text-slate-300">{notice}</p>}
       {artifact && <details className="text-xs text-slate-400"><summary className="cursor-pointer py-2">Export provenance and limitations</summary><p className="break-all py-2">{artifact.generatorVersion} · schema {artifact.schemaVersion} · validator {artifact.validatorVersion}<br />Code SHA256: {artifact.codeHash}<br />Created: {artifact.createdAt}</p><ul className="list-disc space-y-1 pl-5">{artifact.limitations.map((item, i) => <li key={i}>{item}</li>)}</ul></details>}
     </header>
-    {artifact && <pre tabIndex={0} aria-label="Generated Pine source" className="min-h-48 flex-1 overflow-auto p-4 font-mono text-xs leading-6 text-slate-300"><code>{artifact.code}</code></pre>}
+    {artifact && <pre tabIndex={0} aria-label="Generated Pine source" className="min-h-48 flex-1 overflow-auto bg-[#090c0b] p-4 font-mono text-xs leading-6 text-slate-300"><code>{artifact.code}</code></pre>}
   </section>
 }

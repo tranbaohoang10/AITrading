@@ -9,8 +9,8 @@ import { timeframes, type Filter, type Input, type Values } from './api'
 
 const pnlClass = (value: string | null) => value === null || /^-?0(\.0+)?$/.test(value) ? 'text-slate-300' : value.startsWith('-') ? 'text-rose-300' : 'text-emerald-300'
 function Metrics({ values, currency }: { values: Values; currency: string }) {
-  return <dl aria-label="Realized journal totals" className="grid grid-cols-2 gap-4 border-y border-slate-800 py-4 sm:grid-cols-4">
-    {[['Net P&L', values.netPnl], ['Gross P&L', values.grossPnl], ['Realized fees', values.fees], ['Closed / open in range', `${values.closed} / ${values.open}`]].map(([label, value]) => <div key={label}><dt className="text-xs text-slate-400">{label}</dt><dd className={`mt-1 break-all font-mono text-base ${label === 'Net P&L' ? pnlClass(value) : 'text-slate-100'}`}>{value}{label.includes('P&L') || label.includes('fees') ? ` ${currency}` : ''}</dd></div>)}
+  return <dl aria-label="Realized journal totals" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    {[['Net P&L', values.netPnl], ['Gross P&L', values.grossPnl], ['Realized fees', values.fees], ['Closed / open in range', `${values.closed} / ${values.open}`]].map(([label, value]) => <div className="metric-card" key={label}><dt className="text-xs text-slate-500">{label}</dt><dd className={`mt-1 break-all font-mono text-lg font-semibold ${label === 'Net P&L' ? pnlClass(value) : 'text-slate-100'}`}>{value}{label.includes('P&L') || label.includes('fees') ? ` ${currency}` : ''}</dd></div>)}
     <div className="col-span-2 text-xs text-slate-400 sm:col-span-4"><dt className="inline">Wins / losses / breakeven: </dt><dd className="inline">{values.wins} / {values.losses} / {values.breakeven}</dd></div>
   </dl>
 }
@@ -29,13 +29,14 @@ export function JournalWorkspace() {
   const moment = (name: 'entryTime' | 'exitTime', label: string) => <label className="grid gap-1.5 text-xs text-slate-400">{label}<input className={`${inputClass} min-w-0 font-mono`} aria-label={label} required maxLength={24} placeholder="2024-01-01T01:00:00Z" value={draft[name] ?? ''} onChange={event => journal.edit(name, event.target.value)} /><span>ISO UTC with Z, including seconds; optional 1–3 fractional second digits. No local timezone conversion.</span></label>
   const submit = (event: FormEvent) => { event.preventDefault(); void journal.save() }
   const matching = journal.datasets.filter(dataset => dataset.symbol === draft.symbol && dataset.timeframe === draft.timeframe)
-  return <section className="h-full overflow-y-auto bg-slate-950 p-4 text-slate-100 sm:p-6" aria-label="Private Trading Journal">
-    <header className="mb-5 flex flex-wrap items-start justify-between gap-3"><div><h1 className="text-xl font-semibold">Trading Journal</h1><p className="mt-1 text-xs text-slate-400">Private manual trade records · optional saved-reason AI review · no broker orders</p></div>
-      <div className="flex flex-wrap gap-2"><button className={buttonClass} disabled={locked} onClick={journal.newEntry}>New journal entry</button><button className={buttonClass} disabled={locked} onClick={journal.refresh}>Refresh journal</button></div></header>
+  return <section className="h-full overflow-y-auto bg-slate-950 p-3 text-slate-100 sm:p-5" aria-label="Private Trading Journal">
+    <header className="mb-4 flex flex-wrap items-start justify-between gap-3"><div><p className="eyebrow">Performance log</p><h1 className="text-xl font-semibold">Journal</h1></div>
+      <div className="flex flex-wrap gap-2"><button className={`${buttonClass} primary-button`} disabled={locked} onClick={journal.newEntry}>New journal entry</button><button className={buttonClass} disabled={locked} onClick={journal.refresh}>Refresh journal</button></div></header>
+    <details className="help-details mb-4"><summary>Journal safety</summary><p>Private manual records with optional AI review. No broker orders are created.</p></details>
     {journal.error && <p role="alert" className="mb-4 border border-rose-900 bg-rose-950/20 p-3 text-sm text-rose-200">{journal.error}</p>}
     {journal.notice && <p role="status" className="mb-4 text-sm text-emerald-300">{journal.notice}</p>}
     {journal.uncertain && <div role="status" className="mb-4 border border-amber-800 p-3 text-sm text-amber-200"><p>Save outcome is uncertain. Keep this draft unchanged; retry the exact same request to avoid duplicates.</p><button className={`${buttonClass} mt-3`} disabled={journal.busy} onClick={() => { void journal.retry() }}>Retry same journal save</button></div>}
-    <form aria-label="Journal report filters" className="mb-4 space-y-3" onSubmit={event => { event.preventDefault(); apply(range) }}>
+    <details className="mb-4 rounded-md border border-slate-800 bg-slate-900 px-3"><summary className="cursor-pointer py-3 text-sm font-semibold">Report filters</summary><form aria-label="Journal report filters" className="space-y-3 pb-3" onSubmit={event => { event.preventDefault(); apply(range) }}>
       <div className="flex flex-wrap gap-2"><button type="button" className={buttonClass} onClick={() => month(-1)}>Previous month</button><button type="button" className={buttonClass} onClick={() => apply({ ...monthFilter(), zone: range.zone, currency: range.currency })}>Current month</button><button type="button" className={buttonClass} onClick={() => month(1)}>Next month</button></div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         {(['from', 'to'] as const).map(key => <label key={key} className="grid min-w-0 gap-1 text-xs text-slate-400">{key === 'from' ? 'From date' : 'Through date'}<input className={`${inputClass} min-w-0 font-mono`} aria-label={key === 'from' ? 'From date' : 'Through date'} required pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" maxLength={10} placeholder="YYYY-MM-DD" value={range[key]} onChange={event => setRange({ ...range, [key]: event.target.value })} /></label>)}
@@ -44,8 +45,8 @@ export function JournalWorkspace() {
         <button type="submit" className={`${buttonClass} self-end`} disabled={journal.reportLoading}>Apply range</button>
       </div>
       <p className="text-xs text-slate-500">Dates use YYYY-MM-DD, inclusive, within 2000–2100; maximum 366 days per report.</p>
-    </form>
-    <p className="mb-3 text-xs leading-5 text-slate-400">Realized P&L and both fees are recognized when a CLOSED trade exits, in the selected timezone. OPEN records and their fees are excluded until close. One settlement unit at a time; no FX conversion, unrealized P&L or account-equity claim.</p>
+    </form></details>
+    <details className="help-details mb-3"><summary>P&amp;L calculation</summary><p>Realized P&amp;L and both fees are recognized when a CLOSED trade exits, in the selected timezone. OPEN records and their fees are excluded until close. One settlement unit at a time; no FX conversion, unrealized P&amp;L or account-equity claim.</p></details>
     {journal.reportLoading && <p role="status" className="py-3 text-sm text-slate-400">Loading journal report…</p>}
     {journal.report && <div className="mb-6"><p className="mb-2 text-xs text-slate-400">Report: {journal.report.filter.from} → {journal.report.filter.to} · {journal.report.filter.zone} · {journal.report.filter.currency}</p>
       <Metrics values={journal.report.totals} currency={journal.report.filter.currency} />

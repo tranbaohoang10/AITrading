@@ -9,7 +9,7 @@ export type NavigationItem = {
 
 export const navigationItems: NavigationItem[] = [
   { label: 'Workspace', icon: 'workspace', action: 'workspace' },
-  { label: 'AI Strategy', icon: 'chart', action: 'ai-chat' },
+  { label: 'AI Strategy', icon: 'chat', action: 'ai-chat' },
   { label: 'Backtest', icon: 'chart', action: 'backtest-results' },
   { label: 'My Code', icon: 'code', action: 'my-code' },
   { label: 'Trading Journal', icon: 'journal', action: 'trading-journal' },
@@ -25,12 +25,12 @@ export function GlobalSidebar({ onNavigate, compact = false, activeAction = 'wor
     <aside
       aria-label="Global navigation"
       data-testid={compact ? 'compact-sidebar' : 'global-sidebar'}
-      className="flex h-screen w-[68px] shrink-0 flex-col items-center border-r border-slate-800 bg-slate-950 py-4"
+      className="flex h-screen w-[68px] shrink-0 flex-col items-center border-r border-slate-800 bg-slate-950 py-3"
     >
-      <div className="mb-6 grid h-10 w-10 place-items-center rounded-sm bg-sky-400 text-sm font-black text-slate-950" title={brand.name}>
+      <div className="quant-mark mb-5" title={brand.name} aria-label={brand.name}>
         {brand.initials}
       </div>
-      <nav className="flex flex-1 flex-col items-center gap-1" aria-label="Primary">
+      <nav className="flex flex-1 flex-col items-center gap-1.5" aria-label="Primary">
         {navigationItems.slice(0, 6).map((item) => (
           <button
             key={item.action}
@@ -39,7 +39,7 @@ export function GlobalSidebar({ onNavigate, compact = false, activeAction = 'wor
             title={item.label}
             aria-current={activeAction === item.action ? 'page' : undefined}
             onClick={() => onNavigate(item.action)}
-            className={`grid min-h-11 min-w-11 place-items-center rounded-sm text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:ring-2 focus-visible:ring-sky-400 ${activeAction === item.action ? 'bg-slate-800 text-sky-300' : ''}`}
+            className={`relative grid min-h-10 min-w-10 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-emerald-400 ${activeAction === item.action ? 'bg-slate-800 text-emerald-300 after:absolute after:-left-3.5 after:h-5 after:w-0.5 after:rounded-full after:bg-emerald-400' : ''}`}
           >
             <Icon name={item.icon} />
           </button>
@@ -53,7 +53,7 @@ export function GlobalSidebar({ onNavigate, compact = false, activeAction = 'wor
             aria-label={item.label}
             title={item.label}
             onClick={() => onNavigate(item.action)}
-            className="grid min-h-11 min-w-11 place-items-center rounded-sm text-slate-400 transition hover:bg-slate-800 hover:text-white focus-visible:ring-2 focus-visible:ring-sky-400"
+            className="grid min-h-10 min-w-10 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-emerald-400"
           >
             <Icon name={item.icon} />
           </button>
