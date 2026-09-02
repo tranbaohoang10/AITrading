@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "1.0.0",
+  "numericTolerance": {"absolute": "1e-8", "relative": "1e-12"},
+  "pineTargetManifest": "specs/PB-015/test-evidence/target-fixtures/manifest.json",
+  "pineRuntimeVerification": "specs/PB-015/test-evidence/verification.json",
+  "mql5TargetManifest": "specs/PB-016/test-evidence/target-fixtures/manifest.json",
+  "mql5RuntimeVerification": "specs/PB-016/test-evidence/verification.json",
+  "fixtures": [
+    {
+      "name": "causal-all-indicators",
+      "python": "backend/src/test/resources/pine/causal-all-indicators.json",
+      "pineFixture": "specs/PB-015/test-evidence/target-fixtures/causal-all-indicators.pine",
+      "pineFixtureSha256": "535b352e14f3071dd883079f05f2fe3c09b107a186cf3fadcf67c0616dc0c677",
+      "pineEvidence": {"mode": "compact-trace", "source": "specs/PB-015/test-evidence/official-traces/causal-all-indicators.txt", "prefix": "PB015_COMPACT causal-all-indicators:"},
+      "mql5Csv": "specs/PB-016/test-evidence/target-fixtures/causal-all-indicators.csv",
+      "mql5Log": "specs/PB-016/test-evidence/runtime-logs/causal-all-indicators.log"
+    },
+    {
+      "name": "costs-both-hit-gap",
+      "python": "backend/src/test/resources/pine/costs-both-hit-gap.json",
+      "pineFixture": "specs/PB-015/test-evidence/target-fixtures/costs-both-hit-gap.pine",
+      "pineFixtureSha256": "dd03b4c3aa75c04424ac15babd097bed5fd2c8d9a2e10719650a7943c6cfcbf1",
+      "pineEvidence": {"mode": "assertion-certified", "source": "specs/PB-015/test-evidence/pine-logs-diagnostic.md", "completeMarker": "Pine Logs responded through all six bars and showed `DATASET_END`", "assertionMarker": "SYNTHETIC costs-both-hit-gap: all 6 event/indicator/accounting assertions passed in this actual Pine execution."},
+      "mql5Csv": "specs/PB-016/test-evidence/target-fixtures/costs-both-hit-gap.csv",
+      "mql5Log": "specs/PB-016/test-evidence/runtime-logs/costs-both-hit-gap.log"
+    },
+    {
+      "name": "hand-next-open",
+      "python": "backend/src/test/resources/pine/hand-next-open.json",
+      "pineFixture": "specs/PB-015/test-evidence/target-fixtures/hand-next-open.pine",
+      "pineFixtureSha256": "61b6f44cad60882ee6822a5be89aa7fbd84e6d58d6ae65f6099f093cc17a07c7",
+      "pineEvidence": {"mode": "assertion-certified", "source": "specs/PB-015/test-evidence/pine-logs-diagnostic.md", "completeMarker": "actual four bar event/accounting trace, the final `DATASET_END` record", "assertionMarker": "SYNTHETIC hand-next-open: all 4 event/indicator/accounting assertions passed in this actual Pine execution."},
+      "mql5Csv": "specs/PB-016/test-evidence/target-fixtures/hand-next-open.csv",
+      "mql5Log": "specs/PB-016/test-evidence/runtime-logs/hand-next-open.log"
+    },
+    {
+      "name": "long-target-cap",
+      "python": "backend/src/test/resources/pine/long-target-cap.json",
+      "pineFixture": "specs/PB-015/test-evidence/target-fixtures/long-target-cap.pine",
+      "pineFixtureSha256": "0b872e1ff5020a619fa0c3bb7c9bf15d4821c81c87fe6df93999b2aa956b28a4",
+      "pineEvidence": {"mode": "legacy-compact-trace", "source": "specs/PB-015/test-evidence/pine-logs-diagnostic.md", "prefix": "COMPACT long-target-cap:"},
+      "mql5Csv": "specs/PB-016/test-evidence/target-fixtures/long-target-cap.csv",
+      "mql5Log": "specs/PB-016/test-evidence/runtime-logs/long-target-cap.log"
+    },
+    {
+      "name": "nonpositive-equity",
+      "python": "backend/src/test/resources/pine/nonpositive-equity.json",
+      "pineFixture": "specs/PB-015/test-evidence/target-fixtures/nonpositive-equity.pine",
+      "pineFixtureSha256": "5698188dda44a5a2fe2286328690532376ee0c7ccd37e59f8db65c1aaebc8160",
+      "pineEvidence": {"mode": "compact-trace", "source": "specs/PB-015/test-evidence/pine-logs-diagnostic.md", "prefix": "PB015_COMPACT nonpositive-equity:"},
+      "mql5Csv": "specs/PB-016/test-evidence/target-fixtures/nonpositive-equity.csv",
+      "mql5Log": "specs/PB-016/test-evidence/runtime-logs/nonpositive-equity.log"
+    },
+    {
+      "name": "rule-exit-before-barriers",
+      "python": "backend/src/test/resources/pine/rule-exit-before-barriers.json",
+      "pineFixture": "specs/PB-015/test-evidence/target-fixtures/rule-exit-before-barriers.pine",
+      "pineFixtureSha256": "899600adcb2f567496eaa8837bebcc7f66acbeb237d2e537f923a5ceccf9ff25",
+      "pineEvidence": {"mode": "compact-trace", "source": "specs/PB-015/test-evidence/pine-logs-diagnostic.md", "prefix": "PB015_COMPACT rule-exit-before-barriers:"},
+      "mql5Csv": "specs/PB-016/test-evidence/target-fixtures/rule-exit-before-barriers.csv",
+      "mql5Log": "specs/PB-016/test-evidence/runtime-logs/rule-exit-before-barriers.log"
+    },
+    {
+      "name": "short-target-cap",
+      "python": "backend/src/test/resources/pine/short-target-cap.json",
+      "pineFixture": "specs/PB-015/test-evidence/target-fixtures/short-target-cap.pine",
+      "pineFixtureSha256": "362b17203018292b56c82db63fe313c79d85b6e5a5c4cc950e355e5112082188",
+      "pineEvidence": {"mode": "compact-trace", "source": "specs/PB-015/test-evidence/pine-logs-diagnostic.md", "prefix": "PB015_COMPACT short-target-cap:"},
+      "mql5Csv": "specs/PB-016/test-evidence/target-fixtures/short-target-cap.csv",
+      "mql5Log": "specs/PB-016/test-evidence/runtime-logs/short-target-cap.log"
+    },
+    {
+      "name": "simultaneous-entries",
+      "python": "backend/src/test/resources/pine/simultaneous-entries.json",
+      "pineFixture": "specs/PB-015/test-evidence/target-fixtures/simultaneous-entries.pine",
+      "pineFixtureSha256": "181915d5241b6cda3dae5190ffeb72cdf24e8e69ba41e4d901865e05925b2361",
+      "pineEvidence": {"mode": "compact-trace", "source": "specs/PB-015/test-evidence/official-traces/simultaneous-entries.txt", "prefix": "PB015_COMPACT simultaneous-entries:"},
+      "mql5Csv": "specs/PB-016/test-evidence/target-fixtures/simultaneous-entries.csv",
+      "mql5Log": "specs/PB-016/test-evidence/runtime-logs/simultaneous-entries.log"
+    }
+  ]
+}

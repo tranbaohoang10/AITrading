@@ -5,6 +5,25 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+## 02/09/2026 — PB-017 local AC/DoD PASS; publication pending
+
+Recovered the quota-interrupted uncommitted PB-017 work without reset, clean,
+checkout, recreation or external target rerun. Issue #26 existed before code.
+The bounded deterministic verifier binds the eight allowlisted Python, official
+Pine and official MQL5 evidence sets to fixture/source/data/DSL provenance and
+compares bar/event/accounting completeness with exact decisions and the declared
+numeric tolerance only.
+
+Fresh local evidence PASS: 8/8 fixtures, 51 bars, 1,359 Pine assertion values,
+764 retained Pine raw fields and 1,410 MQL5 actual fields, with zero unexplained
+divergence. Fail-closed negative coverage includes missing/duplicate/out-of-order/
+tampered evidence, wrong hashes/paths/provenance, malformed/nonfinite/tolerance
+boundaries and oversized/injected traces. Regression PASS: 50 Python tests, 6
+verification-tool tests, 6 canonical DSL fixtures, 6 UI fixtures and compileall.
+PB-017 remains IN_PROGRESS only for scoped commit, fast-forward push, exact GitHub
+SHA, required CI success and Issue #26 completion. PB-025 is still PLANNED until
+that completion; PB-015/PB-016 remain DONE and were not rerun.
+
 ## 01/09/2026 — PB-015 official Pine target 8/8 PASS; publication pending
 
 The existing linked TradingView validation slot was reused only through Update on
