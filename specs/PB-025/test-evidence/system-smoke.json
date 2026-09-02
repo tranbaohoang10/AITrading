@@ -1,0 +1,21 @@
+{
+  "actualApiDownUpObserved": true,
+  "csrfDenied": true,
+  "documentContentHash": "cd19f73e98dd95ec1d9bc584879e93fd1020943229c7f519c6f605f1dd1eae21",
+  "externalTargetsContacted": false,
+  "fakeAiObjectsCreated": false,
+  "idempotentReplay": true,
+  "inputHash": "38a8086659b4719bac0995ec08fcb4c07d62aa9ba213ce381805ad76d3ed428f",
+  "mql5CodeHash": "314a89e87e3524abfe1797e1a6f7a6ec563d31e5413600cfe93cf38b79ead04d",
+  "ownerIsolationAndBinding": true,
+  "passed": true,
+  "pineCodeHash": "c77f40c2e8712d17e58f2cc3401b2df1754ae13c5bfcb72317fe7613f29e9208",
+  "providerConfigured": false,
+  "realHttpPostgresPython": true,
+  "resultHash": "b04fd6e6beb34cea4e48d341fe1057854d82da10d6059ccfbded44fa48353494",
+  "sessionAndAllSnapshotsSurvivedRestart": true,
+  "singleTerminalNotification": true,
+  "snapshotSha256": "886b553047af11bc314e169c2abd08c0dc172a1c345a067db29c0f658095c7bc",
+  "syntheticDataOnly": true,
+  "unconfiguredAiEntryPoints": 5
+}

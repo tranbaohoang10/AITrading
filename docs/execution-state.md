@@ -5,6 +5,30 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+## 02/09/2026 — PB-025 local AC/DoD PASS; publication pending
+
+Issue #27 implementation and local evidence are complete. The actual synthetic
+HTTP/PostgreSQL/Python journey, two observed API restarts (CLI and browser), five
+AI-unconfigured boundaries, owner/account/CSRF isolation, idempotency and exact
+snapshot persistence PASS. Desktop/mobile UI recovery PASS. Full regression is
+288 backend, 226 frontend and 52 Python tests; verifier/canonical/UI/cross-target
+checks PASS; npm reports zero vulnerabilities and OSV reports zero findings for
+121 Java coordinates. A late-suite scheduler race was fixed by disabling product
+schedulers only in Gradle tests while preserving default-on production behavior.
+All owned processes stopped and credentials were removed. PB-025 remains
+IN_PROGRESS only for scoped commit, push, exact GitHub SHA, required CI and Issue
+#27 completion; PB-026 remains dependency-blocked until then.
+
+## 02/09/2026 — PB-025 selected / Issue #27
+
+After PB-017 completion, PB-025 became the highest-priority READY item. Issue #27
+was created before implementation with end-to-end, restart/failure, two-user,
+browser, security and cleanup AC/DoD. The selected design composes existing public
+APIs over one disposable PostgreSQL/API/Python harness and uses only synthetic
+data. It does not rebuild DONE features, call external Pine/MQL targets, use a
+broker, or substitute fake AI responses. Implementation and execution are now
+IN_PROGRESS.
+
 ## 02/09/2026 — PB-017 DONE; PB-025 READY
 
 PB-017 feature commit `f185b7da5c96145426edb22250b6491298afc20a`

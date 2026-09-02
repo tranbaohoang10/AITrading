@@ -41,6 +41,11 @@ dependencies {
 tasks.withType<Test> {
 	useJUnitPlatform()
     systemProperty("java.net.preferIPv4Stack", "true")
+    // Integration tests share one owned disposable database. Keep application
+    // schedulers from mutating another test class's fixtures after its context
+    // has been cached.
+    systemProperty("aitrading.backtest.scheduler", "false")
+    systemProperty("aitrading.retention.scheduler", "false")
 }
 
 tasks.register("dependencyInventory") {
