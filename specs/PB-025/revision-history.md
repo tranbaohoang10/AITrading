@@ -16,3 +16,7 @@
   Python tests; verifier/canonical/UI fixtures, build/lint, cross-target regression,
   npm/OSV audits, browser restart/recovery and scope/secret review all PASS.
   Publication, exact GitHub SHA, CI and Issue completion remain pending.
+- 02/09/2026: Published feature commit `6b82af8f820403041da57a3c149c082a257a9669`
+  by fast-forward push. Local/origin/GitHub main matched exactly; required CI
+  33585991238 succeeded; final evidence was posted and Issue #27 was closed as
+  completed. PB-025 is DONE and PB-026 is READY.

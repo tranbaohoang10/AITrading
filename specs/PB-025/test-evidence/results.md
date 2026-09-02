@@ -53,5 +53,7 @@ live-trading, Pine or MQL5 semantic change was introduced. Secret-pattern review
 found only generated synthetic credentials and CSRF handling; reports contain no
 password, cookie, token, provider key, private account data or browser artifact.
 
-Local AC-01 through AC-07 and the local portion of AC-08 PASS. Commit/push, exact
-GitHub SHA, required CI success and explicit Issue completion remain pending.
+AC-01 through AC-08 and full DoD PASS. Feature commit
+`6b82af8f820403041da57a3c149c082a257a9669` was pushed fast-forward; local,
+origin and GitHub main matched exactly. Required CI 33585991238 succeeded and
+Issue #27 was explicitly closed completed after final evidence was posted.

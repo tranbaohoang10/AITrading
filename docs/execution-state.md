@@ -5,6 +5,14 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+## 02/09/2026 — PB-025 DONE; PB-026 READY
+
+PB-025 feature commit `6b82af8f820403041da57a3c149c082a257a9669`
+was pushed fast-forward and matched local/origin/GitHub main exactly. Prototype
+verification CI 33585991238 succeeded for backend and frontend. Final evidence
+was posted to Issue #27, then the Issue was closed completed. All AC/DoD PASS;
+PB-026 now has every dependency DONE and is the next READY backlog item.
+
 ## 02/09/2026 — PB-025 local AC/DoD PASS; publication pending
 
 Issue #27 implementation and local evidence are complete. The actual synthetic
