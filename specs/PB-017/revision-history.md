@@ -12,3 +12,6 @@
   tests assumed an ignored repository `tmp` directory existed. Changed only the
   test-copy location to the operating-system temporary directory; verifier and
   evidence semantics are unchanged. The failed run remains part of the record.
+- 02/09/2026: Fix `8df08f40ba688f9dcd1d57ac35658c6812f462ec`
+  matched GitHub main; required CI 33583487174 SUCCESS. Final evidence was posted
+  and Issue #26 closed completed. PB-017 is DONE and PB-025 becomes READY.

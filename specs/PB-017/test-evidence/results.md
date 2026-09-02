@@ -41,7 +41,11 @@ The first clean-checkout CI run `33583344695` failed because four negative tests
 tried to create copies below the ignored repository `tmp` directory, which does
 not exist after checkout. The test harness now uses the operating-system
 temporary directory. This changes no verifier or comparison behavior; a new CI
-run must PASS before completion.
+run was required before completion. Commit
+`8df08f40ba688f9dcd1d57ac35658c6812f462ec` matched local, origin/main and
+GitHub main; run `33583487174` then completed SUCCESS for both frontend and
+backend, including PostgreSQL integration/build and dependency verification.
+Issue #26 was closed completed after that result.
 
 ## Evidence limitations
 

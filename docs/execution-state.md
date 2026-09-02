@@ -5,6 +5,22 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+## 02/09/2026 — PB-017 DONE; PB-025 READY
+
+PB-017 feature commit `f185b7da5c96145426edb22250b6491298afc20a`
+and clean-checkout fix `8df08f40ba688f9dcd1d57ac35658c6812f462ec`
+were pushed normally; the latter matched local, origin/main and GitHub main.
+Required Actions run `33583487174` completed SUCCESS for frontend and backend,
+including deterministic Python/adversarial checks, real PostgreSQL integration,
+build and dependency audit. The earlier failed run `33583344695` remains recorded
+with its corrected ignored-`tmp` test-harness cause. Final evidence was posted and
+Issue #26 closed completed only after CI success.
+
+PB-017 is DONE with 8/8 fixtures, 51 bars, 1,359 Pine assertion values, 764
+retained Pine raw fields, 1,410 MQL5 actual fields and zero unexplained divergence.
+No official target was rerun. All PB-025 dependencies are now DONE, so PB-025 is
+the next READY P1 feature and requires its own Issue before implementation.
+
 ## 02/09/2026 — PB-017 local AC/DoD PASS; publication pending
 
 Recovered the quota-interrupted uncommitted PB-017 work without reset, clean,
