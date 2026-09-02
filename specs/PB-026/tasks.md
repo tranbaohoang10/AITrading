@@ -4,4 +4,4 @@
 - [x] Reconcile capability, README, architecture, ERD and nine CNPM groups.
 - [x] Implement deterministic readiness verifier and fail-closed negative tests.
 - [x] Run isolated/final regression, security, dependency and secret/scope checks.
-- [ ] Commit/push, verify exact SHA/CI, publish evidence and close #28 after DoD.
+- [x] Commit/push, verify exact SHA/CI, publish evidence and close #28 after DoD.
