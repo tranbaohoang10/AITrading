@@ -27,7 +27,7 @@ class CrossTargetConsistencyTests(unittest.TestCase):
     def evidence_copy(self):
         manifest_path = ROOT / "specs/PB-017/evidence-manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        with tempfile.TemporaryDirectory(prefix="pb017-", dir=ROOT / "tmp") as folder:
+        with tempfile.TemporaryDirectory(prefix="pb017-") as folder:
             root = Path(folder)
             paths = {"specs/PB-017/evidence-manifest.json"}
             paths.update([manifest["pineTargetManifest"], manifest["pineRuntimeVerification"],

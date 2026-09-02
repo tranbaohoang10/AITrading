@@ -37,6 +37,12 @@ Backend/frontend product code and dependencies are unchanged by PB-017. Their
 required clean-checkout regression remains enforced by repository CI before the
 Issue may be closed.
 
+The first clean-checkout CI run `33583344695` failed because four negative tests
+tried to create copies below the ignored repository `tmp` directory, which does
+not exist after checkout. The test harness now uses the operating-system
+temporary directory. This changes no verifier or comparison behavior; a new CI
+run must PASS before completion.
+
 ## Evidence limitations
 
 Six Pine fixtures retain raw compact logs. The two earliest official runs retain

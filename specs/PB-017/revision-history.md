@@ -8,3 +8,7 @@
   51 bars, 1,359 Pine assertion values, 764 retained Pine raw fields and 1,410
   MQL5 actual fields, with zero unexplained divergence. Applicable local
   regression/security checks PASS; publication, exact GitHub SHA and CI remain.
+- 02/09/2026: First clean-checkout CI run 33583344695 exposed that negative
+  tests assumed an ignored repository `tmp` directory existed. Changed only the
+  test-copy location to the operating-system temporary directory; verifier and
+  evidence semantics are unchanged. The failed run remains part of the record.
