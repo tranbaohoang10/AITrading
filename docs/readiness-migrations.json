@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "SHA-256",
+  "migrations": {
+    "V1__application_schema.sql": "b1a4f5855916beba4eeec79e18f41331a0ab4f581adbaab6a81154b02de2e88a",
+    "V2__users_sessions_and_auth_limits.sql": "612760c5e23ee718654d77a31fdde1b8118bbe6d3650d65ca2f9512acaa0a143",
+    "V3__conversations_and_messages.sql": "f253e8460f27e8b06adf9f5fd574f8880a35b2fc2ef471b6cf2562954cf7ad80",
+    "V4__market_datasets.sql": "ad0433880deec77e1d8525e78344dca340fbd8d7d2dbe5e29267104deb494cb4",
+    "V5__strategy_revisions.sql": "bddf4850fd89af052728f86aa86aec2e4ef03977be3a157f653f879392863e9c",
+    "V6__ai_turns.sql": "34647682f76d0107d823024275d76c483e9c05e3324f9f941413542a88be54e3",
+    "V7__backtest_jobs.sql": "eb92b677c44853b166d0bf5959f39ed97c623ca92236eac90d99dd1b32b21d3d",
+    "V8__journal_entries.sql": "994bae82bd0c32b544eba02be42b711619af6703c70d230248d44935aa6fb7a6",
+    "V9__pine_exports.sql": "fba7559d1e4f4f9b961874f088461d217a73879076f73b15e44a60ed74eaee7a",
+    "V10__mql5_exports.sql": "529ae5e8d555a6ab7b057adc61def6a899ce7407e1f1d8c25459d4749a44cbcb",
+    "V11__audit_events.sql": "009dc00c6148e9d8a25b5fde528091a36962953633caba1976749931a08524c1",
+    "V12__backtest_notifications.sql": "c6af18eafec159402f72d598056fc8ab4044f5e5b57d9630c93be62048036df7",
+    "V13__ai_provider_neutral.sql": "62aa4d8da0c4b114a8be6a1cf50ea92d65e2a199c2414e54f23223229e38c24b",
+    "V14__strategy_generations.sql": "eb11a855f8a15366a6a4048f4c284db8978cdd290fcf1e59febc54623d57325b",
+    "V15__journal_evaluations.sql": "58f76f4358018e8e8853796a335675f0720ccdfdb460d75671c64b5a6aa0356a",
+    "V16__private_documents.sql": "3a4f34875754c8207f00792655a451cf806ff7f750742be1ee9ab59854e21dc0",
+    "V17__chart_image_analysis.sql": "6f94617b271f55633f435fc63bcfe9e04e80248ca035edc7866f40400300c4fe"
+  }
+}

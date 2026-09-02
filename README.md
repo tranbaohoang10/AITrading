@@ -29,9 +29,10 @@ future profit.
 
 ## Requirements and governance
 
-The [product requirements](docs/product-requirements.md) describe the intended
-trading UI, persistent private AI Chat and Trading Journal; they are not a claim
-that these features are implemented on main.
+The [product requirements](docs/product-requirements.md) retain the intended
+scope. The current evidence-backed capability/limitation matrix is
+[prototype readiness](docs/prototype-readiness.md); it, the backlog and feature
+evidence determine what is implemented on main.
 
 Read [AGENTS.md](AGENTS.md), the [Constitution](.specify/memory/constitution.md),
 [autonomous workflow](docs/governance/prototype-workflow.md) and
@@ -45,17 +46,16 @@ next feature.
 
 ## Autonomous product build
 
-The subsequent Product Owner request starts continuous product work. The durable
+The subsequent Product Owner request started continuous product work. The durable
 [master backlog](docs/product-backlog.md), [execution state](docs/execution-state.md)
 and [CNPM index](docs/cnpm-index.md) track that run separately from governance #3.
 
-The frontend foundation is recovered from feature/mvp-ui with provenance in
-[PB-001](specs/PB-001/spec.md). It currently demonstrates responsive workspace,
-read-only sample scripts and labelled synthetic backtest panes. PB-004 persists
-private chat; PB-008 adds the disabled-by-default AI boundary below, with real
-provider verification still blocked on credentials. PB-010 is an offline engine;
-authenticated web backtest jobs remain PB-011.
-PB-003 adds real authentication/account persistence around that demo workspace.
+The frontend foundation was recovered from feature/mvp-ui with provenance in
+[PB-001](specs/PB-001/spec.md). Main now includes authenticated owner-scoped chat,
+market data, Strategy DSL, backtests/results, journal/evaluation, documents/RAG,
+image analysis, Pine/MQL research exports, notifications and audit. AI remains
+disabled by default; Gemini real-provider checks used synthetic data and OpenAI is
+optional. See the readiness matrix for explicit deferred and prototype limits.
 
 From frontend/ with Node 22.12+ (verified Node 24.8.0) and npm:
 
@@ -86,6 +86,7 @@ uses random credentials, runs Wrapper tests/build and stops only that cluster:
 $env:JAVA_HOME = 'C:\Program Files\Java\jdk-21'
 python scripts/test_backend.py
 python scripts/check_dependencies.py backend/build/reports/dependencies.txt backend/build/reports/dependency-audit.json
+python scripts/verify_readiness.py
 ```
 
 For a persistent local developer DB, optionally use docker compose up -d db after
@@ -457,10 +458,11 @@ alerts or external symbol requests. Pine floats and comparison rounding differ
 from Python Decimal34; near-threshold signals can diverge. Identical market data
 and event-level validation are necessary; historical results never guarantee profit.
 
-**Official Pine compilation/runtime is currently unverified**: TradingView's
-anonymous Add to chart requires sign-in. The UI/source explicitly say experimental;
-Issue17 cannot be completed based on local Java/Python/source tests. Synthetic
-target scripts and the exact remaining procedure are in
+PB-015 official validation is complete for eight pinned synthetic fixtures: each
+compiled/updated on TradingView and produced a complete event/accounting trace
+with assertions PASS. PB-017 independently binds those traces to Python and MQL5
+evidence with zero unexplained divergence. This validates the pinned fixtures,
+not every chart/feed or future generated strategy. See
 [target validation](specs/PB-015/test-evidence/target-validation.md).
 
 Target bounds:16 indicators, period/lag<=200, pivot left/right<=100, warm-up<=4500,
@@ -502,8 +504,10 @@ Target limits are16 indicators, period/lag200, pivot sides100, warm-up4500 and
 128KiB source. Binary doubles differ from Python Decimal34 and can alter boundary
 signals. No broker lots/ticks/margin/funding/liquidation or profit guarantee.
 Eight synthetic exports compiled with official MetaEditor with zero errors and
-warnings; **actual MQL runtime/event and negative CSV verification remain pending**.
-Do not treat local tests/compiler success as runtime certification. See
+warnings and ran in the isolated portable target. Their complete event/accounting
+traces and actual CSV negative cases, including future-data rejection, PASS.
+PB-017 matches the retained traces to Python/Pine for the same pinned fixtures.
+This is research-runtime evidence, not broker/live-trading certification. See
 [target evidence/procedure](specs/PB-016/test-evidence/target-validation.md),
 [design](specs/PB-016/design.md) and [test cases](specs/PB-016/test-cases.md).
 

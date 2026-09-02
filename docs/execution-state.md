@@ -5,6 +5,14 @@ planning or one feature. User explicitly authorizes continuous execution on main
 
 ## Current checkpoint — 31/08/2026
 
+## 02/09/2026 — PB-026 selected / Issue #28
+
+After PB-025 completed, PB-026 became READY. Issue #28 was created before edits
+with capability, reproducibility, nine-group CNPM, architecture/ERD, deterministic
+verification, final regression/security and publication AC/DoD. Scope is assembly
+and readiness only: no product feature, migration, dependency, provider call,
+broker interaction or official Pine/MQL target rerun. Work is IN_PROGRESS.
+
 ## 02/09/2026 — PB-025 DONE; PB-026 READY
 
 PB-025 feature commit `6b82af8f820403041da57a3c149c082a257a9669`

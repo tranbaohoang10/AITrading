@@ -1,55 +1,35 @@
 # CNPM / thesis artifact index
 
-This index is assembled as features complete; it is not evidence that future
-diagrams/functions exist. Feature specs hold Use Case/description/AC; design files
-hold sequence/class/data diagrams; test-cases are separate per feature.
+This is the PB-026 navigation index for the implemented prototype. Feature specs
+remain the detailed source; sanitized runtime evidence is not replaced by this
+summary. The offline readiness verifier checks every local link and feature root.
 
-| Final deliverable | Source and completion rule |
-| --- | --- |
-| 1. Project overview | README, product-requirements, product-backlog; PB-026 reconciles implemented scope |
-| 2. Overall Use Case Diagram | docs/architecture.md, created with foundation and updated for implemented actors/functions |
-| 3. Physical View / System Architecture | docs/architecture.md and backend foundation design; actual deployment boundaries |
-| 4. Use Case Descriptions | specs/PB-*/spec.md, traceable AC IDs |
-| 5. Test Cases | specs/PB-*/test-cases.md and sanitized test-evidence; no combined substitute |
-| 6. Sequence Diagrams | specs/PB-*/design.md for important business flows |
-| 7. GUI/UI | Per-feature design plus real browser screenshots and state evidence |
-| 8. Overall Class Diagram | docs/architecture.md derived from implemented classes; feature class diagrams |
-| 9. ERD | docs/architecture.md reconciled against Flyway migrations and actual constraints |
+| # | Final deliverable | Current source and completion evidence |
+| --- | --- | --- |
+| 1 | Project overview | [README](../README.md), [requirements](product-requirements.md), [backlog](product-backlog.md), [capability/readiness](prototype-readiness.md) |
+| 2 | Overall Use Case Diagram | [Aggregate architecture](architecture.md#overall-use-case-diagram); detailed use cases in each `specs/PB-*/spec.md` |
+| 3 | Physical View / System Architecture | [Physical view](architecture.md#physical--system-view), [PB-002 design](../specs/PB-002/design.md), [PB-025 integration design](../specs/PB-025/design.md) |
+| 4 | Use Case Descriptions | Feature `spec.md` files for PB-001–PB-019 and PB-022–PB-027; [PB-026 spec](../specs/PB-026/spec.md) |
+| 5 | Test Cases | Feature `test-cases.md`, sanitized `test-evidence`, [PB-026 cases](../specs/PB-026/test-cases.md) and [readiness evidence](../specs/PB-026/test-evidence/results.md) |
+| 6 | Sequence Diagrams | Feature `design.md` files; [PB-026 readiness sequence](../specs/PB-026/design.md#readiness-sequence) |
+| 7 | GUI/UI | Real responsive screenshots under PB-001/003/004/006/007/008/012/013/015/016/022/024/027 evidence; [UI evidence inventory](prototype-readiness.md#guiui-evidence) |
+| 8 | Overall Class Diagram | [Aggregate class view](architecture.md#overall-class--component-view) plus feature class diagrams |
+| 9 | ERD | [Aggregate ERD](architecture.md#aggregate-erd-and-migration-ledger), exact [V1–V17 SHA ledger](readiness-migrations.json), feature migration diagrams |
 
-31/08/2026: PB-006 adds owned CSV import/chart use cases, sequence/class/ERD for
-V4 and real desktop/mobile/tablet/browser-restart evidence in specs/PB-006.
-PB-005 schema-only delivery has no new ERD entity or UI screenshot requirement.
+## Feature artifact roots
 
-31/08/2026: PB-007 adds private strategy/history use cases and V5 ERD/sequence/class
-diagrams, My Script editor and browser responsive/restart/conflict evidence.
+Required implemented roots are PB-001 through PB-019, PB-022 through PB-025 and
+PB-027. PB-026 is the current assembly/readiness root. Each has `spec.md`,
+`design.md`, `test-cases.md` and sanitized evidence. PB-020 broker integration and
+PB-021 external market connector are explicitly `DEFERRED_OPTIONAL`; no empty
+implementation documents are manufactured for them.
 
-31/08/2026: PB-010 adds offline backtest UC/sequence/class design, deterministic
-DSL/data/result contract and separate hand-computed/causal/security test cases.
-No new ERD or UI; Java jobs are explicitly deferred to PB-011.
+## Evidence rules
 
-31/08/2026: PB-008 adds explicit AI request/status/cancel UC, sequence/class/V6 ERD,
-security and separate test cases, plus actual unavailable-provider browser evidence
-at desktop/tablet/mobile sizes. Real configured-provider smoke remains BLOCKED;
-artifacts describe implemented boundaries without claiming the feature DONE.
-
-31/08/2026: PB-011 adds owned job API UC/description/sequence/class/V7 ERD, explicit
-process/resource/lifecycle/security contracts and separate tests. Actual HTTP/
-Python/PostgreSQL result and JVM restart evidence are under specs/PB-011. No UI
-source change or new screenshot requirement; real web integration remains PB-012.
-
-31/08/2026: PB-012 adds explicit backtest UI use cases, sequence/class diagrams,
-frozen-candle API and real metrics/trades/event visualizations. V7 ERD is reused;
-no new table. Detailed tests, actual engine UI fixtures and real responsive browser
-evidence are in specs/PB-012. This does not claim AI/provider work is complete.
-
-31/08/2026: PB-013 adds manual owned journal CRUD and day/month/range P&L use cases,
-sequence/class/V8 ERD, exact accounting/timezone conventions, responsive UI and
-separate detailed cases. Real PostgreSQL arithmetic/concurrency/security tests and
-browser restart/source-deletion evidence live in specs/PB-013. AI/NLP evaluation
-is PB-014; this feature does not score reasons or submit broker orders.
-
-31/08/2026: PB-008 provider-neutral amendment in specs/PB-008/provider-neutral.md
-adds startup provider selection, Gemini/optional OpenAI class/sequence diagrams,
-V13 impact, synthetic-only Gemini privacy requirements and AI-07–11. Separate
-provider-neutral-test-cases.md and test-evidence/provider-neutral-results.md track
-local versus real-provider verification. Initial documents/evidence are preserved.
+- A diagram is a model of implemented code/migrations, not execution evidence.
+- A screenshot demonstrates only the recorded synthetic browser state.
+- Pine/MQL target PASS comes from PB-015/PB-016 official evidence; PB-017 compares
+  event-level target traces. PB-026 does not rerun or fabricate those targets.
+- AI real-provider evidence uses synthetic data and never includes a key value.
+- DONE requires its Issue, publication evidence and required CI; the readiness
+  report cannot promote an incomplete or optional item.

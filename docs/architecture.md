@@ -1,165 +1,174 @@
-# Prototype architecture and CNPM physical view
+# Prototype architecture and CNPM aggregate views
 
-Status: PB-001–PB-007 and PB-010 delivered. PB-008 provider boundary implemented
-and locally tested, disabled by default; real-provider smoke remains blocked on
-credentials. PB-011 now implements owned API jobs; final verification is in
-progress. Web job controls/result visualization remain PB-012.
+Status: PB-001–PB-019, PB-022–PB-025 and PB-027 are DONE. PB-020 broker/
+paper-order integration and PB-021 external market connector are optional and
+deferred. PB-026 reconciles this aggregate view. Feature-level semantics and
+evidence remain authoritative in `specs/PB-*`; this document does not claim
+production readiness, live trading or guaranteed results.
 
-PB-004 adds owner-scoped conversation/message APIs and additive FlywayV3. JDBC
-transactions lock current user then owned conversation for quota/idempotency/version
-checks. React chat state lives below the authenticated identity root, above the
-responsive renderers; delayed responses cannot mix contexts. Detailed sequence,
-class and ERD views are in specs/PB-004/design.md. No new infrastructure/dependency.
+## Physical / system view
 
 ```mermaid
 flowchart LR
-  Browser[React + TypeScript + Vite browser]
-  API[Spring Boot Java21 API]
-  DB[(PostgreSQL / Flyway)]
-  Python[Offline Python DSL engine PB-010]
-  Provider[Selected AiProvider: Gemini or optional OpenAI]
-  Browser -->|same-origin REST, HttpOnly session and CSRF| API
-  API -->|JDBC, owned application schema| DB
-  API -->|frozen owned input, bounded supervised jobs PB-011| Python
-  API -->|explicit bounded context, server-only key, PB-008| Provider
+  Browser[React + TypeScript + Vite]
+  API[Spring Boot Java 21]
+  DB[(PostgreSQL + Flyway V1-V17)]
+  Python[Bounded Python backtest worker]
+  AI[AiProvider: Gemini or optional OpenAI]
+  Pine[Pine v6 research artifact]
+  MQL[MQL5 CSV research script]
+  Browser -->|same-origin REST; HttpOnly session; CSRF; expected account| API
+  API -->|owned JDBC transactions| DB
+  API -->|fixed executable and frozen JSON; no shell| Python
+  API -->|fixed HTTPS adapter; bounded structured context| AI
+  API -->|immutable source generation only| Pine
+  API -->|immutable source generation only| MQL
 ```
 
-The frontend auth, conversations, strategy editor and market chart call the real
-API; remaining backtest sample panes are explicitly demos. All future private API paths deny
-access until their authenticated feature is implemented. No browser→DB/Python/provider-key shortcut is allowed.
-Native PostgreSQL tests use a fresh project-owned cluster, not the user service.
-Local developer compose, if used, binds DB port to loopback and needs an environment
-password; it never defaults to trust authentication or a hardcoded credential.
+Provider access is disabled by default and keys remain server-only environment
+configuration. Pine/MQL exports derive from the same validated method-neutral DSL;
+they contain no live orders, network/DLL access or broker account integration.
+Official PB-015/PB-016 synthetic target evidence and PB-017 event consistency are
+complete; those checks are not runtime services in this architecture.
+
+## Overall Use Case Diagram
 
 ```mermaid
 flowchart TB
-  Researcher((Researcher)) --> Shell([Inspect demo trading workspace])
-  Researcher --> Register([Register local account])
-  Researcher --> Login([Sign in / out])
-  Researcher --> Account([Update own name / password])
-  Researcher --> Chat([Manage private conversations and messages])
-  Researcher --> DSL([Validate neutral Strategy DSL draft])
-  Researcher --> Market([Import and inspect private OHLCV datasets])
-  Researcher --> DeleteMarket([Delete own dataset with confirmation])
-  Researcher --> Strategy([Edit and save own draft or validated strategy revisions])
-  Researcher --> History([Inspect immutable history and restore as new revision])
-  Researcher --> AI([Explicitly ask configured AI; inspect/cancel owned attempt])
-  Researcher --> Job([Submit owned revision/dataset job; inspect/cancel/retry API result])
-  Operator((Developer/operator)) --> Start([Start local API and isolated DB tests])
-  Operator --> Ready([Inspect minimal readiness])
-  Operator --> Offline([Run bounded offline DSL backtest with synthetic or owned data])
+  R((Researcher)) --> Auth[Register, sign in/out, manage own account]
+  R --> Chat[Manage private chat and explicit AI turns]
+  R --> Market[Import/inspect/delete owned OHLCV CSV]
+  R --> DSL[Validate method-neutral Strategy DSL]
+  R --> Strategy[Save immutable strategy revisions]
+  R --> Generate[Request and explicitly accept/reject AI DSL proposal]
+  R --> Backtest[Run/cancel/retry owned Python backtest]
+  R --> Results[Inspect frozen chart, trades and exact metrics]
+  R --> Journal[Manage journal and exact period P&L]
+  R --> Evaluate[Request grounded journal evaluation]
+  R --> Export[Generate private Pine/MQL research artifacts]
+  R --> Documents[Version private TXT/PDF and request cited RAG]
+  R --> Images[Analyze private bounded chart image]
+  R --> Notices[Read backtest terminal notifications]
+  R --> Audit[Inspect private bounded activity metadata]
+  O((Developer/operator)) --> Setup[Configure/start fixed local stack]
+  O --> Verify[Run isolated tests, audits and readiness verification]
+  O --> Optional[Evaluate deferred broker/data connector separately]
 ```
 
-This is the currently supported use-case diagram. Add authenticated research,
-chat/strategy/backtest/journal/knowledge use cases only as their PB items are built.
-Per-feature sequence/class diagrams are in specs/PB-001 and specs/PB-002.
+Every private use case enforces authenticated ownership and expected-account
+binding in addition to CSRF on unsafe methods. Resource identifiers never grant
+authority. AI/provider output remains inert structured research data and cannot
+execute code, mutate accepted DSL without confirmation, or place an order.
 
-Flyway owns trading.flyway_schema_history
-(installed_rank PK, version, description, type, script, checksum, installed_by,
-installed_on, execution_time, success). PB-003 V2 creates app_user, spring_session,
-spring_session_attributes and auth_rate_bucket; its implemented ERD/class/sequence
-diagrams are in specs/PB-003/design.md. Later
-features own their additive migrations and ownership foreign keys. Never invent a
-completed overall ERD from planned tables. PB-026 reconciles this file with code.
+## Overall class / component view
 
-PB-005 adds stateless DslController → DslValidator → bundled DslSchema. All routes
-are session protected; POST is CSRF protected and bounded64KiB (other writes16KiB).
-Typed DAG/units/risk/complexity validation precedes deterministic canonical/hash
-creation; no interpreter/provider/target engine executes this data. No new ERD
-entity in PB-005 itself: PB-007 owns immutable persisted strategy versions. PB-004's V3
-conversation/message entities and owner constraints remain as documented in its
-design; delivered cc99d4d / Issue7 completed. PB-005 delivered28a68e0 / Issue8 completed.
+```mermaid
+classDiagram
+  class ReactProviders
+  class AuthController
+  class ConversationController
+  class StrategyController
+  class MarketController
+  class BacktestController
+  class JournalController
+  class DocumentController
+  class ImageAnalysisController
+  class ExportControllers
+  class AuditNotificationControllers
+  class OwnedServices
+  class AiProvider
+  class GeminiProvider
+  class OpenAiProvider
+  class PythonWorker
+  class PostgreSQL
+  ReactProviders --> AuthController
+  ReactProviders --> ConversationController
+  ReactProviders --> StrategyController
+  ReactProviders --> MarketController
+  ReactProviders --> BacktestController
+  ReactProviders --> JournalController
+  ReactProviders --> DocumentController
+  ReactProviders --> ImageAnalysisController
+  ReactProviders --> ExportControllers
+  ReactProviders --> AuditNotificationControllers
+  AuthController --> OwnedServices
+  ConversationController --> OwnedServices
+  StrategyController --> OwnedServices
+  MarketController --> OwnedServices
+  BacktestController --> PythonWorker
+  OwnedServices --> PostgreSQL
+  OwnedServices --> AiProvider
+  AiProvider <|.. GeminiProvider
+  AiProvider <|.. OpenAiProvider
+```
 
-PB-006 adds MarketController → MarketService → MarketCsvParser and immutable
-market_dataset/market_candle tables through V4. Owner locks serialize quota,
-idempotency and deletion; owner predicates protect metadata and candle reads.
-Repeatable-read candle paging keeps metadata and rows coherent during deletion.
-Only POST /api/datasets/import accepts2MiB JSON; existing limits remain unchanged.
-Native React/SVG converts decimal strings only for geometry and retains exact
-values for inspection. No provider, runtime interpreter or new dependency added.
-Detailed sequence/class/ERD and data contract: specs/PB-006/design.md.
+Controllers accept bounded contracts. Services/stores lock the current user and
+owned aggregate, enforce quota/idempotency/version checks, and persist through
+JDBC. `BacktestStore` freezes provenance/input before `PythonWorker` starts a fixed
+trusted entrypoint with sanitized environment, time/memory/output limits. AI
+services reserve durable attempts before calling the selected provider outside a
+database transaction, then validate and atomically finalize against unchanged
+context. React providers are keyed by authenticated identity and discard stale
+responses on account/resource changes.
 
-PB-007 adds StrategyController → StrategyService → DslValidator and V5 strategy /
-strategy_revision. Only strategy current pointer advances; saved revision rows stay
-immutable. Owner/credential locks protect quota/idempotency and optimistic revision
-checks. DRAFT text is bounded inert data; VALIDATED rows contain server-derived
-canonical DSL/hash/schema/validator/minimumBars. Every current/history read is owned.
-StrategyProvider lives under keyed identity and keeps editor state across responsive
-renderers; no browser storage. Native JSON editor and real DatasetChart share a
-workspace but no database binding; future jobs explicitly select version+dataset.
-No provider/runtime/export/dependency change. Full diagrams: specs/PB-007/design.md.
+## Aggregate ERD and migration ledger
 
-PB-010 adds a fixed isolated Python launcher → strict contract validator → causal
-IndicatorEvaluator → execution/accounting/result. It reads one bounded JSON request
-from stdin and returns deterministic JSON on stdout; no network, DB, user path,
-eval or dynamic plugin. Existing bundled DSL schema is shared read-only, with an
-independent Python semantic check and matching Java canonical/data hash fixtures.
-No migration or UI change. The API capabilities reports offline_engine_implemented
-for Python while operation remains validation_only. PB-011 must enforce owned
-snapshot selection, supervisor timeouts/cancellation and durable results before
-connecting the API to this worker. Details: specs/PB-010/design.md, python/README.md.
+```mermaid
+erDiagram
+  app_user ||--o{ conversation : owns
+  conversation ||--o{ conversation_message : contains
+  conversation ||--o{ ai_turn : requests
+  app_user ||--o{ market_dataset : owns
+  market_dataset ||--o{ market_candle : contains
+  app_user ||--o{ strategy : owns
+  strategy ||--o{ strategy_revision : versions
+  strategy_revision ||--o{ pine_export : generates
+  strategy_revision ||--o{ mql5_export : generates
+  strategy ||--o{ strategy_generation : proposes
+  app_user ||--o{ backtest_job : owns
+  backtest_job ||--o{ backtest_notification : reports
+  app_user ||--o{ journal_entry : owns
+  journal_entry ||--o{ journal_write : deduplicates
+  journal_entry ||--o{ journal_evaluation : evaluates
+  app_user ||--o{ private_document : owns
+  private_document ||--o{ private_document_version : versions
+  private_document_version ||--o{ private_document_chunk : chunks
+  app_user ||--o{ private_document_rag_attempt : asks
+  private_document_rag_attempt ||--o{ private_document_rag_citation : cites
+  app_user ||--o{ chart_image_analysis : owns
+  app_user ||--o{ audit_event : owns
+```
 
-PB-008 adds AiController → AiService → AiTurnStore / OpenAiProvider and additive
-V6 ai_turn. Current-user/owned-conversation transactions reserve bounded context
-and finalize only against unchanged versions; provider HTTP runs outside the DB
-transaction. Closed structured output is validated before an atomic assistant
-append. Durable request identity, lease, cancellation and fixed error codes prevent
-hidden replay or fake success. The explicit React controls share existing keyed
-conversation state. Fixed HTTPS endpoint/no redirects/no tools; body and whole
-request bounds; server secrets never returned. See specs/PB-008/design.md for
-sequence/class/ERD. Local stub evidence does not certify actual provider access.
+Flyway is append-only. V1 creates schema/history context; V2 adds identity,
+sessions and auth rates; V3 conversations; V4 market data; V5 strategies; V6 AI
+turns; V7 jobs; V8 journal; V9 Pine; V10 MQL5; V11 audit; V12 notifications; V13
+provider-neutral constraint; V14 generation; V15 journal evaluation; V16 private
+documents/RAG; V17 chart image analysis. Exact names and SHA-256 are pinned in
+`docs/readiness-migrations.json` and checked by the offline readiness verifier.
 
-PB-011 adds BacktestController/Store/Scheduler/PythonWorker/BacktestJson and V7.
-Owned validated strategy revision and dataset are frozen into a bounded canonical
-input before queue admission. Worker arguments/entrypoint are fixed; sanitized
-environment, OS resource limits and bounded pipe/wall supervision protect the
-trusted engine. Global DB admission/claim limits and current-owner credentials
-protect lifecycle transitions. Source IDs are provenance, not source-cascade FKs;
-account deletion cascades jobs, while explicit terminal job deletion removes
-snapshots/results. Full sequence/class/ERD: specs/PB-011/design.md. Python semantics
-remain PB-010; web charts/controls are PB-012, notifications PB-022.
+Complete SQL table inventory: `app_user`, `spring_session`,
+`spring_session_attributes`, `auth_rate_bucket`, `conversation`,
+`conversation_message`, `market_dataset`, `market_candle`, `strategy`,
+`strategy_revision`, `ai_turn`, `backtest_job`, `journal_entry`, `journal_write`,
+`pine_export`, `mql5_export`, `audit_event`, `backtest_notification`,
+`strategy_generation`, `journal_evaluation`, `private_document`,
+`private_document_version`, `private_document_chunk`,
+`private_document_rag_attempt`, `private_document_rag_citation`, and
+`chart_image_analysis`.
 
-PB-012 adds BacktestProvider inside the authenticated identity-keyed subtree.
-Explicit saved-input submission and owned job selection drive ResultView,
-EquityChart, TradeList and reused CandleChart. Per-operation epochs invalidate late
-job/result/chart replies; uncertain mutations retain their original UUID, including
-when a retry itself is rejected. No implicit engine invocation or browser storage.
-BacktestStore reads bounded candle windows from V7 input_json only after current
-credential/owner/state checks. Source deletion does not change these bars. No new
-ERD entity/migration/dependency or Python accounting change. Sequence/class/UI and
-threat/test contracts: specs/PB-012/design.md and test-cases.md.
+Owner roots generally reference `app_user` with delete cascade. Child records
+cascade from their aggregate root. Backtest source identifiers are retained as
+snapshot provenance so source deletion does not erase results. Journal dataset
+identity is provenance rather than authorization. Detailed keys, constraints,
+rates, lifecycle and precision rules stay in the corresponding migration and
+feature design; this aggregate ERD intentionally omits columns.
 
-PB-013 adds JournalController→JournalService and additive V8 journal_entry/
-journal_write. User lock→owned entry→version/dedup→atomic data+fingerprint ledger
-serializes writes and quotas. Ledger stores hashes/version only; no hidden note
-copies. Account/entry deletion cascades; dataset_id is non-cascading provenance.
-BigDecimal computes exact manual linear gross/net and owner+currency+activity-time
-queries group closed exit/open entry in explicit IANA local days, including DST.
-All unsafe journal requests bind X-Workspace-User to the authenticated principal;
-stale browser sessions cannot transfer a draft into another account at write time.
+## Trust and deployment limits
 
-JournalProvider resides inside the identity-keyed authenticated subtree and holds
-draft/report/selection through responsive navigation. Exact uncertain intents,
-version conflicts, discard/delete confirmation, per-read epochs and server-user
-verification protect UI state. JournalWorkspace reuses CandleChart with its own
-owned source, never the global selected market. At most10×500 candle scan locates
-the100-bar window by actual time through gaps. Source deletion preserves monetary
-values but removes chart access. Sequence/class/ERD: specs/PB-013/design.md.
-
-31/08/2026 PB-008 provider-neutral amendment: AiService/AiTurnStore use AiProvider,
-selected once at startup by AiProviderConfiguration. GeminiProvider and optional
-OpenAiProvider share bounded AiHttpTransport/AiProviderProtocol. Fixed provider
-HTTPS destinations, no user URL/tools or automatic fallback. V13 widens only the
-provider check to openai/gemini, retaining V6 and old provenance. Current diagrams,
-privacy/security/AC and evidence: specs/PB-008/provider-neutral.md. Historical
-OpenAI-only description above records the initial implementation, not the current
-mandatory provider. Real Gemini smoke is required before PB008 DONE.
-
-31/08/2026: PB008 Gemini3.5Flash real synthetic smoke and delivery CI verified; Issue12 completed. Historical smoke-pending entries above are superseded by PB008 final evidence.
-
-01/09/2026 PB019: ImageAnalysisController→ImageAnalysisService uses the same
-provider-neutral AiProvider. The service accepts no URL/path, bounds PNG/JPEG bytes
-and decoded pixels, re-encodes a metadata-free PNG, then validates a closed
-AiImageAnalysis schema. V17 persists owner/request/source hashes, canonical bytes,
-dimensions, structured result and provider provenance. UI text remains inert and
-does not mutate Strategy DSL. See specs/PB-019/design.md and test-cases.md.
+The prototype is a local research platform. PostgreSQL test clusters are created
+under owned `tmp/pg-test-*`, bound to loopback, and removed from service after
+tests; generated credential files are deleted. Production-like deployment,
+multi-node scheduler coordination, backup/restore operations, broker connectivity,
+external data licensing, live orders, payment and compliance certification are
+outside the implemented scope. Historical returns and AI analysis never guarantee
+future performance.
