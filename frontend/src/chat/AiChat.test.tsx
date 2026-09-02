@@ -9,211 +9,184 @@ import * as ai from './aiApi'
 
 vi.mock('./api', () => ({ listConversations: vi.fn(), getMessages: vi.fn(), createConversation: vi.fn(), saveMessage: vi.fn(), renameConversation: vi.fn(), deleteConversation: vi.fn() }))
 vi.mock('./aiApi', async original => ({ ...await original<typeof import('./aiApi')>(), getAiConfiguration: vi.fn(), startAi: vi.fn(), getAiTurn: vi.fn(), getLatestAiTurn: vi.fn(), cancelAiTurn: vi.fn() }))
-const alpha: api.Conversation = { id: '11111111-1111-4111-8111-111111111111', title: 'Alpha', version: 2, createdAt: '2026-08-31T00:00:00Z', updatedAt: '2026-08-31T00:00:00Z', lastMessage: 'Saved user prompt' }
-const beta = { ...alpha, id: '22222222-2222-4222-8222-222222222222', title: 'Beta' }
-const userMessage: api.Message = { sequence: 1, requestId: '33333333-3333-4333-8333-333333333333', role: 'user', content: 'Saved user prompt', createdAt: alpha.createdAt }
-const reply: api.Message = { ...userMessage, sequence: 2, requestId: '44444444-4444-4444-8444-444444444444', role: 'assistant', content: 'Persisted synthetic reply <script>inert()</script>' }
-const turn = (intent: ai.AiIntent, state: ai.AiTurn['state'] = 'SUCCEEDED', errorCode: string | null = null): ai.AiTurn => ({ ...intent, state, errorCode, provider: 'openai', model: 'configured-test-model', assistantSequence: state === 'SUCCEEDED' ? intent.sourceSequence + 1 : null, contextStart: 1, contextEnd: intent.sourceSequence, contextCount: intent.sourceSequence, contextHash: 'a'.repeat(64), createdAt: alpha.createdAt, expiresAt: '2026-08-31T00:00:45Z', updatedAt: alpha.updatedAt })
-const known: ai.AiIntent = { conversationId: alpha.id, requestId: '55555555-5555-4555-8555-555555555555', expectedVersion: 2, sourceSequence: 1 }
-function deferred<T>() { let resolve!: (value: T) => void; let reject!: (reason: unknown) => void; const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no }); return { promise, resolve, reject } }
+const alpha: api.Conversation = { id: '11111111-1111-4111-8111-111111111111', title: 'Alpha', version: 2, createdAt: '2026-08-31T00:00:00Z', updatedAt: '2026-08-31T00:00:00Z', lastMessage: 'Existing prompt' }
+const beta: api.Conversation = { ...alpha, id: '22222222-2222-4222-8222-222222222222', title: 'Beta' }
+const existing: api.Message = { sequence: 1, requestId: '33333333-3333-4333-8333-333333333333', role: 'user', content: 'Existing prompt', createdAt: alpha.createdAt }
+const replyFor = (sequence: number): api.Message => ({ sequence: sequence + 1, requestId: '44444444-4444-4444-8444-444444444444', role: 'assistant', content: 'Persisted synthetic reply <script>inert()</script>', createdAt: alpha.createdAt })
+const turn = (intent: ai.AiIntent, state: ai.AiTurn['state'] = 'SUCCEEDED', errorCode: string | null = null): ai.AiTurn => ({ ...intent, state, errorCode, provider: 'openai', model: 'configured-test-model', assistantSequence: state === 'SUCCEEDED' ? intent.sourceSequence + 1 : null, contextStart: Math.max(1, intent.sourceSequence - 1), contextEnd: intent.sourceSequence, contextCount: Math.min(2, intent.sourceSequence), contextHash: 'a'.repeat(64), createdAt: alpha.createdAt, expiresAt: '2026-08-31T00:00:45Z', updatedAt: alpha.updatedAt })
+function deferred<T>() { let resolve!: (value: T) => void; const promise = new Promise<T>(yes => { resolve = yes }); return { promise, resolve } }
 const clear = vi.fn()
-let saved = false
+let saved: api.Message | null
+let completed: ai.AiTurn | null
 function Root({ userId = 'owner-a' }: { userId?: string }) {
   return <AuthContext.Provider value={{ user: { id: userId, email: `${userId}@example.test`, displayName: 'Researcher' }, clear, update: vi.fn() }}><ConversationProvider key={userId}><PersistentChat /></ConversationProvider></AuthContext.Provider>
 }
-async function select(name = 'Alpha') {
-  fireEvent.click(await screen.findByRole('button', { name: new RegExp(`^${name}`) }))
+async function select() {
+  fireEvent.click(await screen.findByRole('button', { name: /^Alpha/ }))
   await waitFor(() => expect(screen.queryByText('Loading messages…')).not.toBeInTheDocument())
 }
 async function ready() {
+  await screen.findByText(/OpenAI · AI ready/)
   await select()
-  fireEvent.click(screen.getByRole('button', { name: 'Check AI availability' }))
-  await screen.findByText('OpenAI · configured-test-model')
+  await screen.findByText(/OpenAI · AI ready/)
 }
+
 beforeEach(() => {
-  vi.resetAllMocks(); saved = false
-  vi.mocked(api.listConversations).mockResolvedValue({ items: [alpha, beta], nextCursor: null })
-  vi.mocked(api.getMessages).mockImplementation(async id => ({ conversation: { ...(id === alpha.id ? alpha : beta), version: saved ? 3 : 2 }, items: saved ? [userMessage, reply] : [userMessage], nextBefore: null }))
+  vi.resetAllMocks(); saved = null; completed = null
+  vi.mocked(api.listConversations).mockResolvedValue({ items: [alpha], nextCursor: null })
+  vi.mocked(api.getMessages).mockImplementation(async id => {
+    const items = saved ? [existing, saved, ...(completed?.state === 'SUCCEEDED' ? [replyFor(saved.sequence)] : [])] : [existing]
+    return { conversation: { ...(id === beta.id ? beta : alpha), version: saved ? 3 : 2 }, items, nextBefore: null }
+  })
+  vi.mocked(api.saveMessage).mockImplementation(async (_id, requestId, content) => (saved = { sequence: 2, requestId, role: 'user', content, createdAt: alpha.createdAt }))
   vi.mocked(ai.getAiConfiguration).mockResolvedValue({ configured: true, provider: 'openai', model: 'configured-test-model' })
   vi.mocked(ai.getLatestAiTurn).mockResolvedValue(null)
-  vi.mocked(ai.startAi).mockImplementation(async intent => { saved = true; return turn(intent) })
-  vi.mocked(ai.cancelAiTurn).mockImplementation(async intent => turn(intent, 'CANCELLED', 'AI_CANCELLED'))
+  vi.mocked(ai.startAi).mockImplementation(async intent => (completed = turn(intent)))
+  vi.mocked(ai.getAiTurn).mockImplementation(async intent => (completed = turn(intent)))
+  vi.mocked(ai.cancelAiTurn).mockImplementation(async intent => (completed = turn(intent, 'CANCELLED', 'AI_CANCELLED')))
 })
 
-it('checks availability explicitly and never invents a reply when disabled', async () => {
-  vi.mocked(ai.getAiConfiguration).mockResolvedValue({ configured: false, provider: 'openai', model: null })
+it('checks provider automatically and never exposes admin provider/save controls', async () => {
+  vi.mocked(ai.getAiConfiguration).mockResolvedValue({ configured: false, provider: null, model: null })
   render(<Root />); await select()
-  expect(ai.getAiConfiguration).not.toHaveBeenCalled()
-  expect(screen.getByRole('button', { name: 'Ask AI' })).toBeDisabled()
-  fireEvent.click(screen.getByRole('button', { name: 'Check AI availability' }))
-  expect(await screen.findByText('AI is not configured on the server.')).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'Ask AI' })).toBeDisabled()
-  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Still save without AI' } })
-  expect(screen.getByRole('button', { name: 'Save message' })).toBeEnabled()
+  await screen.findByText(/AI · Offline/)
+  expect(ai.getAiConfiguration).toHaveBeenCalled()
+  expect(screen.getByRole('button', { name: 'Send to Quant' })).toBeDisabled()
+  for (const label of ['Check AI availability', 'Save message', 'Ask AI', 'Refresh list', 'Reload messages']) expect(screen.queryByRole('button', { name: label })).not.toBeInTheDocument()
   expect(ai.startAi).not.toHaveBeenCalled()
 })
 
-it('asks only for a saved latest user message and reloads the authoritative assistant', async () => {
+it('uses one Send action to save, confirm and then start AI with authoritative version/sequence', async () => {
   render(<Root />); await ready()
-  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Unsent draft' } })
-  expect(screen.getByRole('button', { name: 'Ask AI' })).toBeDisabled()
-  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: '' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Ask AI' }))
-  expect(await screen.findByText(reply.content)).toBeInTheDocument()
-  expect(screen.getByText('AI reply saved to this conversation.')).toBeInTheDocument()
-  expect(ai.startAi).toHaveBeenCalledWith(expect.objectContaining({ conversationId: alpha.id, expectedVersion: 2, sourceSequence: 1 }), 'owner-a')
-  expect(api.saveMessage).not.toHaveBeenCalled()
+  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Test the trend rule' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Send to Quant' }))
+  expect(await screen.findByText(replyFor(2).content)).toBeInTheDocument()
+  expect(api.saveMessage).toHaveBeenCalledTimes(1)
+  expect(ai.startAi).toHaveBeenCalledTimes(1)
+  expect(vi.mocked(api.saveMessage).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(ai.startAi).mock.invocationCallOrder[0])
+  expect(ai.startAi).toHaveBeenCalledWith(expect.objectContaining({ conversationId: alpha.id, expectedVersion: 3, sourceSequence: 2 }), 'owner-a')
   expect(document.querySelector('script')).toBeNull()
-  expect(screen.getByRole('button', { name: 'Ask AI' })).toBeDisabled()
 })
 
-it('keeps one request identity during uncertain transport and retries without double submit', async () => {
+it('freezes the save identity on an uncertain result and does not ask AI before confirmation', async () => {
+  vi.mocked(api.saveMessage).mockRejectedValueOnce(new Error('Lost save acknowledgement'))
+  render(<Root />); await ready()
+  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Private exact intent' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Send to Quant' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('Lost save acknowledgement')
+  expect(ai.startAi).not.toHaveBeenCalled()
+  const original = vi.mocked(api.saveMessage).mock.calls[0]
+  fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+  await screen.findByText(replyFor(2).content)
+  expect(vi.mocked(api.saveMessage).mock.calls[1]).toEqual(original)
+  expect(ai.startAi).toHaveBeenCalledTimes(1)
+})
+
+it('allows correction after a definite save rejection without starting AI', async () => {
+  vi.mocked(api.saveMessage).mockRejectedValueOnce(new ApiError(400))
+  render(<Root />); await ready()
+  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Invalid\u0001' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Send to Quant' }))
+  await screen.findByRole('alert')
+  expect(screen.getByLabelText('Research message')).toBeEnabled()
+  expect(screen.getByLabelText('Research message')).toHaveValue('Invalid\u0001')
+  expect(ai.startAi).not.toHaveBeenCalled()
+})
+
+it('retries an uncertain AI request with the same identity and suppresses duplicate sends', async () => {
   vi.mocked(ai.startAi).mockRejectedValueOnce(new Error('Connection lost'))
-  render(<Root />); await ready(); fireEvent.click(screen.getByRole('button', { name: 'Ask AI' }))
-  expect(await screen.findByText('Connection lost')).toBeInTheDocument()
+  render(<Root />); await ready()
+  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'One request' } })
+  const send = screen.getByRole('button', { name: 'Send to Quant' })
+  fireEvent.click(send); fireEvent.click(send)
+  expect(await screen.findByRole('alert')).toHaveTextContent('Connection lost')
+  expect(api.saveMessage).toHaveBeenCalledTimes(1)
   const original = vi.mocked(ai.startAi).mock.calls[0][0]
-  expect(screen.getByLabelText('Research message')).toBeDisabled()
-  expect(screen.getByRole('button', { name: /^Beta/ })).toBeDisabled()
-  fireEvent.click(screen.getByRole('button', { name: 'Retry same AI request' }))
-  fireEvent.click(screen.getByRole('button', { name: 'Retry same AI request' }))
-  await screen.findByText(reply.content)
-  expect(ai.startAi).toHaveBeenCalledTimes(2)
+  fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+  await screen.findByText(replyFor(2).content)
   expect(vi.mocked(ai.startAi).mock.calls[1][0]).toEqual(original)
 })
 
-it('checks a pending result without invoking the provider again', async () => {
-  vi.mocked(ai.startAi).mockImplementation(async intent => turn(intent, 'PENDING'))
-  vi.mocked(ai.getAiTurn).mockImplementation(async intent => { saved = true; return turn(intent) })
-  render(<Root />); await ready(); fireEvent.click(screen.getByRole('button', { name: 'Ask AI' }))
-  await screen.findByText(/AI outcome is pending or uncertain/)
-  fireEvent.click(screen.getByRole('button', { name: 'Check AI status' }))
-  await screen.findByText(reply.content)
+it('checks a pending result without invoking the provider twice and can cancel it', async () => {
+  vi.mocked(ai.startAi).mockImplementation(async intent => (completed = turn(intent, 'PENDING')))
+  render(<Root />); await ready()
+  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Long analysis' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Send to Quant' }))
+  await screen.findByRole('button', { name: 'Check status' })
+  fireEvent.click(screen.getByRole('button', { name: 'Check status' }))
+  await screen.findByText(replyFor(2).content)
   expect(ai.startAi).toHaveBeenCalledTimes(1)
-  expect(ai.getAiTurn).toHaveBeenCalledWith(vi.mocked(ai.startAi).mock.calls[0][0], 'owner-a')
+  expect(ai.getAiTurn).toHaveBeenCalledTimes(1)
+
+  vi.mocked(ai.startAi).mockImplementation(async intent => (completed = turn(intent, 'PENDING')))
+  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Second analysis' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Send to Quant' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Cancel request' }))
+  await screen.findByText(/AI request cancelled/)
+  expect(ai.cancelAiTurn).toHaveBeenCalled()
 })
 
-it('recovers durable request identity after reload and preserves an unsent draft', async () => {
-  vi.mocked(ai.getLatestAiTurn).mockResolvedValue(turn(known, 'PENDING'))
+it('recovers a durable pending request automatically and preserves the draft', async () => {
+  const known: ai.AiIntent = { conversationId: alpha.id, requestId: '55555555-5555-4555-8555-555555555555', expectedVersion: 2, sourceSequence: 1 }
+  vi.mocked(api.listConversations).mockResolvedValue({ items: [alpha, beta], nextCursor: null })
+  vi.mocked(ai.getLatestAiTurn).mockResolvedValueOnce(null).mockResolvedValueOnce(null).mockResolvedValueOnce(turn(known, 'PENDING'))
   render(<Root />); await select()
   fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Do not lose this draft' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Check AI availability' }))
-  await screen.findByText(/AI outcome is pending or uncertain/)
-  expect(ai.startAi).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: /^Beta/ }))
+  await waitFor(() => expect(screen.queryByText('Loading messages…')).not.toBeInTheDocument())
+  fireEvent.click(screen.getByRole('button', { name: /^Alpha/ }))
+  await screen.findByRole('button', { name: 'Cancel request' })
   expect(screen.getByLabelText('Research message')).toHaveValue('Do not lose this draft')
-  fireEvent.click(screen.getByRole('button', { name: 'Cancel AI request' }))
+  expect(screen.getByLabelText('Research message')).toBeDisabled()
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel request' }))
   await screen.findByText(/AI request cancelled/)
-  expect(ai.cancelAiTurn).toHaveBeenCalledWith(known, 'owner-a')
   expect(screen.getByLabelText('Research message')).toHaveValue('Do not lose this draft')
-  expect(screen.getByLabelText('Research message')).toBeEnabled()
 })
 
-it('cancels while the original HTTP call is pending and ignores its late response', async () => {
+it('ignores a late AI response after cancellation and conversation lifetime changes', async () => {
   const pending = deferred<ai.AiTurn>()
-  vi.mocked(ai.startAi).mockReturnValue(pending.promise)
-  render(<Root />); await ready(); fireEvent.click(screen.getByRole('button', { name: 'Ask AI' }))
-  const original = vi.mocked(ai.startAi).mock.calls[0][0]
-  fireEvent.click(screen.getByRole('button', { name: 'Cancel AI request' }))
+  vi.mocked(ai.startAi).mockReturnValueOnce(pending.promise)
+  render(<Root />); await ready()
+  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Cancel me' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Send to Quant' }))
+  await waitFor(() => expect(ai.startAi).toHaveBeenCalled())
+  const intent = vi.mocked(ai.startAi).mock.calls[0][0]
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel request' }))
   await screen.findByText(/AI request cancelled/)
-  await waitFor(() => expect(screen.getByRole('button', { name: /^Beta/ })).toBeEnabled())
-  await select('Beta')
-  await act(async () => pending.resolve(turn(original)))
-  expect(screen.queryByText('AI reply saved to this conversation.')).not.toBeInTheDocument()
-  expect(screen.getByLabelText('Conversation title')).toHaveValue('Beta')
-  expect(screen.getByRole('button', { name: 'New Chat' })).toBeEnabled()
+  await act(async () => pending.resolve(turn(intent)))
+  expect(screen.queryByText(replyFor(2).content)).not.toBeInTheDocument()
 })
 
-it('keeps pending identity if cancel or a subsequent retry is rejected', async () => {
-  vi.mocked(ai.startAi).mockRejectedValueOnce(new Error('Lost ack')).mockRejectedValueOnce(new ApiError(429))
-  vi.mocked(ai.cancelAiTurn).mockRejectedValue(new Error('Cancel unavailable'))
-  render(<Root />); await ready(); fireEvent.click(screen.getByRole('button', { name: 'Ask AI' })); await screen.findByText('Lost ack')
-  const original = vi.mocked(ai.startAi).mock.calls[0][0]
-  fireEvent.click(screen.getByRole('button', { name: 'Retry same AI request' })); await screen.findByText(/Too many attempts/)
-  fireEvent.click(screen.getByRole('button', { name: 'Cancel AI request' })); await screen.findByText('Cancel unavailable')
-  expect(ai.cancelAiTurn).toHaveBeenCalledWith(original, 'owner-a')
-  expect(screen.getByRole('button', { name: 'Check AI status' })).toBeEnabled()
-  expect(screen.getByRole('button', { name: 'Ask AI' })).toBeDisabled()
-})
-
-it.each(['AI_REFUSED', 'AI_TIMEOUT', 'AI_STALE_CONTEXT', 'AI_INVALID_RESPONSE'])('shows %s as failed with no fake assistant and permits explicit new intent', async code => {
-  vi.mocked(ai.startAi).mockImplementation(async intent => turn(intent, 'FAILED', code))
-  render(<Root />); await ready(); fireEvent.click(screen.getByRole('button', { name: 'Ask AI' }))
+it.each(['AI_REFUSED', 'AI_TIMEOUT', 'AI_STALE_CONTEXT', 'AI_INVALID_RESPONSE'])('shows %s with no fake assistant and offers Retry only after failure', async code => {
+  vi.mocked(ai.startAi).mockImplementation(async intent => (completed = turn(intent, 'FAILED', code)))
+  render(<Root />); await ready()
+  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Potentially rejected' } })
+  expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Send to Quant' }))
   await screen.findByText(ai.aiFailure(code))
-  expect(screen.queryByText(reply.content)).not.toBeInTheDocument()
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Ask AI' })).toBeEnabled())
-  const first = vi.mocked(ai.startAi).mock.calls[0][0]
-  fireEvent.click(screen.getByRole('button', { name: 'Ask AI' }))
-  await waitFor(() => expect(ai.startAi).toHaveBeenCalledTimes(2))
-  expect(vi.mocked(ai.startAi).mock.calls[1][0].requestId).not.toEqual(first.requestId)
+  expect(screen.queryByText(replyFor(2).content)).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled()
 })
 
-it('ignores late configuration/attempt context after conversation or identity changes', async () => {
-  const pending = deferred<ai.AiTurn | null>()
-  vi.mocked(ai.getLatestAiTurn).mockReturnValueOnce(pending.promise)
-  const root = render(<Root />); await select(); fireEvent.click(screen.getByRole('button', { name: 'Check AI availability' }))
-  await waitFor(() => expect(ai.getLatestAiTurn).toHaveBeenCalled())
-  await select('Beta'); await act(async () => pending.resolve(turn(known, 'PENDING')))
-  expect(screen.queryByRole('button', { name: 'Cancel AI request' })).not.toBeInTheDocument()
-  const late = deferred<ai.AiTurn>(); vi.mocked(ai.startAi).mockReturnValueOnce(late.promise)
-  fireEvent.click(screen.getByRole('button', { name: 'Ask AI' }))
+it('shows compact Gemini state and keeps disclosure behind the information control', async () => {
+  vi.mocked(ai.getAiConfiguration).mockResolvedValue({ configured: true, provider: 'gemini', model: 'gemini-3.5-flash' })
+  render(<Root />); await screen.findByText(/Gemini · AI ready/); await select()
+  expect(screen.getByText(/Gemini · AI ready/)).toBeInTheDocument()
+  expect(screen.queryByText(/Use synthetic data only/)).not.toBeVisible()
+  fireEvent.click(screen.getByLabelText('AI provider details'))
+  expect(screen.getByText('Gemini · gemini-3.5-flash')).toBeInTheDocument()
+  expect(screen.getByText(/Use synthetic data only/)).toBeInTheDocument()
+})
+
+it('drops late provider state and private replies after identity changes', async () => {
+  const late = deferred<ai.AiTurn>()
+  vi.mocked(ai.startAi).mockReturnValueOnce(late.promise)
+  const root = render(<Root />); await ready()
+  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Private owner A' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Send to Quant' }))
+  await waitFor(() => expect(ai.startAi).toHaveBeenCalled())
   const intent = vi.mocked(ai.startAi).mock.calls[0][0]
   root.rerender(<Root userId="owner-b" />)
   await act(async () => late.resolve(turn(intent)))
-  expect(screen.queryByText('AI reply saved to this conversation.')).not.toBeInTheDocument()
-  expect(screen.queryByText(reply.content)).not.toBeInTheDocument()
-})
-
-it('handles configuration failure, disabled races and session expiry without invented success', async () => {
-  vi.mocked(ai.getAiConfiguration).mockRejectedValueOnce(new Error('Config offline'))
-  render(<Root />); await select(); fireEvent.click(screen.getByRole('button', { name: 'Check AI availability' })); await screen.findByText('Config offline')
-  fireEvent.click(screen.getByRole('button', { name: 'Check AI availability' })); await screen.findByText('OpenAI · configured-test-model')
-  vi.mocked(ai.startAi).mockRejectedValueOnce(new ai.AiUnconfigured())
-  fireEvent.click(screen.getByRole('button', { name: 'Ask AI' })); await screen.findByText(/Saved messages remain available/)
-  expect(screen.queryByRole('button', { name: 'Retry same AI request' })).not.toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: 'Check AI availability' })); await screen.findByText('OpenAI · configured-test-model')
-  vi.mocked(ai.startAi).mockRejectedValueOnce(new ApiError(401))
-  fireEvent.click(screen.getByRole('button', { name: 'Ask AI' })); await waitFor(() => expect(clear).toHaveBeenCalled())
-})
-
-it('shows Gemini disclosure and saves only the authoritative structured reply', async () => {
-  vi.mocked(ai.getAiConfiguration).mockResolvedValue({ configured: true, provider: 'gemini', model: 'gemini-3.5-flash' })
-  vi.mocked(ai.startAi).mockImplementation(async intent => { saved = true; return { ...turn(intent), provider: 'gemini', model: 'gemini-3.5-flash' } })
-  render(<Root />); await select()
-  fireEvent.click(screen.getByRole('button', { name: 'Check AI availability' }))
-  await screen.findByText('Gemini · gemini-3.5-flash')
-  expect(screen.getByText(/Gemini prototype: use synthetic test data only/)).toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: 'Ask AI' }))
-  await screen.findByText(reply.content)
-  expect(document.querySelector('script')).toBeNull()
-  expect(api.saveMessage).not.toHaveBeenCalled()
-  expect(ai.startAi).toHaveBeenCalledWith(expect.objectContaining({ conversationId: alpha.id }), 'owner-a')
-})
-
-it('preserves Gemini disclosure after an unconfigured race and recovers historical OpenAI attempts', async () => {
-  vi.mocked(ai.getAiConfiguration).mockResolvedValue({ configured: true, provider: 'gemini', model: 'gemini-3.5-flash' })
-  vi.mocked(ai.getLatestAiTurn).mockResolvedValueOnce(turn(known, 'PENDING'))
-  render(<Root />); await select()
-  fireEvent.click(screen.getByRole('button', { name: 'Check AI availability' }))
-  await screen.findByText(/AI outcome is pending or uncertain/)
-  expect(ai.startAi).not.toHaveBeenCalled()
-  fireEvent.click(screen.getByRole('button', { name: 'Cancel AI request' }))
-  await screen.findByText(/AI request cancelled/)
-  expect(ai.cancelAiTurn).toHaveBeenCalledWith(known, 'owner-a')
-  vi.mocked(ai.startAi).mockRejectedValueOnce(new ai.AiUnconfigured())
-  fireEvent.click(screen.getByRole('button', { name: 'Ask AI' }))
-  await screen.findByText(/Saved messages remain available/)
-  expect(screen.getByText(/Gemini prototype: use synthetic test data only/)).toBeInTheDocument()
-  expect(screen.queryByText(/OpenAI ·/)).not.toBeInTheDocument()
-  expect(screen.getByRole('button', { name: 'Ask AI' })).toBeDisabled()
-  expect(screen.queryByText(reply.content)).not.toBeInTheDocument()
-})
-
-it.each(['AI_RATE_LIMITED', 'AI_PROVIDER_UNAVAILABLE', 'AI_TIMEOUT', 'AI_INVALID_RESPONSE'])('shows Gemini %s without a fake reply', async code => {
-  vi.mocked(ai.getAiConfiguration).mockResolvedValue({ configured: true, provider: 'gemini', model: 'gemini-3.5-flash' })
-  vi.mocked(ai.startAi).mockImplementation(async intent => ({ ...turn(intent, 'FAILED', code), provider: 'gemini', model: 'gemini-3.5-flash' }))
-  render(<Root />); await select()
-  fireEvent.click(screen.getByRole('button', { name: 'Check AI availability' }))
-  await screen.findByText('Gemini · gemini-3.5-flash')
-  fireEvent.click(screen.getByRole('button', { name: 'Ask AI' }))
-  await screen.findByText(ai.aiFailure(code))
-  expect(screen.queryByText(reply.content)).not.toBeInTheDocument()
+  expect(screen.queryByText(replyFor(2).content)).not.toBeInTheDocument()
 })

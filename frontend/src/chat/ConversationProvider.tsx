@@ -164,6 +164,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     catch (error) { if (generation === lifetime.current && epoch === aiConfigEpoch.current) { setAiConfiguration(null); setAiError(errorText(error)) } }
     finally { if (generation === lifetime.current && epoch === aiConfigEpoch.current) setAiChecking(false) }
   }
+  useEffect(() => { void checkAiConfiguration() }, [selected?.id])
   const applyAi = async (result: ai.AiTurn, item: api.Conversation, generation: number, epoch: number) => {
     if (generation !== lifetime.current || epoch !== aiEpoch.current || selectedRef.current?.id !== item.id) return
     setAiTurn(result)
@@ -189,6 +190,41 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
       setAiError(errorText(error))
     } finally { if (generation === lifetime.current && epoch === aiEpoch.current) end() }
   }
+  const send = async () => {
+    if (pendingAi.current) { await aiOperation(); return }
+    const item = selectedRef.current
+    if (!item || pendingCreate.current || !draft.trim() || aiChecking || !aiConfiguration?.configured || !begin()) return
+    const generation = lifetime.current
+    const previouslyUncertain = pendingSave.current !== null
+    pendingSave.current ??= { conversationId: item.id, requestId: crypto.randomUUID(), content: draft.trim() }
+    let aiAttemptEpoch = aiEpoch.current
+    try {
+      const pending = pendingSave.current
+      const saved = await api.saveMessage(pending.conversationId, pending.requestId, pending.content, auth?.user.id)
+      if (generation !== lifetime.current) return
+      const page = await api.getMessages(item.id, undefined, auth?.user.id)
+      if (generation !== lifetime.current || selectedRef.current?.id !== item.id) return
+      const confirmed = page.items.find(message => message.requestId === pending.requestId)
+      if (!confirmed || confirmed.role !== 'user' || confirmed.sequence !== saved.sequence) throw new Error('Saved message confirmation did not match. Retry before asking AI.')
+      pendingSave.current = null; setUncertain(false); updateDraft(''); drafts.current.delete(item.id)
+      updateSelected(page.conversation); setMessages(page.items); setNextBefore(page.nextBefore)
+      aiAttemptEpoch = ++aiEpoch.current
+      pendingAi.current = { conversationId: page.conversation.id, requestId: crypto.randomUUID(), expectedVersion: page.conversation.version, sourceSequence: confirmed.sequence }
+      const intent = pendingAi.current
+      setUncertain(true); setAiError(''); setAiTurn(null); setNotice('')
+      await applyAi(await ai.startAi(intent, auth?.user.id), page.conversation, generation, aiAttemptEpoch)
+    } catch (error) {
+      if (generation !== lifetime.current) return
+      if (pendingSave.current) {
+        if (knownRejection(error) && !previouslyUncertain) pendingSave.current = null
+        setUncertain(pendingSave.current !== null); setMutationError(errorText(error))
+      } else {
+        if (knownRejection(error) || error instanceof ai.AiUnconfigured) { pendingAi.current = null; setUncertain(false) }
+        if (error instanceof ai.AiUnconfigured) setAiConfiguration(previous => ({ configured: false, provider: previous?.provider ?? null, model: null }))
+        setAiError(errorText(error))
+      }
+    } finally { if (generation === lifetime.current && aiAttemptEpoch === aiEpoch.current) end() }
+  }
   const cancelAi = async () => {
     const intent = pendingAi.current, item = selectedRef.current
     if (!intent || !item || cancellingAi.current) return
@@ -205,7 +241,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
   }
   return <ConversationContext.Provider value={{ items, nextCursor, selected, messages, nextBefore, draft, listLoading, messagesLoading, busy, uncertain,
     pendingAction: uncertain ? pendingAi.current ? 'ai' : pendingCreate.current ? 'create' : 'save' : null,
-    aiConfiguration, aiChecking, aiCancelling, aiError, aiTurn, checkAiConfiguration, askAi: () => aiOperation(), checkAiStatus: () => aiOperation(true), cancelAi,
+    aiConfiguration, aiChecking, aiCancelling, aiError, aiTurn, checkAiConfiguration, send, askAi: () => aiOperation(), checkAiStatus: () => aiOperation(true), cancelAi,
     listError, messageError, mutationError, notice, select, loadList,
     setDraft: value => { if (!writing.current && !pendingSave.current && !pendingCreate.current && !pendingAi.current && !cancellingAi.current) updateDraft(value) },
     loadMessages: async (earlier = false) => { if (selectedRef.current) await fetchMessages(selectedRef.current, earlier ? nextBefore ?? undefined : undefined) },

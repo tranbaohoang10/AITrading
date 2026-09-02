@@ -175,12 +175,12 @@ it('confirms deletion, preserves on failure and does not delete on cancel', asyn
 
 it('preserves drafts through workspace aliases and mobile navigation', async () => {
   render(<App shell />); fireEvent.click(screen.getByRole('tab', { name: 'Strategy DSL' })); await choose(); edit('persist across navigation')
-  fireEvent.click(screen.getByRole('tab', { name: 'Chart' })); fireEvent.click(screen.getByRole('button', { name: 'My Code' }))
-  expect(screen.getByLabelText('Strategy JSON')).toHaveValue('persist across navigation')
+  fireEvent.click(screen.getByRole('tab', { name: 'Chart' })); fireEvent.click(screen.getByRole('button', { name: 'Assistant' }))
+  expect(screen.queryByLabelText('Strategy JSON')).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Strategies' })); expect(screen.getByLabelText('Strategy JSON')).toHaveValue('persist across navigation')
   act(() => { window.innerWidth = 390; window.dispatchEvent(new Event('resize')) })
   fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
-  const nav = screen.getByRole('dialog', { name: 'Mobile navigation' }); fireEvent.click(within(nav).getByRole('button', { name: 'Strategy DSL' }))
+  const nav = screen.getByRole('dialog', { name: 'Mobile navigation' }); fireEvent.click(within(nav).getByRole('button', { name: 'Strategies' }))
   expect(screen.getByLabelText('Strategy JSON')).toHaveValue('persist across navigation')
 })
 

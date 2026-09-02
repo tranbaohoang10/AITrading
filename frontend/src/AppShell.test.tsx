@@ -11,10 +11,10 @@ describe('TASK-002 responsive application shell', () => {
     setViewport(1440)
     render(<App />)
 
-    expect(screen.getByTestId('global-sidebar')).toHaveClass('w-[68px]')
+    expect(screen.getByTestId('global-sidebar')).toHaveClass('w-[60px]')
     expect(screen.getByTestId('ai-chat')).toBeInTheDocument()
     expect(screen.getByTestId('trading-workspace')).toBeInTheDocument()
-    expect(screen.getByRole('separator', { name: 'Resize AI Chat' })).toHaveAttribute('aria-valuenow', '360')
+    expect(screen.getByRole('separator', { name: 'Resize AI Chat' })).toHaveAttribute('aria-valuenow', '320')
   })
 
   it('uses compact sidebar and an overlay AI Chat at tablet width', () => {
@@ -36,7 +36,7 @@ describe('TASK-002 responsive application shell', () => {
     expect(screen.queryByTestId('ai-chat')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
     const drawer = screen.getByTestId('navigation-drawer')
-    fireEvent.click(within(drawer).getByRole('button', { name: 'AI Chat' }))
+    fireEvent.click(within(drawer).getByRole('button', { name: 'Assistant' }))
 
     expect(screen.queryByTestId('navigation-drawer')).not.toBeInTheDocument()
     expect(screen.getByTestId('mobile-active-view')).toHaveAttribute('data-view', 'ai-chat')

@@ -8,7 +8,7 @@ describe('TASK-008 and TASK-009 mobile/accessibility integration', () => {
     render(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
-    fireEvent.click(within(screen.getByTestId('navigation-drawer')).getByRole('button', { name: 'Backtest Results' }))
+    fireEvent.click(within(screen.getByTestId('navigation-drawer')).getByRole('button', { name: 'Backtesting' }))
     fireEvent.click(screen.getByRole('button', { name: 'Run Backtest' }))
     await act(async () => { await vi.advanceTimersByTimeAsync(800) })
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))

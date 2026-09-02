@@ -20,6 +20,11 @@ const paths: Record<string, string> = {
   copy: 'M9 9h10v11H9zM5 15H4V4h10v1',
   chevron: 'm8 10 4 4 4-4',
   info: 'M12 17v-6m0-4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+  history: 'M3 12a9 9 0 1 0 3-6.7L3 8m0 0h5M3 8V3m9 4v5l3 2',
+  plus: 'M12 5v14M5 12h14',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+  send: 'm4 4 16 8-16 8 3-8-3-8Zm3 8h13',
+  image: 'M4 5h16v14H4zM8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm-4 7 5-5 3 3 2-2 6 6',
 }
 
 export function Icon({ name, className = 'h-5 w-5' }: IconProps) {

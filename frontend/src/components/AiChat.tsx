@@ -5,9 +5,9 @@ import { PersistentChat } from '../chat/PersistentChat'
 
 const quickActions = ['Build a trend strategy', 'Define risk rules', 'Explain this mock setup']
 
-export function AiChat() {
+export function AiChat({ onGenerateFromImage }: { onGenerateFromImage?: () => void } = {}) {
   const auth = useAuth()
-  return auth ? <PersistentChat /> : <DemoChat />
+  return auth ? <PersistentChat onGenerateFromImage={onGenerateFromImage} /> : <DemoChat />
 }
 
 function DemoChat() {

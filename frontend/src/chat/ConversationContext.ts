@@ -8,7 +8,7 @@ export type ChatState = {
   listLoading: boolean; messagesLoading: boolean; busy: boolean; uncertain: boolean
   pendingAction: 'create' | 'save' | 'ai' | null
   aiConfiguration: AiConfiguration | null; aiChecking: boolean; aiCancelling: boolean; aiError: string; aiTurn: AiTurn | null
-  checkAiConfiguration: () => Promise<void>; askAi: () => Promise<void>; checkAiStatus: () => Promise<void>; cancelAi: () => Promise<void>
+  checkAiConfiguration: () => Promise<void>; send: () => Promise<void>; askAi: () => Promise<void>; checkAiStatus: () => Promise<void>; cancelAi: () => Promise<void>
   listError: string; messageError: string; mutationError: string; notice: string
   setDraft: (text: string) => void; select: (item: Conversation) => void
   loadList: (more?: boolean) => Promise<void>; loadMessages: (earlier?: boolean) => Promise<void>
