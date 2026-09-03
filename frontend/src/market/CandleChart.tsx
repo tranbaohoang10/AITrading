@@ -180,20 +180,26 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
     if (draft.points.length > 1 && (draft.points.length > 2 || draft.points[0].time !== draft.points[1].time || draft.points[0].price !== draft.points[1].price)) completeDrawing(draft)
     else if (draft.type === 'brush') setDraft(null)
   }
-  const wheel = (event: ReactWheelEvent<SVGSVGElement>) => {
-    event.preventDefault(); const rect = event.currentTarget.getBoundingClientRect(), anchor = clamp((event.clientX - rect.left) / Math.max(rect.width, 1), 0, 1)
-    const mode = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? rect.height : 1
-    wheelQueue.current.delta += clamp(event.deltaY * mode, -120, 120); wheelQueue.current.anchor = anchor
-    if (wheelFrame.current) return
-    wheelFrame.current = requestAnimationFrame(() => {
-      const queued = wheelQueue.current; wheelQueue.current = { delta: 0, anchor: queued.anchor }; wheelFrame.current = null
-      setViewport(current => {
-        const count = clamp(current.count * Math.exp(clamp(queued.delta, -240, 240) * .0015), minimumBars(total), total)
-        const anchorIndex = current.start + queued.anchor * current.count
-        return { count, start: clamp(anchorIndex - queued.anchor * count, 0, Math.max(0, total - count)) }
+  useEffect(() => {
+    const el = svg.current
+    if (!el) return
+    const onNativeWheel = (event: WheelEvent) => {
+      event.preventDefault(); const rect = el.getBoundingClientRect(), anchor = clamp((event.clientX - rect.left) / Math.max(rect.width, 1), 0, 1)
+      const mode = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? rect.height : 1
+      wheelQueue.current.delta += clamp(event.deltaY * mode, -120, 120); wheelQueue.current.anchor = anchor
+      if (wheelFrame.current) return
+      wheelFrame.current = requestAnimationFrame(() => {
+        const queued = wheelQueue.current; wheelQueue.current = { delta: 0, anchor: queued.anchor }; wheelFrame.current = null
+        setViewport(current => {
+          const count = clamp(current.count * Math.exp(clamp(queued.delta, -240, 240) * .0015), minimumBars(total), total)
+          const anchorIndex = current.start + queued.anchor * current.count
+          return { count, start: clamp(anchorIndex - queued.anchor * count, 0, Math.max(0, total - count)) }
+        })
       })
-    })
-  }
+    }
+    el.addEventListener('wheel', onNativeWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onNativeWheel)
+  }, [total, setViewport])
   const cancelDraft = () => { setDraft(null); multi.current = null; onCancelTool?.() }
   const keyDown = (event: ReactKeyboardEvent<SVGSVGElement>) => {
     if (editableTarget(event.target)) return
@@ -250,19 +256,21 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
     const start = drawing.type === 'extended' && rayEnd && 'start' in rayEnd ? rayEnd.start : a, end = drawing.type === 'extended' && rayEnd && 'end' in rayEnd ? rayEnd.end : drawing.type === 'ray' && rayEnd && 'x' in rayEnd ? rayEnd : b
     return wrap(<line x1={start.x} y1={start.y} x2={end.x} y2={end.y} stroke={color} strokeWidth={strokeWidth} markerEnd={drawing.type === 'arrow' ? 'url(#quant-arrow)' : undefined}/>)
   }
-
   const candlePosition = (local: number) => renderStart + local
   const bodyWidth = Math.max(1, Math.min(22, width / visibleCount * (.28 + settings.spacing / 150)))
   const linePoints = visibleItems.map((candle, local) => `${xIndex(candlePosition(local))},${yPrice(Number(candle.close))}`).join(' ')
   const areaPath = `${linePoints.split(' ').map((value, position) => `${position ? 'L' : 'M'}${value}`).join(' ')} L${xIndex(renderEnd - 1)},${chartBottom} L${xIndex(renderStart)},${chartBottom} Z`
-  const lastClose = Number(visibleItems.at(-1)!.close), inspected = crosshair ? page.items[index] : selectedCandle
+  const lastItem = visibleItems.at(-1)!
+  const lastClose = Number(lastItem.close)
+  const lastColor = lastClose >= Number(lastItem.open) ? settings.bullColor : settings.bearColor
+  const inspected = crosshair ? page.items[index] : selectedCandle
   const crossPrice = crosshair ? prices.upper - (crosshair.y - top) / priceHeight * priceSpan : null
 
   return <div className="flex min-h-0 shrink-0 flex-col">
     <div className="relative select-none">
       {indicators.length > 0 && <div aria-label="Active indicators" className="pointer-events-auto absolute left-4 top-10 z-20 flex max-w-[calc(100%-7rem)] flex-col gap-0.5 rounded-md bg-[#121419]/88 p-1 shadow-lg">{indicators.map(indicator => <div key={indicator.id} className="group/indicator flex h-6 items-center gap-1 px-1 text-[10px] text-slate-400"><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: indicator.color }}/><span className={`w-16 font-mono font-semibold uppercase ${indicator.visible ? 'text-slate-300' : 'text-slate-600'}`}>{indicator.type} {indicator.period}</span><button type="button" aria-label={`${indicator.visible ? 'Hide' : 'Show'} ${indicator.type.toUpperCase()} ${indicator.period}`} title={indicator.visible ? 'Hide indicator' : 'Show indicator'} onClick={() => onToggleIndicator?.(indicator.id)} className="grid h-5 w-5 place-items-center rounded text-slate-600 opacity-70 hover:bg-slate-800 hover:text-slate-200 group-hover/indicator:opacity-100"><Icon name={indicator.visible ? 'eye' : 'eyeOff'} className="h-3 w-3"/></button><button type="button" aria-label={`Remove ${indicator.type.toUpperCase()} ${indicator.period}`} title="Remove indicator" onClick={() => onRemoveIndicator?.(indicator.id)} className="grid h-5 w-5 place-items-center rounded text-slate-600 opacity-70 hover:bg-slate-800 hover:text-red-300 group-hover/indicator:opacity-100"><Icon name="close" className="h-3 w-3"/></button></div>)}</div>}
       <svg ref={svg} viewBox={`0 0 ${viewWidth} ${totalHeight}`} style={{ background: settings.background, touchAction: 'none' }} className={`h-[370px] w-full shrink-0 border border-slate-800 outline-none focus-visible:border-slate-600 sm:h-[calc(100dvh-160px)] sm:min-h-[420px] sm:max-h-[920px] ${activeTool === 'cursor' ? (pan.current ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-cell'}`} role="img" tabIndex={0} aria-label={`${page.dataset.symbol} ${frozen ? 'frozen backtest' : 'imported'} ${settings.chartType === 'candles' ? 'candlesticks' : settings.chartType}, ${Math.ceil(visibleCount)} candles in ${settings.timezone} (${renderEnd - renderStart} of ${total} loaded). Smooth wheel zoom and two-dimensional drag pan.`}
-        onWheel={wheel} onKeyDown={keyDown} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={() => { pan.current = null; edit.current = null }} onContextMenu={event => { if (draft || multi.current) { event.preventDefault(); cancelDraft() } }} onPointerLeave={() => { if (!pan.current && !edit.current) setCrosshair(null) }}>
+        onKeyDown={keyDown} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={() => { pan.current = null; edit.current = null }} onContextMenu={event => { if (draft || multi.current) { event.preventDefault(); cancelDraft() } }} onPointerLeave={() => { if (!pan.current && !edit.current) setCrosshair(null) }}>
         <defs><linearGradient id="quant-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#8590a0" stopOpacity=".24"/><stop offset="1" stopColor="#8590a0" stopOpacity=".02"/></linearGradient><marker id="quant-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 8 4 0 8Z" fill="context-stroke"/></marker></defs>
         <rect width={viewWidth} height={totalHeight} fill={settings.background}/>
         {timeTicks.map(tick => <g key={tick.time}><line x1={xTime(tick.time)} y1={top} x2={xTime(tick.time)} y2={chartBottom} stroke={settings.gridColor} strokeWidth="1" strokeDasharray="4 4" opacity="0.3"/><text x={xTime(tick.time)} y={axisBottom + 14} textAnchor="middle" fontSize="10" fill="#9ca3af">{tick.label}</text></g>)}
@@ -272,13 +280,13 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
         {settings.chartType === 'line' && <polyline points={linePoints} fill="none" stroke="#c7cbd2" strokeWidth="1.7"/>}
         {(settings.chartType === 'candles' || settings.chartType === 'bars') && visibleItems.map((candle, local) => { const position = candlePosition(local), x = xIndex(position), open = Number(candle.open), close = Number(candle.close), color = close >= open ? settings.bullColor : settings.bearColor; if (settings.chartType === 'bars') return <g key={candle.ordinal}><line x1={x} x2={x} y1={yPrice(Number(candle.high))} y2={yPrice(Number(candle.low))} stroke={color}/><line x1={x - bodyWidth / 2} x2={x} y1={yPrice(open)} y2={yPrice(open)} stroke={color}/><line x1={x} x2={x + bodyWidth / 2} y1={yPrice(close)} y2={yPrice(close)} stroke={color}/></g>; return <g key={candle.ordinal}>{settings.candleWicks && <line x1={x} x2={x} y1={yPrice(Number(candle.high))} y2={yPrice(Number(candle.low))} stroke={color}/>}<rect x={x - bodyWidth / 2} y={Math.min(yPrice(open), yPrice(close))} width={bodyWidth} height={Math.max(1, Math.abs(yPrice(open) - yPrice(close)))} fill={color} stroke={settings.candleBorders ? settings.background : color} strokeWidth={settings.candleBorders ? .6 : 0}/></g> })}
         {visibleIndicators.filter(item => item.type !== 'rsi').map(indicator => <polyline key={indicator.id} points={indicator.values.map((value, position) => value === null || position < renderStart || position >= renderEnd ? null : `${xIndex(position)},${yPrice(value)}`).filter(Boolean).join(' ')} fill="none" stroke={indicator.color} strokeWidth="1.45"/>)}
-        {(settings.showPriceLine || settings.showLastValue) && <g>{settings.showPriceLine && <line x1={left} x2={left + width} y1={yPrice(lastClose)} y2={yPrice(lastClose)} stroke="#9299a4" strokeDasharray="3 3" opacity=".7"/>}{settings.showLastValue && <><rect x={left + width + 3} y={yPrice(lastClose) - 8} width={right - 8} height="16" rx="2" fill="#48505d"/><text x={left + width + 7} y={yPrice(lastClose) + 4} fill="#f8fafc" fontSize="10" fontFamily="monospace">{format(lastClose)}</text></>}</g>}
+        {(settings.showPriceLine || settings.showLastValue) && <g>{settings.showPriceLine && <line x1={left} x2={left + width} y1={yPrice(lastClose)} y2={yPrice(lastClose)} stroke="#9299a4" strokeDasharray="3 3" opacity=".7"/>}{settings.showLastValue && <><rect x={left + width + 3} y={yPrice(lastClose) - 8} width={right - 8} height="16" rx="2" fill={lastColor}/><text x={left + width + 7} y={yPrice(lastClose) + 4} fill="#f8fafc" fontSize="10" fontFamily="monospace">{format(lastClose)}</text></>}</g>}
         {markers.filter(marker => marker.barIndex >= visibleItems[0].ordinal && marker.barIndex <= visibleItems.at(-1)!.ordinal).map(marker => { const position = page.items.findIndex(item => item.ordinal >= marker.barIndex), color = marker.kind === 'ENTRY' ? '#16a085' : marker.kind === 'EXIT' ? '#f04452' : '#d7a44a'; return <circle key={marker.id} cx={xIndex(position)} cy={top + 12} r="4" fill={color}><title>{`${marker.kind} · bar ${marker.barIndex} · event ${marker.id}`}</title></circle> })}
         {drawings.concat(draft ? [draft] : []).map(drawingShape)}
         {settings.showSymbol && <text x={left + 4} y="17" fill={settings.textColor} fontSize="11" fontWeight="650">{page.dataset.symbol} · {zoneLabel}</text>}
         {settings.showOhlc && <text x={left + (viewWidth >= 620 ? 132 : 4)} y={viewWidth >= 620 ? 17 : 32} fill="#8d949f" fontSize="10" fontFamily="monospace">O {inspected.open}  H {inspected.high}  L {inspected.low}  C {inspected.close}  V {inspected.volume}</text>}
         {hasRsi && <g><line x1={left} x2={left + width} y1={rsiTop - 8} y2={rsiTop - 8} stroke={settings.separatorColor}/><rect x={left} y={rsiTop} width={width} height={boundedRsi} fill="#13161b"/><line x1={left} x2={left + width} y1={rsiTop + boundedRsi * .3} y2={rsiTop + boundedRsi * .3} stroke={settings.gridColor} strokeDasharray="3 4"/><line x1={left} x2={left + width} y1={rsiTop + boundedRsi * .7} y2={rsiTop + boundedRsi * .7} stroke={settings.gridColor} strokeDasharray="3 4"/>{visibleIndicators.filter(item => item.type === 'rsi').map(indicator => <polyline key={indicator.id} points={indicator.values.map((value, position) => value === null || position < renderStart || position >= renderEnd ? null : `${xIndex(position)},${rsiTop + (100 - value) / 100 * boundedRsi}`).filter(Boolean).join(' ')} fill="none" stroke={indicator.color} strokeWidth="1.4"/>)}<text x={left + 4} y={rsiTop + 13} fill="#8d949f" fontSize="10">RSI</text><text x={left + width + 8} y={rsiTop + 5} fill="#737b88" fontSize="9">100</text><text x={left + width + 8} y={rsiBottom} fill="#737b88" fontSize="9">0</text></g>}
-        {crosshair && settings.showCrosshair && activeTool === 'cursor' && !pan.current && <g pointerEvents="none"><line x1={crosshair.x} x2={crosshair.x} y1={top} y2={hasRsi ? rsiBottom : chartBottom} stroke="#858c97" strokeDasharray="3 3" opacity=".58"/><line x1={left} x2={left + width} y1={crosshair.y} y2={crosshair.y} stroke="#858c97" strokeDasharray="3 3" opacity=".58"/><rect x={left + width + 3} y={crosshair.y - 8} width={right - 8} height="16" rx="2" fill="#2a2e35"/><text x={left + width + 7} y={crosshair.y + 4} fill="#d7dbe0" fontSize="10" fontFamily="monospace">{format(crossPrice!)}</text><text x={crosshair.x} y={axisBottom + 15} textAnchor="middle" fill="#8b93a1" fontSize="9">{formatTime(page.items[index].time)}</text></g>}
+        {crosshair && settings.showCrosshair && activeTool === 'cursor' && !pan.current && <g pointerEvents="none"><line x1={crosshair.x} x2={crosshair.x} y1={top} y2={hasRsi ? rsiBottom : chartBottom} stroke="#858c97" strokeDasharray="3 3" opacity=".58"/><line x1={left} x2={left + width} y1={crosshair.y} y2={crosshair.y} stroke="#858c97" strokeDasharray="3 3" opacity=".58"/><rect x={left + width + 3} y={crosshair.y - 8} width={right - 8} height="16" rx="2" fill="#2a2e35"/><text x={left + width + 7} y={crosshair.y + 4} fill="#d7dbe0" fontSize="10" fontFamily="monospace">{format(crossPrice!)}</text><rect x={crosshair.x - 44} y={axisBottom + 4} width="88" height="16" rx="2" fill="#2a2e35"/><text x={crosshair.x} y={axisBottom + 15} textAnchor="middle" fill="#d7dbe0" fontSize="9">{formatTime(page.items[index].time)}</text></g>}
         {/* Y-axis ticks and horizontal grid */}
         {(() => {
           const yRange = prices.upper - prices.lower
