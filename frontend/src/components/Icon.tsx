@@ -37,6 +37,18 @@ const paths: Record<string, string> = {
   upload: 'M12 20V9m-4 4 4-4 4 4M5 4h14',
   microphone: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-7 9a7 7 0 0 0 14 0m-7 7v3m-3 0h6',
   refresh: 'M20 7v5h-5M4 17v-5h5m9.5-3A7 7 0 0 0 6 7m-.5 8A7 7 0 0 0 18 17',
+  pine: 'M8 4h8l3 3v13H8zM16 4v4h4M11 12h5m-5 4h5',
+  terminal: 'm5 8 4 4-4 4m6 0h8M4 4h16v16H4z',
+  performance: 'M4 18V6m0 12h16M7 14l3-4 3 2 5-6',
+  list: 'M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01',
+  layout: 'M4 5h16v14H4zM12 5v14',
+  candle: 'M7 3v4m0 10v4M4 7h6v10H4zM17 3v7m0 8v3m-3-11h6v8h-6z',
+  indicator: 'M4 16c3-8 5 4 8-4s4-7 8-2',
+  undo: 'M9 7 4 12l5 5m-5-5h9a6 6 0 0 1 6 6',
+  redo: 'm15 7 5 5-5 5m5-5h-9a6 6 0 0 0-6 6',
+  trash: 'M5 7h14M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5',
+  chevronRight: 'm9 6 6 6-6 6',
+  logout: 'M10 5H5v14h5m4-4 4-3-4-3m4 3H9',
 }
 
 export function Icon({ name, className = 'h-5 w-5' }: IconProps) {

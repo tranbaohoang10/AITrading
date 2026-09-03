@@ -2,6 +2,7 @@ import { useMarket } from '../market/MarketContext'
 import { DatasetChart } from '../market/DatasetChart'
 import { ChartToolsRail, ChartUtilities } from './ChartControls'
 import { Icon } from './Icon'
+import type { ReactNode } from 'react'
 
 const candles = [
   { x: 45, open: 128, close: 108, high: 94, low: 141, up: true },
@@ -20,11 +21,11 @@ const candles = [
   { x: 578, open: 51, close: 31, high: 20, low: 59, up: true },
 ]
 
-export function ChartView() {
-  return useMarket() ? <DatasetChart /> : <DemoChart />
+export function ChartView({ workspaceNavigation }: { workspaceNavigation?: ReactNode } = {}) {
+  return useMarket() ? <DatasetChart workspaceNavigation={workspaceNavigation} /> : <DemoChart workspaceNavigation={workspaceNavigation} />
 }
 
-function DemoChart() {
+function DemoChart({ workspaceNavigation }: { workspaceNavigation?: ReactNode }) {
   return (
     <section aria-label="Chart" data-testid="chart-view" className="flex h-full min-h-0 flex-col">
       <div data-testid="chart-toolbar" className="flex h-10 shrink-0 items-center gap-1.5 border-b border-slate-800 bg-slate-925 px-2">
@@ -42,7 +43,7 @@ function DemoChart() {
         </label>
         <button type="button" disabled aria-label="Add indicator" title="Fixed illustrative overlays only" data-tooltip="Indicators" className="icon-tool grid h-8 w-8 place-items-center rounded-md text-slate-600 focus-visible:ring-2 focus-visible:ring-slate-300"><Icon name="spark" className="h-4 w-4" /></button>
         <button type="button" disabled aria-label="Chart settings" title="Chart settings require a connected chart engine" data-tooltip="Settings" className="icon-tool grid h-8 w-8 place-items-center rounded-md text-slate-600 focus-visible:ring-2 focus-visible:ring-slate-300"><Icon name="settings" className="h-4 w-4" /></button>
-        <ChartUtilities hasChart />
+        {workspaceNavigation}<ChartUtilities hasChart />
       </div>
       <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
         <ChartToolsRail />

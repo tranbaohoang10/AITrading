@@ -19,6 +19,18 @@ describe('TASK-002 responsive application shell', () => {
     expect(screen.getByRole('button', { name: 'Open account' })).toBeInTheDocument()
   })
 
+  it('opens a compact feature-backed Quant navigation panel and closes after navigation', async () => {
+    setViewport(1440); render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Workspace' }))
+    const expanded = screen.getByRole('complementary', { name: 'Expanded navigation' })
+    expect(within(expanded).getByRole('button', { name: /Library & Documents/ })).toBeInTheDocument()
+    expect(within(expanded).getByRole('button', { name: /Image Analysis/ })).toBeInTheDocument()
+    expect(within(expanded).queryByText(/credits|pricing|subscription/i)).not.toBeInTheDocument()
+    fireEvent.click(within(expanded).getByRole('button', { name: /Library & Documents/ }))
+    expect(screen.queryByRole('complementary', { name: 'Expanded navigation' })).not.toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Documents' })).toBeInTheDocument()
+  })
+
   it('uses compact sidebar and an overlay AI Chat at tablet width', () => {
     setViewport(1024)
     render(<App />)

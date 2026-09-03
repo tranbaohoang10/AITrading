@@ -37,7 +37,7 @@ export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: 
       {!chat.listLoading && !chat.listError && !chat.items.length && <p className="px-2 py-1 text-xs text-slate-600">No conversations</p>}
       <nav aria-label="Saved conversations" className="max-h-32 space-y-0.5 overflow-y-auto">
         {chat.items.map(item => <button key={item.id} disabled={locked} aria-current={chat.selected?.id === item.id ? 'page' : undefined} onClick={() => chat.select(item)} className={`block min-h-9 w-full rounded-md px-2.5 py-1.5 text-left transition focus-visible:outline-2 focus-visible:outline-slate-300 ${chat.selected?.id === item.id ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'}`}>
-          <span className="block truncate text-xs font-medium">{item.title}</span><span className="block truncate text-[10px] text-slate-600">{item.lastMessage || 'Empty conversation'}</span>
+          <span className="block truncate text-[11px] font-medium text-slate-300">{item.title}</span><span className="block truncate text-[10px] font-medium text-slate-600">{item.lastMessage || 'Empty conversation'}</span>
         </button>)}
       </nav>
       {chat.nextCursor && <button className="mt-1 min-h-8 w-full rounded-md text-xs text-slate-500 hover:bg-slate-900 hover:text-slate-200" disabled={locked || chat.listLoading} onClick={() => void chat.loadList(true)}>Load more</button>}
