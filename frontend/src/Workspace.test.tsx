@@ -30,14 +30,15 @@ describe('TASK-003 through TASK-007 workspace behavior', () => {
     expect(within(toolbar).getByRole('button', { name: 'Chart settings' })).toBeInTheDocument()
     expect(within(toolbar).getByRole('group')).toBeInTheDocument()
     expect(screen.getByRole('complementary', { name: 'Chart tools' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Trend line' })).toHaveAttribute('title', 'Trend line')
+    expect(screen.getByLabelText('Lines tools')).toHaveAttribute('title', 'Lines tools')
+    expect(screen.getByRole('button', { name: 'Trend Line' })).toHaveAttribute('title', 'Trend Line')
   })
 
   it('keeps drawing tools compact and exposes an honest chart export menu', () => {
     render(<App />)
-    const trend = screen.getByRole('button', { name: 'Trend line' })
+    const trend = screen.getByRole('button', { name: 'Trend Line' })
     fireEvent.click(trend)
-    expect(trend).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByLabelText('Lines tools')).toHaveClass('text-slate-100')
 
     fireEvent.click(screen.getByLabelText('Chart capture and export'))
     expect(screen.getByRole('button', { name: 'Download PNG' })).toBeEnabled()

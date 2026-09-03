@@ -123,8 +123,9 @@ it('never attaches late A candles beneath the selected B result', async () => {
   await act(async () => { fireEvent.change(screen.getByLabelText('Backtest job'), { target: { value: second.job.id } }) })
   await screen.findByRole('img', { name: /frozen backtest/ })
   await act(async () => resolve(sample.page))
-  expect(screen.getByLabelText('Selected candle values')).toHaveTextContent('90')
-  expect(screen.getByLabelText('Selected candle values')).not.toHaveTextContent('110')
+  const frozenChart = screen.getByRole('img', { name: /frozen backtest/ })
+  expect(frozenChart).toHaveTextContent('O 90')
+  expect(frozenChart).not.toHaveTextContent('O 110')
 })
 it('clears an authenticated tab when its shared server session switches accounts', async () => {
   const clear = vi.fn(), a = { id: 'account-a', email: 'a@example.test', displayName: 'A' }

@@ -30,3 +30,17 @@ Refine the existing React frontend into an original, compact Quant trading termi
 ## Definition of Done
 
 All acceptance criteria are implemented and verified; frontend tests, lint, build, diff checks, responsive browser review, commit, push, and CI evidence are recorded. Any unrelated or pre-existing failure is reported without weakening tests.
+
+## Phase A/B chart foundation and grouped research tools — 03/09/2026
+
+- **AC-12 — Semantic anchors:** session-local drawings store time/bar identity plus price and are projected into the current viewport at render time.
+- **AC-13 — Smooth navigation:** normalized requestAnimationFrame-batched wheel input zooms around the cursor; pointer capture supports horizontal, vertical, and diagonal pan; reset restores time and auto-fit price.
+- **AC-14 — Price viewport:** visible candles auto-fit by default; manual vertical pan uses a display-only price range and never mutates OHLCV.
+- **AC-15 — Compact inspection:** the permanent previous/slider/next inspector and large OHLC block are removed; crosshair and a compact status line provide OHLCV inspection.
+- **AC-16 — Grouped toolbox:** the rail exposes compact Lines, Fibonacci, Measure/Position, Shapes, Text, and Utilities flyouts. Unsupported advanced pattern, harmonic, Elliott, Gann, and pitchfork tools remain honestly disabled.
+- **AC-17 — Common tools:** trend/ray/extended/horizontal/horizontal-ray/vertical/cross/parallel-channel, Fib retracement/extension, rectangle/ellipse/arrow/brush/polyline, text/note/callout, ruler/ranges, and long/short research positions render from semantic anchors.
+- **AC-18 — Editing/history:** selection handles support anchor edits; Delete/Backspace, Escape, Ctrl+Z, Ctrl+Y/Ctrl+Shift+Z, and 0 work only when chart focus is safe; create/delete/edit participate in bounded local history.
+- **AC-19 — Chart organization:** a lightweight object tree selects, hides, and deletes drawings and lists indicators; the compact vertical indicator legend remains available.
+- **AC-20 — RSI and time:** RSI has a bounded draggable splitter; a live bottom-right clock opens the synchronized display-timezone menu.
+- **AC-21 — Density:** desktop assistant defaults near 304px with a subtle resizer; the composer auto-grows from one line to five without an empty-state scrollbar; charcoal layers replace near-absolute black while green/red remain semantic.
+- **AC-22 — Verification:** slow/fast zoom, 2D pan, reset, semantic drawings, keyboard actions, RSI resize, timezone, responsive widths, frontend tests, lint, build, and diff checks are evidenced before commit/push.

@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --color-slate-950: #07080a;
-  --color-slate-925: #0b0c0f;
-  --color-slate-900: #101216;
-  --color-slate-800: #1b1e23;
-  --color-slate-700: #2a2e35;
+  --color-slate-950: #0d0f13;
+  --color-slate-925: #111318;
+  --color-slate-900: #171a20;
+  --color-slate-800: #242832;
+  --color-slate-700: #343944;
   --color-slate-600: #555b66;
   --color-slate-500: #7d8490;
   --color-slate-400: #a9afb9;
@@ -18,7 +18,7 @@
 :root {
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #07080a;
+  background: #0d0f13;
   color: #eef0f3;
   font-synthesis: none;
 }
@@ -31,15 +31,15 @@ button { cursor: pointer; }
 button:disabled, select:disabled { cursor: not-allowed; }
 
 .terminal-grid {
-  background-color: #07080a;
+  background-color: #0d0f13;
   background-image: linear-gradient(rgb(255 255 255 / 0.018) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.018) 1px, transparent 1px);
   background-size: 44px 44px;
 }
 
 .terminal-panel {
-  border: 1px solid #1b1e23;
+  border: 1px solid #242832;
   border-radius: 12px;
-  background: #0b0c0f;
+  background: #111318;
   box-shadow: 0 24px 80px rgb(0 0 0 / 34%);
 }
 
@@ -95,6 +95,7 @@ button:disabled, select:disabled { cursor: not-allowed; }
 }
 
 .icon-tool { position: relative; }
+[aria-label="Chart settings"] { border: 1px solid #343944; background: rgb(23 26 32 / 94%); color: #a9afb9 !important; box-shadow: 0 4px 18px rgb(0 0 0 / 24%); }
 .icon-tool::after {
   position: absolute;
   z-index: 80;
@@ -137,8 +138,8 @@ button:disabled, select:disabled { cursor: not-allowed; }
 
 ::selection { background: rgb(169 175 185 / 28%); }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #07080a; }
-::-webkit-scrollbar-thumb { border: 2px solid #07080a; border-radius: 999px; background: #30343b; }
+::-webkit-scrollbar-track { background: #0d0f13; }
+::-webkit-scrollbar-thumb { border: 2px solid #0d0f13; border-radius: 999px; background: #343944; }
 :focus-visible { outline: 2px solid #a9afb9; outline-offset: 2px; }
 
 .app-modal {
@@ -160,4 +161,17 @@ button:disabled, select:disabled { cursor: not-allowed; }
 @media (max-width: 767px) {
   .terminal-panel { border-radius: 10px; }
   input, select, textarea { max-width: 100%; }
+}
+
+@media (max-width: 639px) {
+  .drawing-flyout {
+    position: fixed !important;
+    right: .5rem !important;
+    bottom: 4rem !important;
+    left: .5rem !important;
+    top: auto !important;
+    width: auto !important;
+    max-height: 60dvh;
+    overflow-y: auto;
+  }
 }

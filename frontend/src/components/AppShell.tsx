@@ -38,13 +38,13 @@ export function AppShell() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [tabletChatOpen, setTabletChatOpen] = useState(false)
   const [mobileView, setMobileView] = useState<MobileView>('chart')
-  const [chatWidth, setChatWidth] = useState(320)
+  const [chatWidth, setChatWidth] = useState(304)
   const [resizing, setResizing] = useState(false)
   const [platformView, setPlatformView] = useState<MobileView | null>(null)
 
   useEffect(() => {
     if (!resizing) return
-    const resize = (event: MouseEvent) => setChatWidth(Math.min(360, Math.max(296, event.clientX - 52)))
+    const resize = (event: MouseEvent) => setChatWidth(Math.min(336, Math.max(288, event.clientX - 52)))
     const stop = () => setResizing(false)
     window.addEventListener('mousemove', resize)
     window.addEventListener('mouseup', stop)
@@ -75,14 +75,14 @@ export function AppShell() {
           role="separator"
           aria-label="Resize AI Chat"
           aria-orientation="vertical"
-          aria-valuemin={296}
-          aria-valuemax={360}
+          aria-valuemin={288}
+          aria-valuemax={336}
           aria-valuenow={chatWidth}
           tabIndex={0}
           onMouseDown={() => setResizing(true)}
           onKeyDown={(event) => {
-            if (event.key === 'ArrowLeft') setChatWidth((width) => Math.max(296, width - 8))
-            if (event.key === 'ArrowRight') setChatWidth((width) => Math.min(360, width + 8))
+            if (event.key === 'ArrowLeft') setChatWidth((width) => Math.max(288, width - 8))
+            if (event.key === 'ArrowRight') setChatWidth((width) => Math.min(336, width + 8))
           }}
           className="group relative w-px shrink-0 cursor-col-resize bg-slate-800 hover:bg-slate-600 focus-visible:bg-slate-400 focus-visible:outline-none"
         />

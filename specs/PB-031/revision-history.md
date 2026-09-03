@@ -17,3 +17,9 @@ All timestamps use Asia/Ho_Chi_Minh.
 - Follow-up runtime evidence covers desktop 1920×1080 and 1440×900, tablet 1024×768, and mobile 390×844. All reviewed document widths matched their viewport widths.
 - Follow-up quality evidence: `npm test -- --run --reporter=dot --no-file-parallelism` → 31 files / 227 tests PASS; `npm run lint` PASS; `npm run build` PASS.
 - Published follow-up implementation commit `374736c` directly to `origin/main`; final workflow status is recorded in Issue #32.
+- Rebuilt drawing state around semantic candle-time and price anchors; added cursor-centered rAF wheel zoom, horizontal/vertical/diagonal pan, manual price viewport reset, compact OHLCV crosshair, click-click and drag drawing, editable handles, safe keyboard actions, and bounded undo/redo.
+- Added grouped line/Fibonacci/measurement-position/shape/text flyouts with working common tools, explicit deferred advanced tools, magnet and persistent-draw modes, plus a rename/lock/hide/delete object tree.
+- Added a vertically resizable RSI pane, live timezone clock, transient status toast, compact charcoal workspace strip, a 304px desktop assistant, and an auto-growing composer without an empty scrollbar.
+- Direct browser comparison used the current LuxAlgo tab only as hierarchy/density reference. Actual Quant interaction confirmed 100→84-bar wheel zoom, RSI 92→100 keyboard resize, tool flyouts, object tree, timezone, settings, and deterministic synthetic data behavior.
+- Fresh responsive captures at 1920×1080, 1440×900, 1024×768, and 390×844 all reported viewport-width equality and no document-level horizontal overflow.
+- Final local quality evidence before publication: 31 files / 227 tests PASS with `npx vitest run --maxWorkers=1`; chart regression 16/16 PASS; lint, build, and diff check PASS. The default parallel suite exposed only resource-contention timeouts; the same files and full serial suite passed without weakening tests.

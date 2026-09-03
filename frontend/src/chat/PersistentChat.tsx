@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { Icon } from '../components/Icon'
 import { Modal } from '../components/Modal'
@@ -12,6 +12,7 @@ export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: 
   const chat = useConversations()
   const [historyOpen, setHistoryOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const composer = useRef<HTMLTextAreaElement>(null)
   const locked = chat.busy || chat.uncertain || chat.aiCancelling
   const displayName = auth?.user.displayName.trim().split(/\s+/)[0] || 'trader'
   const brainstorm = async () => {
@@ -22,6 +23,13 @@ export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: 
     if (!chat.selected) await chat.create()
     await chat.send()
   }
+  useLayoutEffect(() => {
+    const input = composer.current
+    if (!input) return
+    input.style.height = '36px'
+    input.style.height = `${Math.min(112, Math.max(36, input.scrollHeight))}px`
+    input.style.overflowY = input.scrollHeight > 112 ? 'auto' : 'hidden'
+  }, [chat.draft])
 
   return <section aria-label="AI Chat" data-testid="ai-chat" className="chat-panel flex h-full min-h-0 flex-col bg-slate-925 text-slate-200">
     <header className="flex h-11 shrink-0 items-center gap-2 border-b border-slate-800 px-2.5">
@@ -57,7 +65,7 @@ export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: 
     <form className="shrink-0 border-t border-slate-800 bg-slate-950/90 p-2.5" onSubmit={event => { event.preventDefault(); void submit() }}>
       <div className="flex items-end gap-1 rounded-2xl border border-slate-700 bg-slate-900 p-1.5 shadow-[0_8px_30px_rgb(0_0_0/18%)] focus-within:border-slate-500">
         <label htmlFor="strategy-prompt" className="sr-only">Research message</label>
-        <textarea id="strategy-prompt" aria-label="Research message" placeholder="Ask Quant about a strategy…" value={chat.draft} disabled={locked} maxLength={4000} onChange={event => chat.setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (!event.currentTarget.form?.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled) event.currentTarget.form?.requestSubmit() } }} rows={1} className="min-h-9 min-w-0 flex-1 resize-none border-0 bg-transparent px-2 py-2 text-[13px] leading-5 text-slate-100 outline-none placeholder:text-slate-600" />
+        <textarea ref={composer} id="strategy-prompt" aria-label="Research message" placeholder="Ask Quant about a strategy…" value={chat.draft} disabled={locked} maxLength={4000} onChange={event => chat.setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (!event.currentTarget.form?.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled) event.currentTarget.form?.requestSubmit() } }} rows={1} className="h-9 min-h-9 min-w-0 flex-1 resize-none overflow-y-hidden border-0 bg-transparent px-2 py-2 text-[13px] leading-5 text-slate-100 outline-none placeholder:text-slate-600" />
         <button type="button" disabled aria-label="Voice input" title="Voice input is not available yet" className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-slate-600 focus-visible:ring-2 focus-visible:ring-slate-300"><Icon name="microphone" className="h-4 w-4" /></button>
         <button type="submit" aria-label="Send to Quant" title="Send" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-950 transition hover:bg-white focus-visible:ring-2 focus-visible:ring-white disabled:bg-slate-800 disabled:text-slate-600" disabled={chat.busy || chat.aiChecking || chat.aiCancelling || chat.pendingAction === 'ai' || chat.pendingAction === 'create' || !chat.aiConfiguration?.configured || !chat.draft.trim() || chat.messagesLoading}><Icon name="send" className="h-4 w-4" /></button>
       </div>

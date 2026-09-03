@@ -33,3 +33,19 @@
 - Runtime visual review: PASS at 1920×1080, 1440×900, 1024×768, and 390×844.
 - Document width matched viewport width at every reviewed size; the desktop rail exposed only the Q trigger.
 - Advanced parallel-channel drawing and send-to-chat export remain visibly disabled because this iteration does not provide complete implementations.
+
+## Phase A/B chart foundation cases
+
+| ID | Scenario | Expected |
+|---|---|---|
+| TC-14 | Slow and fast wheel input at different cursor positions | Zoom changes continuously in bounded increments and preserves the cursor time anchor |
+| TC-15 | Horizontal, vertical, and diagonal cursor drag | Time and display-price viewports move independently/together without changing OHLCV |
+| TC-16 | Reset after manual navigation | Loaded time window and auto-fit price range are restored |
+| TC-17 | Zoom/pan/resize/timeframe with drawings | Anchors remain attached to their time/bar and price values |
+| TC-18 | Use each enabled grouped tool | Real geometry is created; unsupported advanced tools are disabled and labeled |
+| TC-19 | Select and drag drawing handles | Anchors update in chart coordinates and the edit is undoable/redoable |
+| TC-20 | Press Delete/Backspace/Escape/Ctrl+Z/Ctrl+Y/0 | Safe chart shortcuts work and never intercept editable controls |
+| TC-21 | Resize RSI splitter | Pane height changes within bounds and main chart receives remaining space |
+| TC-22 | Change timezone from clock/settings | Both controls stay synchronized; only displayed time changes |
+| TC-23 | Empty/one-line/five-line composer | It auto-grows without a scrollbar until the maximum height |
+| TC-24 | Inspect 1920, 1440, 1024, and 390 widths | Chart remains dominant with no document overflow or clipped core controls |

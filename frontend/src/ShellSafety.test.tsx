@@ -42,9 +42,9 @@ describe('PB-001 responsive navigation and keyboard', () => {
     expect(screen.getByRole('tab', { name: 'Trades' })).toHaveFocus()
     const divider = screen.getByRole('separator')
     for (let i = 0; i < 100; i++) fireEvent.keyDown(divider, { key: 'ArrowLeft' })
-    expect(divider).toHaveAttribute('aria-valuenow', '296')
+    expect(divider).toHaveAttribute('aria-valuenow', '288')
     for (let i = 0; i < 100; i++) fireEvent.keyDown(divider, { key: 'ArrowRight' })
-    expect(divider).toHaveAttribute('aria-valuenow', '360')
+    expect(divider).toHaveAttribute('aria-valuenow', '336')
   })
 
   it('closes mobile modal on cancel and restores trigger focus', () => {

@@ -2,13 +2,14 @@
 
 ## Result
 
-- Expanded navigation, icon workspace navigation, timeframe aggregation, chart types, indicators, local drawing tools, chart settings, layout disclosure, camera/export UX, and responsive layout are implemented.
+- Expanded navigation, icon workspace navigation, timeframe aggregation, chart types, indicators, semantic time/price drawings, grouped common-tool flyouts, chart settings, layout disclosure, camera/export UX, and responsive layout are implemented.
+- Cursor-centered rAF wheel zoom, two-dimensional pan, a manual price viewport, reset/fit, compact crosshair OHLCV, editable anchors, bounded history, object-tree controls, RSI pane resizing, and a live timezone clock are implemented without changing market data or backend behavior.
 - The running app was compared visually with the current public LuxAlgo Quant interface without copying branding, assets, text, or its exact layout.
 - Desktop 1920×1080 and 1440×900, tablet 1024×768, and mobile 390×844 were checked with no document-level horizontal overflow.
 
 ## Verification
 
-- Frontend tests: 31 files / 225 tests PASS.
+- Frontend tests: 31 files / 227 tests PASS (`--maxWorkers=1`; the default parallel run hit pre-existing 5-second resource-contention timeouts, while all affected files and the full serial run passed).
 - Lint: PASS.
 - Build: PASS.
 - Diff check: PASS.
@@ -17,4 +18,4 @@
 
 ## External scope limitation
 
-The repository-wide workflow is red only at the backend dependency audit for the unchanged `org.apache.tomcat.embed:tomcat-embed-core:11.0.24` dependency and advisories `GHSA-9xv2-5v5q-p794`, `GHSA-gcx9-497g-6cp6`, and `GHSA-h3x4-894j-xpx5`. PB-031 is frontend-only, so no backend dependency or business-logic change was made to conceal or bypass that finding.
+Advanced Pattern, Elliott, Harmonic, Pitchfork, Gann, enriched order-flow chart types, multi-chart layouts, and chart-image chat attachments are intentionally deferred and displayed as unavailable where relevant. PB-031 remains frontend-only; no backend dependency or business-logic change was made.

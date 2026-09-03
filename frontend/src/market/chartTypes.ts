@@ -1,17 +1,34 @@
 export type ChartType = 'candles' | 'bars' | 'line' | 'area'
-export type DrawingTool = 'cursor' | 'trend' | 'ray' | 'horizontal' | 'vertical' | 'rectangle' | 'arrow' | 'brush' | 'text' | 'ruler'
-export type Point = { x: number; y: number }
-export type Drawing = { id: string; type: Exclude<DrawingTool, 'cursor'>; points: Point[]; text?: string }
+export type DrawingTool =
+  | 'cursor'
+  | 'trend' | 'ray' | 'extended' | 'horizontal' | 'horizontalRay' | 'vertical' | 'cross' | 'parallelChannel'
+  | 'fibRetracement' | 'fibExtension'
+  | 'ruler' | 'priceRange' | 'dateRange' | 'datePriceRange' | 'longPosition' | 'shortPosition'
+  | 'rectangle' | 'ellipse' | 'arrow' | 'brush' | 'polyline'
+  | 'text' | 'note' | 'callout'
+export type ChartPoint = { time: string; price: number }
+export type Drawing = {
+  id: string; type: Exclude<DrawingTool, 'cursor'>; points: ChartPoint[]; name?: string; text?: string; visible?: boolean; locked?: boolean
+}
+export type MagnetMode = 'off' | 'weak' | 'strong'
 export type IndicatorConfig = { id: string; type: 'sma' | 'ema' | 'rsi'; period: number; color: string; visible: boolean }
 export type ChartSettings = {
   chartType: ChartType
   showSymbol: boolean; showOhlc: boolean; showVolume: boolean; showPriceLine: boolean; showLastValue: boolean; showGrid: boolean
+  showCrosshair: boolean; showIndicatorTitles: boolean; showIndicatorValues: boolean
   candleBorders: boolean; candleWicks: boolean
-  bullColor: string; bearColor: string; background: string; gridColor: string
+  bullColor: string; bearColor: string; background: string; gridColor: string; textColor: string; separatorColor: string
   spacing: number; timezone: 'UTC' | 'Asia/Ho_Chi_Minh' | 'America/New_York' | 'Europe/London'
 }
 
 export const defaultChartSettings: ChartSettings = {
   chartType: 'candles', showSymbol: true, showOhlc: true, showVolume: true, showPriceLine: true, showLastValue: true, showGrid: true,
-  candleBorders: true, candleWicks: true, bullColor: '#22c55e', bearColor: '#ef4444', background: '#080a0d', gridColor: '#20252d', spacing: 65, timezone: 'UTC',
+  showCrosshair: true, showIndicatorTitles: true, showIndicatorValues: true,
+  candleBorders: true, candleWicks: true, bullColor: '#16a085', bearColor: '#f04452', background: '#101217', gridColor: '#252932', textColor: '#d6d9df', separatorColor: '#30343d', spacing: 65, timezone: 'UTC',
+}
+
+export const drawingLabels: Record<Exclude<DrawingTool, 'cursor'>, string> = {
+  trend: 'Trend Line', ray: 'Ray', extended: 'Extended Line', horizontal: 'Horizontal Line', horizontalRay: 'Horizontal Ray', vertical: 'Vertical Line', cross: 'Cross Line', parallelChannel: 'Parallel Channel',
+  fibRetracement: 'Fib Retracement', fibExtension: 'Fib Extension', ruler: 'Ruler', priceRange: 'Price Range', dateRange: 'Date Range', datePriceRange: 'Date & Price Range', longPosition: 'Long Position', shortPosition: 'Short Position',
+  rectangle: 'Rectangle', ellipse: 'Ellipse', arrow: 'Arrow', brush: 'Brush', polyline: 'Polyline', text: 'Text', note: 'Note', callout: 'Callout',
 }

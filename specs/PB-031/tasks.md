@@ -18,3 +18,14 @@
 - [x] Tighten chat typography and chart control density.
 - [x] Extend automated tests and re-check desktop, tablet, and mobile in the running app.
 - [x] Run frontend tests, lint, build, diff checks, commit, push, and record final CI evidence.
+
+## Phase A/B chart foundation and grouped toolbox — 03/09/2026
+
+- [x] Replace normalized screen drawing points with semantic time/bar + price anchors.
+- [x] Implement smooth cursor-centered zoom, 2D pan, manual price viewport, compact crosshair status, and reset/fit.
+- [x] Replace the flat rail with grouped flyouts and implement the scoped common research tools.
+- [x] Add anchor editing, safe keyboard controls, bounded history, and lightweight object tree.
+- [x] Add resizable RSI pane and synchronized timezone/current clock.
+- [x] Compact the assistant/composer and refine charcoal hierarchy.
+- [x] Extend automated tests and browser-verify all required desktop/tablet/mobile interactions.
+- [ ] Run final tests, lint, build, diff check, commit, push, and record CI/Issue evidence.
