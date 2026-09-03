@@ -4,13 +4,13 @@ import { Icon } from '../components/Icon'
 import { Modal } from '../components/Modal'
 import { useConversations, type ChatState } from './ConversationContext'
 
-const iconButton = 'grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:outline-2 focus-visible:outline-slate-300 disabled:opacity-35'
+const iconButton = 'grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 disabled:opacity-35'
 const menuButton = 'min-h-9 rounded-md border border-slate-700 bg-slate-900 px-3 text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-white focus-visible:outline-2 focus-visible:outline-slate-300 disabled:opacity-40'
 
 export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: () => void }) {
   const auth = useAuth()
   const chat = useConversations()
-  const [historyOpen, setHistoryOpen] = useState(true)
+  const [historyOpen, setHistoryOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const locked = chat.busy || chat.uncertain || chat.aiCancelling
   const displayName = auth?.user.displayName.trim().split(/\s+/)[0] || 'trader'
@@ -18,10 +18,14 @@ export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: 
     if (!chat.selected) await chat.create()
     chat.setDraft('Help me brainstorm a clear, testable trading strategy idea.')
   }
+  const submit = async () => {
+    if (!chat.selected) await chat.create()
+    await chat.send()
+  }
 
-  return <section aria-label="AI Chat" data-testid="ai-chat" className="flex h-full min-h-0 flex-col bg-slate-925 text-slate-200">
-    <header className="flex h-12 shrink-0 items-center gap-2 border-b border-slate-800 px-2.5">
-      <div className="min-w-0 flex-1"><p className="truncate text-xs font-semibold text-slate-100">Quant Assistant</p><ProviderStatus chat={chat} /></div>
+  return <section aria-label="AI Chat" data-testid="ai-chat" className="chat-panel flex h-full min-h-0 flex-col bg-slate-925 text-slate-200">
+    <header className="flex h-11 shrink-0 items-center gap-2 border-b border-slate-800 px-2.5">
+      <div className="flex min-w-0 flex-1 items-center gap-2"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-md border border-slate-800 bg-slate-900 text-[10px] font-bold text-slate-300">Q</span><div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-100">Assistant</p><ProviderStatus chat={chat} /></div></div>
       <button type="button" aria-label="Conversation history" title="Conversation history" aria-pressed={historyOpen} className={iconButton} onClick={() => setHistoryOpen(value => !value)}><Icon name="history" className="h-4 w-4" /></button>
       <button type="button" aria-label={chat.pendingAction === 'create' ? 'Retry new chat' : 'New chat'} title="New chat" className={iconButton} disabled={chat.busy || chat.aiCancelling || (chat.uncertain && chat.pendingAction !== 'create')} onClick={() => void chat.create()}><Icon name="plus" className="h-4 w-4" /></button>
       {chat.selected && <ConversationMenu key={`${chat.selected.id}:${chat.selected.title}`} chat={chat} onDelete={() => setConfirmDelete(true)} />}
@@ -50,11 +54,12 @@ export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: 
     </div>
 
     <ChatFeedback chat={chat} />
-    <form className="shrink-0 border-t border-slate-800 bg-slate-950/80 p-2.5" onSubmit={event => { event.preventDefault(); void chat.send() }}>
-      <div className="flex items-end gap-2 rounded-xl border border-slate-700 bg-slate-900 p-1.5 focus-within:border-slate-500">
+    <form className="shrink-0 border-t border-slate-800 bg-slate-950/90 p-2.5" onSubmit={event => { event.preventDefault(); void submit() }}>
+      <div className="flex items-end gap-1 rounded-2xl border border-slate-700 bg-slate-900 p-1.5 shadow-[0_8px_30px_rgb(0_0_0/18%)] focus-within:border-slate-500">
         <label htmlFor="strategy-prompt" className="sr-only">Research message</label>
-        <textarea id="strategy-prompt" aria-label="Research message" placeholder={chat.selected ? 'Ask Quant about a strategy…' : 'Start a new chat to ask Quant…'} value={chat.draft} disabled={locked || !chat.selected} maxLength={4000} onChange={event => chat.setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (!event.currentTarget.form?.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled) event.currentTarget.form?.requestSubmit() } }} rows={2} className="min-h-11 min-w-0 flex-1 resize-none border-0 bg-transparent px-2 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-600" />
-        <button type="submit" aria-label="Send to Quant" title="Send" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-950 transition hover:bg-white focus-visible:outline-2 focus-visible:outline-white disabled:bg-slate-800 disabled:text-slate-600" disabled={!chat.selected || chat.busy || chat.aiChecking || chat.aiCancelling || chat.pendingAction === 'ai' || chat.pendingAction === 'create' || !chat.aiConfiguration?.configured || !chat.draft.trim() || chat.messagesLoading}><Icon name="send" className="h-4 w-4" /></button>
+        <textarea id="strategy-prompt" aria-label="Research message" placeholder="Ask Quant about a strategy…" value={chat.draft} disabled={locked} maxLength={4000} onChange={event => chat.setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (!event.currentTarget.form?.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled) event.currentTarget.form?.requestSubmit() } }} rows={2} className="min-h-11 min-w-0 flex-1 resize-none border-0 bg-transparent px-2 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-600" />
+        <button type="button" disabled aria-label="Voice input" title="Voice input is not available yet" className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-slate-600 focus-visible:ring-2 focus-visible:ring-slate-300"><Icon name="microphone" className="h-4 w-4" /></button>
+        <button type="submit" aria-label="Send to Quant" title="Send" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-950 transition hover:bg-white focus-visible:ring-2 focus-visible:ring-white disabled:bg-slate-800 disabled:text-slate-600" disabled={chat.busy || chat.aiChecking || chat.aiCancelling || chat.pendingAction === 'ai' || chat.pendingAction === 'create' || !chat.aiConfiguration?.configured || !chat.draft.trim() || chat.messagesLoading}><Icon name="send" className="h-4 w-4" /></button>
       </div>
       <div className="mt-1 flex min-h-5 items-center justify-between gap-2 px-1"><span className="text-[10px] text-slate-700">{chat.draft.length ? `${chat.draft.length}/4000` : 'Enter to send · Shift+Enter for a new line'}</span><ProviderDetails chat={chat} /></div>
     </form>
@@ -66,7 +71,7 @@ export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: 
 }
 
 function Welcome({ name, onGenerateFromImage, onBrainstorm }: { name: string; onGenerateFromImage?: () => void; onBrainstorm?: () => void }) {
-  return <div className="grid min-h-full place-items-center px-5 py-10 text-center"><div className="w-full max-w-xs"><div className="mx-auto grid h-9 w-9 place-items-center rounded-lg border border-slate-700 bg-slate-900 text-sm font-bold text-slate-200">Q</div><h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-100">Welcome back, {name}</h2><p className="mt-1 text-xs text-slate-500">Develop and review a trading idea.</p><div className="mt-5 grid gap-2"><button type="button" disabled={!onGenerateFromImage} onClick={onGenerateFromImage} className={menuButton}><span className="flex items-center justify-center gap-2"><Icon name="image" className="h-4 w-4" />Generate from Image</span></button><button type="button" disabled={!onBrainstorm} onClick={onBrainstorm} className={menuButton}><span className="flex items-center justify-center gap-2"><Icon name="spark" className="h-4 w-4" />Brainstorm Ideas</span></button></div></div></div>
+  return <div className="grid min-h-full place-items-center px-4 py-10 text-center"><div className="w-full max-w-sm"><div className="mx-auto grid h-9 w-9 place-items-center rounded-xl border border-slate-700 bg-slate-900 text-sm font-bold text-slate-200 shadow-lg">Q</div><h2 className="mt-4 text-xl font-semibold tracking-tight text-slate-100">Welcome back, {name}</h2><p className="mt-1 text-xs text-slate-500">Turn a market idea into clear rules.</p><div className="chat-welcome-actions mt-5 grid gap-2"><button type="button" disabled={!onGenerateFromImage} onClick={onGenerateFromImage} className={`${menuButton} px-2 text-[10px]`}><span className="flex items-center justify-center gap-1.5 whitespace-nowrap"><Icon name="image" className="h-3.5 w-3.5" />Generate from Image</span></button><button type="button" disabled={!onBrainstorm} onClick={onBrainstorm} className={`${menuButton} px-2 text-[10px]`}><span className="flex items-center justify-center gap-1.5 whitespace-nowrap"><Icon name="spark" className="h-3.5 w-3.5" />Brainstorm Ideas</span></button></div></div></div>
 }
 
 function ProviderStatus({ chat }: { chat: ChatState }) {

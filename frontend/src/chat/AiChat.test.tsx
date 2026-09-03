@@ -22,6 +22,8 @@ function Root({ userId = 'owner-a' }: { userId?: string }) {
   return <AuthContext.Provider value={{ user: { id: userId, email: `${userId}@example.test`, displayName: 'Researcher' }, clear, update: vi.fn() }}><ConversationProvider key={userId}><PersistentChat /></ConversationProvider></AuthContext.Provider>
 }
 async function select() {
+  const history = screen.getByRole('button', { name: 'Conversation history' })
+  if (history.getAttribute('aria-pressed') === 'false') fireEvent.click(history)
   fireEvent.click(await screen.findByRole('button', { name: /^Alpha/ }))
   await waitFor(() => expect(screen.queryByText('Loading messages…')).not.toBeInTheDocument())
 }
@@ -34,6 +36,7 @@ async function ready() {
 beforeEach(() => {
   vi.resetAllMocks(); saved = null; completed = null
   vi.mocked(api.listConversations).mockResolvedValue({ items: [alpha], nextCursor: null })
+  vi.mocked(api.createConversation).mockResolvedValue(beta)
   vi.mocked(api.getMessages).mockImplementation(async id => {
     const items = saved ? [existing, saved, ...(completed?.state === 'SUCCEEDED' ? [replyFor(saved.sequence)] : [])] : [existing]
     return { conversation: { ...(id === beta.id ? beta : alpha), version: saved ? 3 : 2 }, items, nextBefore: null }
@@ -44,6 +47,20 @@ beforeEach(() => {
   vi.mocked(ai.startAi).mockImplementation(async intent => (completed = turn(intent)))
   vi.mocked(ai.getAiTurn).mockImplementation(async intent => (completed = turn(intent)))
   vi.mocked(ai.cancelAiTurn).mockImplementation(async intent => (completed = turn(intent, 'CANCELLED', 'AI_CANCELLED')))
+})
+
+it('starts a private conversation from the composer with one Send action', async () => {
+  render(<Root />)
+  await screen.findByText(/OpenAI · AI ready/)
+  expect(screen.getByRole('button', { name: 'Voice input' })).toBeDisabled()
+
+  fireEvent.change(screen.getByLabelText('Research message'), { target: { value: 'Create a breakout plan' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Send to Quant' }))
+
+  expect(await screen.findByText(replyFor(2).content)).toBeInTheDocument()
+  expect(api.createConversation).toHaveBeenCalledTimes(1)
+  expect(api.saveMessage).toHaveBeenCalledWith(beta.id, expect.any(String), 'Create a breakout plan', 'owner-a')
+  expect(ai.startAi).toHaveBeenCalledWith(expect.objectContaining({ conversationId: beta.id, expectedVersion: 3, sourceSequence: 2 }), 'owner-a')
 })
 
 it('checks provider automatically and never exposes admin provider/save controls', async () => {

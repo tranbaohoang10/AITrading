@@ -44,7 +44,7 @@ export function AppShell() {
 
   useEffect(() => {
     if (!resizing) return
-    const resize = (event: MouseEvent) => setChatWidth(Math.min(360, Math.max(296, event.clientX - 60)))
+    const resize = (event: MouseEvent) => setChatWidth(Math.min(360, Math.max(296, event.clientX - 52)))
     const stop = () => setResizing(false)
     window.addEventListener('mousemove', resize)
     window.addEventListener('mouseup', stop)
@@ -86,7 +86,7 @@ export function AppShell() {
           }}
           className="group relative w-px shrink-0 cursor-col-resize bg-slate-800 hover:bg-slate-600 focus-visible:bg-slate-400 focus-visible:outline-none"
         />
-        {platformView ? <div className="min-w-0 flex-1"><MobileContent view={platformView} onNavigate={setPlatformView} /></div> : <TradingWorkspace mode={mode} />}
+        {platformView ? <div className="min-w-0 flex-1"><MobileContent view={platformView} onNavigate={setPlatformView} /></div> : <TradingWorkspace mode={mode} onNavigate={navigateDesktop} />}
       </div>
     )
   }
@@ -97,7 +97,7 @@ export function AppShell() {
         <GlobalSidebar compact onNavigate={navigateDesktop} activeAction={platformView ?? 'workspace'} />
         <div className="relative min-w-0 flex-1">
           <button type="button" aria-label="Open AI Chat" title="Open AI Chat" onClick={() => setTabletChatOpen(true)} className="absolute bottom-5 right-5 z-20 flex min-h-10 items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 text-xs font-semibold text-slate-200 shadow-xl hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-slate-300"><Icon name="chat" className="h-4 w-4" />Assistant</button>
-          {platformView ? <MobileContent view={platformView} onNavigate={setPlatformView} /> : <TradingWorkspace mode={mode} />}
+          {platformView ? <MobileContent view={platformView} onNavigate={setPlatformView} /> : <TradingWorkspace mode={mode} onNavigate={navigateDesktop} />}
         </div>
         <Modal open={tabletChatOpen} label="AI Chat" onClose={() => setTabletChatOpen(false)} testId="tablet-chat-drawer">
           <div className="relative ml-auto h-full w-[min(440px,88vw)] border-l border-slate-700">

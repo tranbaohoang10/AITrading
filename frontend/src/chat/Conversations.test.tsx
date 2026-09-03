@@ -19,6 +19,8 @@ function Root({ userId = 'owner-a' }: { userId?: string }) {
   return <AuthContext.Provider value={{ user: { id: userId, email: `${userId}@example.test`, displayName: 'Researcher' }, clear, update: vi.fn() }}><ConversationProvider key={userId}><PersistentChat /></ConversationProvider></AuthContext.Provider>
 }
 async function select(name = 'Alpha research') {
+  const history = screen.getByRole('button', { name: 'Conversation history' })
+  if (history.getAttribute('aria-pressed') === 'false') fireEvent.click(history)
   fireEvent.click(await screen.findByRole('button', { name: new RegExp(name) }))
   await waitFor(() => expect(screen.queryByText('Loading messages…')).not.toBeInTheDocument())
 }
@@ -40,6 +42,7 @@ describe('PB-029 compact private conversation history and menu', () => {
     const pending = deferred<api.Page>()
     vi.mocked(api.listConversations).mockReturnValueOnce(pending.promise).mockRejectedValueOnce(new Error('Offline')).mockResolvedValueOnce({ items: [], nextCursor: null })
     const root = render(<Root />)
+    fireEvent.click(screen.getByRole('button', { name: 'Conversation history' }))
     expect(screen.getByText('Loading history…')).toBeInTheDocument()
     await act(async () => pending.resolve({ items: [], nextCursor: null }))
     expect(screen.getByText('No conversations')).toBeInTheDocument()
@@ -47,6 +50,7 @@ describe('PB-029 compact private conversation history and menu', () => {
     root.unmount()
     vi.mocked(api.listConversations).mockRejectedValueOnce(new Error('Offline')).mockResolvedValueOnce({ items: [], nextCursor: null })
     render(<Root />)
+    fireEvent.click(screen.getByRole('button', { name: 'Conversation history' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('Offline')
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
     await screen.findByText('No conversations')
@@ -57,6 +61,7 @@ describe('PB-029 compact private conversation history and menu', () => {
     const late = deferred<api.Messages>()
     vi.mocked(api.getMessages).mockImplementation(id => id === alpha.id ? late.promise : Promise.resolve(page(beta, [message('Only Beta')])) )
     render(<Root />)
+    fireEvent.click(screen.getByRole('button', { name: 'Conversation history' }))
     fireEvent.click(await screen.findByRole('button', { name: /Alpha research/ }))
     expect(screen.getByText('Loading messages…')).toBeInTheDocument()
     await select('Beta research')
@@ -111,13 +116,15 @@ describe('PB-029 compact private conversation history and menu', () => {
     const late = deferred<api.Messages>()
     vi.mocked(api.getMessages).mockReturnValueOnce(late.promise)
     const { rerender } = render(<Root />)
+    fireEvent.click(screen.getByRole('button', { name: 'Conversation history' }))
     fireEvent.click(await screen.findByRole('button', { name: /Alpha research/ }))
     vi.mocked(api.listConversations).mockResolvedValueOnce({ items: [], nextCursor: null })
     rerender(<Root userId="owner-b" />)
     await act(async () => late.resolve(page(alpha, [message('Private A late')])) )
+    fireEvent.click(screen.getByRole('button', { name: 'Conversation history' }))
     expect(await screen.findByText('No conversations')).toBeInTheDocument()
     expect(screen.queryByText('Private A late')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('Research message')).toBeDisabled()
+    expect(screen.getByLabelText('Research message')).toBeEnabled()
     vi.mocked(api.listConversations).mockRejectedValueOnce(new ApiError(401))
     rerender(<Root userId="owner-c" />)
     await waitFor(() => expect(clear).toHaveBeenCalled())
@@ -126,6 +133,7 @@ describe('PB-029 compact private conversation history and menu', () => {
   it('loads the next list page without duplicating conversation IDs', async () => {
     vi.mocked(api.listConversations).mockResolvedValueOnce({ items: [alpha], nextCursor: 'page-two' }).mockResolvedValueOnce({ items: [alpha, beta], nextCursor: null })
     render(<Root />)
+    fireEvent.click(screen.getByRole('button', { name: 'Conversation history' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Load more' }))
     await screen.findByRole('button', { name: /Beta research/ })
     expect(screen.getAllByRole('button', { name: /Alpha research/ })).toHaveLength(1)

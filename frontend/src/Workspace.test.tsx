@@ -26,8 +26,23 @@ describe('TASK-003 through TASK-007 workspace behavior', () => {
     const toolbar = screen.getByTestId('chart-toolbar')
     expect(within(toolbar).getByLabelText('Symbol')).toBeInTheDocument()
     expect(within(toolbar).getByLabelText('Timeframe')).toBeInTheDocument()
-    expect(within(toolbar).getByRole('button', { name: /Indicator/ })).toBeInTheDocument()
-    expect(within(toolbar).getByRole('button', { name: 'Settings' })).toBeInTheDocument()
+    expect(within(toolbar).getByRole('button', { name: 'Add indicator' })).toBeInTheDocument()
+    expect(within(toolbar).getByRole('button', { name: 'Chart settings' })).toBeInTheDocument()
+    expect(within(toolbar).getByRole('group')).toBeInTheDocument()
+    expect(screen.getByRole('complementary', { name: 'Chart tools' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Trend line' })).toHaveAttribute('title', 'Trend line')
+  })
+
+  it('keeps drawing tools compact and exposes an honest chart export menu', () => {
+    render(<App />)
+    const trend = screen.getByRole('button', { name: 'Trend line' })
+    fireEvent.click(trend)
+    expect(trend).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.click(screen.getByLabelText('Chart capture and export'))
+    expect(screen.getByRole('button', { name: 'Download PNG' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Copy to clipboard' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Send to chat Soon' })).toBeDisabled()
   })
 
   it('keeps code views read-only, scrollable, and copyable', () => {
@@ -58,8 +73,9 @@ describe('TASK-003 through TASK-007 workspace behavior', () => {
   it('updates metrics and trades only after a separate Backtest action', async () => {
     vi.useFakeTimers()
     render(<App />)
-    fireEvent.click(within(screen.getByTestId('trading-workspace')).getByRole('button', { name: 'Backtest' }))
-    expect(screen.getByRole('button', { name: 'Running…' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('tab', { name: 'Backtest Results' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Run Backtest' }))
+    expect(screen.getByRole('button', { name: 'Running mock…' })).toBeDisabled()
     await act(async () => { await vi.advanceTimersByTimeAsync(800) })
 
     expect(screen.getByTestId('backtest-results')).toHaveTextContent('+18.42%')

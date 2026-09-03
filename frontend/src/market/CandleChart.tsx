@@ -20,7 +20,7 @@ export function CandleChart({ page, markers = [], frozen = false }: { page: { da
   const x = (i: number) => left + (i + .5) * width / count
   const bodyWidth = Math.max(1, Math.min(18, width / count * .65))
   return <div className="flex shrink-0 flex-col gap-3">
-    <svg ref={svg} viewBox={`0 0 ${viewWidth} 270`} className="h-[270px] w-full shrink-0 border border-slate-800 bg-slate-950" role="img" aria-label={`${page.dataset.symbol} ${frozen ? 'frozen backtest' : 'imported'} candlesticks, ${count} candles in UTC`}
+    <svg ref={svg} viewBox={`0 0 ${viewWidth} 270`} className="h-[270px] w-full shrink-0 border border-slate-800 bg-slate-950 sm:h-auto sm:aspect-[10/3] sm:max-h-[500px]" role="img" aria-label={`${page.dataset.symbol} ${frozen ? 'frozen backtest' : 'imported'} candlesticks, ${count} candles in UTC`}
       onClick={event => { const rect = event.currentTarget.getBoundingClientRect(); setIndex(Math.max(0, Math.min(count - 1, Math.floor(((event.clientX - rect.left) / rect.width * viewWidth - left) / width * count)))) }}>
       {Array.from({ length: 5 }, (_, i) => {
         const price = upper - (upper - lower) * i / 4, screenY = y(price)

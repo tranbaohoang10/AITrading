@@ -11,10 +11,12 @@ describe('TASK-002 responsive application shell', () => {
     setViewport(1440)
     render(<App />)
 
-    expect(screen.getByTestId('global-sidebar')).toHaveClass('w-[60px]')
+    expect(screen.getByTestId('global-sidebar')).toHaveClass('w-[52px]')
     expect(screen.getByTestId('ai-chat')).toBeInTheDocument()
     expect(screen.getByTestId('trading-workspace')).toBeInTheDocument()
     expect(screen.getByRole('separator', { name: 'Resize AI Chat' })).toHaveAttribute('aria-valuenow', '320')
+    expect(screen.queryByRole('button', { name: 'Backtest' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Open account' })).toBeInTheDocument()
   })
 
   it('uses compact sidebar and an overlay AI Chat at tablet width', () => {

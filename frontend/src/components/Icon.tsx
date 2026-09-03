@@ -25,6 +25,18 @@ const paths: Record<string, string> = {
   more: 'M5 12h.01M12 12h.01M19 12h.01',
   send: 'm4 4 16 8-16 8 3-8-3-8Zm3 8h13',
   image: 'M4 5h16v14H4zM8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm-4 7 5-5 3 3 2-2 6 6',
+  cursor: 'm5 3 14 8-6 2-2 6L5 3Z',
+  trend: 'M4 18 10 8l4 5 6-9M4 18h4',
+  horizontal: 'M4 12h16M7 8v8M17 8v8',
+  brush: 'm5 19 3-1 10-10-3-3L5 15v4Zm9-13 2-2 3 3-2 2',
+  text: 'M5 6V4h14v2M12 4v16m-4 0h8',
+  ruler: 'm5 19 14-14M8 16l-2-2m5-1-2-2m5-1-2-2m5-1-2-2',
+  zoom: 'm21 21-4.4-4.4M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Zm0-11v7m-3.5-3.5h7',
+  camera: 'M4 7h3l1.5-2h7L17 7h3v12H4V7Zm8 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z',
+  download: 'M12 4v11m-4-4 4 4 4-4M5 20h14',
+  upload: 'M12 20V9m-4 4 4-4 4 4M5 4h14',
+  microphone: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-7 9a7 7 0 0 0 14 0m-7 7v3m-3 0h6',
+  refresh: 'M20 7v5h-5M4 17v-5h5m9.5-3A7 7 0 0 0 6 7m-.5 8A7 7 0 0 0 18 17',
 }
 
 export function Icon({ name, className = 'h-5 w-5' }: IconProps) {
