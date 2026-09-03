@@ -5,7 +5,11 @@ import type { DrawingTool } from '../market/chartTypes'
 const tools = [
   ['cursor', 'Select'],
   ['trend', 'Trend line'],
+  ['ray', 'Ray'],
   ['horizontal', 'Horizontal line'],
+  ['vertical', 'Vertical line'],
+  ['rectangle', 'Rectangle zone'],
+  ['arrow', 'Arrow marker'],
   ['brush', 'Brush'],
   ['text', 'Text note'],
   ['ruler', 'Measure'],
@@ -13,19 +17,18 @@ const tools = [
 
 const toolButton = 'icon-tool grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 disabled:opacity-35'
 
-export function ChartToolsRail({ selected: controlled, onSelect, canUndo = false, canRedo = false, canDelete = false, hasDrawings = false, onUndo, onRedo, onDelete, onClear }: {
+export function ChartToolsRail({ selected: controlled, onSelect, canDelete = false, hasDrawings = false, onDelete, onClear }: {
   selected?: DrawingTool; onSelect?: (tool: DrawingTool) => void
-  canUndo?: boolean; canRedo?: boolean; canDelete?: boolean; hasDrawings?: boolean
-  onUndo?: () => void; onRedo?: () => void; onDelete?: () => void; onClear?: () => void
+  canDelete?: boolean; hasDrawings?: boolean
+  onDelete?: () => void; onClear?: () => void
 } = {}) {
   const [local, setLocal] = useState<DrawingTool>('cursor')
   const selected = controlled ?? local
   const choose = (tool: DrawingTool) => { if (onSelect) onSelect(tool); else setLocal(tool) }
   return <aside aria-label="Chart tools" className="chart-tools flex h-10 shrink-0 items-center gap-0.5 overflow-x-auto border-b border-slate-800 bg-slate-925 px-1 sm:h-auto sm:w-10 sm:flex-col sm:overflow-visible sm:border-b-0 sm:border-r sm:px-0 sm:py-1.5">
     {tools.map(([name, label]) => <button key={name} type="button" aria-label={label} aria-pressed={selected === name} title={label} data-tooltip={label} onClick={() => choose(name)} className={`${toolButton} ${selected === name ? 'bg-slate-800 text-slate-100' : ''}`}><Icon name={name} className="h-4 w-4" /></button>)}
+    <button type="button" disabled aria-label="Parallel channel unavailable" title="Parallel channel needs a complete three-point editor" data-tooltip="Parallel channel · soon" className={toolButton}><Icon name="channel" className="h-4 w-4" /></button>
     <span className="mx-1 h-5 w-px shrink-0 bg-slate-800 sm:my-1 sm:h-px sm:w-5" aria-hidden="true" />
-    <button type="button" disabled={!canUndo} aria-label="Undo drawing" title="Undo drawing" data-tooltip="Undo" onClick={onUndo} className={toolButton}><Icon name="undo" className="h-4 w-4" /></button>
-    <button type="button" disabled={!canRedo} aria-label="Redo drawing" title="Redo drawing" data-tooltip="Redo" onClick={onRedo} className={toolButton}><Icon name="redo" className="h-4 w-4" /></button>
     <button type="button" disabled={!canDelete} aria-label="Delete selected drawing" title="Delete selected drawing" data-tooltip="Delete" onClick={onDelete} className={toolButton}><Icon name="trash" className="h-4 w-4" /></button>
     <button type="button" disabled={!hasDrawings} aria-label="Clear drawings" title="Clear drawings" data-tooltip="Clear" onClick={onClear} className={toolButton}><Icon name="close" className="h-4 w-4" /></button>
   </aside>

@@ -118,6 +118,8 @@ button:disabled, select:disabled { cursor: not-allowed; }
 }
 .icon-tool:not([data-tooltip])::after { display: none; }
 .icon-tool:hover::after, .icon-tool:focus-visible::after { transform: translateX(-50%) translateY(0); opacity: 1; }
+.chart-tools { scrollbar-width: none; }
+.chart-tools::-webkit-scrollbar { display: none; }
 @media (min-width: 640px) {
   .chart-tools .icon-tool::after { top: 50%; left: calc(100% + .45rem); transform: translateY(-50%) translateX(-2px); }
   .chart-tools .icon-tool:hover::after, .chart-tools .icon-tool:focus-visible::after { transform: translateY(-50%) translateX(0); }

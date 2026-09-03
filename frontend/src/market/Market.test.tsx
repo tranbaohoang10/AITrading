@@ -191,13 +191,21 @@ describe('PB-006 private market UI (API contract mocks)', () => {
     fireEvent.click(screen.getByRole('button', { name: '+ sma' })); fireEvent.click(screen.getByRole('button', { name: '+ rsi' }))
     expect(screen.getByLabelText('SMA period')).toHaveValue(50)
     expect(screen.getByLabelText('RSI period')).toHaveValue(14)
+    const legend = screen.getByLabelText('Active indicators')
+    expect(within(legend).getByText(/sma 50/i)).toBeInTheDocument()
+    expect(within(legend).getByText(/rsi 14/i)).toBeInTheDocument()
+    fireEvent.click(within(legend).getByRole('button', { name: 'Hide SMA 50' }))
+    expect(within(legend).getByRole('button', { name: 'Show SMA 50' })).toBeInTheDocument()
+    fireEvent.click(within(legend).getByRole('button', { name: 'Remove SMA 50' }))
+    expect(within(legend).queryByText(/sma 50/i)).not.toBeInTheDocument()
     expect(screen.getByRole('img', { name: /imported candlesticks/ }).querySelectorAll('polyline').length).toBeGreaterThan(0)
     fireEvent.click(screen.getByRole('button', { name: 'Chart settings' }))
     const dialog = screen.getByRole('dialog', { name: 'Chart settings' })
     fireEvent.change(within(dialog).getByLabelText('Settings chart type'), { target: { value: 'area' } })
     fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Grid' }))
+    fireEvent.change(within(dialog).getByLabelText('Chart timezone'), { target: { value: 'Asia/Ho_Chi_Minh' } })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Close chart settings' }))
-    expect(screen.getByRole('img', { name: /imported area/ })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /imported area.*Asia\/Ho_Chi_Minh/ })).toBeInTheDocument()
   })
 
   it('PB-031 creates local drawings with undo, redo, selection and deletion controls', async () => {
@@ -218,6 +226,32 @@ describe('PB-006 private market UI (API contract mocks)', () => {
     expect(chart).toHaveTextContent('Breakout')
     fireEvent.click(screen.getByRole('button', { name: 'Delete selected drawing' }))
     expect(screen.queryByLabelText('Selected note text')).not.toBeInTheDocument()
+  })
+
+  it('PB-031 renders the extended drawing tools and marks complex channels unavailable', async () => {
+    render(<App />)
+    const chart = await screen.findByRole('img', { name: /imported candlesticks/ })
+    for (const [label, type] of [['Ray', 'ray'], ['Vertical line', 'vertical'], ['Rectangle zone', 'rectangle'], ['Arrow marker', 'arrow']] as const) {
+      fireEvent.click(screen.getByRole('button', { name: label }))
+      fireEvent.pointerDown(chart, { pointerId: 3, clientX: 30, clientY: 30 })
+      if (type !== 'vertical') fireEvent.pointerMove(chart, { pointerId: 3, clientX: 130, clientY: 90 })
+      fireEvent.pointerUp(chart, { pointerId: 3, clientX: 130, clientY: 90 })
+      expect(chart.querySelector(`[data-drawing-type="${type}"]`)).toBeInTheDocument()
+    }
+    expect(screen.getByRole('button', { name: 'Parallel channel unavailable' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Clear drawings' })).toBeEnabled()
+  })
+
+  it('PB-031 zooms, pans and resets only the loaded candle viewport', async () => {
+    render(<App />)
+    const chart = await screen.findByRole('img', { name: /100 candles in UTC \(100 of 100 loaded\)/ })
+    fireEvent.wheel(chart, { deltaY: -100, clientX: 0 })
+    expect(screen.getByRole('img', { name: /82 candles in UTC \(82 of 100 loaded\)/ })).toBeInTheDocument()
+    expect(screen.getByText('1–82 / 100')).toBeInTheDocument()
+    fireEvent.keyDown(chart, { key: 'ArrowRight', shiftKey: true })
+    expect(screen.queryByText('1–82 / 100')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Reset chart view' }))
+    expect(screen.getByRole('img', { name: /100 candles in UTC \(100 of 100 loaded\)/ })).toBeInTheDocument()
   })
 })
 

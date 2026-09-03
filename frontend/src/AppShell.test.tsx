@@ -21,6 +21,9 @@ describe('TASK-002 responsive application shell', () => {
 
   it('opens a compact feature-backed Quant navigation panel and closes after navigation', async () => {
     setViewport(1440); render(<App />)
+    const rail = screen.getByTestId('global-sidebar')
+    expect(within(rail).getAllByRole('button')).toHaveLength(1)
+    expect(within(rail).queryByRole('button', { name: 'Assistant' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Workspace' }))
     const expanded = screen.getByRole('complementary', { name: 'Expanded navigation' })
     expect(within(expanded).getByRole('button', { name: /Library & Documents/ })).toBeInTheDocument()

@@ -11,11 +11,11 @@
 
 ## Interaction model
 
-The 52px Q rail remains the stable anchor. Its Q button toggles an overlaid navigation panel, preserving the central workspace size. Dataset controls stay in the chart toolbar. Workspace destinations become icon-first controls. Menus disclose unavailable advanced features rather than implying support.
+The 52px Q-only rail remains the stable anchor. Its Q button toggles an overlaid navigation panel, preserving the central workspace size. Permanent destination icons are removed because the same real destinations exist in the drawer. Dataset controls stay in the chart toolbar. Workspace destinations become icon-first controls. Menus disclose unavailable advanced features rather than implying support.
 
 Higher timeframe selection is valid only when the requested interval is an integer multiple of the native interval. Candles are grouped by UTC epoch buckets; each aggregate uses first open, maximum high, minimum low, last close, and summed volume. The native series is never mutated.
 
-Drawing coordinates are normalized to the chart plot so they survive resizing. An in-memory undo/redo history owns drawing mutations. Text input is an explicit lightweight dialog. Export serializes the real SVG, including active display layers.
+Drawing coordinates are normalized to the chart plot so they survive resizing. An in-memory undo/redo history owns drawing mutations. Text input is an explicit lightweight dialog. Export serializes the real SVG, including active display layers. Zoom and pan only select a viewport over the already loaded candle array; they do not mutate, interpolate, or fetch prices. Indicator visibility is UI state and hidden indicators remain configured until removed.
 
 ## Responsive behavior
 
