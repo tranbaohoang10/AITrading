@@ -7,4 +7,4 @@
 - [x] Extend the SVG chart with working chart types, indicators, settings, and local drawing tools.
 - [x] Verify desktop, tablet, and mobile interactions in the running app against the public visual reference.
 - [x] Run frontend tests, lint, build, and diff checks.
-- [ ] Commit to main, push origin/main, and record CI/Issue evidence.
+- [x] Commit to main, push origin/main, and record CI/Issue evidence.
