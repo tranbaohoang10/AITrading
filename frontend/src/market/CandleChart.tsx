@@ -85,6 +85,22 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
     return low
   }
   const xIndex = (position: number) => left + (position + .5 - visibleStart) / visibleCount * width
+  const timeTicks = useMemo(() => {
+    const ticks: { time: string, label: string }[] = []
+    if (visibleItems.length < 2) return ticks
+    const count = 5
+    for (let i = 0; i <= count; i++) {
+      const idx = Math.floor(i * (visibleItems.length - 1) / count)
+      const item = visibleItems[idx]
+      if (item) {
+        ticks.push({ 
+          time: item.time,
+          label: new Intl.DateTimeFormat('en-GB', { timeZone: settings.timezone, month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(item.time)).replace(',', '')
+        })
+      }
+    }
+    return Array.from(new Map(ticks.map(t => [t.time, t])).values())
+  }, [visibleItems, settings.timezone])
   const xTime = (time: string) => xIndex(timeIndex(time))
   const yPrice = (value: number) => top + (prices.upper - value) / priceSpan * priceHeight
   const format = (value: number) => Math.abs(value) >= 1e8 || (value !== 0 && Math.abs(value) < 1e-3) ? value.toExponential(3) : Number(value.toPrecision(7)).toString()
@@ -249,6 +265,7 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
         onWheel={wheel} onKeyDown={keyDown} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={() => { pan.current = null; edit.current = null }} onContextMenu={event => { if (draft || multi.current) { event.preventDefault(); cancelDraft() } }} onPointerLeave={() => { if (!pan.current && !edit.current) setCrosshair(null) }}>
         <defs><linearGradient id="quant-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#8590a0" stopOpacity=".24"/><stop offset="1" stopColor="#8590a0" stopOpacity=".02"/></linearGradient><marker id="quant-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 8 4 0 8Z" fill="context-stroke"/></marker></defs>
         <rect width={viewWidth} height={totalHeight} fill={settings.background}/>
+        {timeTicks.map(tick => <g key={tick.time}><line x1={xTime(tick.time)} y1={top} x2={xTime(tick.time)} y2={chartBottom} stroke={settings.gridColor} strokeWidth="1" strokeDasharray="4 4" opacity="0.3"/><text x={xTime(tick.time)} y={axisBottom + 14} textAnchor="middle" fontSize="10" fill="#9ca3af">{tick.label}</text></g>)}
         {settings.showGrid && Array.from({ length: 6 }, (_, position) => { const price = prices.upper - priceSpan * position / 5, screenY = yPrice(price); return <g key={position}><line x1={left} x2={left + width} y1={screenY} y2={screenY} stroke={settings.gridColor}/><text x={left + width + 8} y={screenY + 4} fill="#7e8590" fontSize="10" fontFamily="monospace">{format(price)}</text></g> })}
         {settings.showGrid && Array.from({ length: 6 }, (_, position) => <line key={`v-${position}`} x1={left + width * position / 5} x2={left + width * position / 5} y1={top} y2={chartBottom} stroke={settings.gridColor} opacity=".55"/>)}
         {settings.showVolume && (() => { const maximum = Math.max(...visibleItems.map(item => Number(item.volume)), 1); return visibleItems.map((candle, local) => { const height = Number(candle.volume) / maximum * Math.min(48, priceHeight * .18), x = xIndex(candlePosition(local)); return <rect key={`volume-${candle.ordinal}`} x={x - bodyWidth / 2} y={chartBottom - height} width={bodyWidth} height={height} fill={Number(candle.close) >= Number(candle.open) ? settings.bullColor : settings.bearColor} opacity=".18"/> }) })()}
@@ -263,7 +280,28 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
         {settings.showOhlc && <text x={left + (viewWidth >= 620 ? 132 : 4)} y={viewWidth >= 620 ? 17 : 32} fill="#8d949f" fontSize="10" fontFamily="monospace">O {inspected.open}  H {inspected.high}  L {inspected.low}  C {inspected.close}  V {inspected.volume}</text>}
         {hasRsi && <g><line x1={left} x2={left + width} y1={rsiTop - 8} y2={rsiTop - 8} stroke={settings.separatorColor}/><rect x={left} y={rsiTop} width={width} height={boundedRsi} fill="#13161b"/><line x1={left} x2={left + width} y1={rsiTop + boundedRsi * .3} y2={rsiTop + boundedRsi * .3} stroke={settings.gridColor} strokeDasharray="3 4"/><line x1={left} x2={left + width} y1={rsiTop + boundedRsi * .7} y2={rsiTop + boundedRsi * .7} stroke={settings.gridColor} strokeDasharray="3 4"/>{visibleIndicators.filter(item => item.type === 'rsi').map(indicator => <polyline key={indicator.id} points={indicator.values.map((value, position) => value === null || position < renderStart || position >= renderEnd ? null : `${xIndex(position)},${rsiTop + (100 - value) / 100 * boundedRsi}`).filter(Boolean).join(' ')} fill="none" stroke={indicator.color} strokeWidth="1.4"/>)}<text x={left + 4} y={rsiTop + 13} fill="#8d949f" fontSize="10">RSI</text><text x={left + width + 8} y={rsiTop + 5} fill="#737b88" fontSize="9">100</text><text x={left + width + 8} y={rsiBottom} fill="#737b88" fontSize="9">0</text></g>}
         {crosshair && settings.showCrosshair && activeTool === 'cursor' && !pan.current && <g pointerEvents="none"><line x1={crosshair.x} x2={crosshair.x} y1={top} y2={hasRsi ? rsiBottom : chartBottom} stroke="#858c97" strokeDasharray="3 3" opacity=".58"/><line x1={left} x2={left + width} y1={crosshair.y} y2={crosshair.y} stroke="#858c97" strokeDasharray="3 3" opacity=".58"/><rect x={left + width + 3} y={crosshair.y - 8} width={right - 8} height="16" rx="2" fill="#2a2e35"/><text x={left + width + 7} y={crosshair.y + 4} fill="#d7dbe0" fontSize="10" fontFamily="monospace">{format(crossPrice!)}</text><text x={crosshair.x} y={axisBottom + 15} textAnchor="middle" fill="#8b93a1" fontSize="9">{formatTime(page.items[index].time)}</text></g>}
-        <text x={left} y={totalHeight - 5} fill="#737b88" fontSize="10">{formatTime(visibleItems[0].time)}</text><text x={left + width} y={totalHeight - 5} fill="#737b88" fontSize="10" textAnchor="end">{formatTime(visibleItems.at(-1)!.time)}</text>
+        {/* X-axis ticks */}
+        {Array.from({ length: 6 }, (_, position) => {
+          const idx = Math.min(total - 1, Math.max(0, Math.floor(visibleStart + (visibleCount * position / 5))))
+          const x = clamp(xIndex(idx), left + 20, left + width - 20)
+          return <text key={`x-tick-${position}`} x={x} y={totalHeight - 5} fill="#737b88" fontSize="10" textAnchor="middle">{formatTime(page.items[idx].time)}</text>
+        })}
+        {/* Y-axis ticks and horizontal grid */}
+        {(() => {
+          const yRange = prices.upper - prices.lower
+          const yStepRaw = yRange / 5
+          const yMagnitude = Math.pow(10, Math.floor(Math.log10(yStepRaw || 1)))
+          const yNorm = yStepRaw / yMagnitude
+          const yStep = (yNorm < 1.5 ? 1 : yNorm < 3 ? 2 : yNorm < 7 ? 5 : 10) * yMagnitude
+          const ticks = []
+          for (let yVal = Math.ceil(prices.lower / yStep) * yStep; yVal <= prices.upper; yVal += yStep) ticks.push(yVal)
+          return ticks.map(val => (
+            <g key={`y-tick-${val}`}>
+              {settings.showGrid && <line x1={left} x2={left + width} y1={yPrice(val)} y2={yPrice(val)} stroke={settings.gridColor} opacity=".3"/>}
+              <text x={left + width + 5} y={yPrice(val) + 4} fill="#737b88" fontSize="10">{format(val)}</text>
+            </g>
+          ))
+        })()}
       </svg>
       {hasRsi && <div role="separator" aria-label="Resize RSI pane" aria-orientation="horizontal" aria-valuemin={64} aria-valuemax={180} aria-valuenow={boundedRsi} tabIndex={0} style={{ top: `${(rsiTop - 13) / totalHeight * 100}%` }} className="absolute left-3 right-[78px] z-30 h-3 -translate-y-1/2 cursor-row-resize touch-none" onPointerDown={event => { event.preventDefault(); const start = event.clientY, initial = rsiHeight; event.currentTarget.setPointerCapture(event.pointerId); const move = (next: PointerEvent) => setRsiHeight(clamp(initial - (next.clientY - start) * totalHeight / Math.max(svg.current?.getBoundingClientRect().height ?? totalHeight, 1), 64, 180)); const stop = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', stop) }; window.addEventListener('pointermove', move); window.addEventListener('pointerup', stop) }} onKeyDown={event => { if (event.key === 'ArrowUp') setRsiHeight(value => clamp(value + 8, 64, 180)); if (event.key === 'ArrowDown') setRsiHeight(value => clamp(value - 8, 64, 180)) }}><span className="absolute left-1/2 top-1/2 h-0.5 w-12 -translate-x-1/2 -translate-y-1/2 rounded bg-slate-600 opacity-0 transition group-hover:opacity-100"/></div>}
       <div className="absolute bottom-2 right-36 flex items-center gap-1 rounded-md border border-slate-800 bg-[#14171c]/92 p-0.5 text-[9px] text-slate-500"><span className="px-1.5">{Math.floor(visibleStart) + 1}–{Math.min(total, Math.ceil(visibleStart + visibleCount))} / {total}</span>{manualPrices && <span className="border-l border-slate-700 px-1.5 text-amber-300">Manual price</span>}<button type="button" aria-label="Reset chart view" title="Reset Chart · 0" data-tooltip="Reset · 0" onClick={resetView} disabled={visibleStart === 0 && Math.abs(visibleCount - total) < .01 && !manualPrices} className="icon-tool grid h-6 w-6 place-items-center rounded text-slate-500 hover:bg-slate-800 hover:text-slate-100 disabled:opacity-35"><Icon name="reset" className="h-3.5 w-3.5"/></button></div>

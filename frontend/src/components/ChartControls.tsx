@@ -1,36 +1,39 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from './Icon'
 import type { DrawingTool, MagnetMode } from '../market/chartTypes'
 
-type ToolItem = { tool?: DrawingTool; label: string; shortcut?: string; disabled?: boolean; reason?: string }
+type ToolItem = { tool?: DrawingTool; label: string; shortcut?: string; disabled?: boolean; reason?: string; icon: string }
 const groups: Array<{ id: string; label: string; icon: string; items: ToolItem[] }> = [
   { id: 'lines', label: 'Lines', icon: 'trend', items: [
-    { tool: 'trend', label: 'Trend Line', shortcut: 'Alt + T' }, { tool: 'ray', label: 'Ray' }, { tool: 'extended', label: 'Extended Line' },
-    { tool: 'horizontal', label: 'Horizontal Line', shortcut: 'Alt + H' }, { tool: 'horizontalRay', label: 'Horizontal Ray' }, { tool: 'vertical', label: 'Vertical Line', shortcut: 'Alt + V' },
-    { tool: 'cross', label: 'Cross Line' }, { tool: 'parallelChannel', label: 'Parallel Channel' },
+    { tool: 'trend', label: 'Trend Line', shortcut: 'Alt + T', icon: 'trend' }, { tool: 'ray', label: 'Ray', icon: 'ray' }, { tool: 'extended', label: 'Extended Line', icon: 'horizontal' },
+    { tool: 'horizontal', label: 'Horizontal Line', shortcut: 'Alt + H', icon: 'horizontal' }, { tool: 'horizontalRay', label: 'Horizontal Ray', icon: 'ray' }, { tool: 'vertical', label: 'Vertical Line', shortcut: 'Alt + V', icon: 'vertical' },
+    { tool: 'cross', label: 'Cross Line', icon: 'cross' }, { tool: 'parallelChannel', label: 'Parallel Channel', icon: 'channel' },
   ] },
   { id: 'fib', label: 'Fibonacci', icon: 'fib', items: [
-    { tool: 'fibRetracement', label: 'Fib Retracement' }, { tool: 'fibExtension', label: 'Fib Extension' },
-    { label: 'Fib Fan', disabled: true, reason: 'Requires verified fan geometry' }, { label: 'Gann Fan', disabled: true, reason: 'Deferred · advanced geometry' },
+    { tool: 'fibRetracement', label: 'Fib Retracement', icon: 'fib' }, { tool: 'fibExtension', label: 'Fib Extension', icon: 'fib' },
+    { label: 'Fib Fan', disabled: true, reason: 'Requires verified fan geometry', icon: 'fib' }, { label: 'Gann Fan', disabled: true, reason: 'Deferred · advanced geometry', icon: 'pattern' },
   ] },
   { id: 'patterns', label: 'Patterns', icon: 'pattern', items: [
-    { label: 'ABCD Pattern', disabled: true, reason: 'Deferred · multi-anchor editing' }, { label: 'Head & Shoulders', disabled: true, reason: 'Deferred · multi-anchor editing' },
-    { label: 'Elliott / Harmonics', disabled: true, reason: 'Deferred · advanced pattern library' },
+    { label: 'ABCD Pattern', disabled: true, reason: 'Deferred · multi-anchor editing', icon: 'pattern' }, { label: 'Head & Shoulders', disabled: true, reason: 'Deferred · multi-anchor editing', icon: 'pattern' },
+    { label: 'Elliott / Harmonics', disabled: true, reason: 'Deferred · advanced pattern library', icon: 'pattern' },
   ] },
-  { id: 'measure', label: 'Measure & Position', icon: 'ruler', items: [
-    { tool: 'ruler', label: 'Ruler' }, { tool: 'priceRange', label: 'Price Range' }, { tool: 'dateRange', label: 'Date Range' }, { tool: 'datePriceRange', label: 'Date & Price Range' },
-    { tool: 'longPosition', label: 'Long Position' }, { tool: 'shortPosition', label: 'Short Position' },
+  { id: 'position', label: 'Prediction & Measurement', icon: 'trend', items: [
+    { tool: 'longPosition', label: 'Long Position', icon: 'trend' }, { tool: 'shortPosition', label: 'Short Position', icon: 'trend' },
+  ] },
+  { id: 'measure', label: 'Measure Tools', icon: 'ruler', items: [
+    { tool: 'ruler', label: 'Ruler', icon: 'ruler' }, { tool: 'priceRange', label: 'Price Range', icon: 'ruler' }, { tool: 'dateRange', label: 'Date Range', icon: 'ruler' }, { tool: 'datePriceRange', label: 'Date & Price Range', icon: 'ruler' },
   ] },
   { id: 'shapes', label: 'Shapes', icon: 'shapes', items: [
-    { tool: 'rectangle', label: 'Rectangle' }, { tool: 'ellipse', label: 'Ellipse' }, { tool: 'arrow', label: 'Arrow' }, { tool: 'brush', label: 'Brush' }, { tool: 'polyline', label: 'Polyline' },
-    { label: 'Triangle / Path', disabled: true, reason: 'Deferred · multi-anchor editing' },
+    { tool: 'rectangle', label: 'Rectangle', icon: 'rectangle' }, { tool: 'ellipse', label: 'Ellipse', icon: 'shapes' }, { tool: 'arrow', label: 'Arrow', icon: 'arrow' }, { tool: 'brush', label: 'Brush', icon: 'brush' }, { tool: 'polyline', label: 'Polyline', icon: 'shapes' },
+    { label: 'Triangle / Path', disabled: true, reason: 'Deferred · multi-anchor editing', icon: 'shapes' },
   ] },
   { id: 'text', label: 'Text & Notes', icon: 'text', items: [
-    { tool: 'text', label: 'Text' }, { tool: 'note', label: 'Note' }, { tool: 'callout', label: 'Callout' },
+    { tool: 'text', label: 'Text', icon: 'text' }, { tool: 'note', label: 'Note', icon: 'text' }, { tool: 'callout', label: 'Callout', icon: 'text' },
   ] },
 ]
 
 const toolButton = 'icon-tool grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 disabled:opacity-35'
+const chevronButton = 'grid h-8 w-3 place-items-center rounded-r-md text-slate-500 hover:bg-slate-700 hover:text-slate-100'
 
 export function ChartToolsRail({ selected: controlled, onSelect, canDelete = false, hasDrawings = false, onDelete, onClear, magnet = 'off', onMagnetChange, stayInMode = false, onToggleStay, onObjectTree }: {
   selected?: DrawingTool; onSelect?: (tool: DrawingTool) => void
@@ -38,27 +41,49 @@ export function ChartToolsRail({ selected: controlled, onSelect, canDelete = fal
   onDelete?: () => void; onClear?: () => void
   magnet?: MagnetMode; onMagnetChange?: (mode: MagnetMode) => void; stayInMode?: boolean; onToggleStay?: () => void; onObjectTree?: () => void
 } = {}) {
+  const containerRef = useRef<HTMLElement>(null)
   const [local, setLocal] = useState<DrawingTool>('cursor')
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
   const selected = controlled ?? local
-  const choose = (tool: DrawingTool, details?: HTMLDetailsElement | null) => { if (onSelect) onSelect(tool); else setLocal(tool); details?.removeAttribute('open') }
-  return <aside aria-label="Chart tools" className="chart-tools flex h-10 shrink-0 items-center gap-0.5 overflow-x-auto border-b border-slate-800 bg-slate-925 px-1 sm:h-auto sm:w-10 sm:flex-col sm:overflow-visible sm:border-b-0 sm:border-r sm:px-0 sm:py-1.5">
-    <button type="button" aria-label="Select" aria-pressed={selected === 'cursor'} title="Select" data-tooltip="Select · Esc" onClick={() => choose('cursor')} className={`${toolButton} ${selected === 'cursor' ? 'bg-slate-800 text-slate-100' : ''}`}><Icon name="cursor" className="h-4 w-4" /></button>
-    {groups.map(group => <details key={group.id} className="group/tool relative shrink-0">
-      <summary aria-label={`${group.label} tools`} title={`${group.label} tools`} data-tooltip={group.label} className={`${toolButton} list-none cursor-pointer ${group.items.some(item => item.tool === selected) ? 'bg-slate-800 text-slate-100' : ''}`}><Icon name={group.icon} className="h-4 w-4"/><Icon name="chevronRight" className="absolute bottom-0.5 right-0.5 h-2 w-2 opacity-50"/></summary>
-      <div className="drawing-flyout absolute left-0 top-10 z-50 w-64 rounded-lg border border-slate-700 bg-[#17191e] p-1.5 shadow-2xl sm:left-10 sm:top-0">
-        <p className="px-2 py-1 text-[9px] font-semibold uppercase tracking-[.14em] text-slate-600">{group.label}</p>
-        {group.items.map(item => <button key={item.label} type="button" disabled={item.disabled} title={item.reason ?? item.label} aria-label={item.disabled ? `${item.label} unavailable` : item.label} onClick={event => item.tool && choose(item.tool, event.currentTarget.closest('details'))} className={`flex min-h-8 w-full items-center rounded-md px-2 text-left text-[11px] ${item.tool === selected ? 'bg-slate-700 text-white' : item.disabled ? 'text-slate-600' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}><span>{item.label}</span>{item.shortcut && <span className="ml-auto font-mono text-[9px] text-slate-600">{item.shortcut}</span>}{item.disabled && <span className="ml-auto text-[9px]">Soon</span>}</button>)}
+  const choose = (tool: DrawingTool) => { if (onSelect) onSelect(tool); else setLocal(tool); setOpenMenu(null) }
+
+  useEffect(() => {
+    const handleDown = (e: MouseEvent) => { if (!containerRef.current?.contains(e.target as Node)) setOpenMenu(null) }
+    const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpenMenu(null) }
+    document.addEventListener('pointerdown', handleDown); document.addEventListener('keydown', handleKey)
+    return () => { document.removeEventListener('pointerdown', handleDown); document.removeEventListener('keydown', handleKey) }
+  }, [])
+
+  return <aside ref={containerRef} aria-label="Chart tools" className="chart-tools flex h-10 shrink-0 items-center gap-0.5 overflow-x-auto border-b border-slate-800 bg-slate-925 px-1 sm:h-auto sm:w-11 sm:flex-col sm:overflow-visible sm:border-b-0 sm:border-r sm:px-0 sm:py-1.5">
+    <button type="button" aria-label="Select" aria-pressed={selected === 'cursor'} title="Select" data-tooltip="Select · Esc" onClick={() => choose('cursor')} className={`${toolButton} mx-auto ${selected === 'cursor' ? 'bg-slate-800 text-slate-100' : ''}`}><Icon name="cursor" className="h-4 w-4" /></button>
+    {groups.map(group => {
+      const isSelectedGroup = group.items.some(item => item.tool === selected)
+      const activeItem = group.items.find(item => item.tool === selected) ?? group.items[0]
+      return <div key={group.id} className="relative flex h-8 w-11 shrink-0 items-center rounded-md hover:bg-slate-800">
+        <button aria-label={`${group.label} tools`} title={activeItem.label} data-tooltip={activeItem.label} onClick={() => activeItem.tool && choose(activeItem.tool)} className={`icon-tool grid h-8 flex-1 place-items-center rounded-l-md text-slate-500 transition hover:text-slate-100 ${isSelectedGroup ? 'bg-slate-800 text-slate-100' : ''}`}>
+          <Icon name={activeItem.icon} className="h-4 w-4"/>
+        </button>
+        <button aria-label="Show menu" title="Show menu" onClick={() => setOpenMenu(openMenu === group.id ? null : group.id)} className={`${chevronButton} ${isSelectedGroup ? 'bg-slate-800' : ''}`}>
+          <Icon name="chevronRight" className="h-2 w-2"/>
+        </button>
+        <div className={`drawing-flyout absolute left-0 top-10 z-50 w-64 rounded-lg border border-slate-700 bg-slate-900 p-1.5 shadow-2xl ${openMenu === group.id ? 'block' : 'hidden'} sm:left-11 sm:top-0`}>
+          <p className="px-2 py-1 text-[9px] font-semibold uppercase tracking-[.14em] text-slate-600">{group.label}</p>
+          {group.items.map(item => <button key={item.label} type="button" disabled={item.disabled} title={item.reason ?? item.label} aria-label={item.disabled ? `${item.label} unavailable` : item.label} onClick={() => item.tool && choose(item.tool)} className={`flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[11px] ${item.tool === selected ? 'bg-slate-700 text-white' : item.disabled ? 'text-slate-600' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}><Icon name={item.icon} className="h-3.5 w-3.5"/><span>{item.label}</span>{item.shortcut && <span className="ml-auto font-mono text-[9px] text-slate-600">{item.shortcut}</span>}{item.disabled && <span className="ml-auto text-[9px]">Soon</span>}</button>)}
+        </div>
       </div>
-    </details>)}
+    })}
     <span className="mx-1 h-5 w-px shrink-0 bg-slate-800 sm:my-1 sm:h-px sm:w-5" aria-hidden="true" />
-    <details className="relative shrink-0"><summary aria-label="Drawing utilities" title="Drawing utilities" data-tooltip="Utilities" className={`${toolButton} list-none cursor-pointer`}><Icon name="magnet" className="h-4 w-4"/><Icon name="chevronRight" className="absolute bottom-0.5 right-0.5 h-2 w-2 opacity-50"/></summary><div className="drawing-flyout absolute left-0 top-10 z-50 w-60 rounded-lg border border-slate-700 bg-[#17191e] p-1.5 shadow-2xl sm:left-10 sm:top-auto sm:bottom-0">
-      <button type="button" onClick={event => { onObjectTree?.(); event.currentTarget.closest('details')?.removeAttribute('open') }} className="flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-[11px] text-slate-300 hover:bg-slate-800"><Icon name="layers" className="h-3.5 w-3.5"/>Object Tree</button>
-      <button type="button" disabled={!canDelete} onClick={onDelete} className="flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-[11px] text-slate-300 hover:bg-slate-800 disabled:text-slate-600"><Icon name="trash" className="h-3.5 w-3.5"/>Delete selected <span className="ml-auto font-mono text-[9px]">Del</span></button>
-      <button type="button" disabled={!hasDrawings} onClick={onClear} className="flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-[11px] text-slate-300 hover:bg-slate-800 disabled:text-slate-600"><Icon name="close" className="h-3.5 w-3.5"/>Clear drawings</button>
-      <div className="my-1 border-t border-slate-700"/><p className="px-2 py-1 text-[9px] uppercase tracking-wider text-slate-600">Magnet</p>
-      <div className="grid grid-cols-3 gap-1">{(['off', 'weak', 'strong'] as MagnetMode[]).map(mode => <button key={mode} type="button" aria-pressed={magnet === mode} onClick={() => onMagnetChange?.(mode)} className={`min-h-7 rounded text-[9px] capitalize ${magnet === mode ? 'bg-slate-700 text-white' : 'bg-slate-900 text-slate-500 hover:text-slate-200'}`}>{mode}</button>)}</div>
-      <button type="button" aria-pressed={stayInMode} onClick={onToggleStay} className={`mt-1 flex min-h-8 w-full items-center rounded-md px-2 text-[11px] ${stayInMode ? 'bg-slate-700 text-white' : 'text-slate-400 hover:bg-slate-800'}`}>Stay in drawing mode<span className="ml-auto">{stayInMode ? 'On' : 'Off'}</span></button>
-    </div></details>
+    <div className="relative shrink-0">
+      <button aria-label="Drawing utilities" title="Drawing utilities" data-tooltip="Utilities" onClick={() => setOpenMenu(openMenu === 'utilities' ? null : 'utilities')} className={`${toolButton} list-none cursor-pointer`}><Icon name="magnet" className="h-4 w-4"/><Icon name="chevronRight" className="absolute bottom-0.5 right-0.5 h-2 w-2 opacity-50"/></button>
+      <div className={`drawing-flyout absolute left-0 top-10 z-50 w-60 rounded-lg border border-slate-700 bg-slate-900 p-1.5 shadow-2xl ${openMenu === 'utilities' ? 'block' : 'hidden'} sm:left-11 sm:top-auto sm:bottom-0`}>
+        <button type="button" onClick={() => { onObjectTree?.(); setOpenMenu(null) }} className="flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-[11px] text-slate-300 hover:bg-slate-800"><Icon name="layers" className="h-3.5 w-3.5"/>Object Tree</button>
+        <button type="button" disabled={!canDelete} onClick={() => { onDelete?.(); setOpenMenu(null) }} className="flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-[11px] text-slate-300 hover:bg-slate-800 disabled:text-slate-600"><Icon name="trash" className="h-3.5 w-3.5"/>Delete selected <span className="ml-auto font-mono text-[9px]">Del</span></button>
+        <button type="button" disabled={!hasDrawings} onClick={() => { onClear?.(); setOpenMenu(null) }} className="flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-[11px] text-slate-300 hover:bg-slate-800 disabled:text-slate-600"><Icon name="close" className="h-3.5 w-3.5"/>Clear drawings</button>
+        <div className="my-1 border-t border-slate-700"/><p className="px-2 py-1 text-[9px] uppercase tracking-wider text-slate-600">Magnet</p>
+        <div className="grid grid-cols-3 gap-1">{(['off', 'weak', 'strong'] as MagnetMode[]).map(mode => <button key={mode} type="button" aria-pressed={magnet === mode} onClick={() => onMagnetChange?.(mode)} className={`min-h-7 rounded text-[9px] capitalize ${magnet === mode ? 'bg-slate-700 text-white' : 'bg-slate-900 text-slate-500 hover:text-slate-200'}`}>{mode}</button>)}</div>
+        <button type="button" aria-pressed={stayInMode} onClick={onToggleStay} className={`mt-1 flex min-h-8 w-full items-center rounded-md px-2 text-[11px] ${stayInMode ? 'bg-slate-700 text-white' : 'text-slate-400 hover:bg-slate-800'}`}>Stay in drawing mode<span className="ml-auto">{stayInMode ? 'On' : 'Off'}</span></button>
+      </div>
+    </div>
   </aside>
 }
 
