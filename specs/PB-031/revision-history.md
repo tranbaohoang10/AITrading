@@ -16,3 +16,4 @@ All timestamps use Asia/Ho_Chi_Minh.
 - Refined the terminal workspace with a Q-only permanent rail, vertical active-indicator controls, expanded real drawing tools, chart viewport zoom/pan/reset, compact chart/chat typography, real timezone rendering, and responsive overflow corrections.
 - Follow-up runtime evidence covers desktop 1920×1080 and 1440×900, tablet 1024×768, and mobile 390×844. All reviewed document widths matched their viewport widths.
 - Follow-up quality evidence: `npm test -- --run --reporter=dot --no-file-parallelism` → 31 files / 227 tests PASS; `npm run lint` PASS; `npm run build` PASS.
+- Published follow-up implementation commit `374736c` directly to `origin/main`; final workflow status is recorded in Issue #32.

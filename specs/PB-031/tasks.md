@@ -17,4 +17,4 @@
 - [x] Add wheel/keyboard zoom, drag pan, crosshair, and viewport reset without changing market data.
 - [x] Tighten chat typography and chart control density.
 - [x] Extend automated tests and re-check desktop, tablet, and mobile in the running app.
-- [ ] Run frontend tests, lint, build, diff checks, commit, push, and record final CI evidence.
+- [x] Run frontend tests, lint, build, diff checks, commit, push, and record final CI evidence.
