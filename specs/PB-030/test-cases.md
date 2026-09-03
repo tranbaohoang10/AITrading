@@ -8,4 +8,4 @@
 | TC-04 | `desktop-1440-export.png`; real PNG action; workspace tests | Icon-first rail/tooltips; export menu honest; supported actions work without backend changes | PASS |
 | TC-05 | Synthetic 96-candle import rendered in real app; full frontend regression | Existing functionality preserved in compact controls | PASS |
 | TC-06 | `test-evidence/*.png` plus automated layout/overflow metrics | Correct layouts at 1920×1080, 1440×900, 1024×768 and 390×844; no horizontal overflow | PASS |
-| TC-07 | `npm test`; `npm run lint`; `npm run build`; `git diff --check` | All pass; frontend/spec scope only; no secrets/contracts/business logic changed | PASS locally; publication pending |
+| TC-07 | `npm test`; `npm run lint`; `npm run build`; `git diff --check`; CI run 33701963644 | All pass; frontend/spec scope only; no secrets/contracts/business logic changed | Frontend/local PASS; complete workflow BLOCKED by pre-existing backend Tomcat dependency advisories |
