@@ -1,8 +1,8 @@
 import { TIMEFRAMES, type Timeframe } from './chartMath'
 
-export const LIVE_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'] as const
-export type LiveSymbol = typeof LIVE_SYMBOLS[number]
-export type LiveConnectionStatus = 'CONNECTING' | 'LIVE' | 'DISCONNECTED'
+export const COINBASE_DEFAULT_SYMBOLS = ['BTC-USD', 'ETH-USD'] as const
+export type LiveSymbol = string
+export type LiveConnectionStatus = 'CONNECTING' | 'LIVE' | 'RECONNECTING' | 'DISCONNECTED'
 
 export type MarketCandle = {
   symbol: LiveSymbol
@@ -25,7 +25,8 @@ export type CandleSubscription = {
 
 export interface MarketDataProvider {
   getHistoricalCandles(request: { symbol: LiveSymbol; interval: Timeframe; limit: number; signal?: AbortSignal }): Promise<MarketCandle[]>
-  subscribeCandles(request: { symbol: LiveSymbol; interval: Timeframe }, subscription: CandleSubscription): () => void
+  listProducts?: (signal?: AbortSignal) => Promise<LiveSymbol[]>
+  subscribeCandles(request: { symbol: LiveSymbol; interval: Timeframe; seed?: MarketCandle }, subscription: CandleSubscription): () => void
 }
 
 const finiteDecimal = (value: unknown, allowZero = false): string | null => {
@@ -53,5 +54,5 @@ export function mergeCandles(current: MarketCandle[], incoming: MarketCandle): M
   return merged
 }
 
-export function isLiveSymbol(value: string): value is LiveSymbol { return (LIVE_SYMBOLS as readonly string[]).includes(value) }
+export function isLiveSymbol(value: string): value is LiveSymbol { return /^[A-Z0-9]{2,20}-[A-Z0-9]{2,20}$/.test(value) }
 export function isTimeframe(value: string): value is Timeframe { return (TIMEFRAMES as readonly string[]).includes(value) }

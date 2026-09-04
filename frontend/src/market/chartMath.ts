@@ -5,6 +5,8 @@ export type Timeframe = typeof TIMEFRAMES[number]
 
 const MINUTES: Record<Timeframe, number> = { '1m': 1, '5m': 5, '15m': 15, '30m': 30, '1h': 60, '4h': 240, '1d': 1440 }
 
+export function timeframeMilliseconds(value: Timeframe) { return MINUTES[value] * 60_000 }
+
 export function normalizeTimeframe(value: string): Timeframe | null {
   const normalized = value.toLowerCase()
   return TIMEFRAMES.find(item => item === normalized) ?? null
