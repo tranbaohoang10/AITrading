@@ -34,6 +34,18 @@ export function LiveChart({ workspaceNavigation, provider = coinbaseMarketData }
   }, [provider, unitTestDefaultProvider])
 
   useEffect(() => {
+    const shortcuts = (event: KeyboardEvent) => {
+      const target = event.target
+      if (target instanceof HTMLElement && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)) return
+      if (!event.altKey) return
+      const next: DrawingTool | null = event.key.toLowerCase() === 't' ? 'trend' : event.key.toLowerCase() === 'h' ? 'horizontal' : event.key.toLowerCase() === 'v' ? 'vertical' : null
+      if (next) { event.preventDefault(); setTool(next) }
+    }
+    window.addEventListener('keydown', shortcuts)
+    return () => window.removeEventListener('keydown', shortcuts)
+  }, [])
+
+  useEffect(() => {
     if (unitTestDefaultProvider) return
     let active = true, unsubscribe = () => {}
     const controller = new AbortController()

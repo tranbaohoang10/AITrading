@@ -106,6 +106,16 @@ describe('PB-034 Coinbase market-data contract', () => {
     expect(screen.getByRole('button', { name: /Remove All Drawings/ })).toBeDisabled()
   })
 
+  it('supports Alt shortcuts for the primary line tools', async () => {
+    const provider: MarketDataProvider = { getHistoricalCandles: vi.fn(async ({ symbol }) => [candle(baseTime, symbol)]), subscribeCandles: vi.fn((_request, subscription) => { subscription.onStatus('LIVE'); return vi.fn() }) }
+    render(createElement(LiveChartFixture, { provider }))
+    await screen.findByText('COINBASE · LIVE')
+    fireEvent.keyDown(window, { key: 't', altKey: true })
+    expect(screen.getByRole('button', { name: 'Lines & Channels tools' })).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.keyDown(window, { key: 'h', altKey: true })
+    expect(screen.getByRole('button', { name: 'Lines & Channels tools' })).toHaveAttribute('title', 'Horizontal Line')
+  })
+
   it('merge identity remains symbol, interval and UTC openTime', () => {
     const first = candle(), updated = candle(first.openTime, 'BTC-USD', '102'), next = candle(first.openTime + 60_000, 'BTC-USD', '103')
     expect(mergeCandles([first], updated)).toEqual([updated])
