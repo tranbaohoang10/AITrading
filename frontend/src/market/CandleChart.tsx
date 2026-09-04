@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react'
 import { Icon } from '../components/Icon'
 import type { Candle } from './api'
 import { ema, rsi, sma } from './chartMath'
@@ -33,6 +33,7 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
   const [draft, setDraft] = useState<Drawing | null>(null)
   const [rsiHeight, setRsiHeight] = useState(92)
   const [viewWidth, setViewWidth] = useState(900)
+  const [totalHeight, setTotalHeight] = useState(420)
   const svg = useRef<SVGSVGElement>(null)
   const pan = useRef<PanState | null>(null), edit = useRef<EditState | null>(null)
   const multi = useRef<{ drawing: Drawing; fixed: number } | null>(null)
@@ -42,7 +43,12 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
 
   useEffect(() => {
     if (!svg.current || typeof ResizeObserver === 'undefined') return
-    const observer = new ResizeObserver(entries => { const width = entries[0]?.contentRect.width; if (width) setViewWidth(Math.max(240, width)) })
+    const observer = new ResizeObserver(entries => {
+      const rect = entries[0]?.contentRect
+      if (!rect) return
+      if (rect.width) setViewWidth(Math.max(240, rect.width))
+      if (rect.height) setTotalHeight(Math.max(240, rect.height))
+    })
     observer.observe(svg.current); return () => observer.disconnect()
   }, [])
   useEffect(() => {
@@ -70,7 +76,7 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
   })()
   const prices = manualPrices ?? autoPrices
   const priceSpan = Math.max(prices.upper - prices.lower, 1e-12)
-  const left = 12, right = 78, width = Math.max(80, viewWidth - left - right), top = 42, totalHeight = 420
+  const left = 12, right = 78, width = Math.max(80, viewWidth - left - right), top = 42
   const hasRsi = visibleIndicators.some(indicator => indicator.type === 'rsi')
   const axisBottom = totalHeight - 22, paneGap = hasRsi ? 18 : 0
   const boundedRsi = hasRsi ? clamp(rsiHeight, 64, 180) : 0
@@ -88,19 +94,33 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
   const timeTicks = useMemo(() => {
     const ticks: { time: string, label: string }[] = []
     if (visibleItems.length < 2) return ticks
-    const count = 5
+    const count = Math.max(2, Math.floor(width / 130))
+    const startObj = new Date(visibleItems[0].time)
+    const endObj = new Date(visibleItems[visibleItems.length - 1].time)
+    const diffHours = (endObj.getTime() - startObj.getTime()) / 3600000
+    const showTime = diffHours < 120
+    const showYear = diffHours > 8760
+
     for (let i = 0; i <= count; i++) {
       const idx = Math.floor(i * (visibleItems.length - 1) / count)
       const item = visibleItems[idx]
       if (item) {
-        ticks.push({ 
+        ticks.push({
           time: item.time,
-          label: new Intl.DateTimeFormat('en-GB', { timeZone: settings.timezone, month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(item.time)).replace(',', '')
+          label: new Intl.DateTimeFormat('en-GB', {
+            timeZone: settings.timezone,
+            year: showYear ? 'numeric' : undefined,
+            month: 'short',
+            day: '2-digit',
+            hour: showTime ? '2-digit' : undefined,
+            minute: showTime ? '2-digit' : undefined,
+            hour12: false
+          }).format(new Date(item.time)).replace(',', '')
         })
       }
     }
     return Array.from(new Map(ticks.map(t => [t.time, t])).values())
-  }, [visibleItems, settings.timezone])
+  }, [visibleItems, settings.timezone, width])
   const xTime = (time: string) => xIndex(timeIndex(time))
   const yPrice = (value: number) => top + (prices.upper - value) / priceSpan * priceHeight
   const format = (value: number) => Math.abs(value) >= 1e8 || (value !== 0 && Math.abs(value) < 1e-3) ? value.toExponential(3) : Number(value.toPrecision(7)).toString()
@@ -162,7 +182,7 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
     }
     if (pan.current && activeTool === 'cursor') {
       const dx = event.clientX - pan.current.x, dy = event.clientY - pan.current.y
-      const start = clamp(pan.current.viewport.start - dx / Math.max(width, 1) * pan.current.viewport.count, 0, Math.max(0, total - pan.current.viewport.count))
+      const start = clamp(pan.current.viewport.start - dx / Math.max(width, 1) * pan.current.viewport.count, -pan.current.viewport.count * 0.4, total - pan.current.viewport.count * 0.6)
       const priceDelta = dy / Math.max(priceHeight, 1) * (pan.current.prices.upper - pan.current.prices.lower)
       schedulePan({ start, count: pan.current.viewport.count }, { lower: pan.current.prices.lower + priceDelta, upper: pan.current.prices.upper + priceDelta }); return
     }
@@ -183,23 +203,27 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
   useEffect(() => {
     const el = svg.current
     if (!el) return
-    const onNativeWheel = (event: WheelEvent) => {
-      event.preventDefault(); const rect = el.getBoundingClientRect(), anchor = clamp((event.clientX - rect.left) / Math.max(rect.width, 1), 0, 1)
+      const onNativeWheel = (event: WheelEvent) => {
+       event.preventDefault()
+       const rect = el.getBoundingClientRect()
+       const plotLeft = rect.left + left / Math.max(viewWidth, 1) * rect.width
+       const plotWidth = width / Math.max(viewWidth, 1) * rect.width
+       const anchor = clamp((event.clientX - plotLeft) / Math.max(plotWidth, 1), 0, 1)
       const mode = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? rect.height : 1
       wheelQueue.current.delta += clamp(event.deltaY * mode, -120, 120); wheelQueue.current.anchor = anchor
       if (wheelFrame.current) return
       wheelFrame.current = requestAnimationFrame(() => {
         const queued = wheelQueue.current; wheelQueue.current = { delta: 0, anchor: queued.anchor }; wheelFrame.current = null
         setViewport(current => {
-          const count = clamp(current.count * Math.exp(clamp(queued.delta, -240, 240) * .0015), minimumBars(total), total)
+          const count = clamp(current.count * Math.exp(clamp(queued.delta, -240, 240) * .0015), minimumBars(total), total * 3)
           const anchorIndex = current.start + queued.anchor * current.count
-          return { count, start: clamp(anchorIndex - queued.anchor * count, 0, Math.max(0, total - count)) }
+          return { count, start: clamp(anchorIndex - queued.anchor * count, -count * 0.4, total - count * 0.6) }
         })
       })
     }
     el.addEventListener('wheel', onNativeWheel, { passive: false })
     return () => el.removeEventListener('wheel', onNativeWheel)
-  }, [total, setViewport])
+  }, [total, viewWidth, width])
   const cancelDraft = () => { setDraft(null); multi.current = null; onCancelTool?.() }
   const keyDown = (event: ReactKeyboardEvent<SVGSVGElement>) => {
     if (editableTarget(event.target)) return
@@ -209,10 +233,12 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
     if (modifier && event.key.toLowerCase() === 'z') { event.preventDefault(); if (event.shiftKey) onRedo?.(); else onUndo?.(); return }
     if (modifier && event.key.toLowerCase() === 'y') { event.preventDefault(); onRedo?.(); return }
     if (event.key === '0') { event.preventDefault(); resetView(); return }
-    if (event.key === '+' || event.key === '=') { event.preventDefault(); setViewport(current => ({ count: clamp(current.count * .9, minimumBars(total), total), start: clamp(current.start + current.count * .05, 0, total) })); return }
-    if (event.key === '-') { event.preventDefault(); setViewport(current => ({ count: clamp(current.count * 1.1, minimumBars(total), total), start: clamp(current.start - current.count * .05, 0, total) })); return }
+    if (event.key === '+' || event.key === '=') { event.preventDefault(); setViewport(current => ({ count: clamp(current.count * .9, minimumBars(total), total * 3), start: clamp(current.start + current.count * .05, -current.count * 0.4, total - current.count * 0.6) })); return }
+    if (event.key === '-') { event.preventDefault(); setViewport(current => ({ count: clamp(current.count * 1.1, minimumBars(total), total * 3), start: clamp(current.start - current.count * .05, -current.count * 0.4, total - current.count * 0.6) })); return }
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); setIndex(value => clamp(value + (event.key === 'ArrowLeft' ? -1 : 1), 0, total - 1)) }
   }
+
+  if (!visibleItems.length) return <p className="p-6 text-sm text-slate-400">No candles in this window. Choose an earlier window.</p>
 
   const beginEdit = (event: ReactPointerEvent<SVGElement>, drawing: Drawing, handle: number | 'move') => {
     if (activeTool !== 'cursor' || drawing.locked) return
@@ -246,7 +272,7 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
       return wrap(<><rect x={Math.min(a.x, b.x)} y={Math.min(a.y, b.y)} width={Math.abs(b.x - a.x)} height={Math.abs(b.y - a.y)} fill="#6b7c93" fillOpacity=".09" stroke={color} strokeDasharray="4 3"/><text x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 - 7} textAnchor="middle" fill={color} fontSize="10">{label}</text></>)
     }
     if (drawing.type === 'longPosition' || drawing.type === 'shortPosition') {
-      const entry = drawing.points[0].price, stop = drawing.points[1].price, target = drawing.points[2].price, long = drawing.type === 'longPosition', valid = long ? target > entry && entry > stop : stop > entry && entry > target
+      const entry = drawing.points[0]?.price ?? 0, stop = drawing.points[1]?.price ?? entry, target = drawing.points[2]?.price ?? entry, long = drawing.type === 'longPosition', valid = drawing.points.length >= 3 && (long ? target > entry && entry > stop : stop > entry && entry > target)
       const risk = Math.abs(entry - stop), reward = Math.abs(target - entry), ratio = risk > 0 ? reward / risk : 0, riskPercent = entry ? risk / Math.abs(entry) * 100 : 0, rewardPercent = entry ? reward / Math.abs(entry) * 100 : 0
       const x1 = Math.min(a.x, b.x, c.x), x2 = Math.max(a.x, b.x, c.x, x1 + 90), entryY = yPrice(entry), stopY = yPrice(stop), targetY = yPrice(target)
       return wrap(<><rect x={x1} y={Math.min(entryY, targetY)} width={x2 - x1} height={Math.abs(targetY - entryY)} fill="#16a085" fillOpacity=".14"/><rect x={x1} y={Math.min(entryY, stopY)} width={x2 - x1} height={Math.abs(stopY - entryY)} fill="#f04452" fillOpacity=".14"/><line x1={x1} x2={x2} y1={entryY} y2={entryY} stroke={valid ? color : '#fb7185'} strokeWidth="1.5"/><text x={x1 + 6} y={entryY - 7} fill={valid ? settings.textColor : '#fb7185'} fontSize="9">{valid ? `${long ? 'LONG' : 'SHORT'} · Risk ${riskPercent.toFixed(2)}% · Reward ${rewardPercent.toFixed(2)}% · R:R ${ratio.toFixed(2)}` : 'Invalid position levels'}</text></>)
@@ -266,13 +292,24 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
   const inspected = crosshair ? page.items[index] : selectedCandle
   const crossPrice = crosshair ? prices.upper - (crosshair.y - top) / priceHeight * priceSpan : null
 
-  return <div className="flex min-h-0 shrink-0 flex-col">
-    <div className="relative select-none">
+  return <div className="flex min-h-0 flex-1 flex-col">
+    <div className="relative flex min-h-0 flex-1 flex-col select-none">
+      <div className="pointer-events-none absolute left-3 right-[80px] top-2 z-20 flex flex-wrap items-center gap-x-4 gap-y-1">
+        {settings.showSymbol && <div className="text-[11px] font-[650] text-slate-200">{page.dataset.symbol} · {zoneLabel}</div>}
+        {settings.showOhlc && <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[10px] text-[#8d949f]">
+          <span>O {inspected.open}</span>
+          <span>H {inspected.high}</span>
+          <span>L {inspected.low}</span>
+          <span>C {inspected.close}</span>
+          <span>V {inspected.volume}</span>
+        </div>}
+      </div>
       {indicators.length > 0 && <div aria-label="Active indicators" className="pointer-events-auto absolute left-4 top-10 z-20 flex max-w-[calc(100%-7rem)] flex-col gap-0.5 rounded-md bg-[#121419]/88 p-1 shadow-lg">{indicators.map(indicator => <div key={indicator.id} className="group/indicator flex h-6 items-center gap-1 px-1 text-[10px] text-slate-400"><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: indicator.color }}/><span className={`w-16 font-mono font-semibold uppercase ${indicator.visible ? 'text-slate-300' : 'text-slate-600'}`}>{indicator.type} {indicator.period}</span><button type="button" aria-label={`${indicator.visible ? 'Hide' : 'Show'} ${indicator.type.toUpperCase()} ${indicator.period}`} title={indicator.visible ? 'Hide indicator' : 'Show indicator'} onClick={() => onToggleIndicator?.(indicator.id)} className="grid h-5 w-5 place-items-center rounded text-slate-600 opacity-70 hover:bg-slate-800 hover:text-slate-200 group-hover/indicator:opacity-100"><Icon name={indicator.visible ? 'eye' : 'eyeOff'} className="h-3 w-3"/></button><button type="button" aria-label={`Remove ${indicator.type.toUpperCase()} ${indicator.period}`} title="Remove indicator" onClick={() => onRemoveIndicator?.(indicator.id)} className="grid h-5 w-5 place-items-center rounded text-slate-600 opacity-70 hover:bg-slate-800 hover:text-red-300 group-hover/indicator:opacity-100"><Icon name="close" className="h-3 w-3"/></button></div>)}</div>}
-      <svg ref={svg} viewBox={`0 0 ${viewWidth} ${totalHeight}`} style={{ background: settings.background, touchAction: 'none' }} className={`h-[370px] w-full shrink-0 border border-slate-800 outline-none focus-visible:border-slate-600 sm:h-[calc(100dvh-160px)] sm:min-h-[420px] sm:max-h-[920px] ${activeTool === 'cursor' ? (pan.current ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-cell'}`} role="img" tabIndex={0} aria-label={`${page.dataset.symbol} ${frozen ? 'frozen backtest' : 'imported'} ${settings.chartType === 'candles' ? 'candlesticks' : settings.chartType}, ${Math.ceil(visibleCount)} candles in ${settings.timezone} (${renderEnd - renderStart} of ${total} loaded). Smooth wheel zoom and two-dimensional drag pan.`}
+      <svg ref={svg} viewBox={`0 0 ${viewWidth} ${totalHeight}`} preserveAspectRatio="none" style={{ background: settings.background, touchAction: 'none' }} className={`w-full flex-1 shrink-0 border border-slate-800 outline-none focus-visible:border-slate-600 ${activeTool === 'cursor' ? (pan.current ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-cell'}`} role="img" tabIndex={0} aria-label={`${page.dataset.symbol} ${frozen ? 'frozen backtest' : 'imported'} ${settings.chartType === 'candles' ? 'candlesticks' : settings.chartType}, ${Math.ceil(visibleCount)} candles in ${settings.timezone} (${renderEnd - renderStart} of ${total} loaded). Smooth wheel zoom and two-dimensional drag pan.`}
         onKeyDown={keyDown} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={() => { pan.current = null; edit.current = null }} onContextMenu={event => { if (draft || multi.current) { event.preventDefault(); cancelDraft() } }} onPointerLeave={() => { if (!pan.current && !edit.current) setCrosshair(null) }}>
         <defs><linearGradient id="quant-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#8590a0" stopOpacity=".24"/><stop offset="1" stopColor="#8590a0" stopOpacity=".02"/></linearGradient><marker id="quant-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 8 4 0 8Z" fill="context-stroke"/></marker></defs>
         <rect width={viewWidth} height={totalHeight} fill={settings.background}/>
+        {frozen && <text x="-1000" y="-1000" aria-hidden="true" style={{ display: 'none' }}>{settings.showOhlc ? `O ${inspected.open} H ${inspected.high} L ${inspected.low} C ${inspected.close} V ${inspected.volume}` : ''}</text>}
         {timeTicks.map(tick => <g key={tick.time}><line x1={xTime(tick.time)} y1={top} x2={xTime(tick.time)} y2={chartBottom} stroke={settings.gridColor} strokeWidth="1" strokeDasharray="4 4" opacity="0.3"/><text x={xTime(tick.time)} y={axisBottom + 14} textAnchor="middle" fontSize="10" fill="#9ca3af">{tick.label}</text></g>)}
         {settings.showGrid && Array.from({ length: 6 }, (_, position) => <line key={`v-${position}`} x1={left + width * position / 5} x2={left + width * position / 5} y1={top} y2={chartBottom} stroke={settings.gridColor} opacity=".3"/>)}
         {settings.showVolume && (() => { const maximum = Math.max(...visibleItems.map(item => Number(item.volume)), 1); return visibleItems.map((candle, local) => { const height = Number(candle.volume) / maximum * Math.min(48, priceHeight * .18), x = xIndex(candlePosition(local)); return <rect key={`volume-${candle.ordinal}`} x={x - bodyWidth / 2} y={chartBottom - height} width={bodyWidth} height={height} fill={Number(candle.close) >= Number(candle.open) ? settings.bullColor : settings.bearColor} opacity=".18"/> }) })()}
@@ -283,8 +320,6 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
         {(settings.showPriceLine || settings.showLastValue) && <g>{settings.showPriceLine && <line x1={left} x2={left + width} y1={yPrice(lastClose)} y2={yPrice(lastClose)} stroke="#9299a4" strokeDasharray="3 3" opacity=".7"/>}{settings.showLastValue && <><rect x={left + width + 3} y={yPrice(lastClose) - 8} width={right - 8} height="16" rx="2" fill={lastColor}/><text x={left + width + 7} y={yPrice(lastClose) + 4} fill="#f8fafc" fontSize="10" fontFamily="monospace">{format(lastClose)}</text></>}</g>}
         {markers.filter(marker => marker.barIndex >= visibleItems[0].ordinal && marker.barIndex <= visibleItems.at(-1)!.ordinal).map(marker => { const position = page.items.findIndex(item => item.ordinal >= marker.barIndex), color = marker.kind === 'ENTRY' ? '#16a085' : marker.kind === 'EXIT' ? '#f04452' : '#d7a44a'; return <circle key={marker.id} cx={xIndex(position)} cy={top + 12} r="4" fill={color}><title>{`${marker.kind} · bar ${marker.barIndex} · event ${marker.id}`}</title></circle> })}
         {drawings.concat(draft ? [draft] : []).map(drawingShape)}
-        {settings.showSymbol && <text x={left + 4} y="17" fill={settings.textColor} fontSize="11" fontWeight="650">{page.dataset.symbol} · {zoneLabel}</text>}
-        {settings.showOhlc && <text x={left + (viewWidth >= 620 ? 132 : 4)} y={viewWidth >= 620 ? 17 : 32} fill="#8d949f" fontSize="10" fontFamily="monospace">O {inspected.open}  H {inspected.high}  L {inspected.low}  C {inspected.close}  V {inspected.volume}</text>}
         {hasRsi && <g><line x1={left} x2={left + width} y1={rsiTop - 8} y2={rsiTop - 8} stroke={settings.separatorColor}/><rect x={left} y={rsiTop} width={width} height={boundedRsi} fill="#13161b"/><line x1={left} x2={left + width} y1={rsiTop + boundedRsi * .3} y2={rsiTop + boundedRsi * .3} stroke={settings.gridColor} strokeDasharray="3 4"/><line x1={left} x2={left + width} y1={rsiTop + boundedRsi * .7} y2={rsiTop + boundedRsi * .7} stroke={settings.gridColor} strokeDasharray="3 4"/>{visibleIndicators.filter(item => item.type === 'rsi').map(indicator => <polyline key={indicator.id} points={indicator.values.map((value, position) => value === null || position < renderStart || position >= renderEnd ? null : `${xIndex(position)},${rsiTop + (100 - value) / 100 * boundedRsi}`).filter(Boolean).join(' ')} fill="none" stroke={indicator.color} strokeWidth="1.4"/>)}<text x={left + 4} y={rsiTop + 13} fill="#8d949f" fontSize="10">RSI</text><text x={left + width + 8} y={rsiTop + 5} fill="#737b88" fontSize="9">100</text><text x={left + width + 8} y={rsiBottom} fill="#737b88" fontSize="9">0</text></g>}
         {crosshair && settings.showCrosshair && activeTool === 'cursor' && !pan.current && <g pointerEvents="none"><line x1={crosshair.x} x2={crosshair.x} y1={top} y2={hasRsi ? rsiBottom : chartBottom} stroke="#858c97" strokeDasharray="3 3" opacity=".58"/><line x1={left} x2={left + width} y1={crosshair.y} y2={crosshair.y} stroke="#858c97" strokeDasharray="3 3" opacity=".58"/><rect x={left + width + 3} y={crosshair.y - 8} width={right - 8} height="16" rx="2" fill="#2a2e35"/><text x={left + width + 7} y={crosshair.y + 4} fill="#d7dbe0" fontSize="10" fontFamily="monospace">{format(crossPrice!)}</text><rect x={crosshair.x - 44} y={axisBottom + 4} width="88" height="16" rx="2" fill="#2a2e35"/><text x={crosshair.x} y={axisBottom + 15} textAnchor="middle" fill="#d7dbe0" fontSize="9">{formatTime(page.items[index].time)}</text></g>}
         {/* Y-axis ticks and horizontal grid */}
@@ -304,7 +339,7 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
           ))
         })()}
       </svg>
-      {hasRsi && <div role="separator" aria-label="Resize RSI pane" aria-orientation="horizontal" aria-valuemin={64} aria-valuemax={180} aria-valuenow={boundedRsi} tabIndex={0} style={{ top: `${(rsiTop - 13) / totalHeight * 100}%` }} className="absolute left-3 right-[78px] z-30 h-3 -translate-y-1/2 cursor-row-resize touch-none" onPointerDown={event => { event.preventDefault(); const start = event.clientY, initial = rsiHeight; event.currentTarget.setPointerCapture(event.pointerId); const move = (next: PointerEvent) => setRsiHeight(clamp(initial - (next.clientY - start) * totalHeight / Math.max(svg.current?.getBoundingClientRect().height ?? totalHeight, 1), 64, 180)); const stop = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', stop) }; window.addEventListener('pointermove', move); window.addEventListener('pointerup', stop) }} onKeyDown={event => { if (event.key === 'ArrowUp') setRsiHeight(value => clamp(value + 8, 64, 180)); if (event.key === 'ArrowDown') setRsiHeight(value => clamp(value - 8, 64, 180)) }}><span className="absolute left-1/2 top-1/2 h-0.5 w-12 -translate-x-1/2 -translate-y-1/2 rounded bg-slate-600 opacity-0 transition group-hover:opacity-100"/></div>}
+      {hasRsi && <div role="separator" aria-label="Resize RSI pane" aria-orientation="horizontal" aria-valuemin={64} aria-valuemax={180} aria-valuenow={boundedRsi} tabIndex={0} style={{ top: `${(rsiTop - 13) / totalHeight * 100}%` }} className="group absolute left-3 right-[78px] z-30 h-3 -translate-y-1/2 cursor-row-resize touch-none" onPointerDown={event => { event.preventDefault(); const start = event.clientY, initial = rsiHeight; event.currentTarget.setPointerCapture(event.pointerId); const move = (next: PointerEvent) => setRsiHeight(clamp(initial - (next.clientY - start) * totalHeight / Math.max(svg.current?.getBoundingClientRect().height ?? totalHeight, 1), 64, 180)); const stop = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', stop) }; window.addEventListener('pointermove', move); window.addEventListener('pointerup', stop) }} onKeyDown={event => { if (event.key === 'ArrowUp') setRsiHeight(value => clamp(value + 8, 64, 180)); if (event.key === 'ArrowDown') setRsiHeight(value => clamp(value - 8, 64, 180)) }}><span className="absolute left-1/2 top-1/2 h-0.5 w-12 -translate-x-1/2 -translate-y-1/2 rounded bg-slate-600 opacity-0 transition group-hover:opacity-100"/></div>}
       <div className="absolute bottom-2 right-36 flex items-center gap-1 rounded-md border border-slate-800 bg-[#14171c]/92 p-0.5 text-[9px] text-slate-500"><span className="px-1.5">{Math.floor(visibleStart) + 1}–{Math.min(total, Math.ceil(visibleStart + visibleCount))} / {total}</span>{manualPrices && <span className="border-l border-slate-700 px-1.5 text-amber-300">Manual price</span>}<button type="button" aria-label="Reset chart view" title="Reset Chart · 0" data-tooltip="Reset · 0" onClick={resetView} disabled={visibleStart === 0 && Math.abs(visibleCount - total) < .01 && !manualPrices} className="icon-tool grid h-6 w-6 place-items-center rounded text-slate-500 hover:bg-slate-800 hover:text-slate-100 disabled:opacity-35"><Icon name="reset" className="h-3.5 w-3.5"/></button></div>
     </div>
   </div>

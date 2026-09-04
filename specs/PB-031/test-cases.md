@@ -34,6 +34,14 @@
 - Document width matched viewport width at every reviewed size; the desktop rail exposed only the Q trigger.
 - Advanced parallel-channel drawing and send-to-chat export remain visibly disabled because this iteration does not provide complete implementations.
 
+## Follow-up result — 04/09/2026
+
+- Direct LuxAlgo Quant reference inspection: PASS. Lines and Text flyouts expose icon-plus-label subtools with a single open flyout; the local UI follows the same density and hierarchy without copying brand assets.
+- Local browser pass at 1536×730 with the persisted synthetic `DEMO_USD` dataset: PASS. Verified continuous 100-candle rendering, OHLCV/status placement, time and price axes, horizontal/vertical/diagonal pan, reset, Lines/Fibonacci/Prediction/Shapes/Text flyouts, exclusive menus, trend/horizontal/Fibonacci/Long/Short/Text drawings, semantic time-price anchors, object-tree deletion, undo/redo, RSI insertion and splitter resize, timezone display conversion, chart settings, and dark theme.
+- Regression found and repaired during browser QA: incomplete Long/Short drafts no longer crash the chart renderer; completed tools show validated risk/reward metrics.
+- Automated quality: focused regression 7 files / 69 tests PASS; full frontend suite 31 files / 227 tests PASS; `npm run lint` PASS; `npm run build` PASS; `git diff --check` PASS.
+- Responsive evidence remains covered by the existing PB-031 captures at 1920×1080, 1440×900, 1024×768, and 390×844; the active browser-control surface did not expose a viewport-resize operation for a fresh multi-size capture in this pass.
+
 ## Phase A/B chart foundation cases
 
 | ID | Scenario | Expected |

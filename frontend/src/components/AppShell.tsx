@@ -24,6 +24,7 @@ import { Mql5Workspace } from '../mql5/Mql5Workspace'
 import { DocumentWorkspace } from '../document/DocumentWorkspace'
 import { ImageAnalysisWorkspace } from '../image/ImageAnalysisWorkspace'
 
+
 const mobileTitles: Record<MobileView, string> = {
   'ai-chat': 'Assistant', chart: 'Chart', 'strategy-dsl': 'Strategy DSL', 'pine-script': 'Pine Script', mql5: 'MQL5',
   'backtest-results': 'Backtest Results', trades: 'Trades', 'my-code': 'My Code', 'trading-journal': 'Trading Journal',

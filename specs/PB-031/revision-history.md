@@ -23,3 +23,9 @@ All timestamps use Asia/Ho_Chi_Minh.
 - Direct browser comparison used the current LuxAlgo tab only as hierarchy/density reference. Actual Quant interaction confirmed 100→84-bar wheel zoom, RSI 92→100 keyboard resize, tool flyouts, object tree, timezone, settings, and deterministic synthetic data behavior.
 - Fresh responsive captures at 1920×1080, 1440×900, 1024×768, and 390×844 all reported viewport-width equality and no document-level horizontal overflow.
 - Final local quality evidence before publication: 31 files / 227 tests PASS with `npx vitest run --maxWorkers=1`; chart regression 16/16 PASS; lint, build, and diff check PASS. The default parallel suite exposed only resource-contention timeouts; the same files and full serial suite passed without weakening tests.
+
+## 04/09/2026
+
+- Re-ran direct LuxAlgo reference inspection and local synthetic-data browser QA at 1536×730; verified chart navigation, grouped flyouts, exclusive menus, common drawings, semantic anchors, Long/Short draft safety, RSI resizing, timezone, settings, object-tree deletion, undo/redo, status-line layout, and dark theme.
+- Repaired incomplete Long/Short draft rendering so an in-progress three-anchor tool cannot dereference missing price points or blank the React workspace.
+- Quality evidence: focused regression 7 files / 69 tests PASS; full frontend suite 31 files / 227 tests PASS; lint, production build, and diff check PASS.

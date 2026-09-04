@@ -31,8 +31,7 @@ describe('PB-006 private market UI (API contract mocks)', () => {
   it('renders persisted prices and navigates candle windows without fake indicators', async () => {
     render(<App />)
     expect(await screen.findByRole('img', { name: /TEST_USD imported candlesticks/ })).toBeInTheDocument()
-    const chart = screen.getByRole('img', { name: /TEST_USD imported candlesticks/ })
-    expect(chart).toHaveTextContent('O 100.12345678')
+    expect(screen.getByText(/O 100\.12345678/)).toBeInTheDocument()
     expect(screen.queryByText(/EMA 50/)).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Older' }))
     await waitFor(() => expect(api.candles).toHaveBeenLastCalledWith(first, 100, 160, 'a'))

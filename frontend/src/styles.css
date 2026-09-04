@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-  --color-slate-950: #0d0f13;
-  --color-slate-925: #111318;
-  --color-slate-900: #171a20;
-  --color-slate-800: #242832;
-  --color-slate-700: #343944;
+  --color-slate-950: #0f1219;
+  --color-slate-925: #131722;
+  --color-slate-900: #1a1e29;
+  --color-slate-800: #2a2e39;
+  --color-slate-700: #363c4b;
   --color-slate-600: #555b66;
   --color-slate-500: #7d8490;
   --color-slate-400: #a9afb9;
@@ -18,7 +18,7 @@
 :root {
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #0d0f13;
+  background: #0f1219;
   color: #eef0f3;
   font-synthesis: none;
 }

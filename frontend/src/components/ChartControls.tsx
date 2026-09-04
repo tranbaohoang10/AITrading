@@ -33,7 +33,7 @@ const groups: Array<{ id: string; label: string; icon: string; items: ToolItem[]
 ]
 
 const toolButton = 'icon-tool grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 disabled:opacity-35'
-const chevronButton = 'grid h-8 w-3 place-items-center rounded-r-md text-slate-500 hover:bg-slate-700 hover:text-slate-100'
+const chevronButton = 'grid h-8 w-3 place-items-center rounded-r-md text-slate-500 transition hover:bg-slate-700 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300'
 
 export function ChartToolsRail({ selected: controlled, onSelect, canDelete = false, hasDrawings = false, onDelete, onClear, magnet = 'off', onMagnetChange, stayInMode = false, onToggleStay, onObjectTree }: {
   selected?: DrawingTool; onSelect?: (tool: DrawingTool) => void
@@ -59,11 +59,11 @@ export function ChartToolsRail({ selected: controlled, onSelect, canDelete = fal
     {groups.map(group => {
       const isSelectedGroup = group.items.some(item => item.tool === selected)
       const activeItem = group.items.find(item => item.tool === selected) ?? group.items[0]
-      return <div key={group.id} className="relative flex h-8 w-11 shrink-0 items-center rounded-md hover:bg-slate-800">
-        <button aria-label={`${group.label} tools`} title={activeItem.label} data-tooltip={activeItem.label} onClick={() => activeItem.tool && choose(activeItem.tool)} className={`icon-tool grid h-8 flex-1 place-items-center rounded-l-md text-slate-500 transition hover:text-slate-100 ${isSelectedGroup ? 'bg-slate-800 text-slate-100' : ''}`}>
+      return <div key={group.id} className="group relative flex h-8 w-11 shrink-0 items-center rounded-md hover:bg-slate-800">
+        <button aria-label={`${group.label} tools`} title={`${group.label} tools`} data-tooltip={activeItem.label} onClick={() => activeItem.tool && choose(activeItem.tool)} className={`icon-tool grid h-8 flex-1 place-items-center rounded-l-md text-slate-500 transition hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 ${isSelectedGroup ? 'bg-slate-800 text-slate-100' : ''}`}>
           <Icon name={activeItem.icon} className="h-4 w-4"/>
         </button>
-        <button aria-label="Show menu" title="Show menu" onClick={() => setOpenMenu(openMenu === group.id ? null : group.id)} className={`${chevronButton} ${isSelectedGroup ? 'bg-slate-800' : ''}`}>
+        <button aria-label="Show menu" title="Show menu" onClick={() => setOpenMenu(openMenu === group.id ? null : group.id)} className={`${chevronButton} ${openMenu === group.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'} ${isSelectedGroup ? 'bg-slate-800' : ''}`}>
           <Icon name="chevronRight" className="h-2 w-2"/>
         </button>
         <div className={`drawing-flyout absolute left-0 top-10 z-50 w-64 rounded-lg border border-slate-700 bg-slate-900 p-1.5 shadow-2xl ${openMenu === group.id ? 'block' : 'hidden'} sm:left-11 sm:top-0`}>
@@ -73,8 +73,8 @@ export function ChartToolsRail({ selected: controlled, onSelect, canDelete = fal
       </div>
     })}
     <span className="mx-1 h-5 w-px shrink-0 bg-slate-800 sm:my-1 sm:h-px sm:w-5" aria-hidden="true" />
-    <div className="relative shrink-0">
-      <button aria-label="Drawing utilities" title="Drawing utilities" data-tooltip="Utilities" onClick={() => setOpenMenu(openMenu === 'utilities' ? null : 'utilities')} className={`${toolButton} list-none cursor-pointer`}><Icon name="magnet" className="h-4 w-4"/><Icon name="chevronRight" className="absolute bottom-0.5 right-0.5 h-2 w-2 opacity-50"/></button>
+    <div className="group relative shrink-0">
+      <button aria-label="Drawing utilities" title="Drawing utilities" data-tooltip="Utilities" onClick={() => setOpenMenu(openMenu === 'utilities' ? null : 'utilities')} className={`${toolButton} list-none cursor-pointer`}><Icon name="magnet" className="h-4 w-4"/><Icon name="chevronRight" className={`absolute bottom-0.5 right-0.5 h-2 w-2 transition-opacity ${openMenu === 'utilities' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'}`}/></button>
       <div className={`drawing-flyout absolute left-0 top-10 z-50 w-60 rounded-lg border border-slate-700 bg-slate-900 p-1.5 shadow-2xl ${openMenu === 'utilities' ? 'block' : 'hidden'} sm:left-11 sm:top-auto sm:bottom-0`}>
         <button type="button" onClick={() => { onObjectTree?.(); setOpenMenu(null) }} className="flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-[11px] text-slate-300 hover:bg-slate-800"><Icon name="layers" className="h-3.5 w-3.5"/>Object Tree</button>
         <button type="button" disabled={!canDelete} onClick={() => { onDelete?.(); setOpenMenu(null) }} className="flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-[11px] text-slate-300 hover:bg-slate-800 disabled:text-slate-600"><Icon name="trash" className="h-3.5 w-3.5"/>Delete selected <span className="ml-auto font-mono text-[9px]">Del</span></button>

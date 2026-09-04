@@ -63,6 +63,7 @@ const paths: Record<string, string> = {
   eyeOff: 'm4 4 16 16M9.5 6.4A9.8 9.8 0 0 1 12 6c5.5 0 9 6 9 6a14 14 0 0 1-2.1 2.8M6.2 6.2C4.2 7.8 3 12 3 12s3.5 6 9 6c1 0 1.9-.2 2.7-.5',
   reset: 'M4 8V4m0 0h4M4 4l4 4a7 7 0 1 1-1 9',
   chevronRight: 'm9 6 6 6-6 6',
+  chevronLeft: 'm15 18-6-6 6-6',
   logout: 'M10 5H5v14h5m4-4 4-3-4-3m4 3H9',
 }
 
