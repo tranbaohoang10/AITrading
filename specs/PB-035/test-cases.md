@@ -21,6 +21,7 @@ Issue: #36
 
 - `frontend/npm run build` — PASS (TypeScript + Vite production build; existing chunk-size advisory only).
 - `frontend/npm run lint` — PASS.
+- `frontend/npm test -- --run --reporter=dot --no-file-parallelism` — PASS, 33 test files / 240 tests.
 - `frontend/npx vitest run src/market/liveMarket.test.ts src/market/chartCapture.test.ts --reporter=verbose --no-file-parallelism` — PASS, 2 files / 12 tests.
 - Focused `Workspace.test.tsx` + `Market.test.tsx` + `liveMarket.test.ts` — all reported tests PASS after updating the expected last-used tool title; the test runner wrapper did not emit its final summary before its 30-second tool window, so this is recorded as focused evidence rather than a claim of a completed full-suite report.
 - `backend/.../gradlew.bat test` — not PASS: the direct run lacked the repository-owned disposable database and failed precondition assertions (`...was: null`). A safe rerun of the official harness without its artifact-cleaning step created and stopped its owned PostgreSQL cluster, applied V1–V18, and executed all 290 tests; 74 existing AI API integration cases failed with `403 FORBIDDEN`/NPE setup assertions. The readiness assertion that still expected V17 was corrected to V18; the AI API setup failures remain unresolved baseline evidence and are not claimed as chart-feature coverage. No user data was touched or deleted.
