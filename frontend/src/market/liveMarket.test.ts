@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createElement, type FunctionComponent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CoinbaseMarketDataProvider } from './CoinbaseMarketDataProvider'
-import { CandleChart } from './CandleChart'
+import { CandleChart, zoomViewport } from './CandleChart'
 import { LiveChart } from './LiveChart'
 import { mergeCandles, type CandleSubscription, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
 
@@ -78,6 +78,14 @@ describe('PB-034 Coinbase market-data contract', () => {
     expect(screen.getByTestId('market-header').querySelector('.text-rose-300')).toBeInTheDocument()
     fireEvent.pointerLeave(chart)
     expect(screen.getByTestId('market-header')).toHaveTextContent('C 103.00')
+  })
+
+  it('keeps wheel zoom centered on the pointer instead of forcing a following view to the latest candle', () => {
+    const next = zoomViewport({ start: 0, count: 100 }, 100, .35, -120)
+    expect(next.viewport.count).toBeLessThan(100)
+    expect(next.viewport.start).toBeGreaterThan(0)
+    expect(next.viewport.start + next.viewport.count).toBeLessThan(100)
+    expect(next.followingLatest).toBe(false)
   })
 
   it('keeps a manual price scale after a realtime append and resets it on double-clicking the axis', async () => {
