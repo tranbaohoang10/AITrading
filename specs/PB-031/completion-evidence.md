@@ -13,7 +13,7 @@
 - Lint: PASS.
 - Build: PASS.
 - Diff check: PASS.
-- Implementation commit: `10e2e58f35077fa295eb2972c478ebf1b11f19af`, pushed to `origin/main`.
+- Current chart-correction commit: `d19cc9c`, ready to publish to `origin/main` after final repository verification.
 - GitHub Actions run `33720875077`: frontend job PASS.
 
 ## External scope limitation
