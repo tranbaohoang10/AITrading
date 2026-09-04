@@ -30,19 +30,19 @@ describe('TASK-003 through TASK-007 workspace behavior', () => {
     expect(within(toolbar).getByRole('button', { name: 'Chart settings' })).toBeInTheDocument()
     expect(within(toolbar).getByRole('group')).toBeInTheDocument()
     expect(screen.getByRole('complementary', { name: 'Chart tools' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Lines tools')).toHaveAttribute('title', 'Trend Line')
-    fireEvent.click(screen.getByRole('button', { name: 'Show Lines menu' }))
+    expect(screen.getByLabelText('Lines & Channels tools')).toHaveAttribute('title', 'Trend Line')
+    fireEvent.click(screen.getByRole('button', { name: 'Show Lines & Channels menu' }))
     expect(screen.getByRole('button', { name: 'Trend Line' })).toHaveAttribute('title', 'Trend Line')
   })
 
   it('keeps drawing tools compact and exposes an honest chart export menu', () => {
     render(<App />)
-    fireEvent.click(screen.getByLabelText('Lines tools'))
-    expect(screen.getByLabelText('Lines tools')).toHaveClass('text-slate-100')
+    fireEvent.click(screen.getByLabelText('Lines & Channels tools'))
+    expect(screen.getByLabelText('Lines & Channels tools')).toHaveClass('text-slate-100')
 
     fireEvent.click(screen.getByLabelText('Chart capture and export'))
-    expect(screen.getByRole('button', { name: 'Download PNG' })).toBeEnabled()
-    expect(screen.getByRole('button', { name: 'Copy to clipboard' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Save PNG' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Copy chart image' })).toBeEnabled()
     expect(screen.queryByRole('button', { name: /Send to chat/ })).not.toBeInTheDocument()
   })
 

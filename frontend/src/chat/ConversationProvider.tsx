@@ -4,6 +4,7 @@ import { ApiError } from '../auth/api'
 import * as api from './api'
 import * as ai from './aiApi'
 import { ConversationContext } from './ConversationContext'
+import type { ChartCaptureRequest } from '../market/chartCapture'
 
 export function ConversationProvider({ children }: { children: ReactNode }) {
   const auth = useAuth()
@@ -21,7 +22,7 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
   const writing = useRef(false)
   const [uncertain, setUncertain] = useState(false)
   const pendingCreate = useRef<string | null>(null)
-  const pendingSave = useRef<{ conversationId: string; requestId: string; content: string } | null>(null)
+  const pendingSave = useRef<{ conversationId: string; requestId: string; content: string; attachment?: ChartCaptureRequest } | null>(null)
   const pendingAi = useRef<ai.AiIntent | null>(null)
   const [aiConfiguration, setAiConfiguration] = useState<ai.AiConfiguration | null>(null)
   const [aiChecking, setAiChecking] = useState(false), [aiCancelling, setAiCancelling] = useState(false)
@@ -239,9 +240,52 @@ export function ConversationProvider({ children }: { children: ReactNode }) {
     } catch (error) { if (generation === lifetime.current) setAiError(errorText(error)) }
     finally { if (generation === lifetime.current) { cancellingAi.current = false; setAiCancelling(false) } }
   }
+  const sendChartCapture = async (request: ChartCaptureRequest) => {
+    if (!request.prompt.trim() || request.prompt.length > 1000 || request.blob.size < 1 || request.blob.size > 2 * 1024 * 1024) {
+      setAiError('Invalid chart attachment. No message was sent.')
+      return
+    }
+    if (!selectedRef.current) await create()
+    const item = selectedRef.current
+    if (!item || !aiConfiguration?.configured || pendingCreate.current || !begin()) {
+      if (!aiConfiguration?.configured) setAiError('AI provider unavailable. The chart capture was not sent.')
+      return
+    }
+    const generation = lifetime.current
+    const previouslyUncertain = pendingSave.current !== null
+    pendingSave.current ??= { conversationId: item.id, requestId: crypto.randomUUID(), content: request.prompt.trim(), attachment: request }
+    let aiAttemptEpoch = aiEpoch.current
+    try {
+      const pending = pendingSave.current
+      const saved = pending.attachment
+        ? await api.saveMessageAttachment(pending.conversationId, pending.requestId, pending.content, pending.attachment.blob, JSON.stringify(pending.attachment.context), auth?.user.id)
+        : await api.saveMessage(pending.conversationId, pending.requestId, pending.content, auth?.user.id)
+      if (generation !== lifetime.current) return
+      const page = await api.getMessages(item.id, undefined, auth?.user.id)
+      if (generation !== lifetime.current || selectedRef.current?.id !== item.id) return
+      const confirmed = page.items.find(message => message.requestId === pending.requestId)
+      if (!confirmed || confirmed.role !== 'user' || confirmed.sequence !== saved.sequence || !confirmed.hasAttachment) throw new Error('Chart attachment confirmation did not match. Retry before asking AI.')
+      pendingSave.current = null; setUncertain(false); updateSelected(page.conversation); setMessages(page.items); setNextBefore(page.nextBefore)
+      aiAttemptEpoch = ++aiEpoch.current
+      pendingAi.current = { conversationId: page.conversation.id, requestId: crypto.randomUUID(), expectedVersion: page.conversation.version, sourceSequence: confirmed.sequence }
+      const intent = pendingAi.current
+      setUncertain(true); setAiError(''); setAiTurn(null); setNotice('')
+      await applyAi(await ai.startAi(intent, auth?.user.id), page.conversation, generation, aiAttemptEpoch)
+    } catch (error) {
+      if (generation !== lifetime.current) return
+      if (pendingSave.current) {
+        if (knownRejection(error) && !previouslyUncertain) pendingSave.current = null
+        setUncertain(pendingSave.current !== null); setMutationError(errorText(error))
+      } else {
+        if (knownRejection(error) || error instanceof ai.AiUnconfigured) { pendingAi.current = null; setUncertain(false) }
+        if (error instanceof ai.AiUnconfigured) setAiConfiguration(previous => ({ configured: false, provider: previous?.provider ?? null, model: null }))
+        setAiError(errorText(error))
+      }
+    } finally { if (generation === lifetime.current && aiAttemptEpoch === aiEpoch.current) end() }
+  }
   return <ConversationContext.Provider value={{ items, nextCursor, selected, messages, nextBefore, draft, listLoading, messagesLoading, busy, uncertain,
     pendingAction: uncertain ? pendingAi.current ? 'ai' : pendingCreate.current ? 'create' : 'save' : null,
-    aiConfiguration, aiChecking, aiCancelling, aiError, aiTurn, checkAiConfiguration, send, askAi: () => aiOperation(), checkAiStatus: () => aiOperation(true), cancelAi,
+    aiConfiguration, aiChecking, aiCancelling, aiError, aiTurn, checkAiConfiguration, send, sendChartCapture, askAi: () => aiOperation(), checkAiStatus: () => aiOperation(true), cancelAi,
     listError, messageError, mutationError, notice, select, loadList,
     setDraft: value => { if (!writing.current && !pendingSave.current && !pendingCreate.current && !pendingAi.current && !cancellingAi.current) updateDraft(value) },
     loadMessages: async (earlier = false) => { if (selectedRef.current) await fetchMessages(selectedRef.current, earlier ? nextBefore ?? undefined : undefined) },

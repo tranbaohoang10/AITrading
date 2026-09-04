@@ -18,6 +18,7 @@
     "V14__strategy_generations.sql": "eb11a855f8a15366a6a4048f4c284db8978cdd290fcf1e59febc54623d57325b",
     "V15__journal_evaluations.sql": "58f76f4358018e8e8853796a335675f0720ccdfdb460d75671c64b5a6aa0356a",
     "V16__private_documents.sql": "3a4f34875754c8207f00792655a451cf806ff7f750742be1ee9ab59854e21dc0",
-    "V17__chart_image_analysis.sql": "6f94617b271f55633f435fc63bcfe9e04e80248ca035edc7866f40400300c4fe"
+    "V17__chart_image_analysis.sql": "6f94617b271f55633f435fc63bcfe9e04e80248ca035edc7866f40400300c4fe",
+    "V18__conversation_chart_attachments.sql": "a503a0f4174bd4c1b9f65dab997f35ff6751695ddab14561d9a553c33c0aae22"
   }
 }

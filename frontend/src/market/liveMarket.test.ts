@@ -99,8 +99,8 @@ describe('PB-034 Coinbase market-data contract', () => {
     const provider: MarketDataProvider = { getHistoricalCandles: vi.fn(async ({ symbol }) => [candle(baseTime, symbol)]), subscribeCandles: vi.fn((_request, subscription) => { subscription.onStatus('LIVE'); return vi.fn() }) }
     render(createElement(LiveChartFixture, { provider }))
     await screen.findByText('COINBASE · LIVE')
-    expect(screen.getByRole('button', { name: 'Cursor or Crosshair' })).toBeInTheDocument()
-    for (const name of ['Lines tools', 'Fibonacci tools', 'Draw and shapes tools', 'Text tools', 'Position and risk tools', 'Measure tools', 'More drawing controls']) expect(screen.getByRole('button', { name })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Cursor tools' })).toBeInTheDocument()
+    for (const name of ['Lines & Channels tools', 'Fibonacci tools', 'Patterns tools', 'Shapes tools', 'Text / Annotation tools', 'Position / Risk tools', 'Measure tools', 'More drawing controls']) expect(screen.getByRole('button', { name })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Zoom In/ })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'More drawing controls' }))
     expect(screen.getByRole('button', { name: /Remove All Drawings/ })).toBeDisabled()

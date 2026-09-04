@@ -208,7 +208,7 @@ describe('PB-006 private market UI (API contract mocks)', () => {
   it('PB-031 creates local drawings with undo, redo, selection and deletion controls', async () => {
     render(<App />)
     const chart = await screen.findByRole('img', { name: /imported candlesticks/ })
-    fireEvent.click(screen.getByRole('button', { name: 'Show Lines menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Show Lines & Channels menu' }))
     fireEvent.click(screen.getByRole('button', { name: 'Trend Line' }))
     fireEvent.pointerDown(chart, { pointerId: 1, clientX: 20, clientY: 20 })
     fireEvent.pointerMove(chart, { pointerId: 1, clientX: 120, clientY: 80 })
@@ -218,7 +218,7 @@ describe('PB-006 private market UI (API contract mocks)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Undo drawing' }))
     expect(screen.getByRole('button', { name: 'Redo drawing' })).toBeEnabled()
     fireEvent.click(screen.getByRole('button', { name: 'Redo drawing' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Show Text menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Show Text / Annotation menu' }))
     fireEvent.click(screen.getByRole('button', { name: 'Text' }))
     fireEvent.pointerDown(chart, { pointerId: 2, clientX: 60, clientY: 60 })
     expect(screen.getByLabelText('Selected note text')).toHaveValue('Text')
@@ -226,15 +226,15 @@ describe('PB-006 private market UI (API contract mocks)', () => {
     expect(chart).toHaveTextContent('Breakout')
     fireEvent.keyDown(chart, { key: 'Delete' })
     expect(screen.queryByLabelText('Selected note text')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Show Lines menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Show Lines & Channels menu' }))
     fireEvent.click(screen.getByRole('button', { name: 'Horizontal Line' }))
-    expect(screen.getByLabelText('Lines tools')).toHaveClass('text-slate-100')
+    expect(screen.getByLabelText('Lines & Channels tools')).toHaveClass('text-slate-100')
   })
 
   it('PB-034 groups supported drawing tools without restoring a long primary rail', async () => {
     render(<App />)
     const chart = await screen.findByRole('img', { name: /imported candlesticks/ })
-    for (const [menu, label, type] of [['Show Lines menu', 'Ray', 'ray'], ['Show Lines menu', 'Vertical Line', 'vertical'], ['Show Draw and shapes menu', 'Rectangle', 'rectangle']] as const) {
+    for (const [menu, label, type] of [['Show Lines & Channels menu', 'Ray', 'ray'], ['Show Lines & Channels menu', 'Vertical Line', 'vertical'], ['Show Shapes menu', 'Rectangle', 'rectangle']] as const) {
       fireEvent.click(screen.getByRole('button', { name: menu }))
       fireEvent.click(screen.getByRole('button', { name: label }))
       fireEvent.pointerDown(chart, { pointerId: 3, clientX: 30, clientY: 30 })

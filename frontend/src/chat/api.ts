@@ -1,7 +1,7 @@
 import { privateRequest, privateMutate } from '../auth/api'
 
 export type Conversation = { id: string; title: string; version: number; createdAt: string; updatedAt: string; lastMessage: string }
-export type Message = { sequence: number; requestId: string; role: 'user' | 'assistant'; content: string; createdAt: string }
+export type Message = { sequence: number; requestId: string; role: 'user' | 'assistant'; content: string; hasAttachment?: boolean; createdAt: string }
 export type Page = { items: Conversation[]; nextCursor: string | null }
 export type Messages = { conversation: Conversation; items: Message[]; nextBefore: number | null }
 const invalid = () => new Error('Invalid conversation response. Please retry.')
@@ -20,7 +20,7 @@ function conversation(value: unknown): Conversation {
 function message(value: unknown): Message {
   const v = object(value)
   if (v.role !== 'user' && v.role !== 'assistant') throw invalid()
-  return { sequence: number(v.sequence), requestId: id(v.requestId), role: v.role, content: text(v.content), createdAt: date(v.createdAt) }
+  return { sequence: number(v.sequence), requestId: id(v.requestId), role: v.role, content: text(v.content), hasAttachment: v.hasAttachment === true, createdAt: date(v.createdAt) }
 }
 export async function listConversations(cursor?: string, accountId?: string): Promise<Page> {
   const v = object(await (await privateRequest(accountId, `/conversations?limit=20${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`)).json())
@@ -38,3 +38,9 @@ export const createConversation = async (requestId: string, accountId?: string) 
 export const renameConversation = async (value: Conversation, title: string, accountId?: string) => conversation(await privateMutate(accountId, `/conversations/${id(value.id)}`, { title, expectedVersion: value.version }, 'PATCH'))
 export const deleteConversation = async (value: Conversation, accountId?: string) => privateMutate(accountId, `/conversations/${id(value.id)}`, { expectedVersion: value.version }, 'DELETE')
 export const saveMessage = async (conversationId: string, requestId: string, content: string, accountId?: string) => message(await privateMutate(accountId, `/conversations/${id(conversationId)}/messages`, { requestId, content }))
+export async function saveMessageAttachment(conversationId: string, requestId: string, content: string, blob: Blob, context: string, accountId?: string): Promise<Message> {
+  const token = object(await (await privateRequest(accountId, '/auth/csrf')).json())
+  if (token.headerName !== 'X-CSRF-TOKEN' || typeof token.token !== 'string') throw invalid()
+  const form = new FormData(); form.set('requestId', requestId); form.set('content', content); form.set('context', context); form.set('file', blob, 'chart-capture.png')
+  return message(await (await privateRequest(accountId, `/conversations/${id(conversationId)}/messages/attachment`, { method: 'POST', headers: { 'X-CSRF-TOKEN': token.token }, body: form, signal: AbortSignal.timeout(30_000) })).json())
+}

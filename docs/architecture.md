@@ -143,7 +143,7 @@ Flyway is append-only. V1 creates schema/history context; V2 adds identity,
 sessions and auth rates; V3 conversations; V4 market data; V5 strategies; V6 AI
 turns; V7 jobs; V8 journal; V9 Pine; V10 MQL5; V11 audit; V12 notifications; V13
 provider-neutral constraint; V14 generation; V15 journal evaluation; V16 private
-documents/RAG; V17 chart image analysis. Exact names and SHA-256 are pinned in
+documents/RAG; V17 chart image analysis; V18 conversation chart attachments. Exact names and SHA-256 are pinned in
 `docs/readiness-migrations.json` and checked by the offline readiness verifier.
 
 Complete SQL table inventory: `app_user`, `spring_session`,

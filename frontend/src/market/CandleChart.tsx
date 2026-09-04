@@ -4,27 +4,29 @@ import { AssetIcon } from './AssetIcon'
 import type { Candle } from './api'
 import { ema, rsi, sma } from './chartMath'
 import { defaultChartSettings, drawingLabels, type ChartPoint, type ChartSettings, type Drawing, type DrawingTool, type IndicatorConfig, type MagnetMode } from './chartTypes'
+import { captureSvgRegion, sendChartCaptureToAssistant, type CaptureRegion, type ChartCaptureContext } from './chartCapture'
 
 type Marker = { id: number; barIndex: number; kind: string }
 type Viewport = { start: number; count: number }
 type PriceRange = { lower: number; upper: number }
 type ScreenPoint = { x: number; y: number }
-type PanState = { pointerId: number; x: number; y: number; viewport: Viewport; prices: PriceRange; mode: 'time' | 'price' }
+type PanState = { pointerId: number; x: number; y: number; viewport: Viewport; prices: PriceRange; mode: 'both' | 'scale'; anchorPrice?: number }
 type EditState = { pointerId: number; drawing: Drawing; point: ChartPoint; handle: number | 'move'; last: Drawing }
 
 const clamp = (value: number, minimum: number, maximum: number) => Math.max(minimum, Math.min(maximum, value))
 const minimumBars = (total: number) => Math.min(8, total)
-const multiPointTools = new Set<DrawingTool>(['parallelChannel', 'fibExtension', 'polyline', 'longPosition', 'shortPosition'])
-const singlePointTools = new Set<DrawingTool>(['horizontal', 'horizontalRay', 'vertical', 'cross', 'text', 'note', 'callout'])
+const multiPointTools = new Set<DrawingTool>(['parallelChannel', 'fibExtension', 'polyline', 'triangle', 'longPosition', 'shortPosition'])
+const singlePointTools = new Set<DrawingTool>(['horizontal', 'horizontalRay', 'vertical', 'cross', 'text', 'note', 'callout', 'priceNote'])
 const editableTarget = (target: EventTarget | null) => target instanceof HTMLElement && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)
 const navigationTool = (tool: DrawingTool) => tool === 'cursor' || tool === 'crosshair'
 
-export function CandleChart({ page, markers = [], frozen = false, dataSource = 'imported', sourceLabel, timeframe = '1h', settings = defaultChartSettings, indicators = [], activeTool = 'cursor', drawings = [], selectedDrawingId, magnet = 'off', stayInMode = false, onAddDrawing, onUpdateDrawing, onCommitDrawingEdit, onSelectDrawing, onDeleteSelected, onUndo, onRedo, onCancelTool, onToggleIndicator, onRemoveIndicator, onOpenIndicators }: {
+export function CandleChart({ page, markers = [], frozen = false, dataSource = 'imported', sourceLabel, timeframe = '1h', settings = defaultChartSettings, indicators = [], activeTool = 'cursor', drawings = [], selectedDrawingId, magnet = 'off', stayInMode = false, onAddDrawing, onUpdateDrawing, onCommitDrawingEdit, onSelectDrawing, onDeleteSelected, onDeleteDrawing, onUndo, onRedo, onCancelTool, onCaptureRequest, onToggleIndicator, onRemoveIndicator, onOpenIndicators }: {
   page: { dataset: { symbol: string }; items: Candle[] }
   markers?: Marker[]; frozen?: boolean; dataSource?: string; sourceLabel?: string; timeframe?: string; settings?: ChartSettings; indicators?: IndicatorConfig[]
-  activeTool?: DrawingTool; drawings?: Drawing[]; selectedDrawingId?: string | null; magnet?: MagnetMode; stayInMode?: boolean
+ activeTool?: DrawingTool; drawings?: Drawing[]; selectedDrawingId?: string | null; magnet?: MagnetMode; stayInMode?: boolean
   onAddDrawing?: (drawing: Drawing) => void; onUpdateDrawing?: (drawing: Drawing) => void; onCommitDrawingEdit?: (before: Drawing, after: Drawing) => void
-  onSelectDrawing?: (id: string | null) => void; onDeleteSelected?: () => void; onUndo?: () => void; onRedo?: () => void; onCancelTool?: () => void
+  onSelectDrawing?: (id: string | null) => void; onDeleteSelected?: () => void; onDeleteDrawing?: (id: string) => void; onUndo?: () => void; onRedo?: () => void; onCancelTool?: () => void
+  onCaptureRequest?: (request: import('./chartCapture').ChartCaptureRequest) => Promise<void>
   onToggleIndicator?: (id: string) => void; onRemoveIndicator?: (id: string) => void; onOpenIndicators?: () => void
 }) {
   const total = page.items.length
@@ -34,13 +36,14 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
   const [viewport, setViewport] = useState<Viewport>({ start: 0, count: total })
   const [isFollowingLatest, setIsFollowingLatest] = useState(true)
   const [manualPrices, setManualPrices] = useState<PriceRange | null>(null)
+  const [capture, setCapture] = useState<CaptureRegion | null>(null), [capturePrompt, setCapturePrompt] = useState(''), [captureStatus, setCaptureStatus] = useState('')
   const [draft, setDraft] = useState<Drawing | null>(null)
   const [rsiHeight, setRsiHeight] = useState(92)
   const [viewWidth, setViewWidth] = useState(900)
   const [viewportWidth, setViewportWidth] = useState(() => typeof window === 'undefined' ? 1024 : window.innerWidth)
   const [totalHeight, setTotalHeight] = useState(420)
   const svg = useRef<SVGSVGElement>(null)
-  const pan = useRef<PanState | null>(null), edit = useRef<EditState | null>(null)
+  const pan = useRef<PanState | null>(null), edit = useRef<EditState | null>(null), captureAction = useRef<{ mode: 'draw' | 'move' | 'resize'; edge?: string; x: number; y: number; region: CaptureRegion } | null>(null)
   const multi = useRef<{ drawing: Drawing; fixed: number } | null>(null)
   const wheelQueue = useRef<{ delta: number; anchor: number }>({ delta: 0, anchor: .5 })
   const wheelFrame = useRef<number | null>(null), panFrame = useRef<number | null>(null)
@@ -62,7 +65,7 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
     return () => window.removeEventListener('resize', update)
   }, [])
   useEffect(() => {
-    setIndex(Math.max(0, total - 1)); setViewport({ start: 0, count: total }); setManualPrices(null); setIsFollowingLatest(true); setDraft(null); multi.current = null
+    setIndex(Math.max(0, total - 1)); setViewport({ start: 0, count: total }); setManualPrices(null); setIsFollowingLatest(true); setDraft(null); setCapture(null); setCapturePrompt(''); setCaptureStatus(''); multi.current = null
   }, [page.dataset.symbol])
   useEffect(() => {
     setIndex(value => crosshair ? clamp(value, 0, Math.max(0, total - 1)) : isFollowingLatest ? Math.max(0, total - 1) : clamp(value, 0, Math.max(0, total - 1)))
@@ -177,16 +180,18 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
     if (event.button !== 0) return
     event.currentTarget.focus(); const screen = screenPoint(event), point = chartPoint(event); setCrosshair(screen); updateInspected(screen)
     const rect = event.currentTarget.getBoundingClientRect(), px = rect.width > 0 ? (event.clientX - rect.left) / rect.width * viewWidth : event.clientX
+    if (activeTool === 'aiCapture') { setCapture({ x: screen.x, y: screen.y, width: 0, height: 0 }); captureAction.current = { mode: 'draw', x: screen.x, y: screen.y, region: { x: screen.x, y: screen.y, width: 0, height: 0 } }; event.currentTarget.setPointerCapture?.(event.pointerId); event.preventDefault(); return }
     if (px > left + width) {
-      onSelectDrawing?.(null); pan.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, viewport: { start: visibleStart, count: visibleCount }, prices, mode: 'price' }
+      onSelectDrawing?.(null); pan.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, viewport: { start: visibleStart, count: visibleCount }, prices, mode: 'scale', anchorPrice: point.price }
       event.currentTarget.setPointerCapture?.(event.pointerId); event.preventDefault(); return
     }
+    if (activeTool === 'eraser') { const nearest = drawings.map(drawing => ({ drawing, point: projectedPoint(drawing.points[0]) })).sort((a, b) => Math.hypot(a.point.x - screen.x, a.point.y - screen.y) - Math.hypot(b.point.x - screen.x, b.point.y - screen.y))[0]; if (nearest && Math.hypot(nearest.point.x - screen.x, nearest.point.y - screen.y) < 28) { onSelectDrawing?.(nearest.drawing.id); onDeleteDrawing?.(nearest.drawing.id) } return }
     if (navigationTool(activeTool)) {
-      onSelectDrawing?.(null); pan.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, viewport: { start: visibleStart, count: visibleCount }, prices, mode: 'time' }
+      onSelectDrawing?.(null); pan.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, viewport: { start: visibleStart, count: visibleCount }, prices, mode: 'both' }
       event.currentTarget.setPointerCapture?.(event.pointerId); event.preventDefault(); return
     }
     if (singlePointTools.has(activeTool)) {
-      const label = activeTool === 'text' ? 'Text' : activeTool === 'note' ? 'Note' : activeTool === 'callout' ? 'Callout' : undefined
+      const label = activeTool === 'text' ? 'Text' : activeTool === 'note' ? 'Note' : activeTool === 'callout' ? 'Callout' : activeTool === 'priceNote' ? 'Price Note' : undefined
       completeDrawing({ id: id(), type: activeTool as Drawing['type'], points: [point], ...(label ? { text: label } : {}) }); return
     }
     if (multiPointTools.has(activeTool)) {
@@ -202,6 +207,13 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
     const screen = screenPoint(event), point = chartPoint(event); setCrosshair(screen)
     const rect = event.currentTarget.getBoundingClientRect(), rawX = rect.width > 0 ? (event.clientX - rect.left) / rect.width * viewWidth : event.clientX
     setPriceAxisHover(rawX > left + width)
+    if (captureAction.current) {
+      const action = captureAction.current
+      if (action.mode === 'draw') { const next = { x: Math.min(action.x, screen.x), y: Math.min(action.y, screen.y), width: Math.abs(screen.x - action.x), height: Math.abs(screen.y - action.y) }; action.region = next; setCapture(next) }
+      else if (action.mode === 'move') { const dx = screen.x - action.x, dy = screen.y - action.y; const next = { ...action.region, x: clamp(action.region.x + dx, left, left + width - action.region.width), y: clamp(action.region.y + dy, top, chartBottom - action.region.height) }; action.x = screen.x; action.y = screen.y; action.region = next; setCapture(next) }
+      else { const next = { ...action.region }; const edge = action.edge ?? ''; if (edge.includes('left')) { const rightEdge = action.region.x + action.region.width; next.x = clamp(screen.x, left, rightEdge - 24); next.width = rightEdge - next.x } if (edge.includes('right')) { next.width = clamp(screen.x - action.region.x, 24, left + width - action.region.x) } if (edge.includes('top')) { const bottomEdge = action.region.y + action.region.height; next.y = clamp(screen.y, top, bottomEdge - 24); next.height = bottomEdge - next.y } if (edge.includes('bottom')) next.height = clamp(screen.y - action.region.y, 24, chartBottom - action.region.y); action.region = next; setCapture(next) }
+      return
+    }
     if (edit.current) {
       const current = edit.current, deltaIndex = timeIndex(point.time) - timeIndex(current.point.time), deltaPrice = point.price - current.point.price
       const points = current.handle === 'move' ? current.drawing.points.map(anchor => ({ time: page.items[clamp(timeIndex(anchor.time) + deltaIndex, 0, total - 1)].time, price: anchor.price + deltaPrice })) : current.drawing.points.map((anchor, position) => position === current.handle ? point : anchor)
@@ -209,15 +221,12 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
     }
     if (pan.current) {
       const dx = event.clientX - pan.current.x, dy = event.clientY - pan.current.y
-      if (pan.current.mode === 'price') {
-        const priceDelta = dy / Math.max(priceHeight, 1) * (pan.current.prices.upper - pan.current.prices.lower)
-        schedulePan(pan.current.viewport, { lower: pan.current.prices.lower + priceDelta, upper: pan.current.prices.upper + priceDelta })
-        return
-      }
+      if (pan.current.mode === 'scale') { const initial = pan.current.prices, span = initial.upper - initial.lower, anchor = pan.current.anchorPrice ?? (initial.lower + span / 2), anchorRatio = (anchor - initial.lower) / span, nextSpan = clamp(span * Math.exp(dy / Math.max(priceHeight, 1) * 1.4), span * .08, span * 40); const lower = anchor - nextSpan * anchorRatio; setManualPrices({ lower, upper: lower + nextSpan }); setIsFollowingLatest(false); return }
       const count = pan.current.viewport.count
       const start = clamp(pan.current.viewport.start - dx / Math.max(width, 1) * count, 0, Math.max(0, total - count))
-      setIsFollowingLatest(start + count >= total - .5)
-      schedulePan({ start, count })
+      const priceDelta = dy / Math.max(priceHeight, 1) * (pan.current.prices.upper - pan.current.prices.lower)
+      setIsFollowingLatest(start + count >= total - .5 && Math.abs(dy) < 1)
+      schedulePan({ start, count }, Math.abs(dy) > 0.5 ? { lower: pan.current.prices.lower + priceDelta, upper: pan.current.prices.upper + priceDelta } : undefined)
       return
     }
     if (navigationTool(activeTool)) updateInspected(screen)
@@ -226,6 +235,7 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
     setDraft(current => !current ? current : current.type === 'brush' ? { ...current, points: [...current.points, point] } : { ...current, points: [current.points[0], point] })
   }
   const pointerUp = (event: ReactPointerEvent<SVGSVGElement>) => {
+    if (captureAction.current) { const action = captureAction.current; captureAction.current = null; event.currentTarget.releasePointerCapture?.(event.pointerId); if (action.mode === 'draw' && action.region.width < 24) { setCapture(null); setCapturePrompt('') } return }
     if (completedOnPointerDown.current) { completedOnPointerDown.current = false; return }
     if (edit.current) { const current = edit.current; onCommitDrawingEdit?.(current.drawing, current.last); edit.current = null; event.currentTarget.releasePointerCapture?.(event.pointerId); return }
     if (pan.current) { event.currentTarget.releasePointerCapture?.(pan.current.pointerId); pan.current = null; return }
@@ -261,11 +271,31 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
     return () => el.removeEventListener('wheel', onNativeWheel)
   }, [isFollowingLatest, total, viewWidth, width])
   const cancelDraft = () => { setDraft(null); multi.current = null; onCancelTool?.() }
+  const captureContext = (region: CaptureRegion): ChartCaptureContext => {
+    const fromIndex = clamp(Math.floor(visibleStart + (region.x - left) / width * visibleCount), 0, total - 1), toIndex = clamp(Math.ceil(visibleStart + (region.x + region.width - left) / width * visibleCount), 0, total - 1)
+    const captured = page.items.slice(Math.min(fromIndex, toIndex), Math.max(fromIndex, toIndex) + 1)
+    const lows = captured.map(item => Number(item.low)), highs = captured.map(item => Number(item.high))
+    return { symbol: page.dataset.symbol, provider: 'COINBASE', timeframe, visibleTimeRange: { from: page.items[clamp(Math.floor(visibleStart), 0, total - 1)].time, to: page.items[clamp(Math.ceil(visibleStart + visibleCount) - 1, 0, total - 1)].time }, capturedTimeRange: { from: captured[0]?.time ?? page.items[0].time, to: captured.at(-1)?.time ?? page.items.at(-1)!.time }, approximateCapturedPriceRange: { lower: Math.min(...lows, prices.lower), upper: Math.max(...highs, prices.upper) }, currentPrice: Number(page.items.at(-1)!.close), selectedDrawingIds: selectedDrawingId ? [selectedDrawingId] : [] }
+  }
+  const submitCapture = async () => {
+    const region = capture
+    if (!region || region.width < 24 || region.height < 24) { setCaptureStatus('Select a larger chart area.'); return }
+    if (!svg.current) return
+    setCaptureStatus('Preparing chart…')
+    try { const blob = await captureSvgRegion(svg.current, region); const request = { blob, prompt: capturePrompt.trim() || 'Explain what is happening in this selected chart area.', context: captureContext(region), region }; await (onCaptureRequest ?? sendChartCaptureToAssistant)(request); setCapture(null); setCapturePrompt(''); setCaptureStatus(''); captureAction.current = null; onCancelTool?.() } catch (error) { setCaptureStatus(error instanceof Error ? error.message : 'Assistant is unavailable. No message was sent.') }
+  }
+  const captureScreen = (event: ReactPointerEvent<SVGElement>): ScreenPoint => { const owner = svg.current, rect = owner?.getBoundingClientRect(); if (!owner || !rect) return { x: left, y: top }; return { x: clamp((event.clientX - rect.left) / Math.max(rect.width, 1) * viewWidth, left, left + width), y: clamp((event.clientY - rect.top) / Math.max(rect.height, 1) * totalHeight, top, chartBottom) } }
+  const beginCaptureHandle = (event: ReactPointerEvent<SVGElement>, mode: 'move' | 'resize', edge?: string) => { if (!capture || !svg.current) return; event.stopPropagation(); event.preventDefault(); const point = captureScreen(event); captureAction.current = { mode, edge, x: point.x, y: point.y, region: capture }; svg.current.setPointerCapture?.(event.pointerId) }
+  const captureHandles = capture ? [
+    { key: 'top-left', x: capture.x, y: capture.y, cursor: 'nwse-resize' }, { key: 'top', x: capture.x + capture.width / 2, y: capture.y, cursor: 'ns-resize' }, { key: 'top-right', x: capture.x + capture.width, y: capture.y, cursor: 'nesw-resize' },
+    { key: 'right', x: capture.x + capture.width, y: capture.y + capture.height / 2, cursor: 'ew-resize' }, { key: 'bottom-right', x: capture.x + capture.width, y: capture.y + capture.height, cursor: 'nwse-resize' }, { key: 'bottom', x: capture.x + capture.width / 2, y: capture.y + capture.height, cursor: 'ns-resize' },
+    { key: 'bottom-left', x: capture.x, y: capture.y + capture.height, cursor: 'nesw-resize' }, { key: 'left', x: capture.x, y: capture.y + capture.height / 2, cursor: 'ew-resize' },
+  ] : []
   const keyDown = (event: ReactKeyboardEvent<SVGSVGElement>) => {
     if (editableTarget(event.target)) return
     const modifier = event.ctrlKey || event.metaKey
     if ((event.key === 'Delete' || event.key === 'Backspace') && selectedDrawingId) { event.preventDefault(); onDeleteSelected?.(); return }
-    if (event.key === 'Escape') { event.preventDefault(); cancelDraft(); onSelectDrawing?.(null); return }
+    if (event.key === 'Escape') { event.preventDefault(); setCapture(null); setCapturePrompt(''); setCaptureStatus(''); captureAction.current = null; cancelDraft(); onSelectDrawing?.(null); return }
     if (modifier && event.key.toLowerCase() === 'z') { event.preventDefault(); if (event.shiftKey) onRedo?.(); else onUndo?.(); return }
     if (modifier && event.key.toLowerCase() === 'y') { event.preventDefault(); onRedo?.(); return }
     if (event.key === '0') { event.preventDefault(); resetView(); return }
@@ -301,6 +331,7 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
     const point = chartPoint(synthetic); edit.current = { pointerId: event.pointerId, drawing, point, handle, last: drawing }; onSelectDrawing?.(drawing.id); owner.setPointerCapture?.(event.pointerId)
   }
   const projected = (drawing: Drawing) => drawing.points.map(point => ({ x: xTime(point.time), y: yPrice(point.price) }))
+  const projectedPoint = (point: ChartPoint) => ({ x: xTime(point.time), y: yPrice(point.price) })
   const handles = (drawing: Drawing, points: ScreenPoint[]) => selectedDrawingId === drawing.id && activeTool === 'cursor' ? points.map((point, position) => <circle key={`handle-${position}`} data-drawing-handle={position} cx={point.x} cy={point.y} r="5" fill="#f4f5f7" stroke="#20242b" strokeWidth="2" className="cursor-grab" onPointerDown={event => beginEdit(event, drawing, position)}/>) : null
   const drawingShape = (drawing: Drawing) => {
     if (drawing.visible === false) return null
@@ -311,10 +342,11 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
     if (drawing.type === 'horizontal' || drawing.type === 'cross') return wrap(<><line x1={left} x2={left + width} y1={a.y} y2={a.y} stroke={color} strokeWidth={strokeWidth} strokeDasharray="5 4"/>{drawing.type === 'cross' && <line x1={a.x} x2={a.x} y1={top} y2={chartBottom} stroke={color} strokeWidth={strokeWidth} strokeDasharray="5 4"/>}</>)
     if (drawing.type === 'horizontalRay') return wrap(<line x1={a.x} x2={left + width} y1={a.y} y2={a.y} stroke={color} strokeWidth={strokeWidth} strokeDasharray="5 4"/>)
     if (drawing.type === 'vertical') return wrap(<line x1={a.x} x2={a.x} y1={top} y2={chartBottom} stroke={color} strokeWidth={strokeWidth} strokeDasharray="5 4"/>)
-    if (drawing.type === 'text' || drawing.type === 'note' || drawing.type === 'callout') return wrap(<><circle cx={a.x} cy={a.y} r="3" fill={color}/>{drawing.type === 'callout' && <line x1={a.x} y1={a.y} x2={a.x + 20} y2={a.y - 18} stroke={color}/>}<rect x={a.x + 7} y={a.y - 25} width={Math.max(44, (drawing.text?.length ?? 4) * 7)} height="22" rx="4" fill="#20242b" stroke="#3a404a"/><text x={a.x + 13} y={a.y - 10} fill={settings.textColor} fontSize="11">{drawing.text || drawingLabels[drawing.type]}</text></>)
+    if (drawing.type === 'text' || drawing.type === 'note' || drawing.type === 'callout' || drawing.type === 'priceNote') return wrap(<><circle cx={a.x} cy={a.y} r="3" fill={color}/>{drawing.type === 'callout' && <line x1={a.x} y1={a.y} x2={a.x + 20} y2={a.y - 18} stroke={color}/>}<rect x={a.x + 7} y={a.y - 25} width={Math.max(44, (drawing.text?.length ?? 4) * 7)} height="22" rx="4" fill="#20242b" stroke="#3a404a"/><text x={a.x + 13} y={a.y - 10} fill={settings.textColor} fontSize="11">{drawing.text || drawingLabels[drawing.type]}</text></>)
     if (drawing.type === 'brush' || drawing.type === 'polyline') return wrap(<polyline points={points.map(point => `${point.x},${point.y}`).join(' ')} fill="none" stroke={color} strokeWidth={drawing.type === 'brush' ? 2.2 : strokeWidth} strokeLinecap="round" strokeLinejoin="round"/>)
     if (drawing.type === 'rectangle') return wrap(<rect x={Math.min(a.x, b.x)} y={Math.min(a.y, b.y)} width={Math.abs(b.x - a.x)} height={Math.abs(b.y - a.y)} fill="#94a3b8" fillOpacity=".1" stroke={color} strokeWidth={strokeWidth}/>)
     if (drawing.type === 'ellipse') return wrap(<ellipse cx={(a.x + b.x) / 2} cy={(a.y + b.y) / 2} rx={Math.abs(b.x - a.x) / 2} ry={Math.abs(b.y - a.y) / 2} fill="#94a3b8" fillOpacity=".08" stroke={color} strokeWidth={strokeWidth}/>)
+    if (drawing.type === 'triangle') return wrap(<polygon points={`${a.x},${a.y} ${b.x},${b.y} ${c.x},${c.y}`} fill="#94a3b8" fillOpacity=".08" stroke={color} strokeWidth={strokeWidth}/>)
     if (drawing.type === 'parallelChannel') { const dx = b.x - a.x, dy = b.y - a.y; return wrap(<><line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={color} strokeWidth={strokeWidth}/><line x1={c.x} y1={c.y} x2={c.x + dx} y2={c.y + dy} stroke={color} strokeWidth={strokeWidth}/><polygon points={`${a.x},${a.y} ${b.x},${b.y} ${c.x + dx},${c.y + dy} ${c.x},${c.y}`} fill="#94a3b8" fillOpacity=".07"/></>) }
     if (drawing.type === 'fibRetracement' || drawing.type === 'fibExtension') {
       const levels = [0, .236, .382, .5, .618, .786, 1], origin = drawing.type === 'fibExtension' ? c : a, delta = b.y - a.y, startX = Math.min(a.x, drawing.type === 'fibExtension' ? c.x : b.x), endX = Math.max(b.x, drawing.type === 'fibExtension' ? c.x + Math.abs(b.x - a.x) : a.x)
@@ -361,8 +393,8 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
     <div className="relative flex min-h-0 flex-1 flex-col select-none">
       {sourceLabel && <div data-testid="market-header" className="pointer-events-none absolute left-4 top-2 z-20 flex max-w-[calc(100%-6rem)] flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] leading-4 text-slate-300 sm:text-[11px]"><AssetIcon symbol={page.dataset.symbol}/><span className="font-semibold text-slate-100">{page.dataset.symbol} · {sourceLabel} · {timeframe}</span><span className="font-mono">O {formatPrice(Number(inspected.open))}</span><span className="font-mono">H {formatPrice(Number(inspected.high))}</span><span className="font-mono">L {formatPrice(Number(inspected.low))}</span><span className="font-mono">C {formatPrice(Number(inspected.close))}</span><span className={`font-mono ${bullish ? 'text-emerald-300' : 'text-rose-300'}`}>{changeLabel}</span><span className={`basis-full font-mono ${bullish ? 'text-emerald-300' : 'text-rose-300'}`}>Volume {formatVolume(Number(inspected.volume))}</span></div>}
       {indicators.length > 0 && <div aria-label="Active indicators" style={{ top: `${overlayInset + 4}px` }} className="chart-indicator-legend pointer-events-auto absolute left-3 z-20 flex max-w-[calc(100%-7rem)] flex-col gap-px rounded-md px-1 py-0.5">{indicatorRows.map(({ indicator, value }) => <div key={indicator.id} className="group/indicator flex min-h-4 items-center gap-1 text-[10px] text-slate-400"><span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: indicator.color }}/><span className={`w-16 truncate font-mono font-semibold uppercase ${indicator.visible ? 'text-slate-300' : 'text-slate-600'}`}>{indicator.type} {indicator.period}</span><span className="font-mono text-[9px] text-slate-500">{value === null ? '—' : format(value)}</span><button type="button" aria-label={`${indicator.visible ? 'Hide' : 'Show'} ${indicator.type.toUpperCase()} ${indicator.period}`} title={indicator.visible ? 'Hide indicator' : 'Show indicator'} onClick={() => onToggleIndicator?.(indicator.id)} className="grid h-4 w-4 shrink-0 place-items-center rounded text-slate-600 opacity-0 hover:bg-slate-800 hover:text-slate-200 group-hover/indicator:opacity-100 group-focus-within/indicator:opacity-100"><Icon name={indicator.visible ? 'eye' : 'eyeOff'} className="h-3 w-3"/></button><button type="button" aria-label={`Configure ${indicator.type.toUpperCase()} ${indicator.period}`} title="Indicator settings" onClick={onOpenIndicators} className="grid h-4 w-4 shrink-0 place-items-center rounded text-slate-600 opacity-0 hover:bg-slate-800 hover:text-slate-200 group-hover/indicator:opacity-100 group-focus-within/indicator:opacity-100"><Icon name="settings" className="h-3 w-3"/></button><button type="button" aria-label={`Remove ${indicator.type.toUpperCase()} ${indicator.period}`} title="Remove indicator" onClick={() => onRemoveIndicator?.(indicator.id)} className="grid h-4 w-4 shrink-0 place-items-center rounded text-slate-600 opacity-0 hover:bg-slate-800 hover:text-slate-200 group-hover/indicator:opacity-100 group-focus-within/indicator:opacity-100"><Icon name="close" className="h-3 w-3"/></button></div>)}</div>}
-      <svg ref={svg} viewBox={`0 0 ${viewWidth} ${totalHeight}`} preserveAspectRatio="none" style={{ background: settings.background, touchAction: 'none' }} className={`h-full min-h-0 w-full flex-1 border border-slate-800 outline-none focus-visible:border-slate-600 ${priceAxisHover || pan.current?.mode === 'price' ? 'cursor-ns-resize' : navigationTool(activeTool) ? (pan.current ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-cell'}`} role="img" tabIndex={0} aria-label={`${page.dataset.symbol} ${frozen ? 'frozen backtest' : dataSource} ${settings.chartType === 'candles' ? 'candlesticks' : settings.chartType}, ${Math.ceil(visibleCount)} candles in ${settings.timezone} (${renderEnd - renderStart} of ${total} loaded). Smooth wheel zoom with latest-candle priority and horizontal time pan; right price axis controls display scale.`}
-        onKeyDown={keyDown} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={() => { pan.current = null; edit.current = null; setPriceAxisHover(false) }} onDoubleClick={event => { const rect = event.currentTarget.getBoundingClientRect(), px = rect.width > 0 ? (event.clientX - rect.left) / rect.width * viewWidth : event.clientX; if (px > left + width) { event.preventDefault(); resetPriceScale() } }} onContextMenu={event => { if (draft || multi.current) { event.preventDefault(); cancelDraft() } }} onPointerLeave={() => { setPriceAxisHover(false); if (!pan.current && !edit.current) setCrosshair(null) }}>
+      <svg ref={svg} viewBox={`0 0 ${viewWidth} ${totalHeight}`} preserveAspectRatio="none" style={{ background: settings.background, touchAction: 'none' }} className={`h-full min-h-0 w-full flex-1 border border-slate-800 outline-none focus-visible:border-slate-600 ${priceAxisHover || pan.current?.mode === 'scale' ? 'cursor-ns-resize' : navigationTool(activeTool) ? (pan.current ? 'cursor-grabbing' : 'cursor-crosshair') : activeTool === 'aiCapture' ? 'cursor-crosshair' : 'cursor-cell'}`} role="img" tabIndex={0} aria-label={`${page.dataset.symbol} ${frozen ? 'frozen backtest' : dataSource} ${settings.chartType === 'candles' ? 'candlesticks' : settings.chartType}, ${Math.ceil(visibleCount)} candles in ${settings.timezone} (${renderEnd - renderStart} of ${total} loaded). Smooth wheel zoom with latest-candle priority and horizontal time pan; right price axis controls display scale.`}
+        onKeyDown={keyDown} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={() => { pan.current = null; edit.current = null; captureAction.current = null; setPriceAxisHover(false) }} onDoubleClick={event => { const rect = event.currentTarget.getBoundingClientRect(), px = rect.width > 0 ? (event.clientX - rect.left) / rect.width * viewWidth : event.clientX; if (px > left + width) { event.preventDefault(); resetPriceScale() } }} onContextMenu={event => { if (activeTool === 'aiCapture') { event.preventDefault(); setCapture(null); setCapturePrompt(''); setCaptureStatus(''); captureAction.current = null; onCancelTool?.() } else if (draft || multi.current) { event.preventDefault(); cancelDraft() } }} onPointerLeave={() => { setPriceAxisHover(false); if (!pan.current && !edit.current && !captureAction.current) setCrosshair(null) }}>
         <defs><linearGradient id="quant-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#a39d91" stopOpacity=".24"/><stop offset="1" stopColor="#a39d91" stopOpacity=".02"/></linearGradient><marker id="quant-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 8 4 0 8Z" fill="context-stroke"/></marker></defs>
         <rect width={viewWidth} height={totalHeight} fill={settings.background}/>
         {frozen && <text x="-1000" y="-1000" aria-hidden="true" style={{ display: 'none' }}>{settings.showOhlc ? `O ${inspected.open} H ${inspected.high} L ${inspected.low} C ${inspected.close} V ${inspected.volume}` : ''}</text>}
@@ -401,7 +433,12 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
             </g>
           ))
         })()}
+        {activeTool === 'aiCapture' && <g data-capture-overlay>
+          {capture && capture.width >= 1 && capture.height >= 1 && <><rect x={left} y={top} width={width} height={Math.max(0, capture.y - top)} fill="#020304" fillOpacity=".58"/><rect x={left} y={capture.y} width={Math.max(0, capture.x - left)} height={capture.height} fill="#020304" fillOpacity=".58"/><rect x={capture.x + capture.width} y={capture.y} width={Math.max(0, left + width - capture.x - capture.width)} height={capture.height} fill="#020304" fillOpacity=".58"/><rect x={left} y={capture.y + capture.height} width={width} height={Math.max(0, chartBottom - capture.y - capture.height)} fill="#020304" fillOpacity=".58"/><rect data-capture-selection x={capture.x} y={capture.y} width={capture.width} height={capture.height} fill="#f8fafc" fillOpacity=".04" stroke="#d8dee8" strokeWidth="1.2" strokeDasharray="5 3" onPointerDown={event => beginCaptureHandle(event, 'move')} />{captureHandles.map(handle => <rect key={handle.key} data-capture-handle={handle.key} x={handle.x - 5} y={handle.y - 5} width="10" height="10" rx="2" fill="#f8fafc" stroke="#20242b" strokeWidth="1.5" style={{ cursor: handle.cursor }} onPointerDown={event => beginCaptureHandle(event, 'resize', handle.key)} />)}</>}
+        </g>}
       </svg>
+      {activeTool === 'aiCapture' && capture && capture.width >= 24 && capture.height >= 24 && <div data-testid="chart-capture-prompt" className="absolute z-40 flex w-[min(360px,calc(100%-1rem))] items-center gap-1 rounded-lg border border-slate-600 bg-slate-900/95 p-1.5 shadow-2xl" style={{ left: `${Math.min(76, Math.max(2, capture.x / viewWidth * 100))}%`, top: `${Math.min(82, Math.max(12, (capture.y + capture.height + 8) / totalHeight * 100))}%` }} onPointerDown={event => event.stopPropagation()}><input aria-label="Ask Quant about this area" value={capturePrompt} onChange={event => setCapturePrompt(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); void submitCapture() } }} placeholder="Ask Quant about this area…" className="min-w-0 flex-1 bg-transparent px-2 py-1.5 text-xs text-slate-100 outline-none placeholder:text-slate-500" autoFocus /><button type="button" aria-label="Send chart capture to Assistant" title="Send to Assistant" onClick={() => void submitCapture()} className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-slate-200 text-slate-950 hover:bg-white"><Icon name="send" className="h-3.5 w-3.5" /></button><button type="button" aria-label="Exit chart capture" title="Exit capture" onClick={() => { setCapture(null); setCapturePrompt(''); setCaptureStatus(''); captureAction.current = null; onCancelTool?.() }} className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-slate-400 hover:bg-slate-800 hover:text-white"><Icon name="close" className="h-3.5 w-3.5" /></button></div>}
+      {captureStatus && <p role="status" className="absolute bottom-12 left-3 z-40 rounded-md border border-slate-700 bg-slate-900/95 px-2 py-1 text-[10px] text-slate-300">{captureStatus}</p>}
       {hasRsi && <div role="separator" aria-label="Resize RSI pane" aria-orientation="horizontal" aria-valuemin={64} aria-valuemax={180} aria-valuenow={boundedRsi} tabIndex={0} style={{ top: `${(rsiTop - 13) / totalHeight * 100}%` }} className="group absolute left-3 right-[78px] z-30 h-3 -translate-y-1/2 cursor-row-resize touch-none" onPointerDown={event => { event.preventDefault(); const start = event.clientY, initial = rsiHeight; event.currentTarget.setPointerCapture(event.pointerId); const move = (next: PointerEvent) => setRsiHeight(clamp(initial - (next.clientY - start) * totalHeight / Math.max(svg.current?.getBoundingClientRect().height ?? totalHeight, 1), 64, 180)); const stop = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', stop) }; window.addEventListener('pointermove', move); window.addEventListener('pointerup', stop) }} onKeyDown={event => { if (event.key === 'ArrowUp') setRsiHeight(value => clamp(value + 8, 64, 180)); if (event.key === 'ArrowDown') setRsiHeight(value => clamp(value - 8, 64, 180)) }}><span className="absolute left-1/2 top-1/2 h-0.5 w-12 -translate-x-1/2 -translate-y-1/2 rounded bg-slate-600 opacity-0 transition group-hover:opacity-100"/></div>}
       <div className="absolute bottom-2 left-3 flex items-center gap-1 rounded-md border border-slate-800 bg-[#1c1d20]/88 p-0.5 text-[9px] text-slate-500"><span className="sr-only">{Math.floor(visibleStart) + 1}–{Math.min(total, Math.ceil(visibleStart + visibleCount))} / {total}</span>{manualPrices && <button type="button" aria-label="Auto-fit price scale" title="Auto-fit price scale" onClick={resetPriceScale} className="rounded px-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">Auto</button>}<button type="button" aria-label="Reset chart view" title="Reset Chart · 0" data-tooltip="Reset · 0" onClick={resetView} disabled={visibleStart === 0 && Math.abs(visibleCount - total) < .01 && !manualPrices} className="icon-tool grid h-6 w-6 place-items-center rounded text-slate-500 hover:bg-slate-800 hover:text-slate-100 disabled:opacity-35"><Icon name="reset" className="h-3.5 w-3.5"/></button></div>
     </div>

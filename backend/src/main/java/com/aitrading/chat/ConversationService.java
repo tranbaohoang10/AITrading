@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ConversationService {
     private final JdbcTemplate jdbc;
     public record Conversation(UUID id, String title, long version, Instant createdAt, Instant updatedAt, String lastMessage) { }
-    public record Message(long sequence, UUID requestId, String role, String content, Instant createdAt) { }
+    public record Message(long sequence, UUID requestId, String role, String content, boolean hasAttachment, Instant createdAt) { }
     public record Page(List<Conversation> items, String nextCursor) { }
     public record Messages(Conversation conversation, List<Message> items, Long nextBefore) { }
     private record State(Conversation conversation, long sequence) { }
@@ -59,7 +59,7 @@ public class ConversationService {
     }
     private Message message(ResultSet rs, int unused) throws SQLException {
         return new Message(rs.getLong("sequence"), rs.getObject("request_id", UUID.class), rs.getString("role"),
-                rs.getString("content"), rs.getObject("created_at", OffsetDateTime.class).toInstant());
+                rs.getString("content"), rs.getBytes("attachment_png") != null, rs.getObject("created_at", OffsetDateTime.class).toInstant());
     }
     private State owned(UserPrincipal user, UUID id, boolean lock) {
         return jdbc.query(SELECT + " WHERE c.id=? AND c.owner_id=?" + (lock ? " FOR UPDATE OF c" : ""),
@@ -158,5 +158,34 @@ public class ConversationService {
         jdbc.update("INSERT INTO trading.conversation_message(conversation_id,sequence,request_id,role,content) VALUES (?,?,?,'user',?)", id, next, requestId, checked);
         jdbc.update("UPDATE trading.conversation SET last_sequence=?,version=version+1,updated_at=clock_timestamp() WHERE id=? AND owner_id=?", next, id, user.id());
         return jdbc.query("SELECT * FROM trading.conversation_message WHERE conversation_id=? AND sequence=?", this::message, id, next).getFirst();
+    }
+
+    @Transactional
+    public Message appendAttachment(UserPrincipal user, UUID id, UUID requestId, String content, byte[] png, String context) {
+        String checked = text(content, 4000, true);
+        String checkedContext = text(context, 4000, true);
+        if (png == null || png.length < 32 || png.length > 2 * 1024 * 1024 || !isPng(png))
+            throw new IllegalArgumentException("Invalid chart attachment");
+        lockCurrentUser(user);
+        State current = owned(user, id, true);
+        var existing = jdbc.query("SELECT * FROM trading.conversation_message WHERE conversation_id=? AND request_id=?",
+                this::message, id, requestId);
+        if (!existing.isEmpty()) {
+            if (!existing.getFirst().content().equals(checked) || !existing.getFirst().hasAttachment()) throw ResourceFailure.conflict();
+            return existing.getFirst();
+        }
+        if (current.sequence() >= 2000) throw ResourceFailure.conflict();
+        long next = current.sequence() + 1;
+        jdbc.update("INSERT INTO trading.conversation_message(conversation_id,sequence,request_id,role,content,attachment_png,attachment_mime,attachment_context) VALUES (?,?,?,'user',?,?,?,?)",
+                id, next, requestId, checked, png, "image/png", checkedContext);
+        jdbc.update("UPDATE trading.conversation SET last_sequence=?,version=version+1,updated_at=clock_timestamp() WHERE id=? AND owner_id=?", next, id, user.id());
+        return jdbc.query("SELECT * FROM trading.conversation_message WHERE conversation_id=? AND sequence=?", this::message, id, next).getFirst();
+    }
+
+    private static boolean isPng(byte[] bytes) {
+        return bytes.length >= 24 && bytes[0] == (byte) 137 && bytes[1] == 80 && bytes[2] == 78 && bytes[3] == 71
+                && bytes[4] == 13 && bytes[5] == 10 && bytes[6] == 26 && bytes[7] == 10
+                && bytes[bytes.length - 8] == 73 && bytes[bytes.length - 7] == 69 && bytes[bytes.length - 6] == 78
+                && bytes[bytes.length - 5] == 68;
     }
 }

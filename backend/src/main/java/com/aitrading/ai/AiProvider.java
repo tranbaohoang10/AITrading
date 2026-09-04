@@ -4,7 +4,11 @@ import java.util.List;
 
 public interface AiProvider extends AutoCloseable {
     record Configuration(boolean configured, String provider, String model) { }
-    record ContextMessage(String role, String content) { }
+    record ContextMessage(String role, String content, byte[] imagePng) {
+        public ContextMessage(String role, String content) { this(role, content, null); }
+        public ContextMessage { imagePng = imagePng == null ? null : imagePng.clone(); }
+        @Override public byte[] imagePng() { return imagePng == null ? null : imagePng.clone(); }
+    }
     record ImageRequest(byte[] pngBytes, String question) {
         public ImageRequest { pngBytes=pngBytes==null?null:pngBytes.clone(); }
         @Override public byte[] pngBytes(){return pngBytes==null?null:pngBytes.clone();}

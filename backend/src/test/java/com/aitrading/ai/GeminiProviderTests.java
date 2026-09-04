@@ -50,6 +50,7 @@ class GeminiProviderTests {
         providers.add(p);return p;
     }
     List<AiProvider.ContextMessage> context(){return List.of(new AiProvider.ContextMessage("user","Synthetic only"));}
+    byte[] minimalPng(){var png=new byte[32];png[0]=(byte)137;png[1]=80;png[2]=78;png[3]=71;png[4]=13;png[5]=10;png[6]=26;png[7]=10;png[24]=73;png[25]=69;png[26]=78;png[27]=68;png[28]=(byte)174;png[29]=66;png[30]=96;png[31]=(byte)130;return png;}
     void failure(Runnable action,AiFailure.Code code){assertThatThrownBy(action::run).isInstanceOfSatisfying(AiFailure.class,e->{assertThat(e.code()).isEqualTo(code);assertThat(e.getMessage()).isEqualTo(code.name());assertThat(e.getCause()).isNull();});}
     @Test void actualRequestUsesHeaderKeyTextRolesClosedSchemaAndNoTools() {
         var answer=provider(Duration.ofSeconds(3)).answer(List.of(new AiProvider.ContextMessage("user","Synthetic earlier"),new AiProvider.ContextMessage("assistant","Synthetic earlier reply"),context().getFirst()));
@@ -120,6 +121,14 @@ class GeminiProviderTests {
             failure(()->GeminiProvider.decode(envelope(value)),AiFailure.Code.AI_INVALID_RESPONSE);
         for(byte[] bytes:List.of(new byte[]{(byte)0xff},"{}{}".getBytes(),"null".getBytes(),"[]".getBytes(),"{\"candidates\":[]}".getBytes()))
             failure(()->GeminiProvider.decode(bytes),AiFailure.Code.AI_INVALID_RESPONSE);
+    }
+    @Test void chartAttachmentIsSentAsInlineDataAlongsideThePrompt() {
+        var answer=provider(Duration.ofSeconds(3)).answer(List.of(new AiProvider.ContextMessage("user","Inspect this chart",minimalPng())));
+        assertThat(answer.answer()).isEqualTo("Synthetic Gemini contract answer");
+        var parts=captured.get().at("/contents/0/parts");
+        assertThat(parts.get(0).get("text").asString()).isEqualTo("Inspect this chart");
+        assertThat(parts.get(1).get("inlineData").get("mimeType").asString()).isEqualTo("image/png");
+        assertThat(parts.get(1).get("inlineData").get("data").asString()).isNotBlank();
     }
     @Test void imageAnalysisUsesInlineCanonicalBytesAndStrictSchema() {
         var result=new AiImageAnalysis(List.of(new AiImageAnalysis.Evidence("E1","Synthetic candle","center")),List.of(),List.of(new AiImageAnalysis.Inference("Possible rise",List.of("E1"))),List.of("No timeframe"),.6,List.of("Static image only"));response.set(envelope(result));

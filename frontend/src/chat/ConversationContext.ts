@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { Conversation, Message } from './api'
 import type { AiConfiguration, AiTurn } from './aiApi'
+import type { ChartCaptureRequest } from '../market/chartCapture'
 
 export type ChatState = {
   items: Conversation[]; nextCursor: string | null; selected: Conversation | null
@@ -9,6 +10,7 @@ export type ChatState = {
   pendingAction: 'create' | 'save' | 'ai' | null
   aiConfiguration: AiConfiguration | null; aiChecking: boolean; aiCancelling: boolean; aiError: string; aiTurn: AiTurn | null
   checkAiConfiguration: () => Promise<void>; send: () => Promise<void>; askAi: () => Promise<void>; checkAiStatus: () => Promise<void>; cancelAi: () => Promise<void>
+  sendChartCapture: (request: ChartCaptureRequest) => Promise<void>
   listError: string; messageError: string; mutationError: string; notice: string
   setDraft: (text: string) => void; select: (item: Conversation) => void
   loadList: (more?: boolean) => Promise<void>; loadMessages: (earlier?: boolean) => Promise<void>

@@ -50,12 +50,22 @@ public final class OpenAiProvider implements AiProvider {
     private byte[] send(List<ContextMessage> context,String instructions,Map<String,Object> schema,String schemaName,int tokens) {
         if(!configuration.configured())throw new AiFailure(AiFailure.Code.AI_UNCONFIGURED);
         AiProviderProtocol.validateContext(context);
-        var body=Map.of("model",configuration.model(),"instructions",instructions,"input",context,
+        var body=Map.of("model",configuration.model(),"instructions",instructions,"input",input(context),
                 "text",Map.of("format",Map.of("type","json_schema","name",schemaName,"strict",true,"schema",schema)),
                 "store",false,"stream",false,"tools",List.of(),"tool_choice","none","max_output_tokens",tokens,"truncation","disabled");
         var request=HttpRequest.newBuilder(endpoint).timeout(timeout).header("Content-Type","application/json")
                 .header("Authorization","Bearer "+key).POST(HttpRequest.BodyPublishers.ofByteArray(AiProviderProtocol.JSON.writeValueAsBytes(body))).build();
         return transport.send(request,timeout);
+    }
+    private static List<Map<String,Object>> input(List<ContextMessage> context) {
+        List<Map<String,Object>> result=new ArrayList<>();
+        for(ContextMessage message:context) {
+            Map<String,Object> item=new LinkedHashMap<>(); item.put("role",message.role());
+            if(message.imagePng()==null) item.put("content",message.content());
+            else { String data="data:image/png;base64,"+Base64.getEncoder().encodeToString(message.imagePng()); item.put("content",List.of(Map.of("type","input_text","text",message.content()), Map.of("type","input_image","image_url",data,"detail","high"))); }
+            result.add(item);
+        }
+        return result;
     }
     static AiAnswer decode(byte[] bytes) {
         return AiProviderProtocol.answer(decodeText(bytes));

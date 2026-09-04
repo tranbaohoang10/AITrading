@@ -4,6 +4,7 @@ import com.aitrading.auth.UserPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/conversations")
@@ -46,5 +47,11 @@ public class ConversationController {
     @PostMapping("/{id}/messages")
     public ConversationService.Message append(@AuthenticationPrincipal UserPrincipal user, @PathVariable String id, @RequestBody Append body) {
         return conversations.append(user, ConversationService.id(id), ConversationService.id(body.requestId()), body.content());
+    }
+    @PostMapping(value="/{id}/messages/attachment", consumes="multipart/form-data")
+    public ConversationService.Message appendAttachment(@AuthenticationPrincipal UserPrincipal user, @PathVariable String id,
+            @RequestParam String requestId, @RequestParam String content, @RequestParam String context,
+            @RequestPart("file") MultipartFile file) throws java.io.IOException {
+        return conversations.appendAttachment(user, ConversationService.id(id), ConversationService.id(requestId), content, file.getBytes(), context);
     }
 }

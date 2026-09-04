@@ -7,6 +7,7 @@ import { CandleChart } from './CandleChart'
 import { TIMEFRAMES, timeframeLabel, type Timeframe } from './chartMath'
 import { defaultChartSettings, type Drawing, type DrawingTool, type MagnetMode } from './chartTypes'
 import { COINBASE_DEFAULT_SYMBOLS, mergeCandles, type LiveConnectionStatus, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
+import { sendChartCaptureToAssistant } from './chartCapture'
 
 const iconButton = 'icon-tool grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 disabled:opacity-35'
 const liveClass: Record<LiveConnectionStatus, string> = { LIVE: 'bg-emerald-400', CONNECTING: 'bg-amber-300 animate-pulse', RECONNECTING: 'bg-amber-300 animate-pulse', DISCONNECTED: 'bg-rose-400' }
@@ -65,10 +66,11 @@ export function LiveChart({ workspaceNavigation, provider = coinbaseMarketData }
   const locked = drawings.length > 0 && drawings.every(drawing => drawing.locked)
   const hidden = drawings.length > 0 && drawings.every(drawing => drawing.visible === false)
   const removeSelected = () => { if (selectedDrawing) { setDrawings(items => items.filter(item => item.id !== selectedDrawing)); setSelectedDrawing(null) } }
+  const sendFullChart = async (blob: Blob) => { if (!candles.length) throw new Error('No chart is available to capture.'); const from = new Date(candles[0].openTime).toISOString(), to = new Date(candles.at(-1)!.openTime).toISOString(); await sendChartCaptureToAssistant({ blob, prompt: 'Please inspect this full active chart and explain the visible evidence.', context: { symbol, provider: 'COINBASE', timeframe: timeframeLabel(timeframe), visibleTimeRange: { from, to }, capturedTimeRange: { from, to }, approximateCapturedPriceRange: { lower: Math.min(...candles.map(candle => Number(candle.low))), upper: Math.max(...candles.map(candle => Number(candle.high))) }, currentPrice: Number(candles.at(-1)!.close), selectedDrawingIds: selectedDrawing ? [selectedDrawing] : [] }, region: { x: 0, y: 0, width: 1, height: 1 }, fullChart: true }) }
 
   return <section aria-label="Chart" data-testid="chart-view" className="flex h-full min-h-0 flex-col overflow-hidden">
     <header data-testid="chart-toolbar" className="flex min-h-10 shrink-0 flex-wrap items-center gap-1 border-b border-slate-800 bg-slate-925 px-2 py-1 sm:flex-nowrap">
-      <label className="flex h-8 items-center gap-1.5 text-[10px] font-medium text-slate-500">Symbol
+      <div data-testid="chart-left-cluster" className="flex min-w-0 items-center gap-1"><label className="flex h-8 items-center gap-1.5 text-[10px] font-medium text-slate-500">Symbol
         <select aria-label="Symbol" value={symbol} onChange={event => setSymbol(event.target.value as LiveSymbol)} className="h-8 rounded-md border border-slate-800 bg-slate-950 px-2 text-xs font-semibold text-slate-200 outline-none focus-visible:ring-2 focus-visible:ring-slate-300">
           {symbols.map(value => <option key={value} value={value}>{value}</option>)}
         </select>
@@ -82,15 +84,15 @@ export function LiveChart({ workspaceNavigation, provider = coinbaseMarketData }
       <button type="button" disabled aria-label="Add indicator" title="Indicators are not configured for the live chart yet" data-tooltip="Indicators" className={iconButton}><Icon name="indicator" className="h-4 w-4" /></button>
       <button type="button" disabled aria-label="Chart settings" title="Live chart settings are not configured yet" data-tooltip="Settings" className={iconButton}><Icon name="settings" className="h-4 w-4" /></button>
       {latest && <span aria-label="Current market price" className="hidden font-mono text-xs font-semibold text-slate-100 sm:inline">{latest.close}</span>}
-      {workspaceNavigation}
-      <ChartUtilities hasChart={page.items.length > 0 || unitTestDefaultProvider} onRefresh={() => setAttempt(value => value + 1)} refreshing={loading} />
+      {workspaceNavigation}</div>
+      <div data-testid="chart-right-cluster" className="ml-auto flex items-center"><ChartUtilities hasChart={page.items.length > 0 || unitTestDefaultProvider} onRefresh={() => setAttempt(value => value + 1)} refreshing={loading} onSendAssistant={sendFullChart} /></div>
     </header>
     <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
       <ChartToolsRail selected={tool} onSelect={setTool} canDelete={!!selectedDrawing} hasDrawings={drawings.length > 0} onDelete={removeSelected} onClear={() => { setDrawings([]); setSelectedDrawing(null) }} magnet={magnet} onMagnetChange={setMagnet} stayInMode={stayInMode} onToggleStay={() => setStayInMode(value => !value)} allDrawingsLocked={locked} onToggleLockAll={() => setDrawings(items => items.map(item => ({ ...item, locked: !locked })))} allDrawingsHidden={hidden} onToggleHideAll={() => setDrawings(items => items.map(item => ({ ...item, visible: hidden })))} />
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         {loading && <p role="status" className="m-auto text-sm text-slate-400">Loading Coinbase historical candles…</p>}
         {error && <div className="m-auto max-w-sm text-center"><p role="alert" className="text-sm text-rose-300">{error}</p><button type="button" className="mt-3 rounded-md border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-100 hover:bg-slate-700" onClick={() => setAttempt(value => value + 1)}>Retry market data</button></div>}
-        {!loading && !error && page.items.length > 0 && <div className="flex min-h-0 flex-1 flex-col" data-chart-export><CandleChart page={page} dataSource="live Coinbase" sourceLabel="COINBASE" timeframe={timeframeLabel(timeframe)} settings={defaultChartSettings} activeTool={tool} drawings={drawings} selectedDrawingId={selectedDrawing} magnet={magnet} stayInMode={stayInMode} onSelectDrawing={setSelectedDrawing} onDeleteSelected={removeSelected} onCancelTool={() => setTool('cursor')} onUpdateDrawing={drawing => setDrawings(items => items.map(item => item.id === drawing.id ? drawing : item))} onCommitDrawingEdit={(_before, after) => setDrawings(items => items.map(item => item.id === after.id ? after : item))} onAddDrawing={drawing => { setDrawings(items => [...items, drawing]); setSelectedDrawing(drawing.id) }} /></div>}
+        {!loading && !error && page.items.length > 0 && <div className="flex min-h-0 flex-1 flex-col" data-chart-export><CandleChart page={page} dataSource="live Coinbase" sourceLabel="COINBASE" timeframe={timeframeLabel(timeframe)} settings={defaultChartSettings} activeTool={tool} drawings={drawings} selectedDrawingId={selectedDrawing} magnet={magnet} stayInMode={stayInMode} onSelectDrawing={setSelectedDrawing} onDeleteSelected={removeSelected} onDeleteDrawing={id => { setDrawings(items => items.filter(item => item.id !== id)); setSelectedDrawing(null) }} onCancelTool={() => setTool('cursor')} onUpdateDrawing={drawing => setDrawings(items => items.map(item => item.id === drawing.id ? drawing : item))} onCommitDrawingEdit={(_before, after) => setDrawings(items => items.map(item => item.id === after.id ? after : item))} onAddDrawing={drawing => { setDrawings(items => [...items, drawing]); setSelectedDrawing(drawing.id) }} /></div>}
       </div>
     </div>
   </section>

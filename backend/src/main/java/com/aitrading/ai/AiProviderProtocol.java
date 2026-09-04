@@ -35,8 +35,15 @@ final class AiProviderProtocol {
     static void validateContext(List<AiProvider.ContextMessage> context) {
         if(context==null || context.isEmpty() || context.size()>20 || context.stream().anyMatch(m->
                 m==null || m.role()==null || !Set.of("user","assistant").contains(m.role()) || m.content()==null || m.content().isBlank() || m.content().length()>4000)
-                || context.stream().mapToInt(m->m.content().length()).sum()>16000)
+                || context.stream().mapToInt(m->m.content().length()).sum()>16000
+                || context.stream().filter(m -> m.imagePng() != null).count() > 1
+                || context.stream().anyMatch(m -> m.imagePng() != null && (m.imagePng().length < 32 || m.imagePng().length > 2 * 1024 * 1024 || !isPng(m.imagePng()))))
             throw new AiFailure(AiFailure.Code.AI_INVALID_RESPONSE);
+    }
+    private static boolean isPng(byte[] bytes) {
+        return bytes.length >= 24 && bytes[0] == (byte)137 && bytes[1] == 80 && bytes[2] == 78 && bytes[3] == 71
+                && bytes[4] == 13 && bytes[5] == 10 && bytes[6] == 26 && bytes[7] == 10
+                && bytes[bytes.length - 8] == 73 && bytes[bytes.length - 7] == 69 && bytes[bytes.length - 6] == 78 && bytes[bytes.length - 5] == 68;
     }
     static boolean validKey(String key){return key!=null && key.matches("[!-~]{20,1024}");}
     static JsonNode decode(byte[] bytes) {

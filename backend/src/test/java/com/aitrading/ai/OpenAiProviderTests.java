@@ -51,6 +51,7 @@ class OpenAiProviderTests {
         providers.add(provider);return provider;
     }
     List<AiProvider.ContextMessage> context(){return List.of(new AiProvider.ContextMessage("user","Synthetic user prompt"));}
+    byte[] minimalPng(){var png=new byte[32];png[0]=(byte)137;png[1]=80;png[2]=78;png[3]=71;png[4]=13;png[5]=10;png[6]=26;png[7]=10;png[24]=73;png[25]=69;png[26]=78;png[27]=68;png[28]=(byte)174;png[29]=66;png[30]=96;png[31]=(byte)130;return png;}
     void failure(Runnable action,AiFailure.Code code){
         assertThatThrownBy(action::run).isInstanceOfSatisfying(AiFailure.class,e->{
             assertThat(e.code()).isEqualTo(code);assertThat(e.getMessage()).isEqualTo(code.name());assertThat(e.getCause()).isNull();
@@ -75,6 +76,13 @@ class OpenAiProviderTests {
     @Test void imageAnalysisUsesDataImageAndClosedSchemaWithoutTools() {
         var result=new AiImageAnalysis(List.of(new AiImageAnalysis.Evidence("E1","Synthetic candle","center")),List.of(),List.of(new AiImageAnalysis.Inference("Possible rise",List.of("E1"))),List.of("No timeframe"),.6,List.of("Static image only"));response.set(envelope(json.writeValueAsString(result)));
         assertThat(provider(Duration.ofSeconds(3)).analyzeImage(new AiProvider.ImageRequest(new byte[32],"Synthetic chart?"))).isEqualTo(result);var request=captured.get();assertThat(request.at("/input/0/content/0/text").asString()).isEqualTo("Synthetic chart?");assertThat(request.at("/input/0/content/1/image_url").asString()).startsWith("data:image/png;base64,");assertThat(request.get("tools").isEmpty()).isTrue();assertThat(request.at("/text/format/name").asString()).isEqualTo("chart_image_analysis_v1");
+    }
+    @Test void chartAttachmentIsSentAsAnInputImageAlongsideThePrompt() {
+        var result=provider(Duration.ofSeconds(3)).answer(List.of(new AiProvider.ContextMessage("user","Inspect this chart",minimalPng())));
+        assertThat(result.answer()).isEqualTo("Synthetic local HTTP answer");
+        assertThat(captured.get().at("/input/0/content/0/text").asString()).isEqualTo("Inspect this chart");
+        assertThat(captured.get().at("/input/0/content/1/type").asString()).isEqualTo("input_image");
+        assertThat(captured.get().at("/input/0/content/1/image_url").asString()).startsWith("data:image/png;base64,");
     }
     @Test void strategyProposalUsesSeparateNeutralSchemaAndTokenBudget() {
         var value=new LinkedHashMap<String,Object>();value.put("kind","clarification");value.put("explanation","Synthetic missing rules");value.put("assumptions",List.of());value.put("questions",List.of("Risk size?"));value.put("dslJson",null);

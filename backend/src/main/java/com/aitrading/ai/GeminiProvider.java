@@ -46,8 +46,7 @@ public final class GeminiProvider implements AiProvider {
     private byte[] send(List<ContextMessage> context,String instructions,Map<String,Object> schema,int tokens) {
         if(!configuration.configured())throw new AiFailure(AiFailure.Code.AI_UNCONFIGURED);
         AiProviderProtocol.validateContext(context);
-        var contents=context.stream().map(m->Map.of("role",m.role().equals("assistant")?"model":"user",
-                "parts",List.of(Map.of("text",m.content())))).toList();
+        var contents=context.stream().map(m->Map.of("role",m.role().equals("assistant")?"model":"user", "parts", parts(m))).toList();
         var body=Map.of("systemInstruction",Map.of("parts",List.of(Map.of("text",instructions))),
                 "contents",contents,"tools",List.of(),"store",false,"generationConfig",Map.of("candidateCount",1,"maxOutputTokens",tokens,
                         "responseMimeType","application/json","responseJsonSchema",schema,
@@ -55,6 +54,11 @@ public final class GeminiProvider implements AiProvider {
         var request=HttpRequest.newBuilder(endpoint).timeout(timeout).header("Content-Type","application/json")
                 .header("x-goog-api-key",key).POST(HttpRequest.BodyPublishers.ofByteArray(AiProviderProtocol.JSON.writeValueAsBytes(body))).build();
         return transport.send(request,timeout);
+    }
+    private static List<Map<String,Object>> parts(ContextMessage message) {
+        var result=new ArrayList<Map<String,Object>>(); result.add(Map.of("text",message.content()));
+        if(message.imagePng()!=null) result.add(Map.of("inlineData",Map.of("mimeType","image/png","data",Base64.getEncoder().encodeToString(message.imagePng()))));
+        return List.copyOf(result);
     }
     static AiAnswer decode(byte[] bytes) {
         return AiProviderProtocol.answer(decodeText(bytes));

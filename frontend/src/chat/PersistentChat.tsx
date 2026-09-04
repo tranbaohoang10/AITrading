@@ -1,8 +1,9 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useAuth } from '../auth/AuthContext'
 import { Icon } from '../components/Icon'
 import { Modal } from '../components/Modal'
 import { useConversations, type ChatState } from './ConversationContext'
+import { onChartCapture } from '../market/chartCapture'
 
 const iconButton = 'grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 disabled:opacity-35'
 const menuButton = 'min-h-9 rounded-md border border-slate-700 bg-slate-900 px-3 text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-white focus-visible:outline-2 focus-visible:outline-slate-300 disabled:opacity-40'
@@ -15,6 +16,7 @@ export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: 
   const composer = useRef<HTMLTextAreaElement>(null)
   const locked = chat.busy || chat.uncertain || chat.aiCancelling
   const displayName = auth?.user.displayName.trim().split(/\s+/)[0] || 'trader'
+  useEffect(() => onChartCapture(chat.sendChartCapture), [chat.sendChartCapture])
   const brainstorm = async () => {
     if (!chat.selected) await chat.create()
     chat.setDraft('Help me brainstorm a clear, testable trading strategy idea.')
@@ -57,7 +59,7 @@ export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: 
         {chat.messageError && <div className="m-3 flex items-center justify-between gap-3 rounded-md border border-red-400/20 bg-red-400/5 p-3"><p role="alert" className="text-xs text-red-200">{chat.messageError}</p><button className={menuButton} disabled={locked} onClick={() => void chat.loadMessages()}>Retry</button></div>}
         {chat.nextBefore && <button className="mx-3 mt-3 min-h-8 rounded-md px-3 text-xs text-slate-500 hover:bg-slate-900 hover:text-slate-200" disabled={locked || chat.messagesLoading} onClick={() => void chat.loadMessages(true)}>Load earlier</button>}
         {!chat.messages.length && !chat.messagesLoading && !chat.messageError && <Welcome name={displayName} onGenerateFromImage={onGenerateFromImage} onBrainstorm={() => void brainstorm()} />}
-        <div className="space-y-3 px-3 py-4">{chat.messages.map(message => <article key={message.sequence} className={`max-w-[92%] px-3 py-2.5 text-sm leading-5 ${message.role === 'user' ? 'ml-auto rounded-xl rounded-br-sm bg-slate-200 text-slate-950' : 'rounded-xl rounded-bl-sm border border-slate-800 bg-slate-900 text-slate-200'}`}><p className={`mb-1 text-[10px] font-semibold uppercase tracking-wide ${message.role === 'user' ? 'text-slate-600' : 'text-slate-500'}`}>{message.role === 'user' ? 'You' : 'Quant'}</p><p className="whitespace-pre-wrap break-words">{message.content}</p></article>)}</div>
+        <div className="space-y-3 px-3 py-4">{chat.messages.map(message => <article key={message.sequence} className={`max-w-[92%] px-3 py-2.5 text-sm leading-5 ${message.role === 'user' ? 'ml-auto rounded-xl rounded-br-sm bg-slate-200 text-slate-950' : 'rounded-xl rounded-bl-sm border border-slate-800 bg-slate-900 text-slate-200'}`}><p className={`mb-1 text-[10px] font-semibold uppercase tracking-wide ${message.role === 'user' ? 'text-slate-600' : 'text-slate-500'}`}>{message.role === 'user' ? 'You' : 'Quant'}</p>{message.hasAttachment && <p className="mb-1 inline-flex rounded-md border border-slate-400/40 px-1.5 py-0.5 text-[10px] font-semibold">Chart capture attached</p>}<p className="whitespace-pre-wrap break-words">{message.content}</p></article>)}</div>
       </> : <Welcome name={displayName} onGenerateFromImage={onGenerateFromImage} onBrainstorm={() => void brainstorm()} />}
     </div>
 

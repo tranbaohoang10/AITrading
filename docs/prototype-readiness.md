@@ -50,7 +50,7 @@ py -3 scripts/test_backend.py
 ```
 
 On Linux CI use `python3` in place of `py -3`. `scripts/test_backend.py` creates
-an owned loopback PostgreSQL cluster under `tmp/pg-test-*`, applies Flyway V1–V17,
+an owned loopback PostgreSQL cluster under `tmp/pg-test-*`, applies Flyway V1–V18,
 runs Gradle tests/build/inventory, stops it and removes its generated credential.
 It strips provider keys from its child. The normal API needs trusted absolute
 `AITRADING_PYTHON_EXECUTABLE` and `AITRADING_PROJECT_ROOT`; database credentials
