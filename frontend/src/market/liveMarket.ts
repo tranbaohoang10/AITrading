@@ -2,7 +2,23 @@ import { TIMEFRAMES, type Timeframe } from './chartMath'
 
 export const COINBASE_DEFAULT_SYMBOLS = ['BTC-USD', 'ETH-USD'] as const
 export type LiveSymbol = string
-export type LiveConnectionStatus = 'CONNECTING' | 'LIVE' | 'RECONNECTING' | 'DISCONNECTED'
+export type LiveConnectionStatus = 'CONNECTING' | 'LIVE' | 'DELAYED' | 'RECONNECTING' | 'DISCONNECTED'
+export type AssetClass = 'CRYPTO' | 'STOCK' | 'ETF' | 'FOREX' | 'FUTURES'
+export type MarketDataMode = 'HISTORICAL' | 'REALTIME' | 'DELAYED' | 'SNAPSHOT'
+
+export type Instrument = {
+  symbol: LiveSymbol
+  name: string
+  assetClass: AssetClass
+  base?: string
+  quote?: string
+  exchange?: string
+  provider: string
+  feed?: string
+  priceIncrement: number
+  pricePrecision: number
+  modes: MarketDataMode[]
+}
 
 export type MarketCandle = {
   symbol: LiveSymbol
@@ -17,6 +33,24 @@ export type MarketCandle = {
   closed: boolean
 }
 
+export const DEFAULT_INSTRUMENTS: Instrument[] = [
+  { symbol: 'BTC-USD', name: 'Bitcoin / US Dollar', assetClass: 'CRYPTO', base: 'BTC', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'ETH-USD', name: 'Ethereum / US Dollar', assetClass: 'CRYPTO', base: 'ETH', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+]
+
+export function precisionFromIncrement(increment: number): number {
+  if (!Number.isFinite(increment) || increment <= 0) return 2
+  const text = increment.toString().toLowerCase()
+  if (text.includes('e-')) return Math.max(0, Number(text.split('e-')[1]))
+  return Math.max(0, (text.split('.')[1] ?? '').replace(/0+$/, '').length)
+}
+
+export function formatMarketPrice(value: number, increment = 0.01, precision = precisionFromIncrement(increment)): string {
+  if (!Number.isFinite(value)) return '—'
+  const digits = Math.max(0, Math.min(12, precision))
+  return new Intl.NumberFormat('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value)
+}
+
 export type CandleSubscription = {
   onCandle: (candle: MarketCandle) => void
   onStatus: (status: LiveConnectionStatus) => void
@@ -26,7 +60,19 @@ export type CandleSubscription = {
 export interface MarketDataProvider {
   getHistoricalCandles(request: { symbol: LiveSymbol; interval: Timeframe; limit: number; before?: number; signal?: AbortSignal }): Promise<MarketCandle[]>
   listProducts?: (signal?: AbortSignal) => Promise<LiveSymbol[]>
+  listInstruments?: (signal?: AbortSignal) => Promise<Instrument[]>
+  searchInstruments?: (query: string, signal?: AbortSignal) => Promise<Instrument[]>
+  capabilities?: ProviderCapabilities
   subscribeCandles(request: { symbol: LiveSymbol; interval: Timeframe; seed?: MarketCandle }, subscription: CandleSubscription): () => void
+}
+
+export type ProviderCapabilities = {
+  provider: string
+  assetClasses: AssetClass[]
+  modes: MarketDataMode[]
+  feed?: string
+  configured: boolean
+  status: 'ACCEPTED' | 'REJECTED' | 'RESEARCH_ONLY'
 }
 
 const finiteDecimal = (value: unknown, allowZero = false): string | null => {

@@ -1,5 +1,5 @@
 import type { Candle } from './api'
-import { aggregateCandles, atr, bollinger, ema, macd, rsi, sma, timeframeAvailability, vwap } from './chartMath'
+import { aggregateCandles, atr, bollinger, cci, ema, macd, obv, rsi, sma, stochastic, timeframeAvailability, vwap, wma } from './chartMath'
 
 const candle = (minute: number, open: number, high: number, low: number, close: number, volume: number): Candle => ({
   ordinal: minute,
@@ -49,5 +49,14 @@ describe('PB-031 chart display math', () => {
     expect(atr(source, 3)[3]).toBeCloseTo((3 + 4 + 3) / 3, 5)
     expect(macd([10, 11, 12, 13, 14], 2, 3).slice(0, 2)).toEqual([null, null])
     expect(macd([10, 11, 12, 13, 14], 2, 3)[4]).toBeCloseTo(.5, 5)
+  })
+
+  it('calculates the added neutral studies with deterministic warm-up behavior', () => {
+    const source = [candle(0, 10, 12, 9, 11, 2), candle(1, 11, 14, 10, 13, 3), candle(2, 13, 15, 12, 14, 5), candle(3, 14, 16, 13, 15, 7)]
+    expect(wma([1, 2, 3, 4], 3)).toEqual([null, null, 2.3333333333333335, 3.3333333333333335])
+    expect(stochastic(source, 3).slice(0, 2)).toEqual([null, null])
+    expect(stochastic(source, 3)[3]).toBeCloseTo(83.3333333333, 5)
+    expect(cci(source, 3)[2]).toBeTypeOf('number')
+    expect(obv(source)).toEqual([0, 3, 8, 15])
   })
 })

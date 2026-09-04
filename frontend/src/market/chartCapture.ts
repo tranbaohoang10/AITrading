@@ -1,7 +1,7 @@
 export type CaptureRegion = { x: number; y: number; width: number; height: number }
 export type ChartCaptureContext = {
   symbol: string
-  provider: 'COINBASE' | 'IMPORTED_DATASET'
+  provider: string
   timeframe: string
   visibleTimeRange: { from: string; to: string }
   capturedTimeRange: { from: string; to: string }

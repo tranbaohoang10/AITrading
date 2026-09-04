@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/conversations", "/api/conversations/**").authenticated()
                         .requestMatchers("/api/dsl/schema", "/api/dsl/capabilities", "/api/dsl/validate").authenticated()
                         .requestMatchers("/api/datasets", "/api/datasets/**").authenticated()
+                        .requestMatchers("/api/market", "/api/market/**").authenticated()
                         .requestMatchers("/api/strategies", "/api/strategies/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/ai/capabilities").authenticated()
                         .requestMatchers("/api/backtests", "/api/backtests/**").authenticated()

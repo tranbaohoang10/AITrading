@@ -12,7 +12,7 @@ export type Drawing = {
   id: string; type: Exclude<DrawingTool, 'cursor' | 'crosshair' | 'aiCapture' | 'eraser'>; points: ChartPoint[]; name?: string; text?: string; visible?: boolean; locked?: boolean
 }
 export type MagnetMode = 'off' | 'weak' | 'strong'
-export type IndicatorType = 'sma' | 'ema' | 'bollinger' | 'vwap' | 'rsi' | 'macd' | 'atr'
+export type IndicatorType = 'sma' | 'ema' | 'wma' | 'bollinger' | 'vwap' | 'rsi' | 'macd' | 'atr' | 'stochastic' | 'cci' | 'obv'
 export type IndicatorConfig = {
   id: string; type: IndicatorType; period: number; color: string; visible: boolean
   deviation?: number; fast?: number; slow?: number; signal?: number
@@ -23,13 +23,14 @@ export type ChartSettings = {
   showCrosshair: boolean; showIndicatorTitles: boolean; showIndicatorValues: boolean
   candleBorders: boolean; candleWicks: boolean
   bullColor: string; bearColor: string; background: string; gridColor: string; textColor: string; separatorColor: string
-  spacing: number; timezone: 'UTC' | 'Asia/Ho_Chi_Minh' | 'America/New_York' | 'Europe/London'
+  spacing: number; timezone: 'UTC' | 'Asia/Ho_Chi_Minh' | 'America/New_York' | 'Europe/London' | 'Asia/Tokyo' | 'LOCAL' | 'EXCHANGE'
+  priceIncrement?: number; pricePrecision?: number
 }
 
 export const defaultChartSettings: ChartSettings = {
   chartType: 'candles', showSymbol: true, showOhlc: true, showVolume: true, showPriceLine: true, showLastValue: true, showGrid: true,
   showCrosshair: true, showIndicatorTitles: true, showIndicatorValues: true,
-  candleBorders: true, candleWicks: true, bullColor: '#3ca58c', bearColor: '#df5a60', background: '#141518', gridColor: '#2a2b2f', textColor: '#e4e1da', separatorColor: '#3a3b40', spacing: 65, timezone: 'UTC',
+  candleBorders: true, candleWicks: true, bullColor: '#3ca58c', bearColor: '#df5a60', background: '#141518', gridColor: '#2a2b2f', textColor: '#e4e1da', separatorColor: '#3a3b40', spacing: 65, timezone: 'UTC', priceIncrement: 0.01, pricePrecision: 2,
 }
 
 export const drawingLabels: Record<Exclude<DrawingTool, 'cursor' | 'crosshair' | 'aiCapture' | 'eraser'>, string> = {

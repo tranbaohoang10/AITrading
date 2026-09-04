@@ -78,6 +78,16 @@ export function ema(values: number[], period: number): Array<number | null> {
   return result
 }
 
+export function wma(values: number[], period: number): Array<number | null> {
+  const length = Math.max(1, Math.floor(period)), result: Array<number | null> = Array(values.length).fill(null), denominator = length * (length + 1) / 2
+  for (let index = length - 1; index < values.length; index++) {
+    let weighted = 0
+    for (let offset = 0; offset < length; offset++) weighted += values[index - length + 1 + offset] * (offset + 1)
+    result[index] = weighted / denominator
+  }
+  return result
+}
+
 export function rsi(values: number[], period: number): Array<number | null> {
   const length = Math.max(1, Math.floor(period)), result: Array<number | null> = Array(values.length).fill(null)
   if (values.length <= length) return result
@@ -132,4 +142,30 @@ export function atr(candles: Candle[], period: number): Array<number | null> {
 export function macd(values: number[], fast = 12, slow = 26): Array<number | null> {
   const fastSeries = ema(values, fast), slowSeries = ema(values, slow)
   return values.map((_, index) => fastSeries[index] === null || slowSeries[index] === null ? null : fastSeries[index]! - slowSeries[index]!)
+}
+
+export function stochastic(candles: Candle[], period: number): Array<number | null> {
+  const length = Math.max(1, Math.floor(period)), result: Array<number | null> = Array(candles.length).fill(null)
+  for (let index = length - 1; index < candles.length; index++) {
+    const window = candles.slice(index - length + 1, index + 1), highest = Math.max(...window.map(item => Number(item.high))), lowest = Math.min(...window.map(item => Number(item.low))), close = Number(candles[index].close)
+    result[index] = highest === lowest ? 50 : (close - lowest) / (highest - lowest) * 100
+  }
+  return result
+}
+
+export function cci(candles: Candle[], period: number): Array<number | null> {
+  const length = Math.max(1, Math.floor(period)), result: Array<number | null> = Array(candles.length).fill(null), typical = candles.map(item => (Number(item.high) + Number(item.low) + Number(item.close)) / 3)
+  for (let index = length - 1; index < candles.length; index++) {
+    const window = typical.slice(index - length + 1, index + 1), average = window.reduce((sum, value) => sum + value, 0) / length, deviation = window.reduce((sum, value) => sum + Math.abs(value - average), 0) / length
+    result[index] = deviation === 0 ? 0 : (typical[index] - average) / (.015 * deviation)
+  }
+  return result
+}
+
+export function obv(candles: Candle[]): Array<number | null> {
+  let value = 0
+  return candles.map((candle, index) => {
+    if (index > 0) value += Number(candle.close) > Number(candles[index - 1].close) ? Number(candle.volume) : Number(candle.close) < Number(candles[index - 1].close) ? -Number(candle.volume) : 0
+    return value
+  })
 }
