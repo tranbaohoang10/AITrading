@@ -8,7 +8,7 @@ type Marker = { id: number; barIndex: number; kind: string }
 type Viewport = { start: number; count: number }
 type PriceRange = { lower: number; upper: number }
 type ScreenPoint = { x: number; y: number }
-type PanState = { pointerId: number; x: number; y: number; viewport: Viewport; prices: PriceRange }
+type PanState = { pointerId: number; x: number; y: number; viewport: Viewport; prices: PriceRange; manualPrice: boolean }
 type EditState = { pointerId: number; drawing: Drawing; point: ChartPoint; handle: number | 'move'; last: Drawing }
 
 const clamp = (value: number, minimum: number, maximum: number) => Math.max(minimum, Math.min(maximum, value))
@@ -17,13 +17,13 @@ const multiPointTools = new Set<DrawingTool>(['parallelChannel', 'fibExtension',
 const singlePointTools = new Set<DrawingTool>(['horizontal', 'horizontalRay', 'vertical', 'cross', 'text', 'note', 'callout'])
 const editableTarget = (target: EventTarget | null) => target instanceof HTMLElement && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)
 
-export function CandleChart({ page, markers = [], frozen = false, settings = defaultChartSettings, indicators = [], activeTool = 'cursor', drawings = [], selectedDrawingId, magnet = 'off', stayInMode = false, onAddDrawing, onUpdateDrawing, onCommitDrawingEdit, onSelectDrawing, onDeleteSelected, onUndo, onRedo, onCancelTool, onToggleIndicator, onRemoveIndicator }: {
+export function CandleChart({ page, markers = [], frozen = false, timeframe = '1h', settings = defaultChartSettings, indicators = [], activeTool = 'cursor', drawings = [], selectedDrawingId, magnet = 'off', stayInMode = false, onAddDrawing, onUpdateDrawing, onCommitDrawingEdit, onSelectDrawing, onDeleteSelected, onUndo, onRedo, onCancelTool, onToggleIndicator, onRemoveIndicator, onOpenIndicators }: {
   page: { dataset: { symbol: string }; items: Candle[] }
-  markers?: Marker[]; frozen?: boolean; settings?: ChartSettings; indicators?: IndicatorConfig[]
+  markers?: Marker[]; frozen?: boolean; timeframe?: string; settings?: ChartSettings; indicators?: IndicatorConfig[]
   activeTool?: DrawingTool; drawings?: Drawing[]; selectedDrawingId?: string | null; magnet?: MagnetMode; stayInMode?: boolean
   onAddDrawing?: (drawing: Drawing) => void; onUpdateDrawing?: (drawing: Drawing) => void; onCommitDrawingEdit?: (before: Drawing, after: Drawing) => void
   onSelectDrawing?: (id: string | null) => void; onDeleteSelected?: () => void; onUndo?: () => void; onRedo?: () => void; onCancelTool?: () => void
-  onToggleIndicator?: (id: string) => void; onRemoveIndicator?: (id: string) => void
+  onToggleIndicator?: (id: string) => void; onRemoveIndicator?: (id: string) => void; onOpenIndicators?: () => void
 }) {
   const total = page.items.length
   const [index, setIndex] = useState(Math.max(0, total - 1))
@@ -33,6 +33,7 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
   const [draft, setDraft] = useState<Drawing | null>(null)
   const [rsiHeight, setRsiHeight] = useState(92)
   const [viewWidth, setViewWidth] = useState(900)
+  const [viewportWidth, setViewportWidth] = useState(() => typeof window === 'undefined' ? 1024 : window.innerWidth)
   const [totalHeight, setTotalHeight] = useState(420)
   const svg = useRef<SVGSVGElement>(null)
   const pan = useRef<PanState | null>(null), edit = useRef<EditState | null>(null)
@@ -50,6 +51,11 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
       if (rect.height) setTotalHeight(Math.max(240, rect.height))
     })
     observer.observe(svg.current); return () => observer.disconnect()
+  }, [])
+  useEffect(() => {
+    const update = () => setViewportWidth(window.innerWidth)
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
   }, [])
   useEffect(() => {
     setIndex(value => clamp(value, 0, Math.max(0, total - 1)))
@@ -76,10 +82,13 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
   })()
   const prices = manualPrices ?? autoPrices
   const priceSpan = Math.max(prices.upper - prices.lower, 1e-12)
-  const left = 12, right = 78, width = Math.max(80, viewWidth - left - right), top = 42
+  const left = 12, right = 78, width = Math.max(80, viewWidth - left - right)
+  const overlayRows = (settings.showVolume ? 1 : 0) + indicators.length
+  const overlayInset = Math.min(156, Math.max(56, 38 + overlayRows * 16))
+  const top = overlayInset
   const hasRsi = visibleIndicators.some(indicator => indicator.type === 'rsi')
   const axisBottom = totalHeight - 22, paneGap = hasRsi ? 18 : 0
-  const boundedRsi = hasRsi ? clamp(rsiHeight, 64, 180) : 0
+  const boundedRsi = hasRsi ? clamp(rsiHeight, 64, Math.max(64, Math.min(180, axisBottom - top - paneGap - 145))) : 0
   const priceHeight = Math.max(145, axisBottom - top - boundedRsi - paneGap), chartBottom = top + priceHeight
   const rsiTop = chartBottom + paneGap, rsiBottom = rsiTop + boundedRsi
   const itemIndex = new Map(page.items.map((candle, position) => [candle.time, position]))
@@ -125,7 +134,6 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
   const yPrice = (value: number) => top + (prices.upper - value) / priceSpan * priceHeight
   const format = (value: number) => Math.abs(value) >= 1e8 || (value !== 0 && Math.abs(value) < 1e-3) ? value.toExponential(3) : Number(value.toPrecision(7)).toString()
   const formatTime = (value: string) => new Intl.DateTimeFormat('en-GB', { timeZone: settings.timezone, month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(value)).replace(',', '')
-  const zoneLabel = settings.timezone === 'Asia/Ho_Chi_Minh' ? 'ICT' : settings.timezone === 'America/New_York' ? 'New York' : settings.timezone === 'Europe/London' ? 'London' : 'UTC'
   const id = () => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `drawing-${Date.now()}`
   const selectedCandle = page.items[clamp(index, 0, total - 1)]
 
@@ -147,9 +155,9 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
   }
   const updateInspected = (point: ScreenPoint) => setIndex(clamp(Math.floor(visibleStart + (point.x - left) / width * visibleCount), 0, total - 1))
   const resetView = () => { setViewport({ start: 0, count: total }); setManualPrices(null); setIndex(total - 1) }
-  const schedulePan = (nextViewport: Viewport, nextPrices: PriceRange) => {
+  const schedulePan = (nextViewport: Viewport, nextPrices?: PriceRange) => {
     if (panFrame.current) cancelAnimationFrame(panFrame.current)
-    panFrame.current = requestAnimationFrame(() => { setViewport(nextViewport); setManualPrices(nextPrices); panFrame.current = null })
+    panFrame.current = requestAnimationFrame(() => { setViewport(nextViewport); if (nextPrices) setManualPrices(nextPrices); panFrame.current = null })
   }
   const completeDrawing = (drawing: Drawing) => { onAddDrawing?.(drawing); setDraft(null); multi.current = null; if (!stayInMode) onCancelTool?.() }
 
@@ -157,7 +165,7 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
     if (event.button !== 0) return
     event.currentTarget.focus(); const screen = screenPoint(event), point = chartPoint(event); setCrosshair(screen); updateInspected(screen)
     if (activeTool === 'cursor') {
-      onSelectDrawing?.(null); pan.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, viewport: { start: visibleStart, count: visibleCount }, prices }
+      onSelectDrawing?.(null); pan.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, viewport: { start: visibleStart, count: visibleCount }, prices, manualPrice: manualPrices !== null }
       event.currentTarget.setPointerCapture?.(event.pointerId); event.preventDefault(); return
     }
     if (singlePointTools.has(activeTool)) {
@@ -184,7 +192,13 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
       const dx = event.clientX - pan.current.x, dy = event.clientY - pan.current.y
       const start = clamp(pan.current.viewport.start - dx / Math.max(width, 1) * pan.current.viewport.count, -pan.current.viewport.count * 0.4, total - pan.current.viewport.count * 0.6)
       const priceDelta = dy / Math.max(priceHeight, 1) * (pan.current.prices.upper - pan.current.prices.lower)
-      schedulePan({ start, count: pan.current.viewport.count }, { lower: pan.current.prices.lower + priceDelta, upper: pan.current.prices.upper + priceDelta }); return
+      if (pan.current.manualPrice || Math.abs(dy) > 0.5) {
+        pan.current.manualPrice = true
+        schedulePan({ start, count: pan.current.viewport.count }, { lower: pan.current.prices.lower + priceDelta, upper: pan.current.prices.upper + priceDelta })
+      } else {
+        schedulePan({ start, count: pan.current.viewport.count })
+      }
+      return
     }
     if (activeTool === 'cursor') updateInspected(screen)
     if (multi.current) { const points = [...multi.current.drawing.points]; points[points.length - 1] = point; const drawing = { ...multi.current.drawing, points }; multi.current.drawing = drawing; setDraft(drawing); return }
@@ -290,38 +304,46 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
   const lastClose = Number(lastItem.close)
   const lastColor = lastClose >= Number(lastItem.open) ? settings.bullColor : settings.bearColor
   const inspected = crosshair ? page.items[index] : selectedCandle
+  const previous = page.items[Math.max(0, index - 1)]
+  const change = Number(inspected.close) - Number(previous.close)
+  const changePercent = Number(previous.close) ? change / Number(previous.close) * 100 : 0
+  const changeLabel = `${change >= 0 ? '+' : ''}${format(change)} (${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)`
+  const statusClass = viewportWidth <= 560 ? 'chart-status-small' : viewportWidth <= 900 ? 'chart-status-compact' : 'chart-status-desktop'
+  const statusText = viewportWidth <= 560
+    ? `${settings.showSymbol ? `${page.dataset.symbol} · ` : ''}${settings.showOhlc ? `C ${inspected.close} ${changeLabel}` : ''}`
+    : viewportWidth <= 900
+      ? `${settings.showSymbol ? `${page.dataset.symbol} · ` : ''}${settings.showOhlc ? `O ${inspected.open} H ${inspected.high} L ${inspected.low} C ${inspected.close}` : ''}`
+      : `${settings.showSymbol ? `${page.dataset.symbol} · ${timeframe} · ` : ''}${settings.showOhlc ? `O ${inspected.open} H ${inspected.high} L ${inspected.low} C ${inspected.close} ${changeLabel}` : ''}`
+  const indicatorRows = indicators.map(indicator => ({ indicator, value: computedIndicators.find(item => item.id === indicator.id)?.values[index] ?? null }))
   const crossPrice = crosshair ? prices.upper - (crosshair.y - top) / priceHeight * priceSpan : null
 
   return <div className="flex min-h-0 flex-1 flex-col">
     <div className="relative flex min-h-0 flex-1 flex-col select-none">
-      <div className="pointer-events-none absolute left-3 right-[80px] top-2 z-20 flex flex-wrap items-center gap-x-4 gap-y-1">
-        {settings.showSymbol && <div className="text-[11px] font-[650] text-slate-200">{page.dataset.symbol} · {zoneLabel}</div>}
-        {settings.showOhlc && <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[10px] text-[#8d949f]">
-          <span>O {inspected.open}</span>
-          <span>H {inspected.high}</span>
-          <span>L {inspected.low}</span>
-          <span>C {inspected.close}</span>
-          <span>V {inspected.volume}</span>
-        </div>}
-      </div>
-      {indicators.length > 0 && <div aria-label="Active indicators" className="pointer-events-auto absolute left-4 top-10 z-20 flex max-w-[calc(100%-7rem)] flex-col gap-0.5 rounded-md bg-[#121419]/88 p-1 shadow-lg">{indicators.map(indicator => <div key={indicator.id} className="group/indicator flex h-6 items-center gap-1 px-1 text-[10px] text-slate-400"><span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: indicator.color }}/><span className={`w-16 font-mono font-semibold uppercase ${indicator.visible ? 'text-slate-300' : 'text-slate-600'}`}>{indicator.type} {indicator.period}</span><button type="button" aria-label={`${indicator.visible ? 'Hide' : 'Show'} ${indicator.type.toUpperCase()} ${indicator.period}`} title={indicator.visible ? 'Hide indicator' : 'Show indicator'} onClick={() => onToggleIndicator?.(indicator.id)} className="grid h-5 w-5 place-items-center rounded text-slate-600 opacity-70 hover:bg-slate-800 hover:text-slate-200 group-hover/indicator:opacity-100"><Icon name={indicator.visible ? 'eye' : 'eyeOff'} className="h-3 w-3"/></button><button type="button" aria-label={`Remove ${indicator.type.toUpperCase()} ${indicator.period}`} title="Remove indicator" onClick={() => onRemoveIndicator?.(indicator.id)} className="grid h-5 w-5 place-items-center rounded text-slate-600 opacity-70 hover:bg-slate-800 hover:text-red-300 group-hover/indicator:opacity-100"><Icon name="close" className="h-3 w-3"/></button></div>)}</div>}
-      <svg ref={svg} viewBox={`0 0 ${viewWidth} ${totalHeight}`} preserveAspectRatio="none" style={{ background: settings.background, touchAction: 'none' }} className={`w-full flex-1 shrink-0 border border-slate-800 outline-none focus-visible:border-slate-600 ${activeTool === 'cursor' ? (pan.current ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-cell'}`} role="img" tabIndex={0} aria-label={`${page.dataset.symbol} ${frozen ? 'frozen backtest' : 'imported'} ${settings.chartType === 'candles' ? 'candlesticks' : settings.chartType}, ${Math.ceil(visibleCount)} candles in ${settings.timezone} (${renderEnd - renderStart} of ${total} loaded). Smooth wheel zoom and two-dimensional drag pan.`}
+      {indicators.length > 0 && <div aria-label="Active indicators" style={{ top: `${overlayInset + 4}px` }} className="chart-indicator-legend pointer-events-auto absolute left-3 z-20 flex max-w-[calc(100%-7rem)] flex-col gap-px rounded-md px-1 py-0.5">{indicatorRows.map(({ indicator, value }) => <div key={indicator.id} className="group/indicator flex min-h-4 items-center gap-1 text-[10px] text-slate-400"><span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: indicator.color }}/><span className={`w-16 truncate font-mono font-semibold uppercase ${indicator.visible ? 'text-slate-300' : 'text-slate-600'}`}>{indicator.type} {indicator.period}</span><span className="font-mono text-[9px] text-slate-500">{value === null ? '—' : format(value)}</span><button type="button" aria-label={`${indicator.visible ? 'Hide' : 'Show'} ${indicator.type.toUpperCase()} ${indicator.period}`} title={indicator.visible ? 'Hide indicator' : 'Show indicator'} onClick={() => onToggleIndicator?.(indicator.id)} className="grid h-4 w-4 shrink-0 place-items-center rounded text-slate-600 opacity-0 hover:bg-slate-800 hover:text-slate-200 group-hover/indicator:opacity-100 group-focus-within/indicator:opacity-100"><Icon name={indicator.visible ? 'eye' : 'eyeOff'} className="h-3 w-3"/></button><button type="button" aria-label={`Configure ${indicator.type.toUpperCase()} ${indicator.period}`} title="Indicator settings" onClick={onOpenIndicators} className="grid h-4 w-4 shrink-0 place-items-center rounded text-slate-600 opacity-0 hover:bg-slate-800 hover:text-slate-200 group-hover/indicator:opacity-100 group-focus-within/indicator:opacity-100"><Icon name="settings" className="h-3 w-3"/></button><button type="button" aria-label={`Remove ${indicator.type.toUpperCase()} ${indicator.period}`} title="Remove indicator" onClick={() => onRemoveIndicator?.(indicator.id)} className="grid h-4 w-4 shrink-0 place-items-center rounded text-slate-600 opacity-0 hover:bg-slate-800 hover:text-slate-200 group-hover/indicator:opacity-100 group-focus-within/indicator:opacity-100"><Icon name="close" className="h-3 w-3"/></button></div>)}</div>}
+      <svg ref={svg} viewBox={`0 0 ${viewWidth} ${totalHeight}`} preserveAspectRatio="none" style={{ background: settings.background, touchAction: 'none' }} className={`h-full min-h-0 w-full flex-1 border border-slate-800 outline-none focus-visible:border-slate-600 ${activeTool === 'cursor' ? (pan.current ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-cell'}`} role="img" tabIndex={0} aria-label={`${page.dataset.symbol} ${frozen ? 'frozen backtest' : 'imported'} ${settings.chartType === 'candles' ? 'candlesticks' : settings.chartType}, ${Math.ceil(visibleCount)} candles in ${settings.timezone} (${renderEnd - renderStart} of ${total} loaded). Smooth wheel zoom and two-dimensional drag pan.`}
         onKeyDown={keyDown} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={() => { pan.current = null; edit.current = null }} onContextMenu={event => { if (draft || multi.current) { event.preventDefault(); cancelDraft() } }} onPointerLeave={() => { if (!pan.current && !edit.current) setCrosshair(null) }}>
-        <defs><linearGradient id="quant-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#8590a0" stopOpacity=".24"/><stop offset="1" stopColor="#8590a0" stopOpacity=".02"/></linearGradient><marker id="quant-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 8 4 0 8Z" fill="context-stroke"/></marker></defs>
+        <defs><linearGradient id="quant-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#a39d91" stopOpacity=".24"/><stop offset="1" stopColor="#a39d91" stopOpacity=".02"/></linearGradient><marker id="quant-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 8 4 0 8Z" fill="context-stroke"/></marker></defs>
         <rect width={viewWidth} height={totalHeight} fill={settings.background}/>
         {frozen && <text x="-1000" y="-1000" aria-hidden="true" style={{ display: 'none' }}>{settings.showOhlc ? `O ${inspected.open} H ${inspected.high} L ${inspected.low} C ${inspected.close} V ${inspected.volume}` : ''}</text>}
         {timeTicks.map(tick => <g key={tick.time}><line x1={xTime(tick.time)} y1={top} x2={xTime(tick.time)} y2={chartBottom} stroke={settings.gridColor} strokeWidth="1" strokeDasharray="4 4" opacity="0.3"/><text x={xTime(tick.time)} y={axisBottom + 14} textAnchor="middle" fontSize="10" fill="#9ca3af">{tick.label}</text></g>)}
         {settings.showGrid && Array.from({ length: 6 }, (_, position) => <line key={`v-${position}`} x1={left + width * position / 5} x2={left + width * position / 5} y1={top} y2={chartBottom} stroke={settings.gridColor} opacity=".3"/>)}
         {settings.showVolume && (() => { const maximum = Math.max(...visibleItems.map(item => Number(item.volume)), 1); return visibleItems.map((candle, local) => { const height = Number(candle.volume) / maximum * Math.min(48, priceHeight * .18), x = xIndex(candlePosition(local)); return <rect key={`volume-${candle.ordinal}`} x={x - bodyWidth / 2} y={chartBottom - height} width={bodyWidth} height={height} fill={Number(candle.close) >= Number(candle.open) ? settings.bullColor : settings.bearColor} opacity=".18"/> }) })()}
-        {settings.chartType === 'area' && <path d={areaPath} fill="url(#quant-area)" stroke="#c7cbd2" strokeWidth="1.5"/>}
-        {settings.chartType === 'line' && <polyline points={linePoints} fill="none" stroke="#c7cbd2" strokeWidth="1.7"/>}
+        {settings.chartType === 'area' && <path d={areaPath} fill="url(#quant-area)" stroke="#d0ccc3" strokeWidth="1.5"/>}
+        {settings.chartType === 'line' && <polyline points={linePoints} fill="none" stroke="#d0ccc3" strokeWidth="1.7"/>}
         {(settings.chartType === 'candles' || settings.chartType === 'bars') && visibleItems.map((candle, local) => { const position = candlePosition(local), x = xIndex(position), open = Number(candle.open), close = Number(candle.close), color = close >= open ? settings.bullColor : settings.bearColor; if (settings.chartType === 'bars') return <g key={candle.ordinal}><line x1={x} x2={x} y1={yPrice(Number(candle.high))} y2={yPrice(Number(candle.low))} stroke={color}/><line x1={x - bodyWidth / 2} x2={x} y1={yPrice(open)} y2={yPrice(open)} stroke={color}/><line x1={x} x2={x + bodyWidth / 2} y1={yPrice(close)} y2={yPrice(close)} stroke={color}/></g>; return <g key={candle.ordinal}>{settings.candleWicks && <line x1={x} x2={x} y1={yPrice(Number(candle.high))} y2={yPrice(Number(candle.low))} stroke={color}/>}<rect x={x - bodyWidth / 2} y={Math.min(yPrice(open), yPrice(close))} width={bodyWidth} height={Math.max(1, Math.abs(yPrice(open) - yPrice(close)))} fill={color} stroke={settings.candleBorders ? settings.background : color} strokeWidth={settings.candleBorders ? .6 : 0}/></g> })}
         {visibleIndicators.filter(item => item.type !== 'rsi').map(indicator => <polyline key={indicator.id} points={indicator.values.map((value, position) => value === null || position < renderStart || position >= renderEnd ? null : `${xIndex(position)},${yPrice(value)}`).filter(Boolean).join(' ')} fill="none" stroke={indicator.color} strokeWidth="1.45"/>)}
-        {(settings.showPriceLine || settings.showLastValue) && <g>{settings.showPriceLine && <line x1={left} x2={left + width} y1={yPrice(lastClose)} y2={yPrice(lastClose)} stroke="#9299a4" strokeDasharray="3 3" opacity=".7"/>}{settings.showLastValue && <><rect x={left + width + 3} y={yPrice(lastClose) - 8} width={right - 8} height="16" rx="2" fill={lastColor}/><text x={left + width + 7} y={yPrice(lastClose) + 4} fill="#f8fafc" fontSize="10" fontFamily="monospace">{format(lastClose)}</text></>}</g>}
+        {(settings.showPriceLine || settings.showLastValue) && <g>{settings.showPriceLine && <line x1={left} x2={left + width} y1={yPrice(lastClose)} y2={yPrice(lastClose)} stroke="#9a958c" strokeDasharray="3 3" opacity=".7"/>}{settings.showLastValue && <><rect x={left + width + 3} y={yPrice(lastClose) - 8} width={right - 8} height="16" rx="2" fill={lastColor}/><text x={left + width + 7} y={yPrice(lastClose) + 4} fill="#f8f6f0" fontSize="10" fontFamily="monospace">{format(lastClose)}</text></>}</g>}
         {markers.filter(marker => marker.barIndex >= visibleItems[0].ordinal && marker.barIndex <= visibleItems.at(-1)!.ordinal).map(marker => { const position = page.items.findIndex(item => item.ordinal >= marker.barIndex), color = marker.kind === 'ENTRY' ? '#16a085' : marker.kind === 'EXIT' ? '#f04452' : '#d7a44a'; return <circle key={marker.id} cx={xIndex(position)} cy={top + 12} r="4" fill={color}><title>{`${marker.kind} · bar ${marker.barIndex} · event ${marker.id}`}</title></circle> })}
         {drawings.concat(draft ? [draft] : []).map(drawingShape)}
-        {hasRsi && <g><line x1={left} x2={left + width} y1={rsiTop - 8} y2={rsiTop - 8} stroke={settings.separatorColor}/><rect x={left} y={rsiTop} width={width} height={boundedRsi} fill="#13161b"/><line x1={left} x2={left + width} y1={rsiTop + boundedRsi * .3} y2={rsiTop + boundedRsi * .3} stroke={settings.gridColor} strokeDasharray="3 4"/><line x1={left} x2={left + width} y1={rsiTop + boundedRsi * .7} y2={rsiTop + boundedRsi * .7} stroke={settings.gridColor} strokeDasharray="3 4"/>{visibleIndicators.filter(item => item.type === 'rsi').map(indicator => <polyline key={indicator.id} points={indicator.values.map((value, position) => value === null || position < renderStart || position >= renderEnd ? null : `${xIndex(position)},${rsiTop + (100 - value) / 100 * boundedRsi}`).filter(Boolean).join(' ')} fill="none" stroke={indicator.color} strokeWidth="1.4"/>)}<text x={left + 4} y={rsiTop + 13} fill="#8d949f" fontSize="10">RSI</text><text x={left + width + 8} y={rsiTop + 5} fill="#737b88" fontSize="9">100</text><text x={left + width + 8} y={rsiBottom} fill="#737b88" fontSize="9">0</text></g>}
-        {crosshair && settings.showCrosshair && activeTool === 'cursor' && !pan.current && <g pointerEvents="none"><line x1={crosshair.x} x2={crosshair.x} y1={top} y2={hasRsi ? rsiBottom : chartBottom} stroke="#858c97" strokeDasharray="3 3" opacity=".58"/><line x1={left} x2={left + width} y1={crosshair.y} y2={crosshair.y} stroke="#858c97" strokeDasharray="3 3" opacity=".58"/><rect x={left + width + 3} y={crosshair.y - 8} width={right - 8} height="16" rx="2" fill="#2a2e35"/><text x={left + width + 7} y={crosshair.y + 4} fill="#d7dbe0" fontSize="10" fontFamily="monospace">{format(crossPrice!)}</text><rect x={crosshair.x - 44} y={axisBottom + 4} width="88" height="16" rx="2" fill="#2a2e35"/><text x={crosshair.x} y={axisBottom + 15} textAnchor="middle" fill="#d7dbe0" fontSize="9">{formatTime(page.items[index].time)}</text></g>}
+        {hasRsi && <g><line x1={left} x2={left + width} y1={rsiTop - 8} y2={rsiTop - 8} stroke={settings.separatorColor}/><rect x={left} y={rsiTop} width={width} height={boundedRsi} fill="#191a1d"/><line x1={left} x2={left + width} y1={rsiTop + boundedRsi * .3} y2={rsiTop + boundedRsi * .3} stroke={settings.gridColor} strokeDasharray="3 4"/><line x1={left} x2={left + width} y1={rsiTop + boundedRsi * .7} y2={rsiTop + boundedRsi * .7} stroke={settings.gridColor} strokeDasharray="3 4"/>{visibleIndicators.filter(item => item.type === 'rsi').map(indicator => <polyline key={indicator.id} points={indicator.values.map((value, position) => value === null || position < renderStart || position >= renderEnd ? null : `${xIndex(position)},${rsiTop + (100 - value) / 100 * boundedRsi}`).filter(Boolean).join(' ')} fill="none" stroke={indicator.color} strokeWidth="1.4"/>)}<text x={left + 4} y={rsiTop + 13} fill="#aaa59d" fontSize="10">RSI</text><text x={left + width + 8} y={rsiTop + 5} fill="#817f7b" fontSize="9">100</text><text x={left + width + 8} y={rsiBottom} fill="#817f7b" fontSize="9">0</text></g>}
+        {crosshair && settings.showCrosshair && activeTool === 'cursor' && !pan.current && <g pointerEvents="none"><line x1={crosshair.x} x2={crosshair.x} y1={top} y2={hasRsi ? rsiBottom : chartBottom} stroke="#99958d" strokeDasharray="3 3" opacity=".58"/><line x1={left} x2={left + width} y1={crosshair.y} y2={crosshair.y} stroke="#99958d" strokeDasharray="3 3" opacity=".58"/><rect x={left + width + 3} y={crosshair.y - 8} width={right - 8} height="16" rx="2" fill="#323337"/><text x={left + width + 7} y={crosshair.y + 4} fill="#e1ddd5" fontSize="10" fontFamily="monospace">{format(crossPrice!)}</text><rect x={crosshair.x - 44} y={axisBottom + 4} width="88" height="16" rx="2" fill="#323337"/><text x={crosshair.x} y={axisBottom + 15} textAnchor="middle" fill="#e1ddd5" fontSize="9">{formatTime(page.items[index].time)}</text></g>}
+        <g aria-label="Chart status overlay" pointerEvents="none">
+          <rect x={left} y="4" width={width} height={Math.max(1, top - 8)} fill={settings.background} opacity=".92" />
+          {settings.showSymbol || settings.showOhlc ? <>
+            <text x={left + 6} y="19" className={statusClass} fill="#e7e2d9" fontSize="11" fontWeight="650">{statusText}</text>
+          </> : null}
+          {settings.showVolume && <text x={left + 6} y="35" fill="#a9a39a" fontSize="10">Volume {inspected.volume}</text>}
+        </g>
         {/* Y-axis ticks and horizontal grid */}
         {(() => {
           const yRange = prices.upper - prices.lower
@@ -334,13 +356,13 @@ export function CandleChart({ page, markers = [], frozen = false, settings = def
           return ticks.map(val => (
             <g key={`y-tick-${val}`}>
               {settings.showGrid && <line x1={left} x2={left + width} y1={yPrice(val)} y2={yPrice(val)} stroke={settings.gridColor} opacity=".3"/>}
-              <text x={left + width + 5} y={yPrice(val) + 4} fill="#737b88" fontSize="10">{format(val)}</text>
+              <text x={left + width + 5} y={yPrice(val) + 4} fill="#817f7b" fontSize="10">{format(val)}</text>
             </g>
           ))
         })()}
       </svg>
       {hasRsi && <div role="separator" aria-label="Resize RSI pane" aria-orientation="horizontal" aria-valuemin={64} aria-valuemax={180} aria-valuenow={boundedRsi} tabIndex={0} style={{ top: `${(rsiTop - 13) / totalHeight * 100}%` }} className="group absolute left-3 right-[78px] z-30 h-3 -translate-y-1/2 cursor-row-resize touch-none" onPointerDown={event => { event.preventDefault(); const start = event.clientY, initial = rsiHeight; event.currentTarget.setPointerCapture(event.pointerId); const move = (next: PointerEvent) => setRsiHeight(clamp(initial - (next.clientY - start) * totalHeight / Math.max(svg.current?.getBoundingClientRect().height ?? totalHeight, 1), 64, 180)); const stop = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', stop) }; window.addEventListener('pointermove', move); window.addEventListener('pointerup', stop) }} onKeyDown={event => { if (event.key === 'ArrowUp') setRsiHeight(value => clamp(value + 8, 64, 180)); if (event.key === 'ArrowDown') setRsiHeight(value => clamp(value - 8, 64, 180)) }}><span className="absolute left-1/2 top-1/2 h-0.5 w-12 -translate-x-1/2 -translate-y-1/2 rounded bg-slate-600 opacity-0 transition group-hover:opacity-100"/></div>}
-      <div className="absolute bottom-2 right-36 flex items-center gap-1 rounded-md border border-slate-800 bg-[#14171c]/92 p-0.5 text-[9px] text-slate-500"><span className="px-1.5">{Math.floor(visibleStart) + 1}–{Math.min(total, Math.ceil(visibleStart + visibleCount))} / {total}</span>{manualPrices && <span className="border-l border-slate-700 px-1.5 text-amber-300">Manual price</span>}<button type="button" aria-label="Reset chart view" title="Reset Chart · 0" data-tooltip="Reset · 0" onClick={resetView} disabled={visibleStart === 0 && Math.abs(visibleCount - total) < .01 && !manualPrices} className="icon-tool grid h-6 w-6 place-items-center rounded text-slate-500 hover:bg-slate-800 hover:text-slate-100 disabled:opacity-35"><Icon name="reset" className="h-3.5 w-3.5"/></button></div>
+      <div className="absolute bottom-2 left-3 flex items-center gap-1 rounded-md border border-slate-800 bg-[#1c1d20]/88 p-0.5 text-[9px] text-slate-500"><span className="sr-only">{Math.floor(visibleStart) + 1}–{Math.min(total, Math.ceil(visibleStart + visibleCount))} / {total}</span>{manualPrices && <span className="px-1.5 text-amber-300">Manual price</span>}<button type="button" aria-label="Reset chart view" title="Reset Chart · 0" data-tooltip="Reset · 0" onClick={resetView} disabled={visibleStart === 0 && Math.abs(visibleCount - total) < .01 && !manualPrices} className="icon-tool grid h-6 w-6 place-items-center rounded text-slate-500 hover:bg-slate-800 hover:text-slate-100 disabled:opacity-35"><Icon name="reset" className="h-3.5 w-3.5"/></button></div>
     </div>
   </div>
 }

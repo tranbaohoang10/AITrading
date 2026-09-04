@@ -24,7 +24,7 @@ export type ChartSettings = {
 export const defaultChartSettings: ChartSettings = {
   chartType: 'candles', showSymbol: true, showOhlc: true, showVolume: true, showPriceLine: true, showLastValue: true, showGrid: true,
   showCrosshair: true, showIndicatorTitles: true, showIndicatorValues: true,
-  candleBorders: true, candleWicks: true, bullColor: '#16a085', bearColor: '#f04452', background: '#101217', gridColor: '#252932', textColor: '#d6d9df', separatorColor: '#30343d', spacing: 65, timezone: 'UTC',
+  candleBorders: true, candleWicks: true, bullColor: '#3ca58c', bearColor: '#df5a60', background: '#141518', gridColor: '#2a2b2f', textColor: '#e4e1da', separatorColor: '#3a3b40', spacing: 65, timezone: 'UTC',
 }
 
 export const drawingLabels: Record<Exclude<DrawingTool, 'cursor'>, string> = {

@@ -29,3 +29,11 @@ All timestamps use Asia/Ho_Chi_Minh.
 - Re-ran direct LuxAlgo reference inspection and local synthetic-data browser QA at 1536×730; verified chart navigation, grouped flyouts, exclusive menus, common drawings, semantic anchors, Long/Short draft safety, RSI resizing, timezone, settings, object-tree deletion, undo/redo, status-line layout, and dark theme.
 - Repaired incomplete Long/Short draft rendering so an in-progress three-anchor tool cannot dereference missing price points or blank the React workspace.
 - Quality evidence: focused regression 7 files / 69 tests PASS; full frontend suite 31 files / 227 tests PASS; lint, production build, and diff check PASS.
+
+## 04/09/2026 — Critical visual/chart correction pass
+
+- Reworked the Quant chart viewport layout so time and price remain separate: horizontal time movement re-enters automatic visible-high/low fitting, while vertical/diagonal movement is the explicit manual price viewport and reset clears it.
+- Moved status/OHLC/change/volume into the SVG canvas with a computed safe top inset; removed the permanent visible synthetic-sample row and retained provenance, window navigation, and deletion in compact toolbar popovers.
+- Added a responsive single status renderer, in-canvas active-indicator legend with hover/focus controls, adaptive bottom time axis spacing, full-height chart flex sizing, and a warm neutral charcoal palette.
+- Browser evidence: current open LuxAlgo Quant reference inspected directly; local `DEMO_USD` at 1536×730 verified with RSI, horizontal pan (no manual price state), vertical pan (manual price state), reset, status/legend geometry, no visible synthetic metadata row, and full canvas height. Existing PB-031 wheel evidence covers slow/fast zoom continuity and cursor anchoring (100 → 84 bars).
+- Final quality evidence: full frontend suite 31 files / 227 tests PASS; focused market regression 16/16 PASS; `npm run lint` PASS; `npm run build` PASS; `git diff --check` PASS. Fresh viewport resizing was unavailable in the active browser-control surface; existing responsive captures remain the applicable evidence.

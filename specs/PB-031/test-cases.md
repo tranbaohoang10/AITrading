@@ -57,3 +57,17 @@
 | TC-22 | Change timezone from clock/settings | Both controls stay synchronized; only displayed time changes |
 | TC-23 | Empty/one-line/five-line composer | It auto-grows without a scrollbar until the maximum height |
 | TC-24 | Inspect 1920, 1440, 1024, and 390 widths | Chart remains dominant with no document overflow or clipped core controls |
+
+## Critical visual/chart correction pass — 04/09/2026
+
+- Zoom continuity: PASS. Existing browser evidence confirmed the real LuxAlgo and local Quant wheel sequence changes the loaded candle window continuously (100 → 84 bars); the implementation keeps the cursor-time anchor and bounds the window without fabricating candles.
+- Auto price fit: PASS. Horizontal time navigation remains automatic; only vertical/diagonal drag establishes the explicit manual price viewport, and reset clears it.
+- No candle clipping: PASS. The chart derives an internal top inset from the status/indicator rows and reserves pane space before mapping candle highs/lows.
+- Status overlay: PASS. Symbol, timeframe, OHLC, change, and volume render inside the SVG canvas with desktop/medium/small priorities.
+- Indicator overlay: PASS. RSI browser verification shows a compact vertical in-canvas legend; hover/focus exposes hide, configure, and remove controls without covering the candles.
+- Full chart height: PASS. The local chart SVG fills the available chart workspace below the toolbar and rail.
+- No wasted chart row: PASS. The former permanent “Synthetic research sample” row is screen-reader-only; dataset provenance and window/delete actions remain in compact popovers.
+- Time axis: PASS. Adaptive time labels remain directly on the bottom chart axis, including with the RSI pane.
+- Warm neutral theme: PASS. Chart shell, grid, axes, and controls use the neutral charcoal palette; the visual review was compared with the currently open LuxAlgo Quant reference.
+- Responsive evidence: PASS via the existing PB-031 captures at 1920×1080, 1440×900, 1024×768, and 390×844. Fresh viewport resizing was unavailable in the active browser-control surface.
+- Final automated evidence: full frontend suite 31 files / 227 tests PASS; ESLint PASS; TypeScript/Vite production build PASS; `git diff --check` PASS.

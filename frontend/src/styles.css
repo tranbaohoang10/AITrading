@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
 @theme {
-  --color-slate-950: #0f1219;
-  --color-slate-925: #131722;
-  --color-slate-900: #1a1e29;
-  --color-slate-800: #2a2e39;
-  --color-slate-700: #363c4b;
-  --color-slate-600: #555b66;
-  --color-slate-500: #7d8490;
-  --color-slate-400: #a9afb9;
+  --color-slate-950: #111214;
+  --color-slate-925: #151619;
+  --color-slate-900: #1c1d20;
+  --color-slate-800: #292a2e;
+  --color-slate-700: #38393e;
+  --color-slate-600: #5f6065;
+  --color-slate-500: #85858a;
+  --color-slate-400: #b1b0ae;
   --color-sky-100: #e6e8eb;
   --color-sky-300: #c7cbd1;
-  --color-sky-400: #a9afb9;
-  --color-sky-500: #8c939e;
+  --color-sky-400: #b1b0ae;
+  --color-sky-500: #8f8e8c;
 }
 
 :root {
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #0f1219;
-  color: #eef0f3;
+  background: #111214;
+  color: #eeece7;
   font-synthesis: none;
 }
 
@@ -31,15 +31,15 @@ button { cursor: pointer; }
 button:disabled, select:disabled { cursor: not-allowed; }
 
 .terminal-grid {
-  background-color: #0d0f13;
+  background-color: #121315;
   background-image: linear-gradient(rgb(255 255 255 / 0.018) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.018) 1px, transparent 1px);
   background-size: 44px 44px;
 }
 
 .terminal-panel {
-  border: 1px solid #242832;
+  border: 1px solid #292a2e;
   border-radius: 12px;
-  background: #111318;
+  background: #18191c;
   box-shadow: 0 24px 80px rgb(0 0 0 / 34%);
 }
 
@@ -50,22 +50,22 @@ button:disabled, select:disabled { cursor: not-allowed; }
   place-items: center;
   border: 1px solid #30343b;
   border-radius: 7px;
-  background: #111318;
-  color: #f0f1f3;
+  background: #18191c;
+  color: #f1eee8;
   font-size: .875rem;
   font-weight: 800;
 }
 
 .eyebrow {
-  color: #7d8490;
+  color: #85858a;
   font-size: .6875rem;
   font-weight: 700;
   letter-spacing: .15em;
   text-transform: uppercase;
 }
 
-.primary-button { border-color: #333841 !important; background: #20242a !important; color: #edf0f3 !important; }
-.primary-button:hover { border-color: #4a505b !important; background: #2a2f37 !important; }
+.primary-button { border-color: #38393e !important; background: #242528 !important; color: #eeece7 !important; }
+.primary-button:hover { border-color: #55565b !important; background: #303135 !important; }
 
 .status-chip {
   display: inline-flex;
@@ -75,12 +75,12 @@ button:disabled, select:disabled { cursor: not-allowed; }
   border: 1px solid #2a2e35;
   border-radius: 999px;
   padding: 0 .65rem;
-  color: #a9afb9;
+  color: #b1b0ae;
   font-size: .6875rem;
   font-weight: 600;
   white-space: nowrap;
 }
-.status-chip::before { width: .4rem; height: .4rem; border-radius: 999px; background: #555b66; content: ''; }
+.status-chip::before { width: .4rem; height: .4rem; border-radius: 999px; background: #5f6065; content: ''; }
 .status-chip--success { border-color: rgb(52 211 153 / 28%); color: #6ee7b7; }
 .status-chip--success::before { background: #34d399; box-shadow: 0 0 0 3px rgb(52 211 153 / 10%); }
 .status-chip--warning { border-color: rgb(251 191 36 / 24%); color: #fcd34d; }
@@ -95,7 +95,7 @@ button:disabled, select:disabled { cursor: not-allowed; }
 }
 
 .icon-tool { position: relative; }
-[aria-label="Chart settings"] { border: 1px solid #343944; background: rgb(23 26 32 / 94%); color: #a9afb9 !important; box-shadow: 0 4px 18px rgb(0 0 0 / 24%); }
+[aria-label="Chart settings"] { border: 1px solid #38393e; background: rgb(28 29 32 / 94%); color: #b1b0ae !important; box-shadow: 0 4px 18px rgb(0 0 0 / 24%); }
 .icon-tool::after {
   position: absolute;
   z-index: 80;
@@ -106,8 +106,8 @@ button:disabled, select:disabled { cursor: not-allowed; }
   border: 1px solid #2a2e35;
   border-radius: .35rem;
   padding: .25rem .4rem;
-  background: #15181d;
-  color: #c7cbd1;
+  background: #1c1d20;
+  color: #d8d5ce;
   box-shadow: 0 8px 28px rgb(0 0 0 / 38%);
   content: attr(data-tooltip);
   font-size: .625rem;
@@ -121,13 +121,24 @@ button:disabled, select:disabled { cursor: not-allowed; }
 .icon-tool:hover::after, .icon-tool:focus-visible::after { transform: translateX(-50%) translateY(0); opacity: 1; }
 .chart-tools { scrollbar-width: none; }
 .chart-tools::-webkit-scrollbar { display: none; }
+.chart-status-compact, .chart-status-small { display: none; }
+.chart-indicator-legend { background: rgb(28 29 32 / 72%); }
+@media (max-width: 900px) {
+  .chart-status-desktop { display: none; }
+  .chart-status-compact { display: inline; }
+}
+@media (max-width: 560px) {
+  .chart-status-compact { display: none; }
+  .chart-status-small { display: inline; }
+  .chart-indicator-legend { max-width: calc(100% - 5rem); }
+}
 @media (min-width: 640px) {
   .chart-tools .icon-tool::after { top: 50%; left: calc(100% + .45rem); transform: translateY(-50%) translateX(-2px); }
   .chart-tools .icon-tool:hover::after, .chart-tools .icon-tool:focus-visible::after { transform: translateY(-50%) translateX(0); }
 }
 
-.help-details { border-top: 1px solid #1b1e23; color: #7d8490; font-size: .75rem; line-height: 1.55; }
-.help-details summary { cursor: pointer; padding: .75rem 0; color: #a9afb9; font-weight: 600; }
+.help-details { border-top: 1px solid #292a2e; color: #85858a; font-size: .75rem; line-height: 1.55; }
+.help-details summary { cursor: pointer; padding: .75rem 0; color: #b1b0ae; font-weight: 600; }
 .help-details > :not(summary) { margin-bottom: .75rem; }
 
 .metric-card { border: 1px solid #1b1e23; border-radius: 8px; background: #0b0c0f; padding: .9rem; }
@@ -138,9 +149,9 @@ button:disabled, select:disabled { cursor: not-allowed; }
 
 ::selection { background: rgb(169 175 185 / 28%); }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #0d0f13; }
-::-webkit-scrollbar-thumb { border: 2px solid #0d0f13; border-radius: 999px; background: #343944; }
-:focus-visible { outline: 2px solid #a9afb9; outline-offset: 2px; }
+::-webkit-scrollbar-track { background: #121315; }
+::-webkit-scrollbar-thumb { border: 2px solid #121315; border-radius: 999px; background: #38393e; }
+:focus-visible { outline: 2px solid #b1b0ae; outline-offset: 2px; }
 
 .app-modal {
   position: fixed;
