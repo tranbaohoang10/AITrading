@@ -12,7 +12,7 @@ production readiness, live trading or guaranteed results.
 flowchart LR
   Browser[React + TypeScript + Vite]
   API[Spring Boot Java 21]
-  DB[(PostgreSQL + Flyway V1-V17)]
+  DB[(PostgreSQL + Flyway V1-V18)]
   Python[Bounded Python backtest worker]
   AI[AiProvider: Gemini or optional OpenAI]
   Pine[Pine v6 research artifact]
