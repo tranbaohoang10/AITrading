@@ -251,7 +251,7 @@ describe('PB-006 private market UI (API contract mocks)', () => {
     expect(screen.getByRole('button', { name: 'Clear drawings' })).toBeEnabled()
   })
 
-  it('PB-031 zooms, pans and resets only the loaded candle viewport', async () => {
+  it('PB-031 zooms, horizontally pans, and separately auto-fits price scale', async () => {
     render(<App />)
     const chart = await screen.findByRole('img', { name: /100 candles in UTC \(100 of 100 loaded\)/ })
     fireEvent.wheel(chart, { deltaY: -100, clientX: 450 })
@@ -259,7 +259,12 @@ describe('PB-006 private market UI (API contract mocks)', () => {
     fireEvent.pointerDown(chart, { pointerId: 8, clientX: 500, clientY: 180 })
     fireEvent.pointerMove(chart, { pointerId: 8, clientX: 440, clientY: 220 })
     fireEvent.pointerUp(chart, { pointerId: 8, clientX: 440, clientY: 220 })
-    await waitFor(() => expect(screen.getByText('Manual price')).toBeInTheDocument())
+    expect(screen.queryByText('Manual price')).not.toBeInTheDocument()
+    fireEvent.pointerDown(chart, { pointerId: 9, clientX: 850, clientY: 180 })
+    fireEvent.pointerMove(chart, { pointerId: 9, clientX: 850, clientY: 220 })
+    fireEvent.pointerUp(chart, { pointerId: 9, clientX: 850, clientY: 220 })
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Auto-fit price scale' })).toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: 'Auto-fit price scale' }))
     fireEvent.click(screen.getByRole('button', { name: 'Reset chart view' }))
     expect(screen.getByRole('img', { name: /100 candles in UTC \(100 of 100 loaded\)/ })).toBeInTheDocument()
   })

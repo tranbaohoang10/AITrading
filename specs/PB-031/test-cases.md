@@ -47,7 +47,7 @@
 | ID | Scenario | Expected |
 |---|---|---|
 | TC-14 | Slow and fast wheel input at different cursor positions | Zoom changes continuously in bounded increments and preserves the cursor time anchor |
-| TC-15 | Horizontal, vertical, and diagonal cursor drag | Time and display-price viewports move independently/together without changing OHLCV |
+| TC-15 | Horizontal, vertical, and diagonal cursor drag | Main chart body uses horizontal time pan only; right price axis alone changes manual display-price scale without changing OHLCV |
 | TC-16 | Reset after manual navigation | Loaded time window and auto-fit price range are restored |
 | TC-17 | Zoom/pan/resize/timeframe with drawings | Anchors remain attached to their time/bar and price values |
 | TC-18 | Use each enabled grouped tool | Real geometry is created; unsupported advanced tools are disabled and labeled |
@@ -60,8 +60,8 @@
 
 ## Critical visual/chart correction pass — 04/09/2026
 
-- Zoom continuity: PASS. Existing browser evidence confirmed the real LuxAlgo and local Quant wheel sequence changes the loaded candle window continuously (100 → 84 bars); the implementation keeps the cursor-time anchor and bounds the window without fabricating candles.
-- Auto price fit: PASS. Horizontal time navigation remains automatic; only vertical/diagonal drag establishes the explicit manual price viewport, and reset clears it.
+- Zoom continuity: PASS. Existing browser evidence confirmed the real LuxAlgo and local Quant wheel sequence changes the loaded candle window continuously (100 → 84 bars); the implementation keeps the cursor-time anchor, preserves the latest candle while following it, and bounds the window without fabricating candles.
+- Auto price fit: PASS. Main-chart dragging is horizontal time navigation only; right-axis dragging establishes the explicit manual display-price viewport, and reset or Auto clears it.
 - No candle clipping: PASS. The chart derives an internal top inset from the status/indicator rows and reserves pane space before mapping candle highs/lows.
 - Status overlay: PASS. Symbol, timeframe, OHLC, change, and volume render inside the SVG canvas with desktop/medium/small priorities.
 - Indicator overlay: PASS. RSI browser verification shows a compact vertical in-canvas legend; hover/focus exposes hide, configure, and remove controls without covering the candles.

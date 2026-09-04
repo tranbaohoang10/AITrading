@@ -8,7 +8,7 @@ type Marker = { id: number; barIndex: number; kind: string }
 type Viewport = { start: number; count: number }
 type PriceRange = { lower: number; upper: number }
 type ScreenPoint = { x: number; y: number }
-type PanState = { pointerId: number; x: number; y: number; viewport: Viewport; prices: PriceRange; manualPrice: boolean }
+type PanState = { pointerId: number; x: number; y: number; viewport: Viewport; prices: PriceRange; mode: 'time' | 'price' }
 type EditState = { pointerId: number; drawing: Drawing; point: ChartPoint; handle: number | 'move'; last: Drawing }
 
 const clamp = (value: number, minimum: number, maximum: number) => Math.max(minimum, Math.min(maximum, value))
@@ -29,6 +29,7 @@ export function CandleChart({ page, markers = [], frozen = false, timeframe = '1
   const [index, setIndex] = useState(Math.max(0, total - 1))
   const [crosshair, setCrosshair] = useState<ScreenPoint | null>(null)
   const [viewport, setViewport] = useState<Viewport>({ start: 0, count: total })
+  const [isFollowingLatest, setIsFollowingLatest] = useState(true)
   const [manualPrices, setManualPrices] = useState<PriceRange | null>(null)
   const [draft, setDraft] = useState<Drawing | null>(null)
   const [rsiHeight, setRsiHeight] = useState(92)
@@ -60,7 +61,7 @@ export function CandleChart({ page, markers = [], frozen = false, timeframe = '1
   useEffect(() => {
     setIndex(value => clamp(value, 0, Math.max(0, total - 1)))
     setViewport(value => ({ count: clamp(value.count || total, minimumBars(total), total), start: clamp(value.start, 0, Math.max(0, total - clamp(value.count || total, minimumBars(total), total))) }))
-    setManualPrices(null); setDraft(null); multi.current = null
+    setManualPrices(null); setIsFollowingLatest(true); setDraft(null); multi.current = null
   }, [total, page.dataset.symbol])
   useEffect(() => { setDraft(null); multi.current = null; completedOnPointerDown.current = false }, [activeTool])
   useEffect(() => () => { if (wheelFrame.current) cancelAnimationFrame(wheelFrame.current); if (panFrame.current) cancelAnimationFrame(panFrame.current) }, [])
@@ -154,7 +155,8 @@ export function CandleChart({ page, markers = [], frozen = false, timeframe = '1
     return { x: clamp(px, left, left + width), y: clamp(py, top, chartBottom) }
   }
   const updateInspected = (point: ScreenPoint) => setIndex(clamp(Math.floor(visibleStart + (point.x - left) / width * visibleCount), 0, total - 1))
-  const resetView = () => { setViewport({ start: 0, count: total }); setManualPrices(null); setIndex(total - 1) }
+  const resetPriceScale = () => setManualPrices(null)
+  const resetView = () => { setViewport({ start: 0, count: total }); setManualPrices(null); setIsFollowingLatest(true); setIndex(total - 1) }
   const schedulePan = (nextViewport: Viewport, nextPrices?: PriceRange) => {
     if (panFrame.current) cancelAnimationFrame(panFrame.current)
     panFrame.current = requestAnimationFrame(() => { setViewport(nextViewport); if (nextPrices) setManualPrices(nextPrices); panFrame.current = null })
@@ -165,7 +167,8 @@ export function CandleChart({ page, markers = [], frozen = false, timeframe = '1
     if (event.button !== 0) return
     event.currentTarget.focus(); const screen = screenPoint(event), point = chartPoint(event); setCrosshair(screen); updateInspected(screen)
     if (activeTool === 'cursor') {
-      onSelectDrawing?.(null); pan.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, viewport: { start: visibleStart, count: visibleCount }, prices, manualPrice: manualPrices !== null }
+      const rect = event.currentTarget.getBoundingClientRect(), px = (event.clientX - rect.left) / Math.max(rect.width, 1) * viewWidth
+      onSelectDrawing?.(null); pan.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, viewport: { start: visibleStart, count: visibleCount }, prices, mode: px > left + width ? 'price' : 'time' }
       event.currentTarget.setPointerCapture?.(event.pointerId); event.preventDefault(); return
     }
     if (singlePointTools.has(activeTool)) {
@@ -190,14 +193,15 @@ export function CandleChart({ page, markers = [], frozen = false, timeframe = '1
     }
     if (pan.current && activeTool === 'cursor') {
       const dx = event.clientX - pan.current.x, dy = event.clientY - pan.current.y
-      const start = clamp(pan.current.viewport.start - dx / Math.max(width, 1) * pan.current.viewport.count, -pan.current.viewport.count * 0.4, total - pan.current.viewport.count * 0.6)
-      const priceDelta = dy / Math.max(priceHeight, 1) * (pan.current.prices.upper - pan.current.prices.lower)
-      if (pan.current.manualPrice || Math.abs(dy) > 0.5) {
-        pan.current.manualPrice = true
-        schedulePan({ start, count: pan.current.viewport.count }, { lower: pan.current.prices.lower + priceDelta, upper: pan.current.prices.upper + priceDelta })
-      } else {
-        schedulePan({ start, count: pan.current.viewport.count })
+      if (pan.current.mode === 'price') {
+        const priceDelta = dy / Math.max(priceHeight, 1) * (pan.current.prices.upper - pan.current.prices.lower)
+        schedulePan(pan.current.viewport, { lower: pan.current.prices.lower + priceDelta, upper: pan.current.prices.upper + priceDelta })
+        return
       }
+      const count = pan.current.viewport.count
+      const start = clamp(pan.current.viewport.start - dx / Math.max(width, 1) * count, 0, Math.max(0, total - count))
+      setIsFollowingLatest(start + count >= total - .5)
+      schedulePan({ start, count })
       return
     }
     if (activeTool === 'cursor') updateInspected(screen)
@@ -229,15 +233,17 @@ export function CandleChart({ page, markers = [], frozen = false, timeframe = '1
       wheelFrame.current = requestAnimationFrame(() => {
         const queued = wheelQueue.current; wheelQueue.current = { delta: 0, anchor: queued.anchor }; wheelFrame.current = null
         setViewport(current => {
-          const count = clamp(current.count * Math.exp(clamp(queued.delta, -240, 240) * .0015), minimumBars(total), total * 3)
-          const anchorIndex = current.start + queued.anchor * current.count
-          return { count, start: clamp(anchorIndex - queued.anchor * count, -count * 0.4, total - count * 0.6) }
+          const currentCount = clamp(current.count, minimumBars(total), total)
+          const count = clamp(currentCount * Math.exp(clamp(queued.delta, -240, 240) * .0015), minimumBars(total), total)
+          if (isFollowingLatest) return { count, start: Math.max(0, total - count) }
+          const anchorIndex = current.start + queued.anchor * currentCount
+          return { count, start: clamp(anchorIndex - queued.anchor * count, 0, Math.max(0, total - count)) }
         })
       })
     }
     el.addEventListener('wheel', onNativeWheel, { passive: false })
     return () => el.removeEventListener('wheel', onNativeWheel)
-  }, [total, viewWidth, width])
+  }, [isFollowingLatest, total, viewWidth, width])
   const cancelDraft = () => { setDraft(null); multi.current = null; onCancelTool?.() }
   const keyDown = (event: ReactKeyboardEvent<SVGSVGElement>) => {
     if (editableTarget(event.target)) return
@@ -247,8 +253,26 @@ export function CandleChart({ page, markers = [], frozen = false, timeframe = '1
     if (modifier && event.key.toLowerCase() === 'z') { event.preventDefault(); if (event.shiftKey) onRedo?.(); else onUndo?.(); return }
     if (modifier && event.key.toLowerCase() === 'y') { event.preventDefault(); onRedo?.(); return }
     if (event.key === '0') { event.preventDefault(); resetView(); return }
-    if (event.key === '+' || event.key === '=') { event.preventDefault(); setViewport(current => ({ count: clamp(current.count * .9, minimumBars(total), total * 3), start: clamp(current.start + current.count * .05, -current.count * 0.4, total - current.count * 0.6) })); return }
-    if (event.key === '-') { event.preventDefault(); setViewport(current => ({ count: clamp(current.count * 1.1, minimumBars(total), total * 3), start: clamp(current.start - current.count * .05, -current.count * 0.4, total - current.count * 0.6) })); return }
+    if (event.key === '+' || event.key === '=') {
+      event.preventDefault()
+      setViewport(current => {
+        const currentCount = clamp(current.count, minimumBars(total), total), count = clamp(currentCount * .9, minimumBars(total), total)
+        if (isFollowingLatest) return { count, start: Math.max(0, total - count) }
+        const anchorIndex = current.start + currentCount / 2
+        return { count, start: clamp(anchorIndex - count / 2, 0, Math.max(0, total - count)) }
+      })
+      return
+    }
+    if (event.key === '-') {
+      event.preventDefault()
+      setViewport(current => {
+        const currentCount = clamp(current.count, minimumBars(total), total), count = clamp(currentCount * 1.1, minimumBars(total), total)
+        if (isFollowingLatest) return { count, start: Math.max(0, total - count) }
+        const anchorIndex = current.start + currentCount / 2
+        return { count, start: clamp(anchorIndex - count / 2, 0, Math.max(0, total - count)) }
+      })
+      return
+    }
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); setIndex(value => clamp(value + (event.key === 'ArrowLeft' ? -1 : 1), 0, total - 1)) }
   }
 
@@ -320,7 +344,7 @@ export function CandleChart({ page, markers = [], frozen = false, timeframe = '1
   return <div className="flex min-h-0 flex-1 flex-col">
     <div className="relative flex min-h-0 flex-1 flex-col select-none">
       {indicators.length > 0 && <div aria-label="Active indicators" style={{ top: `${overlayInset + 4}px` }} className="chart-indicator-legend pointer-events-auto absolute left-3 z-20 flex max-w-[calc(100%-7rem)] flex-col gap-px rounded-md px-1 py-0.5">{indicatorRows.map(({ indicator, value }) => <div key={indicator.id} className="group/indicator flex min-h-4 items-center gap-1 text-[10px] text-slate-400"><span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: indicator.color }}/><span className={`w-16 truncate font-mono font-semibold uppercase ${indicator.visible ? 'text-slate-300' : 'text-slate-600'}`}>{indicator.type} {indicator.period}</span><span className="font-mono text-[9px] text-slate-500">{value === null ? '—' : format(value)}</span><button type="button" aria-label={`${indicator.visible ? 'Hide' : 'Show'} ${indicator.type.toUpperCase()} ${indicator.period}`} title={indicator.visible ? 'Hide indicator' : 'Show indicator'} onClick={() => onToggleIndicator?.(indicator.id)} className="grid h-4 w-4 shrink-0 place-items-center rounded text-slate-600 opacity-0 hover:bg-slate-800 hover:text-slate-200 group-hover/indicator:opacity-100 group-focus-within/indicator:opacity-100"><Icon name={indicator.visible ? 'eye' : 'eyeOff'} className="h-3 w-3"/></button><button type="button" aria-label={`Configure ${indicator.type.toUpperCase()} ${indicator.period}`} title="Indicator settings" onClick={onOpenIndicators} className="grid h-4 w-4 shrink-0 place-items-center rounded text-slate-600 opacity-0 hover:bg-slate-800 hover:text-slate-200 group-hover/indicator:opacity-100 group-focus-within/indicator:opacity-100"><Icon name="settings" className="h-3 w-3"/></button><button type="button" aria-label={`Remove ${indicator.type.toUpperCase()} ${indicator.period}`} title="Remove indicator" onClick={() => onRemoveIndicator?.(indicator.id)} className="grid h-4 w-4 shrink-0 place-items-center rounded text-slate-600 opacity-0 hover:bg-slate-800 hover:text-slate-200 group-hover/indicator:opacity-100 group-focus-within/indicator:opacity-100"><Icon name="close" className="h-3 w-3"/></button></div>)}</div>}
-      <svg ref={svg} viewBox={`0 0 ${viewWidth} ${totalHeight}`} preserveAspectRatio="none" style={{ background: settings.background, touchAction: 'none' }} className={`h-full min-h-0 w-full flex-1 border border-slate-800 outline-none focus-visible:border-slate-600 ${activeTool === 'cursor' ? (pan.current ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-cell'}`} role="img" tabIndex={0} aria-label={`${page.dataset.symbol} ${frozen ? 'frozen backtest' : 'imported'} ${settings.chartType === 'candles' ? 'candlesticks' : settings.chartType}, ${Math.ceil(visibleCount)} candles in ${settings.timezone} (${renderEnd - renderStart} of ${total} loaded). Smooth wheel zoom and two-dimensional drag pan.`}
+      <svg ref={svg} viewBox={`0 0 ${viewWidth} ${totalHeight}`} preserveAspectRatio="none" style={{ background: settings.background, touchAction: 'none' }} className={`h-full min-h-0 w-full flex-1 border border-slate-800 outline-none focus-visible:border-slate-600 ${activeTool === 'cursor' ? (pan.current ? 'cursor-grabbing' : 'cursor-crosshair') : 'cursor-cell'}`} role="img" tabIndex={0} aria-label={`${page.dataset.symbol} ${frozen ? 'frozen backtest' : 'imported'} ${settings.chartType === 'candles' ? 'candlesticks' : settings.chartType}, ${Math.ceil(visibleCount)} candles in ${settings.timezone} (${renderEnd - renderStart} of ${total} loaded). Smooth wheel zoom with latest-candle priority and horizontal time pan; right price axis controls display scale.`}
         onKeyDown={keyDown} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={() => { pan.current = null; edit.current = null }} onContextMenu={event => { if (draft || multi.current) { event.preventDefault(); cancelDraft() } }} onPointerLeave={() => { if (!pan.current && !edit.current) setCrosshair(null) }}>
         <defs><linearGradient id="quant-area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#a39d91" stopOpacity=".24"/><stop offset="1" stopColor="#a39d91" stopOpacity=".02"/></linearGradient><marker id="quant-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 8 4 0 8Z" fill="context-stroke"/></marker></defs>
         <rect width={viewWidth} height={totalHeight} fill={settings.background}/>
@@ -362,7 +386,7 @@ export function CandleChart({ page, markers = [], frozen = false, timeframe = '1
         })()}
       </svg>
       {hasRsi && <div role="separator" aria-label="Resize RSI pane" aria-orientation="horizontal" aria-valuemin={64} aria-valuemax={180} aria-valuenow={boundedRsi} tabIndex={0} style={{ top: `${(rsiTop - 13) / totalHeight * 100}%` }} className="group absolute left-3 right-[78px] z-30 h-3 -translate-y-1/2 cursor-row-resize touch-none" onPointerDown={event => { event.preventDefault(); const start = event.clientY, initial = rsiHeight; event.currentTarget.setPointerCapture(event.pointerId); const move = (next: PointerEvent) => setRsiHeight(clamp(initial - (next.clientY - start) * totalHeight / Math.max(svg.current?.getBoundingClientRect().height ?? totalHeight, 1), 64, 180)); const stop = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', stop) }; window.addEventListener('pointermove', move); window.addEventListener('pointerup', stop) }} onKeyDown={event => { if (event.key === 'ArrowUp') setRsiHeight(value => clamp(value + 8, 64, 180)); if (event.key === 'ArrowDown') setRsiHeight(value => clamp(value - 8, 64, 180)) }}><span className="absolute left-1/2 top-1/2 h-0.5 w-12 -translate-x-1/2 -translate-y-1/2 rounded bg-slate-600 opacity-0 transition group-hover:opacity-100"/></div>}
-      <div className="absolute bottom-2 left-3 flex items-center gap-1 rounded-md border border-slate-800 bg-[#1c1d20]/88 p-0.5 text-[9px] text-slate-500"><span className="sr-only">{Math.floor(visibleStart) + 1}–{Math.min(total, Math.ceil(visibleStart + visibleCount))} / {total}</span>{manualPrices && <span className="px-1.5 text-amber-300">Manual price</span>}<button type="button" aria-label="Reset chart view" title="Reset Chart · 0" data-tooltip="Reset · 0" onClick={resetView} disabled={visibleStart === 0 && Math.abs(visibleCount - total) < .01 && !manualPrices} className="icon-tool grid h-6 w-6 place-items-center rounded text-slate-500 hover:bg-slate-800 hover:text-slate-100 disabled:opacity-35"><Icon name="reset" className="h-3.5 w-3.5"/></button></div>
+      <div className="absolute bottom-2 left-3 flex items-center gap-1 rounded-md border border-slate-800 bg-[#1c1d20]/88 p-0.5 text-[9px] text-slate-500"><span className="sr-only">{Math.floor(visibleStart) + 1}–{Math.min(total, Math.ceil(visibleStart + visibleCount))} / {total}</span>{manualPrices && <button type="button" aria-label="Auto-fit price scale" title="Auto-fit price scale" onClick={resetPriceScale} className="rounded px-1.5 text-slate-300 hover:bg-slate-800 hover:text-white">Auto</button>}<button type="button" aria-label="Reset chart view" title="Reset Chart · 0" data-tooltip="Reset · 0" onClick={resetView} disabled={visibleStart === 0 && Math.abs(visibleCount - total) < .01 && !manualPrices} className="icon-tool grid h-6 w-6 place-items-center rounded text-slate-500 hover:bg-slate-800 hover:text-slate-100 disabled:opacity-35"><Icon name="reset" className="h-3.5 w-3.5"/></button></div>
     </div>
   </div>
 }

@@ -34,7 +34,7 @@ All acceptance criteria are implemented and verified; frontend tests, lint, buil
 ## Phase A/B chart foundation and grouped research tools — 03/09/2026
 
 - **AC-12 — Semantic anchors:** session-local drawings store time/bar identity plus price and are projected into the current viewport at render time.
-- **AC-13 — Smooth navigation:** normalized requestAnimationFrame-batched wheel input zooms around the cursor; pointer capture supports horizontal, vertical, and diagonal pan; reset restores time and auto-fit price.
+- **AC-13 — Smooth navigation:** normalized requestAnimationFrame-batched wheel input zooms around the cursor while preserving the latest region when following it; pointer capture pans the main chart horizontally only, price-axis dragging is separate manual scaling, and reset restores time and auto-fit price.
 - **AC-14 — Price viewport:** visible candles auto-fit by default; manual vertical pan uses a display-only price range and never mutates OHLCV.
 - **AC-15 — Compact inspection:** the permanent previous/slider/next inspector and large OHLC block are removed; crosshair and a compact status line provide OHLCV inspection.
 - **AC-16 — Grouped toolbox:** the rail exposes compact Lines, Fibonacci, Measure/Position, Shapes, Text, and Utilities flyouts. Unsupported advanced pattern, harmonic, Elliott, Gann, and pitchfork tools remain honestly disabled.
