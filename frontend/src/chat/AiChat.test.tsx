@@ -63,6 +63,17 @@ it('starts a private conversation from the composer with one Send action', async
   expect(ai.startAi).toHaveBeenCalledWith(expect.objectContaining({ conversationId: beta.id, expectedVersion: 3, sourceSequence: 2 }), 'owner-a')
 })
 
+it('keeps the private composer in separate input and action tiers', async () => {
+  render(<Root />)
+  await screen.findByText(/OpenAI · AI ready/)
+  const composer = screen.getByTestId('chat-composer')
+  const actions = screen.getByTestId('chat-composer-actions')
+  expect(composer).toContainElement(screen.getByLabelText('Research message'))
+  expect(actions).toContainElement(screen.getByLabelText('AI provider details'))
+  expect(actions).toContainElement(screen.getByRole('button', { name: 'Voice input' }))
+  expect(actions).toContainElement(screen.getByRole('button', { name: 'Send to Quant' }))
+})
+
 it('checks provider automatically and never exposes admin provider/save controls', async () => {
   vi.mocked(ai.getAiConfiguration).mockResolvedValue({ configured: false, provider: null, model: null })
   render(<Root />); await select()

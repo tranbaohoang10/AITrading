@@ -63,12 +63,19 @@ export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: 
 
     <ChatFeedback chat={chat} />
     <form className="shrink-0 border-t border-slate-800 bg-slate-950/90 p-2.5" onSubmit={event => { event.preventDefault(); void submit() }}>
-      <div className="flex items-end gap-1 rounded-2xl border border-slate-700 bg-slate-900 p-1.5 shadow-[0_8px_30px_rgb(0_0_0/18%)] focus-within:border-slate-500">
+      <div aria-label="Chat composer" data-testid="chat-composer" className="chat-composer">
          <label htmlFor="strategy-prompt" className="sr-only">Research message</label>
-         <textarea ref={composer} id="strategy-prompt" aria-label="Research message" placeholder="Message Quant..." value={chat.draft} disabled={locked} maxLength={4000} onChange={event => { chat.setDraft(event.target.value); event.target.style.height = '36px'; event.target.style.height = Math.min(120, event.target.scrollHeight) + 'px' }} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (!event.currentTarget.form?.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled) event.currentTarget.form?.requestSubmit() } }} rows={1} className="min-h-9 min-w-0 flex-1 resize-none overflow-y-auto border-0 bg-transparent px-2 py-2 text-[13px] leading-5 text-slate-100 outline-none placeholder:text-slate-600" style={{ height: '36px' }} />
-         <ProviderDetails chat={chat} />
-        <button type="button" disabled aria-label="Voice input" title="Voice input is not available yet" className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-slate-600 focus-visible:ring-2 focus-visible:ring-slate-300"><Icon name="microphone" className="h-4 w-4" /></button>
-         <button type="submit" aria-label="Send to Quant" title="Send to Quant" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-950 transition hover:bg-white focus-visible:ring-2 focus-visible:ring-white disabled:bg-slate-800 disabled:text-slate-600" disabled={chat.busy || chat.aiChecking || chat.aiCancelling || chat.pendingAction === 'ai' || chat.pendingAction === 'create' || !chat.aiConfiguration?.configured || !chat.draft.trim() || chat.messagesLoading}><Icon name="send" className="h-4 w-4" /></button>
+         <textarea ref={composer} id="strategy-prompt" aria-label="Research message" placeholder="Ask Quant about a strategy…" value={chat.draft} disabled={locked} maxLength={4000} onChange={event => { chat.setDraft(event.target.value); event.target.style.height = '36px'; event.target.style.height = Math.min(120, event.target.scrollHeight) + 'px' }} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (!event.currentTarget.form?.querySelector<HTMLButtonElement>('button[type="submit"]')?.disabled) event.currentTarget.form?.requestSubmit() } }} rows={1} className="chat-composer-input" style={{ height: '36px' }} />
+        <div data-testid="chat-composer-actions" className="chat-composer-actions">
+          <div className="flex min-w-0 items-center gap-1">
+            <button type="button" disabled aria-label="Add chat context unavailable" title="Add chat context is not available yet" className="chat-composer-round-action focus-visible:ring-2 focus-visible:ring-slate-300"><Icon name="plus" className="h-4 w-4" /></button>
+            <ProviderDetails chat={chat} />
+          </div>
+          <div className="flex items-center gap-1">
+            <button type="button" disabled aria-label="Voice input" title="Voice input is not available yet" className="chat-composer-round-action focus-visible:ring-2 focus-visible:ring-slate-300"><Icon name="microphone" className="h-4 w-4" /></button>
+            <button type="submit" aria-label="Send to Quant" title="Send to Quant" className="chat-composer-send focus-visible:ring-2 focus-visible:ring-white" disabled={chat.busy || chat.aiChecking || chat.aiCancelling || chat.pendingAction === 'ai' || chat.pendingAction === 'create' || !chat.aiConfiguration?.configured || !chat.draft.trim() || chat.messagesLoading}><Icon name="send" className="h-4 w-4" /></button>
+          </div>
+        </div>
       </div>
     </form>
 
@@ -89,7 +96,8 @@ function ProviderStatus({ chat }: { chat: ChatState }) {
 }
 
 function ProviderDetails({ chat }: { chat: ChatState }) {
-  return <details className="relative"><summary aria-label="AI provider details" title="AI provider details" className="list-none cursor-pointer rounded p-1 text-slate-600 hover:text-slate-300 focus-visible:outline-2 focus-visible:outline-slate-300"><Icon name="info" className="h-3.5 w-3.5" /></summary><div className="absolute bottom-7 right-0 z-20 w-64 rounded-lg border border-slate-700 bg-slate-900 p-3 text-left text-[11px] leading-4 text-slate-400 shadow-2xl"><p className="font-semibold text-slate-200">{chat.aiConfiguration?.configured ? `${chat.aiConfiguration.provider === 'gemini' ? 'Gemini' : 'OpenAI'} · ${chat.aiConfiguration.model}` : 'AI provider offline'}</p><p className="mt-2">Up to 20 recent saved messages may be sent to the configured provider. Do not include secrets. No trades are executed.</p>{chat.aiConfiguration?.provider === 'gemini' && <p className="mt-2 text-amber-200">Use synthetic data only. Provider retention policies apply.</p>}</div></details>
+  const provider = chat.aiConfiguration?.provider === 'gemini' ? 'Gemini' : chat.aiConfiguration?.provider === 'openai' ? 'OpenAI' : 'AI'
+  return <details className="relative min-w-0"><summary aria-label="AI provider details" title="AI provider details" className="chat-composer-model"><span className="truncate">{chat.aiConfiguration?.configured ? `${provider} AI` : 'AI offline'}</span><Icon name="chevron" className="h-3.5 w-3.5 shrink-0" /></summary><div className="absolute bottom-9 left-0 z-20 w-64 rounded-lg border border-slate-700 bg-slate-900 p-3 text-left text-[11px] leading-4 text-slate-400 shadow-2xl"><p className="font-semibold text-slate-200">{chat.aiConfiguration?.configured ? `${provider} · ${chat.aiConfiguration.model}` : 'AI provider offline'}</p><p className="mt-2">Up to 20 recent saved messages may be sent to the configured provider. Do not include secrets. No trades are executed.</p>{chat.aiConfiguration?.provider === 'gemini' && <p className="mt-2 text-amber-200">Use synthetic data only. Provider retention policies apply.</p>}</div></details>
 }
 
 function ConversationMenu({ chat, onDelete }: { chat: ChatState; onDelete: () => void }) {

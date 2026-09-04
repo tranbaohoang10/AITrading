@@ -58,16 +58,13 @@ function DemoChat() {
       </div>
 
       <div className="border-t border-slate-800 bg-slate-950/70 p-4">
+        <div aria-label="Chat composer" className="chat-composer">
         <label htmlFor="strategy-prompt" className="sr-only">Strategy prompt</label>
-        <textarea id="strategy-prompt" value={prompt} disabled={generationStatus === 'loading'} maxLength={4000} onChange={(event) => setPrompt(event.target.value)} placeholder="Describe a strategy…" rows={3} className="w-full resize-none rounded-sm border border-slate-700 bg-slate-900 px-3 py-3 text-sm text-white placeholder:text-slate-600 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/30" />
-        <p className="mt-1 text-xs text-slate-500">Demo only · {prompt.length}/4000 · not saved</p>
-        <div className="mt-3 flex items-center gap-2">
-          <button type="button" disabled aria-label="Attach reference" title="Attach reference — available with the future document library" className="grid min-h-11 min-w-11 place-items-center rounded-sm border border-slate-700 text-slate-300 hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-sky-400 disabled:opacity-40">
-            <Icon name="paperclip" className="h-4 w-4" />
-          </button>
-          <button type="button" disabled={generationStatus === 'loading'} onClick={generateStrategy} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-sm bg-sky-400 px-4 text-sm font-bold text-slate-950 transition hover:bg-sky-300 focus-visible:ring-2 focus-visible:ring-white disabled:cursor-wait disabled:opacity-60">
-            <Icon name="chart" className="h-4 w-4" />{generationStatus === 'loading' ? 'Generating…' : 'Generate Strategy'}
-          </button>
+        <textarea id="strategy-prompt" value={prompt} disabled={generationStatus === 'loading'} maxLength={4000} onChange={(event) => setPrompt(event.target.value)} placeholder="Ask about a strategy…" rows={2} className="chat-composer-input min-h-14" />
+        <div className="chat-composer-actions">
+          <div className="flex min-w-0 items-center gap-1"><button type="button" disabled aria-label="Attach reference" title="Attach reference — available with the future document library" className="chat-composer-round-action focus-visible:ring-2 focus-visible:ring-slate-300"><Icon name="plus" className="h-4 w-4" /></button><span className="truncate px-1 text-xs font-medium text-slate-300">Demo AI</span><span className="text-[11px] text-slate-600">· not saved</span></div>
+          <button type="button" aria-label="Generate Strategy" title="Generate Strategy" disabled={generationStatus === 'loading'} onClick={generateStrategy} className="chat-composer-send focus-visible:ring-2 focus-visible:ring-white"><Icon name="send" className="h-4 w-4" /></button>
+        </div>
         </div>
       </div>
     </section>
