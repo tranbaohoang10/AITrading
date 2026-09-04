@@ -39,13 +39,13 @@ export function AppShell() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [tabletChatOpen, setTabletChatOpen] = useState(false)
   const [mobileView, setMobileView] = useState<MobileView>('chart')
-  const [chatWidth, setChatWidth] = useState(304)
+  const [chatWidth, setChatWidth] = useState(360)
   const [resizing, setResizing] = useState(false)
   const [platformView, setPlatformView] = useState<MobileView | null>(null)
 
   useEffect(() => {
     if (!resizing) return
-    const resize = (event: MouseEvent) => setChatWidth(Math.min(336, Math.max(288, event.clientX - 52)))
+    const resize = (event: MouseEvent) => setChatWidth(Math.min(420, Math.max(320, event.clientX)))
     const stop = () => setResizing(false)
     window.addEventListener('mousemove', resize)
     window.addEventListener('mouseup', stop)
@@ -70,24 +70,24 @@ export function AppShell() {
   if (mode === 'desktop') {
     return (
       <div data-layout="desktop" className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
-        <GlobalSidebar onNavigate={navigateDesktop} activeAction={platformView ?? 'workspace'} />
-        <div style={{ width: chatWidth }} className="h-full shrink-0"><AiChat onGenerateFromImage={() => setPlatformView('image-analysis')} /></div>
+        <div style={{ width: chatWidth }} className="h-full shrink-0"><AiChat onGenerateFromImage={() => setPlatformView('image-analysis')} onOpenNavigation={() => setDrawerOpen(true)} /></div>
         <div
           role="separator"
           aria-label="Resize AI Chat"
           aria-orientation="vertical"
-          aria-valuemin={288}
-          aria-valuemax={336}
+          aria-valuemin={320}
+          aria-valuemax={420}
           aria-valuenow={chatWidth}
           tabIndex={0}
           onMouseDown={() => setResizing(true)}
           onKeyDown={(event) => {
-            if (event.key === 'ArrowLeft') setChatWidth((width) => Math.max(288, width - 8))
-            if (event.key === 'ArrowRight') setChatWidth((width) => Math.min(336, width + 8))
+            if (event.key === 'ArrowLeft') setChatWidth((width) => Math.max(320, width - 8))
+            if (event.key === 'ArrowRight') setChatWidth((width) => Math.min(420, width + 8))
           }}
           className="group relative w-px shrink-0 cursor-col-resize bg-slate-800 hover:bg-slate-600 focus-visible:bg-slate-400 focus-visible:outline-none"
         />
         {platformView ? <div className="min-w-0 flex-1"><MobileContent view={platformView} onNavigate={setPlatformView} /></div> : <TradingWorkspace mode={mode} onNavigate={navigateDesktop} />}
+        <NavigationDrawer open={drawerOpen} activeView={platformView ?? 'chart'} onClose={() => setDrawerOpen(false)} onSelect={view => { setDrawerOpen(false); navigateDesktop(view) }} />
       </div>
     )
   }

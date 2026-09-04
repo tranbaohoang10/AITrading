@@ -18,16 +18,16 @@ describe('PB-001 responsive navigation and keyboard', () => {
   it('all planned desktop navigation destinations show explicit empty states', () => {
     render(<App />)
     for (const name of ['Journal', 'Strategies', 'Library', 'Account']) {
-      fireEvent.click(within(screen.getByTestId('global-sidebar')).getByRole('button', { name: 'Workspace' }))
-      const drawer = screen.getByRole('complementary', { name: 'Expanded navigation' })
-      const target = name === 'Account' ? within(drawer).getAllByRole('button').at(-1)! : within(drawer).getByRole('button', { name: new RegExp(name) })
+      fireEvent.click(screen.getByRole('button', { name: 'Open Quant navigation' }))
+      const drawer = screen.getByRole('complementary', { name: 'Quant navigation' })
+      const target = within(within(drawer).getByRole('navigation', { name: 'Primary navigation' })).getByRole('button', { name: new RegExp(`^${name}$`) })
       fireEvent.click(target)
       const heading = name === 'Journal' ? 'Trading Journal' : name === 'Library' ? 'Documents' : name
       expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument()
       expect(screen.queryByTestId('chart-view')).not.toBeInTheDocument()
     }
-    fireEvent.click(screen.getByRole('button', { name: 'Workspace' }))
-    fireEvent.click(within(screen.getByRole('complementary', { name: 'Expanded navigation' })).getByRole('button', { name: /Workspace/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Open Quant navigation' }))
+    fireEvent.click(within(screen.getByRole('complementary', { name: 'Quant navigation' })).getByRole('button', { name: 'Chart' }))
     expect(screen.getByTestId('chart-view')).toBeInTheDocument()
   })
 
@@ -42,9 +42,9 @@ describe('PB-001 responsive navigation and keyboard', () => {
     expect(screen.getByRole('tab', { name: 'Trades' })).toHaveFocus()
     const divider = screen.getByRole('separator')
     for (let i = 0; i < 100; i++) fireEvent.keyDown(divider, { key: 'ArrowLeft' })
-    expect(divider).toHaveAttribute('aria-valuenow', '288')
+    expect(divider).toHaveAttribute('aria-valuenow', '320')
     for (let i = 0; i < 100; i++) fireEvent.keyDown(divider, { key: 'ArrowRight' })
-    expect(divider).toHaveAttribute('aria-valuenow', '336')
+    expect(divider).toHaveAttribute('aria-valuenow', '420')
   })
 
   it('closes mobile modal on cancel and restores trigger focus', () => {

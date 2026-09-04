@@ -97,3 +97,39 @@ export function rsi(values: number[], period: number): Array<number | null> {
   }
   return result
 }
+
+export function bollinger(values: number[], period: number, deviation = 2) {
+  const length = Math.max(1, Math.floor(period)), middle = sma(values, length)
+  const upper: Array<number | null> = Array(values.length).fill(null), lower: Array<number | null> = Array(values.length).fill(null)
+  for (let index = length - 1; index < values.length; index++) {
+    const average = middle[index]
+    if (average === null) continue
+    const window = values.slice(index - length + 1, index + 1)
+    const standardDeviation = Math.sqrt(window.reduce((sum, value) => sum + (value - average) ** 2, 0) / length)
+    upper[index] = average + standardDeviation * deviation
+    lower[index] = average - standardDeviation * deviation
+  }
+  return { middle, upper, lower }
+}
+
+export function vwap(candles: Candle[]): Array<number | null> {
+  let weightedPrice = 0, volume = 0
+  return candles.map(candle => {
+    const currentVolume = Math.max(0, Number(candle.volume)), typical = (Number(candle.high) + Number(candle.low) + Number(candle.close)) / 3
+    weightedPrice += typical * currentVolume; volume += currentVolume
+    return volume > 0 ? weightedPrice / volume : typical
+  })
+}
+
+export function atr(candles: Candle[], period: number): Array<number | null> {
+  const trueRanges = candles.map((candle, index) => {
+    const high = Number(candle.high), low = Number(candle.low), previousClose = index ? Number(candles[index - 1].close) : high
+    return Math.max(high - low, Math.abs(high - previousClose), Math.abs(low - previousClose))
+  })
+  return sma(trueRanges, period)
+}
+
+export function macd(values: number[], fast = 12, slow = 26): Array<number | null> {
+  const fastSeries = ema(values, fast), slowSeries = ema(values, slow)
+  return values.map((_, index) => fastSeries[index] === null || slowSeries[index] === null ? null : fastSeries[index]! - slowSeries[index]!)
+}

@@ -180,7 +180,7 @@ describe('PB-006 private market UI (API contract mocks)', () => {
   it('PB-031 adds configurable visual indicators and applies effective chart settings', async () => {
     render(<App />); await screen.findByRole('img', { name: /imported candlesticks/ })
     fireEvent.click(screen.getByLabelText('Indicators'))
-    fireEvent.click(screen.getByRole('button', { name: '+ sma' })); fireEvent.click(screen.getByRole('button', { name: '+ rsi' }))
+    fireEvent.click(screen.getByRole('button', { name: /\+ sma/i })); fireEvent.click(screen.getByRole('button', { name: /\+ rsi/i }))
     expect(screen.getByLabelText('SMA period')).toHaveValue(50)
     expect(screen.getByLabelText('RSI period')).toHaveValue(14)
     const legend = screen.getByLabelText('Active indicators')

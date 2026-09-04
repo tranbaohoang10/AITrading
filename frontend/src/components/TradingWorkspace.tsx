@@ -33,7 +33,7 @@ export function TradingWorkspace({ mode, onNavigate }: { mode: ViewportMode; onN
   return (
     <main aria-label="Trading Workspace" data-testid="trading-workspace" className="flex h-full min-w-0 flex-1 flex-col bg-slate-950">
       <header className="flex h-11 shrink-0 items-center justify-between gap-3 border-b border-slate-800 px-3">
-        <div className="flex min-w-0 items-center gap-2.5"><span className="hidden text-sm font-bold tracking-tight text-slate-100 sm:inline">Quant</span><span className="hidden h-3.5 w-px bg-slate-800 sm:block"/><p className="truncate text-[11px] font-medium text-slate-500">{market ? market.selected?.symbol ?? 'Market data' : 'BTCUSDT'} <span className="text-slate-700">/ Workspace</span></p><h1 className="sr-only">Quant trading workspace</h1></div>
+        <div className="flex min-w-0 items-center gap-2.5"><p className="truncate text-[11px] font-medium text-slate-500">{market ? market.selected?.symbol ?? 'Market data' : 'BTCUSDT'} <span className="text-slate-700">/ Workspace</span></p><h1 className="sr-only">Quant trading workspace</h1></div>
         <div className="flex items-center gap-1.5">
           <span className="status-chip status-chip--quiet hidden sm:inline-flex">Private</span>
           <button type="button" aria-label="Open account" title={auth?.user.displayName ?? 'Account'} onClick={() => onNavigate?.('account')} className="grid h-7 w-7 place-items-center rounded-full border border-slate-700 bg-slate-800 text-[10px] font-semibold text-slate-200 transition hover:border-slate-500 hover:bg-slate-700 focus-visible:outline-2 focus-visible:outline-slate-300">{initials}</button>

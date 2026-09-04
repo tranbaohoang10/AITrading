@@ -12,7 +12,11 @@ export type Drawing = {
   id: string; type: Exclude<DrawingTool, 'cursor' | 'crosshair' | 'aiCapture' | 'eraser'>; points: ChartPoint[]; name?: string; text?: string; visible?: boolean; locked?: boolean
 }
 export type MagnetMode = 'off' | 'weak' | 'strong'
-export type IndicatorConfig = { id: string; type: 'sma' | 'ema' | 'rsi'; period: number; color: string; visible: boolean }
+export type IndicatorType = 'sma' | 'ema' | 'bollinger' | 'vwap' | 'rsi' | 'macd' | 'atr'
+export type IndicatorConfig = {
+  id: string; type: IndicatorType; period: number; color: string; visible: boolean
+  deviation?: number; fast?: number; slow?: number; signal?: number
+}
 export type ChartSettings = {
   chartType: ChartType
   showSymbol: boolean; showOhlc: boolean; showVolume: boolean; showPriceLine: boolean; showLastValue: boolean; showGrid: boolean

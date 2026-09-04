@@ -5,18 +5,19 @@ import { PersistentChat } from '../chat/PersistentChat'
 
 const quickActions = ['Build a trend strategy', 'Define risk rules', 'Explain this mock setup']
 
-export function AiChat({ onGenerateFromImage }: { onGenerateFromImage?: () => void } = {}) {
+export function AiChat({ onGenerateFromImage, onOpenNavigation }: { onGenerateFromImage?: () => void; onOpenNavigation?: () => void } = {}) {
   const auth = useAuth()
-  return auth ? <PersistentChat onGenerateFromImage={onGenerateFromImage} /> : <DemoChat />
+  return auth ? <PersistentChat onGenerateFromImage={onGenerateFromImage} onOpenNavigation={onOpenNavigation} /> : <DemoChat onOpenNavigation={onOpenNavigation} />
 }
 
-function DemoChat() {
+function DemoChat({ onOpenNavigation }: { onOpenNavigation?: () => void }) {
   const { messages, prompt, setPrompt, generateStrategy, generationStatus, generationError } = useTrading()
 
   return (
     <section aria-label="AI Chat" data-testid="ai-chat" className="flex h-full min-h-0 flex-col bg-slate-900/95">
-      <header className="border-b border-slate-800 px-5 py-4">
+      <header className="flex items-center justify-between border-b border-slate-800 px-3 py-3">
         <div className="flex items-center gap-2">
+          <button type="button" aria-label="Open Quant navigation" title="Open Quant navigation" onClick={onOpenNavigation} className="quant-mark">Q</button>
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-400/15 text-slate-300"><Icon name="chart" className="h-4 w-4" /></span>
           <div>
             <h2 className="text-sm font-semibold text-white">Quant / Strategy research</h2>

@@ -8,7 +8,7 @@ import { onChartCapture } from '../market/chartCapture'
 const iconButton = 'grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 disabled:opacity-35'
 const menuButton = 'min-h-9 rounded-md border border-slate-700 bg-slate-900 px-3 text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-white focus-visible:outline-2 focus-visible:outline-slate-300 disabled:opacity-40'
 
-export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: () => void }) {
+export function PersistentChat({ onGenerateFromImage, onOpenNavigation }: { onGenerateFromImage?: () => void; onOpenNavigation?: () => void }) {
   const auth = useAuth()
   const chat = useConversations()
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -35,7 +35,7 @@ export function PersistentChat({ onGenerateFromImage }: { onGenerateFromImage?: 
 
   return <section aria-label="AI Chat" data-testid="ai-chat" className="chat-panel flex h-full min-h-0 flex-col bg-slate-925 text-slate-200">
     <header className="flex h-11 shrink-0 items-center gap-2 border-b border-slate-800 px-2.5">
-      <div className="flex min-w-0 flex-1 items-center gap-2"><span className="grid h-6 w-6 shrink-0 place-items-center rounded-md border border-slate-800 bg-slate-900 text-[10px] font-bold text-slate-300">Q</span><div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-100">Assistant</p><ProviderStatus chat={chat} /></div></div>
+      <div className="flex min-w-0 flex-1 items-center gap-2"><button type="button" aria-label="Open Quant navigation" title="Open Quant navigation" onClick={onOpenNavigation} className="quant-mark h-6 w-6 text-[10px]">Q</button><div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-100">Quant <span className="font-normal text-slate-500">| Assistant</span></p><ProviderStatus chat={chat} /></div></div>
       <button type="button" aria-label="Conversation history" title="Conversation history" aria-pressed={historyOpen} className={iconButton} onClick={() => setHistoryOpen(value => !value)}><Icon name="history" className="h-4 w-4" /></button>
       <button type="button" aria-label={chat.pendingAction === 'create' ? 'Retry new chat' : 'New chat'} title="New chat" className={iconButton} disabled={chat.busy || chat.aiCancelling || (chat.uncertain && chat.pendingAction !== 'create')} onClick={() => void chat.create()}><Icon name="plus" className="h-4 w-4" /></button>
       {chat.selected && <ConversationMenu key={`${chat.selected.id}:${chat.selected.title}`} chat={chat} onDelete={() => setConfirmDelete(true)} />}

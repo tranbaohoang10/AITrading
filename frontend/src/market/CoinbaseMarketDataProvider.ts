@@ -82,10 +82,10 @@ export class CoinbaseMarketDataProvider implements MarketDataProvider {
     return [...new Set([...COINBASE_DEFAULT_SYMBOLS, ...listed])].sort((left, right) => (COINBASE_DEFAULT_SYMBOLS.includes(left as typeof COINBASE_DEFAULT_SYMBOLS[number]) ? -1 : 0) - (COINBASE_DEFAULT_SYMBOLS.includes(right as typeof COINBASE_DEFAULT_SYMBOLS[number]) ? -1 : 0) || left.localeCompare(right)).slice(0, 40)
   }
 
-  async getHistoricalCandles({ symbol, interval, limit, signal }: { symbol: LiveSymbol; interval: Timeframe; limit: number; signal?: AbortSignal }): Promise<MarketCandle[]> {
+  async getHistoricalCandles({ symbol, interval, limit, before, signal }: { symbol: LiveSymbol; interval: Timeframe; limit: number; before?: number; signal?: AbortSignal }): Promise<MarketCandle[]> {
     if (!isLiveSymbol(symbol)) throw error('Invalid Coinbase product.')
     const sourceSeconds = sourceGranularity[interval], wanted = Math.max(1, Math.min(1000, Math.floor(limit)))
-    const sourceTotal = Math.ceil(wanted * sourceFactor(interval)), batches = Math.ceil(sourceTotal / MAX_SOURCE_CANDLES), end = this.now()
+    const sourceTotal = Math.ceil(wanted * sourceFactor(interval)), batches = Math.ceil(sourceTotal / MAX_SOURCE_CANDLES), end = before ?? this.now()
     const responses = await Promise.all(Array.from({ length: batches }, async (_, index) => {
       const batchEnd = end - index * MAX_SOURCE_CANDLES * sourceSeconds * 1000
       const batchStart = batchEnd - MAX_SOURCE_CANDLES * sourceSeconds * 1000

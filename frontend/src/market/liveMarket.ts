@@ -24,7 +24,7 @@ export type CandleSubscription = {
 }
 
 export interface MarketDataProvider {
-  getHistoricalCandles(request: { symbol: LiveSymbol; interval: Timeframe; limit: number; signal?: AbortSignal }): Promise<MarketCandle[]>
+  getHistoricalCandles(request: { symbol: LiveSymbol; interval: Timeframe; limit: number; before?: number; signal?: AbortSignal }): Promise<MarketCandle[]>
   listProducts?: (signal?: AbortSignal) => Promise<LiveSymbol[]>
   subscribeCandles(request: { symbol: LiveSymbol; interval: Timeframe; seed?: MarketCandle }, subscription: CandleSubscription): () => void
 }
