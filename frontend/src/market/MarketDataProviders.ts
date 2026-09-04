@@ -1,6 +1,6 @@
 import { alpacaMarketData } from './AlpacaMarketDataProvider'
 import { coinbaseMarketData } from './CoinbaseMarketDataProvider'
-import type { Instrument, LiveSymbol, MarketCandle, MarketDataProvider } from './liveMarket'
+import type { Instrument, LiveSymbol, MarketDataProvider } from './liveMarket'
 
 const isCrypto = (symbol: LiveSymbol) => symbol.includes('-')
 export const marketDataProvider: MarketDataProvider = {
