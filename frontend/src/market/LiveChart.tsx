@@ -12,7 +12,7 @@ import { sendChartCaptureToAssistant } from './chartCapture'
 
 const iconButton = 'icon-tool grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 disabled:opacity-35'
 const liveClass: Record<LiveConnectionStatus, string> = { LIVE: 'bg-emerald-400', DELAYED: 'bg-amber-300', CONNECTING: 'bg-amber-300 animate-pulse', RECONNECTING: 'bg-amber-300 animate-pulse', DISCONNECTED: 'bg-rose-400' }
-const INITIAL_HISTORY_BARS = 900, HISTORY_PAGE_SIZE = 300, MAX_CACHED_BARS = 20_000
+const INITIAL_HISTORY_BARS = 300, HISTORY_PAGE_SIZE = 300, MAX_CACHED_BARS = 20_000
 const historyCache = new Map<string, MarketCandle[]>()
 const cacheKey = (symbol: LiveSymbol, timeframe: Timeframe, before?: number) => `${symbol}|${timeframe}|${before ?? 'latest'}`
 type HistoryRequest = { symbol: LiveSymbol; interval: Timeframe; limit: number; before?: number; signal?: AbortSignal }
@@ -166,19 +166,18 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
         const key = cacheKey(cellSymbol, cellTimeframe), history = await loadHistorical(provider, { symbol: cellSymbol, interval: cellTimeframe, limit: INITIAL_HISTORY_BARS, signal: controller.signal }, key)
         if (controller.signal.aborted || cellRuns.current[id]?.key !== runKey) return null
         historyCache.set(key, history.slice(-MAX_CACHED_BARS))
-        setCell(current => ({ ...current, candles: keepCurrent ? history.reduce(mergeCandles, current.candles).slice(-MAX_CACHED_BARS) : history.slice(-MAX_CACHED_BARS), error: '' }))
+        setCell(current => ({ ...current, candles: keepCurrent ? current.candles.reduce(mergeCandles, history).slice(-MAX_CACHED_BARS) : history.slice(-MAX_CACHED_BARS), error: '' }))
         return history
       }
       const start = async () => {
         if (id === activeCell) { setSelectedDrawing(null); setTool('cursor'); olderBefore.current = null }
         try {
-          const history = await mergeHistory(false)
-          if (!history || controller.signal.aborted) return
-          run.unsubscribe = provider.subscribeCandles({ symbol: cellSymbol, interval: cellTimeframe, seed: history.at(-1) }, {
+          run.unsubscribe = provider.subscribeCandles({ symbol: cellSymbol, interval: cellTimeframe }, {
             onCandle: candle => setCell(current => { const next = mergeCandles(current.candles, candle).slice(-MAX_CACHED_BARS); historyCache.set(cacheKey(cellSymbol, cellTimeframe), next); return { ...current, candles: next } }),
             onStatus: next => setCell(current => ({ ...current, status: next })),
             onReconnect: () => { void mergeHistory(true).catch(() => setCell(current => ({ ...current, error: 'Live stream reconnected, but latest history could not be refreshed.', status: 'DISCONNECTED' }))) },
           })
+          await mergeHistory(true)
         } catch (cause) {
           if (!controller.signal.aborted) setCell(current => ({ ...current, error: cause instanceof Error ? cause.message : 'Failed to load market data.', status: 'DISCONNECTED' }))
         } finally {
@@ -231,7 +230,7 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
         <span role="separator" aria-orientation="vertical" className="mx-1 h-5 w-px shrink-0 bg-slate-700" />
         <details className="relative shrink-0"><summary aria-label="Chart type" title="Chart type" className={iconButton}><Icon name="candle" className="h-4 w-4" /></summary><div className="absolute left-0 top-9 z-40 w-40 rounded-lg border border-slate-700 bg-slate-900 p-1.5 shadow-2xl"><p className="px-2 py-1 text-[9px] uppercase tracking-wider text-slate-600">Chart type</p>{(['candles', 'bars', 'line', 'area'] as const).map(type => <button key={type} type="button" className={`flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-left text-xs capitalize ${chartType === type ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800'}`} onClick={event => { setChartType(type); event.currentTarget.closest('details')?.removeAttribute('open') }}>{type}{chartType === type && <span className="ml-auto">✓</span>}</button>)}</div></details>
         <details className="relative shrink-0"><summary aria-label="Chart layout" title="Chart layout" className={iconButton}><Icon name="layout" className="h-4 w-4" /></summary><div className="absolute left-0 top-9 z-40 w-52 rounded-lg border border-slate-700 bg-slate-900 p-1.5 shadow-2xl"><p className="px-2 py-1 text-[9px] uppercase tracking-wider text-slate-600">Layout</p><div className="grid grid-cols-5 gap-1">{(['1', '2H', '2V', '4', '8'] as const).map(value => <button key={value} type="button" aria-label={`Layout ${value}`} aria-pressed={layout === value} className={`grid min-h-9 place-items-center rounded-md border text-[10px] ${layout === value ? 'border-slate-400 bg-slate-700 text-white' : 'border-slate-800 text-slate-400 hover:bg-slate-800'}`} onClick={event => { setLayout(value); selectCell('c1'); event.currentTarget.closest('details')?.removeAttribute('open') }}>{value}</button>)}</div></div></details>
-        <button type="button" aria-label="Indicators" title="Indicators" onClick={() => setIndicatorOpen(true)} className={`${iconButton} flex w-auto items-center gap-1 px-2 ${indicators.length ? 'text-slate-100' : ''}`}><Icon name="indicator" className="h-4 w-4" /><span className="text-[10px] font-semibold">Indicators</span></button>
+        <button type="button" aria-label="Indicators" aria-haspopup="dialog" aria-expanded={indicatorOpen} title="Indicators · select multiple" onClick={() => setIndicatorOpen(true)} className={`icon-tool inline-flex h-8 w-auto shrink-0 flex-row items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 ${indicators.length ? 'text-slate-100' : ''}`}><Icon name="indicator" className="h-4 w-4 shrink-0" /><span className="text-[10px] font-semibold leading-none">Indicators</span><span aria-hidden="true" className="text-[11px] font-semibold leading-none text-slate-400">^</span></button>
         <span role="separator" aria-orientation="vertical" className="mx-1 h-5 w-px shrink-0 bg-slate-700" />
         <button type="button" aria-label="Undo drawing" title="Undo drawing · Ctrl/Cmd+Z" disabled={!drawingHistory.current[activeCell]?.past.length} onClick={undoDrawing} className={iconButton}><Icon name="undo" className="h-4 w-4" /></button><button type="button" aria-label="Redo drawing" title="Redo drawing · Ctrl/Cmd+Shift+Z" disabled={!drawingHistory.current[activeCell]?.future.length} onClick={redoDrawing} className={iconButton}><Icon name="redo" className="h-4 w-4" /></button>
       </div>

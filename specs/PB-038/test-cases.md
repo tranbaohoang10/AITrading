@@ -7,7 +7,7 @@ Issue: [#39](https://github.com/tranbaohoang10/AITrading/issues/39)
 | TC-01 | 01–05 | Provider/audit | Inspect discovery candidates and official entitlement records | Each candidate has source, limits, history, mode, display rights and honest status; discovery lists are not runtime feeds. |
 | TC-02 | 02–05 | Integration | Parse Coinbase and Alpaca payload fixtures into neutral Candle/Instrument | Invalid shape/value/time is rejected; mapping preserves UTC, feed, exchange, precision and mode. |
 | TC-03 | 03,17,18 | Security | Start provider with missing/partial Alpaca secrets; inspect client bundle/logs | Crypto stays usable; stock/ETF is unavailable; no secret appears in response, bundle, error or log. |
-| TC-04 | 05,18 | Resilience | Repeat identical history/metadata requests, receive 429/retry-after, abort stale selection, remove cell | Requests dedupe, cache is bounded, retry is capped/backoff-aware, stale work aborts and streams close at zero refs. |
+| TC-04 | 05,18 | Resilience | Repeat identical history/metadata requests, receive 429/retry-after, abort stale selection, remove cell, and block direct Coinbase access | Requests dedupe, cache is bounded, retry is capped/backoff-aware, stale work aborts and streams close at zero refs; authenticated same-origin proxy or bounded `DELAYED` polling keeps the chart usable. |
 | TC-05 | 06 | Layout/UI | Render 1/2H/2V/4/8 and resize/double-click splitters | Each requested layout fills the available workspace; 2H has no lower blank row; active cell is unique. |
 | TC-06 | 07,08 | Navigation | Render 20k loaded bars; zoom at middle/right edge; drag left past latest; append realtime candle | Initial visible count is width-derived; pointer anchor remains stable; bounded blank future appears without fake candles; realtime preserves manual view. |
 | TC-07 | 08,10,16 | Drawings | Create/delete/move/edit/clear drawing; Ctrl+Z/Y/Shift+Z; future time anchor; type in text field | History restores exact drawing state; text inputs are not intercepted; future anchor remains semantic after prepend/realtime. |
@@ -54,6 +54,25 @@ unavailable credentials or provider access remain `BLOCKED` with the exact reaso
 - `frontend`: `npm run build` → exit 0; Vite emitted only the existing bundle-size warning (550.84 kB minified JS).
 - `backend`: `./gradlew test --no-daemon --console=plain --tests com.aitrading.AlpacaMarketDataMapperTests` → exit 0, `BUILD SUCCESSFUL`.
 - `git diff --check` → exit 0; only normal Git LF/CRLF conversion warnings were emitted.
+
+## Execution results — 05/09/2026 (Asia/Ho_Chi_Minh)
+
+| Case | Result | Evidence and limitation |
+| --- | --- | --- |
+| TC-02 | PASS | `CoinbaseMarketDataClientTests`: 3/3 passed. The client validates symbol, granularity, range, provider array shape, response size and 429 handling; authenticated local proxy returned HTTP 200 with 20,617 bytes for BTC-USD 1m. |
+| TC-04 | PASS | Frontend provider tests covered REST timeout/retry, realtime-before-history, WebSocket cleanup and the 5-second fallback to authenticated same-origin polling. The browser extension blocked direct public Coinbase URLs, while the proxy path remained usable. |
+| TC-08 | PASS | Chrome desktop showed `Indicators ^` horizontally; opening the picker exposed built-ins and selecting SMA followed by RSI left both indicators in the active legend/panes. |
+| TC-11 | PASS | Full frontend regression: 34 files, 251 tests passed. |
+| TC-12 | PARTIAL | `npm run lint`, `npm run build`, and `npm audit --audit-level=high` passed. Desktop browser evidence passed; tablet/mobile viewport remains unavailable through the current CUA surface. Full backend CI still has the previously recorded V1–V18 migration-ledger baseline failure and is not relabelled PASS. |
+
+### Commands
+
+- `frontend`: `npm test -- --run --maxWorkers=1 --minWorkers=1` → exit 0, 34/34 files and 251/251 tests.
+- `frontend`: `npm run lint` → exit 0.
+- `frontend`: `npm run build` → exit 0; existing bundle-size warning only (558.20 kB minified JS).
+- `frontend`: `npm audit --audit-level=high` → exit 0, 0 vulnerabilities.
+- `backend`: `./gradlew.bat test --tests com.aitrading.market.CoinbaseMarketDataClientTests --no-daemon --console=plain` → exit 0, 3/3 tests.
+- Authenticated local proxy request `GET /api/market/coinbase/series/BTC-USD/60` → HTTP 200, 20,617 bytes.
 
 ### Browser evidence
 

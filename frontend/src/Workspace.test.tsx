@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, vi } from 'vitest'
 import { App } from './App'
+import { AuthContext } from './auth/AuthContext'
+import { ConversationProvider } from './chat/ConversationProvider'
 
 function desktop() {
   Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: 1440 })
@@ -8,7 +10,7 @@ function desktop() {
 
 describe('TASK-003 through TASK-007 workspace behavior', () => {
   beforeEach(() => desktop())
-  afterEach(() => vi.useRealTimers())
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals() })
 
   it('fully replaces workspace content when switching tabs', () => {
     render(<App />)
@@ -38,7 +40,18 @@ describe('TASK-003 through TASK-007 workspace behavior', () => {
   })
 
   it('keeps drawing tools compact and exposes an honest chart export menu', () => {
-    render(<App />)
+    const fetcher = vi.fn((input: RequestInfo | URL) => {
+      const url = String(input)
+      const body = url.includes('/catalog')
+        ? [{ id: 'BTC-USD', base_currency: 'BTC', quote_currency: 'USD', display_name: 'Bitcoin / US Dollar', quote_increment: '0.01', trading_disabled: false }]
+        : url.includes('/series/')
+          ? [[1_700_000_040, '99', '102', '100', '101', '5']]
+          : []
+      return Promise.resolve(new Response(JSON.stringify(body), { status: 200 }))
+    })
+    vi.stubGlobal('fetch', fetcher)
+    render(<AuthContext.Provider value={{ user: { id: '11111111-1111-4111-8111-111111111111', email: 'chart@example.test', displayName: 'Chart QA' }, update: vi.fn(), clear: vi.fn() }}><ConversationProvider><App /></ConversationProvider></AuthContext.Provider>)
+    return screen.findByRole('img', { name: /live Coinbase candlesticks/ }).then(() => {
     fireEvent.click(screen.getByLabelText('Lines & Channels tools'))
     expect(screen.getByLabelText('Lines & Channels tools')).toHaveClass('text-slate-100')
 
@@ -46,6 +59,7 @@ describe('TASK-003 through TASK-007 workspace behavior', () => {
     expect(screen.getByRole('button', { name: 'Save PNG' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Copy chart image' })).toBeEnabled()
     expect(screen.queryByRole('button', { name: /Send to chat/ })).not.toBeInTheDocument()
+    })
   })
 
   it('keeps code views read-only, scrollable, and copyable', () => {

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createElement, type FunctionComponent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CoinbaseMarketDataProvider } from './CoinbaseMarketDataProvider'
@@ -7,6 +7,7 @@ import { LiveChart } from './LiveChart'
 import { displayMarketSymbol, mergeCandles, type CandleSubscription, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
 
 const baseTime = 1_700_000_040_000
+const accountId = '11111111-1111-4111-8111-111111111111'
 const candle = (openTime = baseTime, symbol: LiveSymbol = 'BTC-USD', close = '101', open = '100'): MarketCandle => ({ symbol, interval: '1m', openTime, closeTime: openTime + 59_999, open, high: '102', low: '99', close, volume: '5', closed: false })
 const LiveChartFixture = LiveChart as FunctionComponent<{ provider: MarketDataProvider }>
 
@@ -27,12 +28,21 @@ describe('PB-034 Coinbase market-data contract', () => {
     expect(instruments.some(item => item.symbol === 'ETH-EUR')).toBe(false)
   })
 
+  it('retries a timed-out Coinbase REST request once and returns a bounded error', async () => {
+    const fetcher = vi.fn((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(init.signal?.reason), { once: true })
+    }))
+    const provider = new CoinbaseMarketDataProvider(fetcher, () => { throw new Error('not used') }, undefined, undefined, () => Date.now(), 5)
+    await expect(provider.listInstruments()).rejects.toThrow('Coinbase market data timed out or could not be reached.')
+    expect(fetcher).toHaveBeenCalledTimes(2)
+  })
+
   it('maps public Coinbase rows into ordered, deduplicated neutral candles and aggregates derived intervals', async () => {
     const now = baseTime + 10_000_000
     const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify([
       [Math.floor((baseTime + 900_000) / 1000), '99', '105', '101', '104', '7'], [Math.floor(baseTime / 1000), '98', '102', '100', '101', '5'], [Math.floor((baseTime + 900_000) / 1000), '99', '106', '101', '105', '8'],
     ]), { status: 200 }))
-    const provider = new CoinbaseMarketDataProvider(fetcher, () => { throw new Error('not used') }, undefined, undefined, () => now)
+    const provider = new CoinbaseMarketDataProvider(fetcher, () => { throw new Error('not used') }, 'https://api.exchange.coinbase.com', undefined, () => now)
     await expect(provider.getHistoricalCandles({ symbol: 'BTC-USD', interval: '30m', limit: 1 })).resolves.toEqual([
       expect.objectContaining({ symbol: 'BTC-USD', interval: '30m', openTime: Math.floor(baseTime / 1_800_000) * 1_800_000, open: '100', high: '106', low: '98', close: '105', volume: '13' }),
     ])
@@ -43,7 +53,7 @@ describe('PB-034 Coinbase market-data contract', () => {
     const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify([
       [Math.floor((baseTime - 60_000) / 1000), '98', '102', '100', '101', '5'],
     ]), { status: 200 }))
-    const provider = new CoinbaseMarketDataProvider(fetcher, () => { throw new Error('not used') }, undefined, undefined, () => baseTime + 10_000)
+    const provider = new CoinbaseMarketDataProvider(fetcher, () => { throw new Error('not used') }, 'https://api.exchange.coinbase.com', undefined, () => baseTime + 10_000)
     await provider.getHistoricalCandles({ symbol: 'BTC-USD', interval: '1m', limit: 300, before: baseTime - 1 })
     const request = new URL(String(fetcher.mock.calls[0][0]))
     expect(request.searchParams.get('end')).toBe(new Date(baseTime - 1).toISOString())
@@ -76,11 +86,35 @@ describe('PB-034 Coinbase market-data contract', () => {
     vi.useRealTimers()
   })
 
+  it('falls back to delayed same-origin polling when Coinbase WebSocket cannot connect', async () => {
+    vi.useFakeTimers()
+    try {
+      const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify([
+        [Math.floor(baseTime / 1000), '99', '102', '100', '101', '5'],
+      ]), { status: 200 }))
+      const socket = { send: vi.fn(), close: vi.fn(), onopen: null, onmessage: null, onerror: null, onclose: null }
+      const provider = new CoinbaseMarketDataProvider(fetcher, () => socket as never, 'http://127.0.0.1/api/market/coinbase', undefined, () => baseTime + 60_000, undefined, accountId)
+      const onCandle = vi.fn(), onStatus = vi.fn()
+      const stop = provider.subscribeCandles({ symbol: 'BTC-USD', interval: '1m' }, { onCandle, onStatus, onReconnect: vi.fn() })
+
+      await vi.advanceTimersByTimeAsync(5_000)
+      expect(String(fetcher.mock.calls[0][0])).toContain('/api/market/coinbase/series/BTC-USD/60/')
+      expect(new Headers(fetcher.mock.calls[0][1]?.headers).get('X-Workspace-User')).toBe(accountId)
+      expect(onCandle).toHaveBeenCalledWith(expect.objectContaining({ symbol: 'BTC-USD', openTime: baseTime }))
+      expect(onStatus).toHaveBeenLastCalledWith('DELAYED')
+      stop()
+      expect(socket.close).toHaveBeenCalledTimes(1)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('cleans up old selection subscriptions and keeps Coinbase actions left of utilities', async () => {
     const unsubscribe = vi.fn()
     const provider: MarketDataProvider = { getHistoricalCandles: vi.fn(async ({ symbol, interval }) => [{ ...candle(baseTime, symbol), interval }]), subscribeCandles: vi.fn((_request, subscription: CandleSubscription) => { subscription.onStatus('LIVE'); return unsubscribe }) }
     render(createElement(LiveChartFixture, { provider }))
     await screen.findByLabelText('Coinbase · LIVE')
+    expect(provider.getHistoricalCandles).toHaveBeenCalledWith(expect.objectContaining({ symbol: 'BTC-USD', interval: '1m', limit: 300 }))
     fireEvent.change(screen.getByLabelText('Symbol'), { target: { value: 'ETH-USD' } })
     await waitFor(() => expect(unsubscribe).toHaveBeenCalledTimes(1))
     await waitFor(() => expect(provider.subscribeCandles).toHaveBeenLastCalledWith(expect.objectContaining({ symbol: 'ETH-USD', interval: '1m' }), expect.any(Object)))
@@ -91,13 +125,37 @@ describe('PB-034 Coinbase market-data contract', () => {
     expect(toolbar.querySelector('.ml-auto')?.textContent).toContain('')
   })
 
+  it('renders a real realtime candle while the initial history request is still pending', async () => {
+    let resolveHistory!: (items: MarketCandle[]) => void
+    const pendingHistory = new Promise<MarketCandle[]>(resolve => { resolveHistory = resolve })
+    const provider: MarketDataProvider = {
+      getHistoricalCandles: vi.fn(({ symbol }) => symbol === 'POL-USD' ? pendingHistory : Promise.resolve([candle(baseTime - 60_000, symbol)])),
+      subscribeCandles: vi.fn((request, subscription) => {
+        subscription.onStatus('LIVE')
+        subscription.onCandle(candle(baseTime, request.symbol))
+        return vi.fn()
+      }),
+    }
+    render(createElement(LiveChartFixture, { provider }))
+    await screen.findByLabelText('Coinbase · LIVE')
+    fireEvent.change(screen.getByLabelText('Symbol'), { target: { value: 'POL-USD' } })
+    expect(await screen.findByRole('img', { name: /POL\/USD live Coinbase candlesticks, 1 candles/ })).toBeInTheDocument()
+    expect(screen.getByLabelText('Coinbase · LIVE')).toBeInTheDocument()
+    await act(async () => resolveHistory([candle(baseTime - 60_000, 'POL-USD')]))
+    await waitFor(() => expect(screen.getByRole('img', { name: /POL\/USD live Coinbase candlesticks, 2 candles/ })).toBeInTheDocument())
+  })
+
   it('offers real Coinbase studies and selectable multi-chart layouts', async () => {
     const provider: MarketDataProvider = { getHistoricalCandles: vi.fn(async ({ symbol }) => Array.from({ length: 40 }, (_, index) => candle(baseTime + index * 60_000, symbol, String(101 + index % 5)))), subscribeCandles: vi.fn((_request, subscription) => { subscription.onStatus('LIVE'); return vi.fn() }) }
     render(createElement(LiveChartFixture, { provider }))
     await screen.findByLabelText('Coinbase · LIVE')
     fireEvent.change(screen.getByLabelText('Timeframe'), { target: { value: '15m' } })
     await waitFor(() => expect(screen.getByRole('img', { name: /40 candles/ })).toBeInTheDocument())
-    fireEvent.click(screen.getByLabelText('Indicators'))
+    const indicatorButton = screen.getByRole('button', { name: 'Indicators' })
+    expect(indicatorButton).toHaveClass('inline-flex', 'flex-row')
+    expect(indicatorButton).toHaveAttribute('aria-haspopup', 'dialog')
+    expect(indicatorButton).toHaveTextContent('Indicators^')
+    fireEvent.click(indicatorButton)
     expect(screen.getByRole('tab', { name: 'Community' })).toBeInTheDocument()
     expect(screen.queryByRole('tab', { name: 'AITrading Community' })).not.toBeInTheDocument()
     for (const name of ['Simple Moving Average (SMA)', 'Exponential Moving Average (EMA)', 'Bollinger Bands (BB)', 'Volume Weighted Average Price (VWAP)', 'Relative Strength Index (RSI)', 'Moving Average Convergence Divergence (MACD)', 'Average True Range (ATR)']) {

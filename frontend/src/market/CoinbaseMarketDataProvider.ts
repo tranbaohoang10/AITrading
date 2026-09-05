@@ -1,4 +1,5 @@
 import { timeframeMilliseconds, type Timeframe } from './chartMath'
+import { workspaceHeaders } from '../auth/api'
 import { COINBASE_DEFAULT_SYMBOLS, DEFAULT_INSTRUMENTS, isLiveSymbol, validMarketCandle, type CandleSubscription, type Instrument, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
 
 type Socket = Pick<WebSocket, 'close' | 'send' | 'onopen' | 'onmessage' | 'onerror' | 'onclose'>
@@ -7,10 +8,15 @@ type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Respo
 type CoinbaseRow = [number, number | string, number | string, number | string, number | string, number | string]
 type Trade = { productId: LiveSymbol; time: number; price: string; size: string }
 
-const REST_BASE = 'https://api.exchange.coinbase.com'
+const browserOrigin = typeof window === 'undefined' ? 'http://127.0.0.1' : window.location.origin
+const REST_BASE = `${browserOrigin}/api/market/coinbase`
 const STREAM_BASE = 'wss://ws-feed.exchange.coinbase.com'
 const MAX_SOURCE_CANDLES = 300
 const MAX_RECONNECT_DELAY = 30_000
+const REST_TIMEOUT_MS = 8_000
+const STREAM_CONNECT_TIMEOUT_MS = 5_000
+const POLL_INTERVAL_MS = 10_000
+const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504])
 const sourceGranularity: Record<Timeframe, number> = { '1m': 60, '5m': 300, '15m': 900, '30m': 900, '1h': 3600, '4h': 3600, '1d': 86400 }
 
 const error = (message: string) => new Error(message)
@@ -67,10 +73,33 @@ const match = (value: unknown): Trade | null => {
 }
 
 export class CoinbaseMarketDataProvider implements MarketDataProvider {
-  constructor(private readonly fetcher: FetchLike = globalThis.fetch.bind(globalThis), private readonly socketFactory: SocketFactory = url => new WebSocket(url), private readonly restBase = REST_BASE, private readonly streamBase = STREAM_BASE, private readonly now = () => Date.now()) {}
+  constructor(private readonly fetcher: FetchLike = globalThis.fetch.bind(globalThis), private readonly socketFactory: SocketFactory = url => new WebSocket(url), private readonly restBase = REST_BASE, private readonly streamBase = STREAM_BASE, private readonly now = () => Date.now(), private readonly restTimeoutMs = REST_TIMEOUT_MS, private readonly accountId?: string) {}
+
+  private async request(input: RequestInfo | URL, signal?: AbortSignal): Promise<Response> {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const controller = new AbortController()
+      const abort = () => controller.abort(signal?.reason)
+      const timeout = setTimeout(() => controller.abort(), this.restTimeoutMs)
+      if (signal?.aborted) abort()
+      else signal?.addEventListener('abort', abort, { once: true })
+      try {
+        const headers = new Headers({ Accept: 'application/json' })
+        if (this.accountId && this.restBase.endsWith('/api/market/coinbase')) headers.set('X-Workspace-User', workspaceHeaders(this.accountId).get('X-Workspace-User')!)
+        const response = await this.fetcher(input, { signal: controller.signal, credentials: 'same-origin', cache: 'no-store', headers })
+        if (response.ok || attempt === 1 || !RETRYABLE_STATUS.has(response.status)) return response
+      } catch (cause) {
+        if (signal?.aborted) throw cause
+        if (attempt === 1) throw error('Coinbase market data timed out or could not be reached.')
+      } finally {
+        clearTimeout(timeout)
+        signal?.removeEventListener('abort', abort)
+      }
+    }
+    throw error('Coinbase market data could not be reached.')
+  }
 
   async listInstruments(signal?: AbortSignal): Promise<Instrument[]> {
-    const response = await this.fetcher(`${this.restBase}/products`, { signal, headers: { Accept: 'application/json' } })
+    const response = await this.request(this.restBase.endsWith('/api/market/coinbase') ? `${this.restBase}/catalog` : `${this.restBase}/products`, signal)
     if (!response.ok) throw error('Failed to load Coinbase products.')
     const body: unknown = await response.json()
     if (!Array.isArray(body)) throw error('Invalid Coinbase products response.')
@@ -98,27 +127,36 @@ export class CoinbaseMarketDataProvider implements MarketDataProvider {
     if (!isLiveSymbol(symbol)) throw error('Invalid Coinbase product.')
     const sourceSeconds = sourceGranularity[interval], wanted = Math.max(1, Math.min(1000, Math.floor(limit)))
     const sourceTotal = Math.ceil(wanted * sourceFactor(interval)), batches = Math.ceil(sourceTotal / MAX_SOURCE_CANDLES), end = before ?? this.now()
-    const responses = await Promise.all(Array.from({ length: batches }, async (_, index) => {
+    const responses: MarketCandle[][] = []
+    for (let index = 0; index < batches; index += 1) {
       const batchEnd = end - index * MAX_SOURCE_CANDLES * sourceSeconds * 1000
-      const batchStart = batchEnd - MAX_SOURCE_CANDLES * sourceSeconds * 1000
-      const url = new URL(`/products/${encodeURIComponent(symbol)}/candles`, this.restBase)
-      url.searchParams.set('granularity', String(sourceSeconds)); url.searchParams.set('start', new Date(batchStart).toISOString()); url.searchParams.set('end', new Date(batchEnd).toISOString())
-      const response = await this.fetcher(url, { signal, headers: { Accept: 'application/json' } })
+      const batchSize = Math.min(MAX_SOURCE_CANDLES, sourceTotal - index * MAX_SOURCE_CANDLES)
+      const batchStart = batchEnd - batchSize * sourceSeconds * 1000
+      const localProxy = this.restBase.endsWith('/api/market/coinbase'), ranged = localProxy || before !== undefined || batches > 1
+      const url = new URL(localProxy
+        ? `${this.restBase}/series/${encodeURIComponent(symbol)}/${sourceSeconds}${ranged ? `/${batchStart}/${batchEnd}` : ''}`
+        : `/products/${encodeURIComponent(symbol)}/candles`, this.restBase)
+      if (!localProxy) {
+        url.searchParams.set('granularity', String(sourceSeconds))
+        if (ranged) { url.searchParams.set('start', new Date(batchStart).toISOString()); url.searchParams.set('end', new Date(batchEnd).toISOString()) }
+      }
+      const response = await this.request(url, signal)
       if (!response.ok) throw error('Failed to load Coinbase market data.')
       const body: unknown = await response.json()
       if (!Array.isArray(body)) throw error('Invalid Coinbase market-data response.')
-      return body.map(row => historical(row, symbol, interval, sourceSeconds)).filter((value): value is MarketCandle => value !== null)
-    }))
+      responses.push(body.map(row => historical(row, symbol, interval, sourceSeconds)).filter((value): value is MarketCandle => value !== null))
+    }
     const candles = aggregateMarketCandles(responses.flat(), interval).slice(-wanted)
     if (!candles.length) throw error('Coinbase returned no valid candles.')
     return candles
   }
 
   subscribeCandles({ symbol, interval, seed }: { symbol: LiveSymbol; interval: Timeframe; seed?: MarketCandle }, subscription: CandleSubscription): () => void {
-    let disposed = false, opened = false, delay = 1_000, socket: Socket | null = null, retry: ReturnType<typeof setTimeout> | null = null
+    let disposed = false, opened = false, polling = false, delay = 1_000, socket: Socket | null = null, retry: ReturnType<typeof setTimeout> | null = null
+    let connectTimeout: ReturnType<typeof setTimeout> | null = null, pollTimer: ReturnType<typeof setTimeout> | null = null
     let current = seed?.symbol === symbol && seed.interval === interval ? { ...seed } : null
     const schedule = () => {
-      if (disposed || retry) return
+      if (disposed || polling || retry) return
       const wait = delay; delay = Math.min(delay * 2, MAX_RECONNECT_DELAY)
       subscription.onStatus('RECONNECTING')
       retry = setTimeout(() => { retry = null; connect() }, wait)
@@ -134,12 +172,35 @@ export class CoinbaseMarketDataProvider implements MarketDataProvider {
       } else return
       if (current) subscription.onCandle(current)
     }
+    const startPolling = () => {
+      if (disposed || polling) return
+      polling = true
+      if (retry) clearTimeout(retry)
+      retry = null
+      socket?.close()
+      socket = null
+      const poll = async () => {
+        let succeeded = false
+        try {
+          const latest = (await this.getHistoricalCandles({ symbol, interval, limit: 1 })).at(-1)
+          if (latest) { current = latest; subscription.onCandle(latest); succeeded = true }
+        } catch { /* Keep retrying the authenticated REST fallback. */ }
+        if (disposed) return
+        subscription.onStatus(succeeded ? 'DELAYED' : 'DISCONNECTED')
+        pollTimer = setTimeout(poll, POLL_INTERVAL_MS)
+      }
+      subscription.onStatus('DELAYED')
+      void poll()
+    }
     const connect = () => {
-      if (disposed) return
+      if (disposed || polling) return
       subscription.onStatus(opened ? 'RECONNECTING' : 'CONNECTING')
       try { socket = this.socketFactory(this.streamBase) } catch { schedule(); return }
+      connectTimeout = setTimeout(startPolling, STREAM_CONNECT_TIMEOUT_MS)
       socket.onopen = () => {
-        if (disposed || !socket) return
+        if (connectTimeout) clearTimeout(connectTimeout)
+        connectTimeout = null
+        if (disposed || polling || !socket) return
         try { socket.send(JSON.stringify({ type: 'subscribe', product_ids: [symbol], channels: ['matches'] })) }
         catch { socket.close(); return }
         if (opened) subscription.onReconnect()
@@ -150,11 +211,23 @@ export class CoinbaseMarketDataProvider implements MarketDataProvider {
         try { const next = match(JSON.parse(event.data)); if (next) emitTrade(next) } catch { /* Ignore malformed public events. */ }
       }
       socket.onerror = () => { if (!disposed) subscription.onStatus('DISCONNECTED') }
-      socket.onclose = () => { if (!disposed) schedule() }
+      socket.onclose = () => {
+        if (connectTimeout) clearTimeout(connectTimeout)
+        connectTimeout = null
+        if (!disposed) { if (opened) schedule(); else startPolling() }
+      }
     }
     connect()
-    return () => { disposed = true; if (retry) clearTimeout(retry); retry = null; socket?.close(); socket = null }
+    return () => {
+      disposed = true
+      if (retry) clearTimeout(retry)
+      if (connectTimeout) clearTimeout(connectTimeout)
+      if (pollTimer) clearTimeout(pollTimer)
+      retry = null; connectTimeout = null; pollTimer = null
+      socket?.close(); socket = null
+    }
   }
 }
 
 export const coinbaseMarketData = new CoinbaseMarketDataProvider()
+export const coinbaseMarketDataFor = (accountId: string) => new CoinbaseMarketDataProvider(globalThis.fetch.bind(globalThis), url => new WebSocket(url), REST_BASE, STREAM_BASE, () => Date.now(), REST_TIMEOUT_MS, accountId)
