@@ -140,3 +140,15 @@ account again before it can call authenticated market endpoints.
 The automated in-app browser pauses page timers while its control surface is idle, so it cannot truthfully time a 12-second browser deadline. It did confirm the refreshed Symbol Search catalog and ETH/SOL/XRP/etc. icon controls. The deadline behavior is covered by the deterministic React test above; a normal interactive browser is not timer-paused.
 
 CI workflow `33966850160` ran on commit `d7a31f2`: the frontend job passed. The backend job repeated the pre-existing fail-closed `CleanupTests` fixture-path failure before Java tests/build; it is recorded on Issue #40 and is outside this chart-only change.
+
+## StrictMode initialization recovery — 06/09/2026 (Asia/Ho_Chi_Minh)
+
+Correction to the previous runtime note: the claim that the in-app browser paused timers was not verified and must not be relied on. The actual defect was that StrictMode cleanup aborted the initial chart run, but the next setup reused its key and skipped restarting it. Both the request finalizer and UI deadline ignored the aborted controller, leaving loading set indefinitely.
+
+The run guard now skips only a matching, non-aborted run. Cell updates also require the exact current run object and a live controller, so callbacks from an earlier run with the same symbol/timeframe cannot overwrite its replacement. StrictMode remains enabled.
+
+- Dedicated isolated StrictMode regression: first history request aborts; replacement request resolves; chart renders its candle and removes loading. PASS.
+- Targeted chart/provider/Forex regression: 3 files, 20 tests PASS (exit 0).
+- Frontend lint and production build: PASS (exit 0), existing bundle-size warning only.
+- Real browser after starting the local services and signing in with a synthetic QA account: BTC/USD 1m, 300 loaded candles, Coinbase LIVE. Reload verification follows.
+- Reload verification completed: the same browser tab loaded BTC/USD again, reached Coinbase LIVE and displayed 301 loaded candles. Screenshot inspection confirmed visible candlesticks and volume; loading was absent. Frontend/backend remain running locally for review.

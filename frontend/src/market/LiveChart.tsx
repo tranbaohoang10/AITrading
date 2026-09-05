@@ -171,9 +171,10 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
       const cell = cells[id]
       if (!cell) return
       const runKey = `${cell.symbol}|${cell.timeframe}|${attempt}`
-      if (cellRuns.current[id]?.key === runKey) return
-      cellRuns.current[id]?.controller.abort()
-      cellRuns.current[id]?.unsubscribe()
+      const existingRun = cellRuns.current[id]
+      if (existingRun?.key === runKey && !existingRun.controller.signal.aborted) return
+      existingRun?.controller.abort()
+      existingRun?.unsubscribe()
       const controller = new AbortController()
       const run = { key: runKey, controller, unsubscribe: () => {} }
       cellRuns.current[id] = run
@@ -181,7 +182,7 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
       setCells(current => current[id] ? { ...current, [id]: { ...current[id], loading: true, error: '', status: 'CONNECTING', candles: [] } } : current)
       const setCell = (update: (current: ChartCellState) => ChartCellState) => setCells(current => {
         const existing = current[id]
-        if (!existing || existing.symbol !== cellSymbol || existing.timeframe !== cellTimeframe || cellRuns.current[id]?.key !== runKey) return current
+        if (!existing || controller.signal.aborted || cellRuns.current[id] !== run || existing.symbol !== cellSymbol || existing.timeframe !== cellTimeframe) return current
         return { ...current, [id]: update(existing) }
       })
       const mergeHistory = async (keepCurrent: boolean) => {
