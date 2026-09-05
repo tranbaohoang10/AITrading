@@ -1,6 +1,7 @@
 import { TIMEFRAMES, type Timeframe } from './chartMath'
 
 export const COINBASE_DEFAULT_SYMBOLS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'ADA-USD', 'DOGE-USD', 'LTC-USD', 'BCH-USD', 'LINK-USD', 'AVAX-USD', 'POL-USD'] as const
+export const FRANKFURTER_DEFAULT_SYMBOLS = ['EUR-USD', 'GBP-USD', 'USD-JPY', 'USD-CHF', 'AUD-USD', 'USD-CAD', 'NZD-USD'] as const
 export type LiveSymbol = string
 export type LiveConnectionStatus = 'CONNECTING' | 'LIVE' | 'DELAYED' | 'RECONNECTING' | 'DISCONNECTED'
 export type AssetClass = 'CRYPTO' | 'STOCK' | 'ETF' | 'FOREX' | 'FUTURES'
@@ -46,6 +47,13 @@ export const DEFAULT_INSTRUMENTS: Instrument[] = [
   { symbol: 'LINK-USD', displaySymbol: 'LINK/USD', name: 'Chainlink / US Dollar', assetClass: 'CRYPTO', base: 'LINK', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
   { symbol: 'AVAX-USD', displaySymbol: 'AVAX/USD', name: 'Avalanche / US Dollar', assetClass: 'CRYPTO', base: 'AVAX', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
   { symbol: 'POL-USD', displaySymbol: 'POL/USD', name: 'Polygon Ecosystem Token / US Dollar', assetClass: 'CRYPTO', base: 'POL', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'EUR-USD', displaySymbol: 'EUR/USD', name: 'Euro / U.S. Dollar', assetClass: 'FOREX', base: 'EUR', quote: 'USD', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'DELAYED'] },
+  { symbol: 'GBP-USD', displaySymbol: 'GBP/USD', name: 'British Pound / U.S. Dollar', assetClass: 'FOREX', base: 'GBP', quote: 'USD', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'DELAYED'] },
+  { symbol: 'USD-JPY', displaySymbol: 'USD/JPY', name: 'U.S. Dollar / Japanese Yen', assetClass: 'FOREX', base: 'USD', quote: 'JPY', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.001, pricePrecision: 3, modes: ['HISTORICAL', 'DELAYED'] },
+  { symbol: 'USD-CHF', displaySymbol: 'USD/CHF', name: 'U.S. Dollar / Swiss Franc', assetClass: 'FOREX', base: 'USD', quote: 'CHF', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'DELAYED'] },
+  { symbol: 'AUD-USD', displaySymbol: 'AUD/USD', name: 'Australian Dollar / U.S. Dollar', assetClass: 'FOREX', base: 'AUD', quote: 'USD', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'DELAYED'] },
+  { symbol: 'USD-CAD', displaySymbol: 'USD/CAD', name: 'U.S. Dollar / Canadian Dollar', assetClass: 'FOREX', base: 'USD', quote: 'CAD', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'DELAYED'] },
+  { symbol: 'NZD-USD', displaySymbol: 'NZD/USD', name: 'New Zealand Dollar / U.S. Dollar', assetClass: 'FOREX', base: 'NZD', quote: 'USD', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'DELAYED'] },
 ]
 
 export function displayMarketSymbol(symbol: LiveSymbol): string {

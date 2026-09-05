@@ -29,6 +29,8 @@ permitted display use, no paywall bypass/scraping and a passing mapping test.
 | --- | --- | --- | --- | --- | --- | --- |
 | Coinbase Exchange | CRYPTO | Public Exchange market-data endpoints; no private key for current public feed. | Official candles REST; public WebSocket trades/matches. Candles max 300/source request and incomplete no-tick intervals. | Current adapter uses bounded 300-source requests and lazy pages; platform/rate limits apply. | Public read-only market-data use is the current prototype basis; retain Coinbase attribution and do not infer rights beyond official terms. | ACCEPTED |
 | Alpaca Market Data Basic | STOCK, ETF | Basic is $0 for Trading API; API key ID/secret required server-side. | Historical stock bars and WebSocket IEX feed. Basic equity realtime is IEX only; history has latest-15-minute restriction and since-2016 availability per current plan table. | Official plan table: 200 historical API calls/minute, 30 WebSocket symbols; backend must bound/dedupe/cache. | Use is limited to the configured account/use case and applicable Alpaca/exchange terms. UI must say `ALPACA · IEX`, never consolidated SIP/NASDAQ LIVE. Runtime is enabled only after server configuration and health/mapping checks. | ACCEPTED |
+| Frankfurter / ECB | FOREX | Public, no-key API. | Daily historical reference rates; not realtime and not exchange-session OHLCV. | No monthly/daily quota, but upstream rate limits still apply. The adapter allows seven fixed major pairs, caps 600 daily points and polls no more than every 15 minutes. | Frankfurter documents commercial use subject to the selected underlying provider's terms. Adapter pins `providers=ECB`, labels the chart `ECB · EOD`, and never calls a daily reference fix realtime. | ACCEPTED |
+| Stooq | STOCK, FOREX, FUTURES candidate | Public-looking download route, no supported API entitlement established. | On 05/09/2026 the exact CSV endpoints returned an anti-bot HTML verification page rather than data. | N/A | An anti-bot page is not an API contract; no bypass or scraping is permitted. | REJECTED |
 | Twelve Data Basic | FOREX (candidate) | Free individual plan API key. | Realtime forex and history/reference are advertised, but individual plans are personal/internal/non-display; business external display requires paid plan/licensing. | Basic pricing page currently lists 8 API credits/800 day and 8 trial WS; depth/entitlements vary. | Official usage policy prohibits redistribution and commercial display to third parties for individual plans. Not eligible for human-visible chart. | RESEARCH_ONLY |
 | Finnhub free | FOREX (candidate) | API key. | Official API documentation marks Forex Candles Premium; free quote/rates do not establish free historical candles. | Endpoint/plan dependent. | No free-tier evidence for the required human-visible FX OHLC chart. | REJECTED |
 | Alpha Vantage free | STOCK, FOREX (candidate) | API key. | Many datasets are free, but official support/premium pages state standard 25 requests/day; realtime/15-minute US data requires premium/entitlement flow. | 25 requests/day is incompatible with multi-cell active chart use; history depth/endpoint terms vary. | Not suitable for this live chart and not used as a quota checkbox. | REJECTED |
@@ -40,6 +42,7 @@ permitted display use, no paywall bypass/scraping and a passing mapping test.
 - [Coinbase product candles](https://docs.cdp.coinbase.com/api-reference/exchange-api/rest-api/products/get-product-candles): REST path, OHLCV schema, no-tick caveat and 300-candle cap.
 - [Alpaca Market Data API](https://docs.alpaca.markets/us/docs/about-market-data-api): Basic $0, US Stocks/ETFs, IEX realtime, 30 symbols, historical availability and request limits.
 - [Alpaca Market Data FAQ](https://docs.alpaca.markets/us/docs/market-data-faq): server headers, IEX WebSocket endpoint, IEX vs SIP distinction and feed parameter.
+- [Frankfurter API](https://frankfurter.dev/): no-key public REST API, daily historical rates, provider filtering, commercial-use statement and rate-limit policy.
 - [Alpha Vantage pricing/support](https://www.alphavantage.co/premium/) and [support FAQ](https://www.alphavantage.co/support/): 25-request/day standard limit and realtime/delayed entitlement caveats.
 - [Finnhub official API docs](https://finnhub.io/docs/api/quote): Forex Candles marked Premium.
 - [Twelve Data commercial/personal usage](https://support.twelvedata.com/en/articles/5332349-commercial-and-personal-usage) and [business pricing](https://twelvedata.com/pricing-business): individual internal/non-display restriction and paid external display plans.
@@ -47,9 +50,13 @@ permitted display use, no paywall bypass/scraping and a passing mapping test.
 
 ## Production policy outcome
 
-Crypto remains enabled through Coinbase. Stocks/ETFs are enabled only when
-server-side Alpaca credentials are present and successful mapping/search/history
-checks pass; all visible feed labels remain IEX. Forex and Futures remain hidden
-by default in this prototype. A future provider cannot be enabled from this file
-alone: it must pass a fresh official-doc/terms/pricing audit and the Issue's real
-request, mapping-test and browser evidence gates.
+Crypto remains enabled through Coinbase. Forex now exposes seven fixed major
+pairs through Frankfurter's ECB daily reference data, always in `1D` and visibly
+labelled `ECB · EOD`; the adapter maps the single published reference observation
+to equal O/H/L/C values and zero volume rather than inventing an intraday range.
+Stocks/ETFs are enabled only when server-side Alpaca credentials are present and
+successful mapping/search/history checks pass; all visible feed labels remain IEX.
+Futures remain hidden because a free, display-entitled provider has not passed the
+same audit. A future provider cannot be enabled from this file alone: it must pass
+a fresh official-doc/terms/pricing audit and the Issue's real request, mapping-test
+and browser evidence gates.

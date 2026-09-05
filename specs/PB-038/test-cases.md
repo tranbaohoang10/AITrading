@@ -102,3 +102,21 @@ account again before it can call authenticated market endpoints.
 - `GET /api/market/coinbase/**` is now public read-only data, constrained by the existing Coinbase symbol/granularity/range validation and an IP rate limit of 180 requests per 15 minutes. Private datasets and all write operations remain authenticated.
 - The first public rate-limit key exceeded the persisted 80-character limit and returned `UNAVAILABLE`; the bucket key was shortened and a regression test now checks that it fits the column.
 - A no-session local request to `GET /api/market/coinbase/series/BTC-USD/60` returned HTTP 200 with 350 candles after the fix.
+
+## Forex reference feed and Symbol Search icons — 05/09/2026 (Asia/Ho_Chi_Minh)
+
+| Case | Result | Evidence and limitation |
+| --- | --- | --- |
+| TC-01 | PASS | Official Frankfurter documentation establishes its no-key API, daily historical data, provider filtering and commercial-use statement. Direct query pinned to ECB returned EUR/USD reference rows. Stooq was rejected after every intended CSV endpoint returned anti-bot HTML rather than a stable API response. |
+| TC-02 | PASS | `FrankfurterMarketDataClientTests` verify fixed-pair validation, fixed host/query, malformed-row rejection, provider 429 handling and honest equal O/H/L/C with zero volume for a daily reference observation. |
+| TC-03 | PASS | Frankfurter requires no key. The browser reaches only a same-origin Spring endpoint; no upstream URL or secret is accepted from UI input. |
+| TC-04 | PASS | Backend restricts seven pairs, 600 rows, date range and one hard-coded HTTPS host; public read-only route reuses the existing IP request bucket. Frontend polls the delayed daily reference at 15-minute intervals only. |
+| TC-09 | PASS | Symbol Search browser inspection showed crypto badges, a Forex tab, seven currency-flag icons and `ECB · EOD` labels. Component test selects EUR/USD, automatically switches to 1D and disables intraday choices. |
+| TC-12 | PASS | Targeted frontend regression: 4 files/25 tests; `npm run lint` and `npm run build` passed. Backend market/auth tests passed. Local `GET /api/market/frankfurter/candles?symbol=EUR-USD&limit=10` returned HTTP 200 and ten valid reference candles. |
+
+### Commands
+
+- `frontend`: `npm exec -- vitest run src/market/FrankfurterMarketDataProvider.test.ts src/market/LiveChartForex.test.tsx src/market/liveMarket.test.ts src/Workspace.test.tsx` → exit 0, 4 files/25 tests.
+- `frontend`: `npm run lint; npm run build` → exit 0; Vite reported only the existing >500 kB bundle-size warning.
+- `backend`: `./gradlew.bat test --tests com.aitrading.market.FrankfurterMarketDataClientTests --tests com.aitrading.market.CoinbaseMarketDataClientTests --tests com.aitrading.auth.AuthRateLimiterTests --no-daemon --console=plain` → exit 0, `BUILD SUCCESSFUL`.
+- `local integration`: `GET /api/market/frankfurter/candles?symbol=EUR-USD&limit=10` → HTTP 200; 10 UTC daily candles, values `open=high=low=close`, `volume=0` as declared reference-point semantics.

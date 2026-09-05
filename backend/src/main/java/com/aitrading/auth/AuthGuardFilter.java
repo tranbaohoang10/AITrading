@@ -35,7 +35,7 @@ public class AuthGuardFilter extends OncePerRequestFilter {
             // A mismatch must not invalidate the replacement account's session.
             boolean bootstrap = java.util.Set.of("/api/health", "/api/auth/csrf",
                     "/api/auth/register", "/api/auth/login").contains(path);
-            boolean publicCoinbase = "GET".equals(request.getMethod()) && path.startsWith("/api/market/coinbase/");
+            boolean publicMarketReference = "GET".equals(request.getMethod()) && (path.startsWith("/api/market/coinbase/") || path.startsWith("/api/market/frankfurter/"));
             var expected = java.util.Collections.list(request.getHeaders("X-Workspace-User"));
             boolean discovery = path.equals("/api/auth/me") && expected.isEmpty();
             if (user != null && path.startsWith("/api/") && !bootstrap && !discovery
@@ -44,7 +44,7 @@ public class AuthGuardFilter extends OncePerRequestFilter {
                 return;
             }
             boolean allowed = true;
-            if (user == null && publicCoinbase) allowed = limits.allow("mkt", request.getRemoteAddr(), 180);
+            if (user == null && publicMarketReference) allowed = limits.allow("mkt", request.getRemoteAddr(), 180);
             if(user!=null&&path.equals("/api/audit"))allowed=limits.allow("audit-read",user.id().toString(),120);
             if (user != null && path.startsWith("/api/dsl/"))
                 allowed = limits.allow("dsl-user", user.id().toString(), 120);
