@@ -43,7 +43,10 @@ TradingView scripts/assets, hoặc thay đổi Strategy DSL/backtest/journal sem
   entitlement evidence chính thức cho từng candidate; status là ACCEPTED,
   REJECTED hoặc RESEARCH_ONLY.
 - AC-02: Coinbase REST/WebSocket tiếp tục hoạt động với Candle/Instrument trung
-  lập; không gọi public-apis/finance-apis/runtime scraping để lấy OHLCV.
+  lập; không gọi public-apis/finance-apis/runtime scraping để lấy OHLCV. Khi
+  trình duyệt không truy cập được host WebSocket/REST công khai, chart dùng API
+  cùng origin đã xác thực để proxy dữ liệu và chuyển sang `DELAYED` polling có
+  giới hạn, không treo ở trạng thái loading vô hạn.
 - AC-03: Alpaca Basic nếu configured dùng Stocks/ETFs history/search và IEX
   realtime đúng endpoint/channels chính thức; UI phân biệt listing exchange với
   `ALPACA · IEX`; thiếu key/secret fail closed.
@@ -65,15 +68,18 @@ TradingView scripts/assets, hoặc thay đổi Strategy DSL/backtest/journal sem
   không tạo future candle; realtime không reset manual viewport/scale; drawing
   lưu semantic `{time, price}` và hỗ trợ time tương lai; có Go to realtime.
 - AC-09: toolbar có hierarchy/dividers; Chart Type/Layout/Indicators gần market
-  controls, utility ở phải; không có enabled dead button.
+  controls, utility ở phải; không có enabled dead button. Nhãn Indicators nằm
+  ngang cùng icon và caret `^` cho biết có thể mở thư viện chọn nhiều chỉ báo.
 - AC-10: Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z và nút Undo/Redo hoạt động cho create,
   delete, move, anchor edit, clear drawings; bỏ qua text fields/editors.
 
 ### Indicators, symbol search and time/settings
 
 - AC-11: Indicator Picker là modal library có search/category, Favorites, My
-  Indicators, built-ins, AI/Quant và AITrading Community. Community rỗng hiển thị
-  đúng trạng thái chưa publish; không copy TradingView community.
+  Indicators, built-ins, AI/Quant và Community. Community rỗng hiển thị
+  đúng trạng thái chưa publish; không copy TradingView community. Người dùng
+  có thể thêm nhiều built-in indicators và các indicator đã thêm cùng xuất hiện
+  trong active legend/pane.
 - AC-12: built-ins hiện có SMA/EMA/BB/VWAP/RSI/MACD/ATR giữ nguyên; indicator mới
   chỉ thêm cùng formula tests và pane placement đúng.
 - AC-13: Symbol Search là modal debounce bounded, tìm theo ticker/name/base/quote/
@@ -93,6 +99,8 @@ TradingView scripts/assets, hoặc thay đổi Strategy DSL/backtest/journal sem
 - AC-17: secrets `ALPACA_API_KEY_ID`/`ALPACA_API_SECRET_KEY` chỉ server-side;
   fixed provider allowlist, validation/bounds, redacted errors/logs, no SSRF,
   XSS/injection, mass assignment or unauthorized private market-data access.
+  Coinbase proxy cũng yêu cầu authenticated workspace header, chỉ cho symbol/USD
+  và granularity/range đã giới hạn, đồng thời không chuyển tiếp URL tùy ý.
 - AC-18: giữ `MAX_CACHED_BARS = 20_000`, render visible window + overscan, lazy-load
   multi-chart, shared cache/streams, cleanup on cell removal và không spam provider.
 

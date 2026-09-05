@@ -1,6 +1,6 @@
 import { TIMEFRAMES, type Timeframe } from './chartMath'
 
-export const COINBASE_DEFAULT_SYMBOLS = ['BTC-USD', 'ETH-USD'] as const
+export const COINBASE_DEFAULT_SYMBOLS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'ADA-USD', 'DOGE-USD', 'LTC-USD', 'BCH-USD', 'LINK-USD', 'AVAX-USD', 'POL-USD'] as const
 export type LiveSymbol = string
 export type LiveConnectionStatus = 'CONNECTING' | 'LIVE' | 'DELAYED' | 'RECONNECTING' | 'DISCONNECTED'
 export type AssetClass = 'CRYPTO' | 'STOCK' | 'ETF' | 'FOREX' | 'FUTURES'
@@ -8,6 +8,7 @@ export type MarketDataMode = 'HISTORICAL' | 'REALTIME' | 'DELAYED' | 'SNAPSHOT'
 
 export type Instrument = {
   symbol: LiveSymbol
+  displaySymbol?: string
   name: string
   assetClass: AssetClass
   base?: string
@@ -34,9 +35,22 @@ export type MarketCandle = {
 }
 
 export const DEFAULT_INSTRUMENTS: Instrument[] = [
-  { symbol: 'BTC-USD', name: 'Bitcoin / US Dollar', assetClass: 'CRYPTO', base: 'BTC', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
-  { symbol: 'ETH-USD', name: 'Ethereum / US Dollar', assetClass: 'CRYPTO', base: 'ETH', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'BTC-USD', displaySymbol: 'BTC/USD', name: 'Bitcoin / US Dollar', assetClass: 'CRYPTO', base: 'BTC', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'ETH-USD', displaySymbol: 'ETH/USD', name: 'Ethereum / US Dollar', assetClass: 'CRYPTO', base: 'ETH', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'SOL-USD', displaySymbol: 'SOL/USD', name: 'Solana / US Dollar', assetClass: 'CRYPTO', base: 'SOL', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'XRP-USD', displaySymbol: 'XRP/USD', name: 'XRP / US Dollar', assetClass: 'CRYPTO', base: 'XRP', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'ADA-USD', displaySymbol: 'ADA/USD', name: 'Cardano / US Dollar', assetClass: 'CRYPTO', base: 'ADA', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'DOGE-USD', displaySymbol: 'DOGE/USD', name: 'Dogecoin / US Dollar', assetClass: 'CRYPTO', base: 'DOGE', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'LTC-USD', displaySymbol: 'LTC/USD', name: 'Litecoin / US Dollar', assetClass: 'CRYPTO', base: 'LTC', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'BCH-USD', displaySymbol: 'BCH/USD', name: 'Bitcoin Cash / US Dollar', assetClass: 'CRYPTO', base: 'BCH', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'LINK-USD', displaySymbol: 'LINK/USD', name: 'Chainlink / US Dollar', assetClass: 'CRYPTO', base: 'LINK', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'AVAX-USD', displaySymbol: 'AVAX/USD', name: 'Avalanche / US Dollar', assetClass: 'CRYPTO', base: 'AVAX', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'POL-USD', displaySymbol: 'POL/USD', name: 'Polygon Ecosystem Token / US Dollar', assetClass: 'CRYPTO', base: 'POL', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
 ]
+
+export function displayMarketSymbol(symbol: LiveSymbol): string {
+  return symbol.replace(/-/g, '/')
+}
 
 export function precisionFromIncrement(increment: number): number {
   if (!Number.isFinite(increment) || increment <= 0) return 2
