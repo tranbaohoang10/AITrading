@@ -12,6 +12,15 @@ const provider: MarketDataProvider = {
 const Fixture = LiveChart as FunctionComponent<{ provider: MarketDataProvider }>
 
 describe('LiveChart Forex reference mode', () => {
+  it('renders recognizable vector crypto logos in the symbol picker', async () => {
+    render(createElement(Fixture, { provider }))
+    await screen.findByRole('img', { name: /live Coinbase candlesticks/i })
+    fireEvent.click(screen.getByLabelText('Symbol'))
+    const ethereum = screen.getByRole('img', { name: 'Ethereum / US Dollar icon' })
+    expect(ethereum.querySelector('svg')).toBeInTheDocument()
+    expect(ethereum).not.toHaveTextContent('Ξ')
+  })
+
   it('shows currency icons, chooses a Forex reference pair, and locks the chart to daily data', async () => {
     render(createElement(Fixture, { provider }))
     await screen.findByRole('img', { name: /live Coinbase candlesticks/i })

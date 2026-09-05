@@ -120,3 +120,21 @@ account again before it can call authenticated market endpoints.
 - `frontend`: `npm run lint; npm run build` → exit 0; Vite reported only the existing >500 kB bundle-size warning.
 - `backend`: `./gradlew.bat test --tests com.aitrading.market.FrankfurterMarketDataClientTests --tests com.aitrading.market.CoinbaseMarketDataClientTests --tests com.aitrading.auth.AuthRateLimiterTests --no-daemon --console=plain` → exit 0, `BUILD SUCCESSFUL`.
 - `local integration`: `GET /api/market/frankfurter/candles?symbol=EUR-USD&limit=10` → HTTP 200; 10 UTC daily candles, values `open=high=low=close`, `volume=0` as declared reference-point semantics.
+
+## Loading recovery and recognizable crypto logos — 05/09/2026 (Asia/Ho_Chi_Minh)
+
+| Case | Result | Evidence and limitation |
+| --- | --- | --- |
+| TC-04 | PASS | A deliberately never-settling history provider now reaches the explicit 12-second deadline, removes the stale in-flight request, presents a safe retryable error and enables `Retry market data`. The request cache also rejects an aborted or expired shared entry before a new selection can reuse it. |
+| TC-09 | PASS | Symbol Search renders inline, accessible SVG marks for BTC, ETH, SOL, XRP, ADA, DOGE, LTC, BCH, LINK, AVAX and POL. Ethereum is asserted as a multi-facet vector icon rather than the former `Ξ` text badge. Other catalog assets receive a neutral crypto glyph instead of an arbitrary letter. |
+| TC-12 | PASS | Targeted frontend regression passed 19/19 tests and production build completed. Vite emitted only its existing chunk-size warning. The same-origin Coinbase range route returned 300 rows locally. |
+
+### Commands
+
+- `frontend`: `npm test -- --run src/market/liveMarket.test.ts src/market/LiveChartForex.test.tsx` → exit 0, 19/19 tests.
+- `frontend`: `npm run build` → exit 0; existing >500 kB bundle warning only.
+- `local integration`: `GET /api/market/coinbase/series/BTC-USD/60/1788593168716/1788611168716` through Vite proxy → HTTP 200; 300 Coinbase OHLCV rows.
+
+### Runtime note
+
+The automated in-app browser pauses page timers while its control surface is idle, so it cannot truthfully time a 12-second browser deadline. It did confirm the refreshed Symbol Search catalog and ETH/SOL/XRP/etc. icon controls. The deadline behavior is covered by the deterministic React test above; a normal interactive browser is not timer-paused.

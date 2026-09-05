@@ -148,6 +148,24 @@ describe('PB-034 Coinbase market-data contract', () => {
     await waitFor(() => expect(screen.getByRole('img', { name: /POL\/USD live Coinbase candlesticks, 2 candles/ })).toBeInTheDocument())
   })
 
+  it('turns a stalled historical request into a retryable chart error', async () => {
+    vi.useFakeTimers()
+    try {
+      const provider: MarketDataProvider = {
+        getHistoricalCandles: vi.fn(() => new Promise<MarketCandle[]>(() => {})),
+        subscribeCandles: vi.fn((_request, subscription) => { subscription.onStatus('CONNECTING'); return vi.fn() }),
+      }
+      render(createElement(LiveChartFixture, { provider }))
+      fireEvent.click(screen.getByLabelText('Timeframe'))
+      fireEvent.click(screen.getByRole('menuitemradio', { name: '4h' }))
+      await act(async () => { await vi.advanceTimersByTimeAsync(12_001) })
+      expect(screen.getByRole('alert')).toHaveTextContent('Market data request timed out. Retry the chart.')
+      expect(screen.getByRole('button', { name: 'Retry market data' })).toBeEnabled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('offers real Coinbase studies and selectable multi-chart layouts', async () => {
     const provider: MarketDataProvider = { getHistoricalCandles: vi.fn(async ({ symbol }) => Array.from({ length: 40 }, (_, index) => candle(baseTime + index * 60_000, symbol, String(101 + index % 5)))), subscribeCandles: vi.fn((_request, subscription) => { subscription.onStatus('LIVE'); return vi.fn() }) }
     render(createElement(LiveChartFixture, { provider }))

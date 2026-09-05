@@ -13,19 +13,40 @@ import { sendChartCaptureToAssistant } from './chartCapture'
 const iconButton = 'icon-tool grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 disabled:opacity-35'
 const toolbarTrigger = 'flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md border border-transparent bg-transparent px-2 text-xs font-semibold text-slate-200 transition hover:bg-slate-800/60 hover:text-white focus-visible:bg-slate-800/60 focus-visible:ring-2 focus-visible:ring-slate-300'
 const liveClass: Record<LiveConnectionStatus, string> = { LIVE: 'bg-emerald-400', DELAYED: 'bg-amber-300', CONNECTING: 'bg-amber-300 animate-pulse', RECONNECTING: 'bg-amber-300 animate-pulse', DISCONNECTED: 'bg-rose-400' }
-const INITIAL_HISTORY_BARS = 300, HISTORY_PAGE_SIZE = 300, MAX_CACHED_BARS = 20_000
+const INITIAL_HISTORY_BARS = 300, HISTORY_PAGE_SIZE = 300, MAX_CACHED_BARS = 20_000, HISTORY_REQUEST_TIMEOUT_MS = 12_000
 const historyCache = new Map<string, MarketCandle[]>()
 const cacheKey = (symbol: LiveSymbol, timeframe: Timeframe, before?: number) => `${symbol}|${timeframe}|${before ?? 'latest'}`
 type HistoryRequest = { symbol: LiveSymbol; interval: Timeframe; limit: number; before?: number; signal?: AbortSignal }
-type SharedHistoryRequest = { controller: AbortController; consumers: number; promise: Promise<MarketCandle[]> }
+type SharedHistoryRequest = { controller: AbortController; consumers: number; startedAt: number; promise: Promise<MarketCandle[]> }
 const historyInFlight = new Map<string, SharedHistoryRequest>()
 const loadHistorical = (provider: MarketDataProvider, request: HistoryRequest, key: string) => {
   const cached = historyCache.get(key)
   if (cached?.length) return Promise.resolve(cached)
   let shared = historyInFlight.get(key)
+  if (shared && (shared.controller.signal.aborted || Date.now() - shared.startedAt >= HISTORY_REQUEST_TIMEOUT_MS)) {
+    shared.controller.abort()
+    historyInFlight.delete(key)
+    shared = undefined
+  }
   if (!shared) {
     const controller = new AbortController()
-    shared = { controller, consumers: 0, promise: provider.getHistoricalCandles({ ...request, signal: controller.signal }).finally(() => historyInFlight.delete(key)) }
+    let timeout: ReturnType<typeof setTimeout> | undefined
+    const timedOut = new Promise<never>((_, reject) => {
+      timeout = setTimeout(() => {
+        controller.abort()
+        reject(new Error('Market data request timed out. Retry the chart.'))
+      }, HISTORY_REQUEST_TIMEOUT_MS)
+    })
+    const entry: SharedHistoryRequest = {
+      controller,
+      consumers: 0,
+      startedAt: Date.now(),
+      promise: Promise.race([provider.getHistoricalCandles({ ...request, signal: controller.signal }), timedOut]).finally(() => {
+        if (timeout) clearTimeout(timeout)
+        if (historyInFlight.get(key) === entry) historyInFlight.delete(key)
+      }),
+    }
+    shared = entry
     historyInFlight.set(key, shared)
   }
   const entry = shared
@@ -172,7 +193,11 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
       }
       const start = async () => {
         if (id === activeCell) { setSelectedDrawing(null); setTool('cursor'); olderBefore.current = null }
+        let deadline: ReturnType<typeof setTimeout> | undefined
         try {
+          deadline = setTimeout(() => {
+            if (!controller.signal.aborted) setCell(current => current.candles.length ? { ...current, loading: false } : { ...current, loading: false, error: 'Market data request timed out. Retry the chart.', status: 'DISCONNECTED' })
+          }, HISTORY_REQUEST_TIMEOUT_MS)
           run.unsubscribe = provider.subscribeCandles({ symbol: cellSymbol, interval: cellTimeframe }, {
             onCandle: candle => setCell(current => { const next = mergeCandles(current.candles, candle).slice(-MAX_CACHED_BARS); historyCache.set(cacheKey(cellSymbol, cellTimeframe), next); return { ...current, candles: next } }),
             onStatus: next => setCell(current => ({ ...current, status: next })),
@@ -182,6 +207,7 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
         } catch (cause) {
           if (!controller.signal.aborted) setCell(current => ({ ...current, error: cause instanceof Error ? cause.message : 'Failed to load market data.', status: 'DISCONNECTED' }))
         } finally {
+          if (deadline) clearTimeout(deadline)
           if (!controller.signal.aborted) setCell(current => ({ ...current, loading: false }))
         }
       }

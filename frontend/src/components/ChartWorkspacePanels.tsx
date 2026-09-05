@@ -8,9 +8,25 @@ const symbolPanel = 'absolute left-1/2 top-3 z-50 w-[min(44rem,calc(100%-1.5rem)
 const field = 'h-8 rounded-md border border-slate-700 bg-slate-950 px-2 text-xs text-slate-200 outline-none focus-visible:ring-2 focus-visible:ring-slate-300'
 
 const currencyFlag: Record<string, string> = { AUD: '🇦🇺', CAD: '🇨🇦', CHF: '🇨🇭', EUR: '🇪🇺', GBP: '🇬🇧', JPY: '🇯🇵', NZD: '🇳🇿', USD: '🇺🇸' }
-const cryptoMark: Record<string, { mark: string; className: string }> = {
-  BTC: { mark: '₿', className: 'bg-amber-500 text-white' }, ETH: { mark: 'Ξ', className: 'bg-slate-500 text-white' }, SOL: { mark: 'S', className: 'bg-fuchsia-600 text-white' }, XRP: { mark: 'X', className: 'bg-sky-600 text-white' }, ADA: { mark: 'A', className: 'bg-blue-600 text-white' }, DOGE: { mark: 'Ð', className: 'bg-amber-700 text-white' }, LTC: { mark: 'Ł', className: 'bg-slate-400 text-slate-950' }, BCH: { mark: 'B', className: 'bg-emerald-600 text-white' }, LINK: { mark: 'L', className: 'bg-blue-500 text-white' }, AVAX: { mark: 'A', className: 'bg-rose-600 text-white' }, POL: { mark: 'P', className: 'bg-violet-600 text-white' },
+function CryptoLogo({ symbol }: { symbol: string }) {
+  const common = { viewBox: '0 0 32 32', 'aria-hidden': true, className: 'h-6 w-6' }
+  switch (symbol) {
+    case 'BTC': return <svg {...common}><circle cx="16" cy="16" r="15" fill="#f7931a" /><text x="16" y="22" textAnchor="middle" fill="white" fontSize="18" fontWeight="700">₿</text></svg>
+    case 'ETH': return <svg {...common}><path d="m16 2-8 13.2L16 20l8-4.8L16 2Z" fill="#bfc5d1" /><path d="m16 2 8 13.2L16 16V2Z" fill="#77808f" /><path d="m16 30-8-13.3 8 4.7 8-4.7L16 30Z" fill="#bfc5d1" /><path d="m16 30 8-13.3-8 4.7V30Z" fill="#77808f" /></svg>
+    case 'SOL': return <svg {...common}><defs><linearGradient id="sol-logo" x1="0" x2="1"><stop stopColor="#14f195" /><stop offset="1" stopColor="#9945ff" /></linearGradient></defs><path d="M7 7h18l-4 4H3l4-4Zm0 7h18l-4 4H3l4-4Zm0 7h18l-4 4H3l4-4Z" fill="url(#sol-logo)" /></svg>
+    case 'XRP': return <svg {...common}><path d="M6 7c3.9 0 4.8 5.5 10 5.5S22.1 7 26 7M6 25c3.9 0 4.8-5.5 10-5.5S22.1 25 26 25" fill="none" stroke="currentColor" strokeLinecap="round" strokeWidth="3.2" /></svg>
+    case 'ADA': return <svg {...common}><g fill="currentColor"><circle cx="16" cy="16" r="3" /><circle cx="16" cy="7" r="1.6" /><circle cx="16" cy="25" r="1.6" /><circle cx="8.2" cy="11.5" r="1.6" /><circle cx="23.8" cy="11.5" r="1.6" /><circle cx="8.2" cy="20.5" r="1.6" /><circle cx="23.8" cy="20.5" r="1.6" /><circle cx="11.7" cy="7.8" r="1" /><circle cx="20.3" cy="7.8" r="1" /><circle cx="11.7" cy="24.2" r="1" /><circle cx="20.3" cy="24.2" r="1" /></g></svg>
+    case 'LINK': return <svg {...common}><path d="m16 3 10 5.8v14.4L16 29 6 23.2V8.8L16 3Zm0 4.1-6.4 3.7v10.4l6.4 3.7 6.4-3.7V10.8L16 7.1Z" fill="currentColor" /></svg>
+    case 'AVAX': return <svg {...common}><path d="m16.1 4.5 8.9 17.1h-5.2l-3.7-7.2-3.8 7.2H7.1L16.1 4.5Zm7.1 20.2h4.2L25.3 29h-4.2l2.1-4.3Z" fill="currentColor" /></svg>
+    case 'POL': return <svg {...common}><path d="m11 9 5-3 5 3v5l-5 3-3-1.8v-3.7L11 10.3v5.4l5 3 5-3" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" /><path d="m16 15 5 3v5l-5 3-5-3v-5l5-3Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2.4" /></svg>
+    case 'DOGE': return <svg {...common}><circle cx="16" cy="16" r="14" fill="#c2a633" /><path d="M12 8h5.5a7 7 0 0 1 0 14H12V8Zm3.1 3v8h2.1a4 4 0 0 0 0-8h-2.1Z" fill="white" /></svg>
+    case 'LTC': return <svg {...common}><circle cx="16" cy="16" r="14" fill="#bfbbbb" /><path d="m17.7 6-4 11.1h5.7l-1.1 3h-7.6L15.7 6h2Z" fill="white" /></svg>
+    case 'BCH': return <svg {...common}><circle cx="16" cy="16" r="14" fill="#8dc351" /><path d="M11 8h6.1a3.4 3.4 0 0 1 2.5 5.7 3.8 3.8 0 0 1-2.6 6.3H11V8Zm3 3v2h2.7a1 1 0 1 0 0-2H14Zm0 5v2h3a1 1 0 0 0 0-2h-3Z" fill="white" /></svg>
+    default: return <svg {...common}><circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" strokeWidth="2" /><path d="M10 16h12M16 10v12" stroke="currentColor" strokeLinecap="round" strokeWidth="2" /></svg>
+  }
 }
+
+const cryptoColors: Record<string, string> = { BTC: 'text-amber-400', ETH: 'text-slate-300', SOL: 'text-fuchsia-300', XRP: 'text-sky-300', ADA: 'text-blue-300', DOGE: 'text-amber-300', LTC: 'text-slate-300', BCH: 'text-emerald-300', LINK: 'text-blue-400', AVAX: 'text-rose-400', POL: 'text-violet-400' }
 
 function InstrumentIcon({ instrument }: { instrument: Instrument }) {
   if (instrument.assetClass === 'FOREX') {
@@ -18,8 +34,8 @@ function InstrumentIcon({ instrument }: { instrument: Instrument }) {
     return <span role="img" aria-label={`${instrument.base ?? 'base'} and ${instrument.quote ?? 'quote'} currency flags`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-800 text-[11px] tracking-[-0.2em]">{base}{quote}</span>
   }
   if (instrument.assetClass === 'CRYPTO') {
-    const mark = cryptoMark[instrument.base ?? instrument.symbol.split('-')[0]] ?? { mark: (instrument.base ?? instrument.symbol).slice(0, 1), className: 'bg-slate-700 text-slate-100' }
-    return <span role="img" aria-label={`${instrument.name} icon`} className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-base font-semibold ${mark.className}`}>{mark.mark}</span>
+    const base = instrument.base ?? instrument.symbol.split('-')[0]
+    return <span role="img" aria-label={`${instrument.name} icon`} className={`grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-800 ${cryptoColors[base] ?? 'text-slate-200'}`}><CryptoLogo symbol={base} /></span>
   }
   const future = instrument.assetClass === 'FUTURES'
   return <span role="img" aria-label={`${instrument.name} ${future ? 'futures' : 'equity'} icon`} className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${future ? 'bg-amber-500/15 text-amber-300' : 'bg-emerald-500/15 text-emerald-300'}`}><Icon name={future ? 'performance' : 'chart'} className="h-4 w-4" /></span>
