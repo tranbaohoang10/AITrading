@@ -108,6 +108,24 @@ describe('PB-003 auth actions', () => {
     expect(network).toHaveBeenCalledTimes(2)
   })
 
+  it('retries exactly once after a server-confirmed stale CSRF rejection', async () => {
+    const network = vi.fn(async (path: string) => {
+      if (path.endsWith('/csrf')) return csrf()
+      return network.mock.calls.filter(call => !String(call[0]).endsWith('/csrf')).length === 1
+        ? response(403, { code: 'CSRF_INVALID' }) : response(204)
+    })
+    vi.stubGlobal('fetch', network)
+    await expect(mutate('/auth/logout')).resolves.toBeUndefined()
+    expect(network).toHaveBeenCalledTimes(4)
+  })
+
+  it('shows the canonical local URL for a rejected frontend origin', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? csrf() : response(403, { code: 'ORIGIN_FORBIDDEN' })))
+    render(<AuthForm onSignedIn={vi.fn()} />)
+    signInFields(); fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('127.0.0.1:5173')
+  })
+
   it.each([403, 429, 503])('shows actionable %i failure without success', async status => {
     vi.stubGlobal('fetch', vi.fn(async (path: string) => path.endsWith('/csrf') ? csrf() : response(status)))
     const success = vi.fn()

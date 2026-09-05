@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev-server.mjs start",
+    "dev:stop": "node scripts/dev-server.mjs stop",
+    "dev:restart": "node scripts/dev-server.mjs restart",
+    "dev:status": "node scripts/dev-server.mjs status",
     "build": "tsc --noEmit && vite build",
     "lint": "eslint .",
     "test": "vitest run"

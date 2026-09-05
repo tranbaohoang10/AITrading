@@ -15,6 +15,8 @@ import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.InvalidCsrfTokenException;
+import org.springframework.security.web.csrf.MissingCsrfTokenException;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
@@ -77,7 +79,10 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, exception) ->
                                 ApiErrors.write(request, response, 401, ApiErrors.Code.UNAUTHORIZED))
                         .accessDeniedHandler((request, response, exception) ->
-                                ApiErrors.write(request, response, 403, ApiErrors.Code.FORBIDDEN)))
+                                ApiErrors.write(request, response, 403,
+                                        exception instanceof InvalidCsrfTokenException
+                                                || exception instanceof MissingCsrfTokenException
+                                                ? ApiErrors.Code.CSRF_INVALID : ApiErrors.Code.FORBIDDEN)))
                 .build();
     }
 }

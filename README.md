@@ -61,7 +61,10 @@ From frontend/ with Node 22.12+ (verified Node 24.8.0) and npm:
 
 ```powershell
 npm ci --ignore-scripts
-npm run dev -- --host 127.0.0.1
+npm run dev
+npm run dev:status
+npm run dev:stop
+npm run dev:restart
 npm run lint
 npm run build
 npm test
@@ -71,6 +74,15 @@ npm audit --audit-level=high
 Keep the dev server local. Branding is centralized in frontend/src/brand.ts.
 The Java/PostgreSQL backend and offline Python engine are described below.
 No production readiness is implied by the prototype workspace.
+
+### Canonical local workspace URL
+
+The only normal frontend URL is http://127.0.0.1:5173 (localhost:5173 is the
+supported hostname alias). Vite is strict on port 5173 and the repository launcher
+never falls back to 5174 or another port. If the port is already occupied, run
+npm run dev:status; it reports whether the listener belongs to this repository.
+Use npm run dev:stop only for a verified AITrading Vite process. The launcher
+does not terminate unrelated Node processes.
 
 ## Backend foundation (PB-002 delivered)
 
@@ -138,11 +150,13 @@ python scripts/test_backend.py --serve
 ```
 
 This mode builds/serves, **does not run tests**. Run npm run dev in frontend in a
-separate terminal. The harness prints an owned tmp/pg-test-... directory and API
-PID. Create the printed stop-api file to stop only that API and DB; create the
-printed restart-api file to restart only that API against the same test database.
-No production/user database is used. Test passwords stay in the process environment
-and ignored temporary file, removed on shutdown; do not paste them in Issues.
+separate terminal, then open http://127.0.0.1:5173. The harness reports READY only
+after GET /api/health succeeds. A second --serve reports the repository-owned
+instance instead of creating another API/database; python scripts/test_backend.py
+--status shows its safe ownership and health state. Ctrl+C stops only the Java
+child and owned PostgreSQL cluster, then removes lifecycle state and the temporary
+credential. No production/user database is used. Test passwords stay in the process
+environment and ignored temporary file, removed on shutdown; do not paste them in Issues.
 Ordinary integration verification remains python scripts/test_backend.py.
 
 For deployment beyond this local machine, provide TLS at a trusted endpoint,

@@ -276,7 +276,13 @@ class AuthenticationTests {
         assertThat(send(client, "POST", "/api/auth/register", "{\"email\":\"a@example.test\",\"email\":\"b@example.test\"}", token, "application/json", Map.of()).statusCode()).isEqualTo(400);
         assertThat(send(client, "POST", "/api/auth/register", "{}{}", token, "application/json", Map.of()).statusCode()).isEqualTo(400);
         assertThat(send(client, "POST", "/api/auth/login", "email=a&email=b&password=x", token, "application/x-www-form-urlencoded", Map.of()).statusCode()).isEqualTo(400);
-        assertThat(send(client, "POST", "/api/auth/register", "{}", token, "application/json", Map.of("Origin", "https://evil.invalid")).statusCode()).isEqualTo(403);
+        var foreignOrigin = send(client, "POST", "/api/auth/register", "{}", token, "application/json",
+                Map.of("Origin", "http://127.0.0.1:5174"));
+        assertThat(foreignOrigin.statusCode()).isEqualTo(403);
+        assertThat(json.readTree(foreignOrigin.body()).get("code").asString()).isEqualTo("ORIGIN_FORBIDDEN");
+        var staleCsrf = send(client, "POST", "/api/auth/register", "{}", token + "-stale", "application/json", Map.of());
+        assertThat(staleCsrf.statusCode()).isEqualTo(403);
+        assertThat(json.readTree(staleCsrf.body()).get("code").asString()).isEqualTo("CSRF_INVALID");
         assertThat(send(client, "POST", "/api/auth/login?email=leak", "password=x", token, "application/x-www-form-urlencoded", Map.of()).statusCode()).isEqualTo(400);
         assertThat(send(client, "GET", "/api/auth/me", "", null, "application/json", Map.of("Authorization", "Bearer attacker")).statusCode()).isEqualTo(401);
     }

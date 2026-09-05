@@ -98,7 +98,7 @@ class AiTradingApplicationTests {
         for (String method : new String[]{"POST", "PUT", "PATCH", "DELETE"}) {
             var response = request(method, "/api/health");
             assertThat(response.statusCode()).as(method).isEqualTo(403);
-            assertThat(response.body()).contains("FORBIDDEN");
+            assertThat(response.body()).contains("CSRF_INVALID");
         }
         assertThat(request("OPTIONS", "/api/private").statusCode()).isEqualTo(401);
         assertThat(request("HEAD", "/api/private").statusCode()).isEqualTo(401);

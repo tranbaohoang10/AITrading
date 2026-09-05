@@ -23,7 +23,7 @@ public class AuthInputFilter extends OncePerRequestFilter {
         }
         String origin = request.getHeader("Origin");
         if (origin != null && !origins.contains(origin)) {
-            ApiErrors.write(request, response, 403, ApiErrors.Code.FORBIDDEN); return;
+            ApiErrors.write(request, response, 403, ApiErrors.Code.ORIGIN_FORBIDDEN); return;
         }
         String mediaType=request.getContentType()==null?"":request.getContentType().split(";")[0];
         boolean documentMultipart=request.getMethod().equals("POST")&&mediaType.equalsIgnoreCase("multipart/form-data")

@@ -9,7 +9,10 @@ import java.util.UUID;
 public final class ApiErrors {
     private ApiErrors() { }
 
-    public enum Code { UNAUTHORIZED, FORBIDDEN, INVALID_REQUEST, UNAVAILABLE, RATE_LIMITED, NOT_FOUND, CONFLICT }
+    public enum Code {
+        UNAUTHORIZED, FORBIDDEN, ORIGIN_FORBIDDEN, CSRF_INVALID, INVALID_REQUEST,
+        UNAVAILABLE, RATE_LIMITED, NOT_FOUND, CONFLICT
+    }
     public record ErrorBody(String code, String requestId) { }
 
     public static String requestId(HttpServletRequest request) {
