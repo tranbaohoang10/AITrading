@@ -1,5 +1,5 @@
 import { timeframeMilliseconds, type Timeframe } from './chartMath'
-import { COINBASE_DEFAULT_SYMBOLS, isLiveSymbol, validMarketCandle, type CandleSubscription, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
+import { COINBASE_DEFAULT_SYMBOLS, DEFAULT_INSTRUMENTS, isLiveSymbol, validMarketCandle, type CandleSubscription, type Instrument, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
 
 type Socket = Pick<WebSocket, 'close' | 'send' | 'onopen' | 'onmessage' | 'onerror' | 'onclose'>
 type SocketFactory = (url: string) => Socket
@@ -69,7 +69,7 @@ const match = (value: unknown): Trade | null => {
 export class CoinbaseMarketDataProvider implements MarketDataProvider {
   constructor(private readonly fetcher: FetchLike = globalThis.fetch.bind(globalThis), private readonly socketFactory: SocketFactory = url => new WebSocket(url), private readonly restBase = REST_BASE, private readonly streamBase = STREAM_BASE, private readonly now = () => Date.now()) {}
 
-  async listProducts(signal?: AbortSignal): Promise<LiveSymbol[]> {
+  async listInstruments(signal?: AbortSignal): Promise<Instrument[]> {
     const response = await this.fetcher(`${this.restBase}/products`, { signal, headers: { Accept: 'application/json' } })
     if (!response.ok) throw error('Failed to load Coinbase products.')
     const body: unknown = await response.json()
@@ -77,9 +77,21 @@ export class CoinbaseMarketDataProvider implements MarketDataProvider {
     const listed = body.flatMap(value => {
       if (!value || typeof value !== 'object') return []
       const product = value as Record<string, unknown>
-      return typeof product.id === 'string' && isLiveSymbol(product.id) && product.quote_currency === 'USD' && product.trading_disabled !== true ? [product.id] : []
+      const symbol = typeof product.id === 'string' ? product.id : ''
+      if (!isLiveSymbol(symbol) || product.quote_currency !== 'USD' || product.trading_disabled === true) return []
+      const fallback = DEFAULT_INSTRUMENTS.find(item => item.symbol === symbol)
+      const base = typeof product.base_currency === 'string' ? product.base_currency : symbol.split('-')[0]
+      const quote = typeof product.quote_currency === 'string' ? product.quote_currency : symbol.split('-')[1]
+      const increment = typeof product.quote_increment === 'string' && Number(product.quote_increment) > 0 ? Number(product.quote_increment) : fallback?.priceIncrement ?? .01
+      return [{ symbol, displaySymbol: `${base}/${quote}`, name: typeof product.display_name === 'string' ? product.display_name : `${base} / ${quote}`, assetClass: 'CRYPTO' as const, base, quote, exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: increment, pricePrecision: fallback?.pricePrecision ?? Math.max(0, String(product.quote_increment ?? '').split('.')[1]?.length ?? 2), modes: ['HISTORICAL', 'REALTIME'] as Instrument['modes'] }]
     })
-    return [...new Set([...COINBASE_DEFAULT_SYMBOLS, ...listed])].sort((left, right) => (COINBASE_DEFAULT_SYMBOLS.includes(left as typeof COINBASE_DEFAULT_SYMBOLS[number]) ? -1 : 0) - (COINBASE_DEFAULT_SYMBOLS.includes(right as typeof COINBASE_DEFAULT_SYMBOLS[number]) ? -1 : 0) || left.localeCompare(right)).slice(0, 40)
+    const bySymbol = new Map(listed.map(item => [item.symbol, item] as const))
+    const defaults = COINBASE_DEFAULT_SYMBOLS.map(symbol => bySymbol.get(symbol)).filter(Boolean) as Instrument[]
+    return [...defaults, ...listed.filter(item => !COINBASE_DEFAULT_SYMBOLS.includes(item.symbol as typeof COINBASE_DEFAULT_SYMBOLS[number]))].slice(0, 40)
+  }
+
+  async listProducts(signal?: AbortSignal): Promise<LiveSymbol[]> {
+    return (await this.listInstruments(signal)).map(item => item.symbol)
   }
 
   async getHistoricalCandles({ symbol, interval, limit, before, signal }: { symbol: LiveSymbol; interval: Timeframe; limit: number; before?: number; signal?: AbortSignal }): Promise<MarketCandle[]> {

@@ -72,7 +72,7 @@ TradingView scripts/assets, hoặc thay đổi Strategy DSL/backtest/journal sem
 ### Indicators, symbol search and time/settings
 
 - AC-11: Indicator Picker là modal library có search/category, Favorites, My
-  Indicators, built-ins, AI/Quant và AITrading Community. Community rỗng hiển thị
+  Indicators, built-ins, AI/Quant và Community. Community rỗng hiển thị
   đúng trạng thái chưa publish; không copy TradingView community.
 - AC-12: built-ins hiện có SMA/EMA/BB/VWAP/RSI/MACD/ATR giữ nguyên; indicator mới
   chỉ thêm cùng formula tests và pane placement đúng.

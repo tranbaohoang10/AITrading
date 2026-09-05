@@ -4,13 +4,29 @@ import { describe, expect, it, vi } from 'vitest'
 import { CoinbaseMarketDataProvider } from './CoinbaseMarketDataProvider'
 import { CandleChart, zoomViewport } from './CandleChart'
 import { LiveChart } from './LiveChart'
-import { mergeCandles, type CandleSubscription, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
+import { displayMarketSymbol, mergeCandles, type CandleSubscription, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
 
 const baseTime = 1_700_000_040_000
 const candle = (openTime = baseTime, symbol: LiveSymbol = 'BTC-USD', close = '101', open = '100'): MarketCandle => ({ symbol, interval: '1m', openTime, closeTime: openTime + 59_999, open, high: '102', low: '99', close, volume: '5', closed: false })
 const LiveChartFixture = LiveChart as FunctionComponent<{ provider: MarketDataProvider }>
 
 describe('PB-034 Coinbase market-data contract', () => {
+  it('maps only entitled public Coinbase USD products into an expanded instrument catalog', async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify([
+      { id: 'BTC-USD', base_currency: 'BTC', quote_currency: 'USD', display_name: 'Bitcoin / US Dollar', quote_increment: '0.01', trading_disabled: false },
+      { id: 'ETH-USD', base_currency: 'ETH', quote_currency: 'USD', display_name: 'Ethereum / US Dollar', quote_increment: '0.01', trading_disabled: false },
+      { id: 'SOL-USD', base_currency: 'SOL', quote_currency: 'USD', display_name: 'Solana / US Dollar', quote_increment: '0.01', trading_disabled: false },
+      { id: 'ETH-EUR', base_currency: 'ETH', quote_currency: 'EUR', display_name: 'Ethereum / Euro', quote_increment: '0.01', trading_disabled: false },
+      { id: 'DOGE-USD', base_currency: 'DOGE', quote_currency: 'USD', display_name: 'Dogecoin / US Dollar', quote_increment: '0.0001', trading_disabled: false },
+    ]), { status: 200 }))
+    const provider = new CoinbaseMarketDataProvider(fetcher, () => { throw new Error('not used') })
+    const instruments = await provider.listInstruments()
+    expect(instruments.map(item => item.symbol)).toEqual(['BTC-USD', 'ETH-USD', 'SOL-USD', 'DOGE-USD'])
+    expect(instruments.find(item => item.symbol === 'SOL-USD')).toEqual(expect.objectContaining({ displaySymbol: 'SOL/USD', provider: 'COINBASE', assetClass: 'CRYPTO' }))
+    expect(displayMarketSymbol('BTC-USD')).toBe('BTC/USD')
+    expect(instruments.some(item => item.symbol === 'ETH-EUR')).toBe(false)
+  })
+
   it('maps public Coinbase rows into ordered, deduplicated neutral candles and aggregates derived intervals', async () => {
     const now = baseTime + 10_000_000
     const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify([
@@ -70,7 +86,7 @@ describe('PB-034 Coinbase market-data contract', () => {
     await waitFor(() => expect(provider.subscribeCandles).toHaveBeenLastCalledWith(expect.objectContaining({ symbol: 'ETH-USD', interval: '1m' }), expect.any(Object)))
     fireEvent.change(screen.getByLabelText('Timeframe'), { target: { value: '5m' } })
     await waitFor(() => expect(unsubscribe).toHaveBeenCalledTimes(2))
-    expect(screen.getByRole('img', { name: /ETH-USD live Coinbase candlesticks/i })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /ETH\/USD live Coinbase candlesticks/i })).toBeInTheDocument()
     const toolbar = screen.getByTestId('chart-toolbar')
     expect(toolbar.querySelector('.ml-auto')?.textContent).toContain('')
   })
@@ -82,6 +98,8 @@ describe('PB-034 Coinbase market-data contract', () => {
     fireEvent.change(screen.getByLabelText('Timeframe'), { target: { value: '15m' } })
     await waitFor(() => expect(screen.getByRole('img', { name: /40 candles/ })).toBeInTheDocument())
     fireEvent.click(screen.getByLabelText('Indicators'))
+    expect(screen.getByRole('tab', { name: 'Community' })).toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: 'AITrading Community' })).not.toBeInTheDocument()
     for (const name of ['Simple Moving Average (SMA)', 'Exponential Moving Average (EMA)', 'Bollinger Bands (BB)', 'Volume Weighted Average Price (VWAP)', 'Relative Strength Index (RSI)', 'Moving Average Convergence Divergence (MACD)', 'Average True Range (ATR)']) {
       expect(screen.getByText(name)).toBeInTheDocument()
     }
@@ -100,6 +118,7 @@ describe('PB-034 Coinbase market-data contract', () => {
     fireEvent.click(screen.getByLabelText('Chart layout'))
     fireEvent.click(screen.getByRole('button', { name: 'Layout 4' }))
     expect(screen.getAllByRole('button', { name: /Chart cell/ })).toHaveLength(4)
+    await waitFor(() => expect(screen.getAllByRole('img', { name: /live Coinbase candlesticks/ })).toHaveLength(4))
     fireEvent.click(screen.getByRole('button', { name: 'Chart cell 3' }))
     expect(screen.getByRole('button', { name: 'Chart cell 3' })).toHaveAttribute('aria-pressed', 'true')
   })

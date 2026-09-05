@@ -34,10 +34,12 @@ export function PersistentChat({ onGenerateFromImage, onOpenNavigation }: { onGe
   }, [chat.draft])
 
   return <section aria-label="AI Chat" data-testid="ai-chat" className="chat-panel flex h-full min-h-0 flex-col bg-slate-925 text-slate-200">
-    <header className="flex h-11 shrink-0 items-center gap-2 border-b border-slate-800 px-2.5">
-      <div className="flex min-w-0 flex-1 items-center gap-2"><button type="button" aria-label="Open Quant navigation" title="Open Quant navigation" onClick={onOpenNavigation} className="quant-mark h-6 w-6 text-[10px]">Q</button><div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-100">Quant <span className="font-normal text-slate-500">| Assistant</span></p><ProviderStatus chat={chat} /></div></div>
-      <button type="button" aria-label="Conversation history" title="Conversation history" aria-pressed={historyOpen} className={iconButton} onClick={() => setHistoryOpen(value => !value)}><Icon name="history" className="h-4 w-4" /></button>
-      <button type="button" aria-label={chat.pendingAction === 'create' ? 'Retry new chat' : 'New chat'} title="New chat" className={iconButton} disabled={chat.busy || chat.aiCancelling || (chat.uncertain && chat.pendingAction !== 'create')} onClick={() => void chat.create()}><Icon name="plus" className="h-4 w-4" /></button>
+    <header data-testid="assistant-header" className="flex h-12 shrink-0 items-center gap-2 border-b border-slate-800 bg-slate-925 px-2.5">
+      <div className="flex min-w-0 flex-1 items-center gap-2"><button type="button" aria-label="Open Quant navigation" title="Open Quant navigation" onClick={onOpenNavigation} className="quant-mark h-6 w-6 text-[10px]">Q</button><div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-100">Assistant</p><ProviderStatus chat={chat} /></div></div>
+      <div data-testid="assistant-header-actions" className="flex shrink-0 items-center gap-0.5 rounded-md border border-slate-800 bg-slate-950/40 p-0.5">
+        <button type="button" aria-label="Conversation history" title="Conversation history" aria-pressed={historyOpen} className={iconButton} onClick={() => setHistoryOpen(value => !value)}><Icon name="history" className="h-4 w-4" /></button>
+        <button type="button" aria-label={chat.pendingAction === 'create' ? 'Retry new chat' : 'New chat'} title="New chat" className={iconButton} disabled={chat.busy || chat.aiCancelling || (chat.uncertain && chat.pendingAction !== 'create')} onClick={() => void chat.create()}><Icon name="plus" className="h-4 w-4" /></button>
+      </div>
       {chat.selected && <ConversationMenu key={`${chat.selected.id}:${chat.selected.title}`} chat={chat} onDelete={() => setConfirmDelete(true)} />}
     </header>
 
