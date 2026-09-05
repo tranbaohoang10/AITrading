@@ -77,3 +77,20 @@ unavailable credentials or provider access remain `BLOCKED` with the exact reaso
 ### Browser evidence
 
 Chrome at `http://127.0.0.1:5173/` showed live Coinbase candles with `COINBASE · PUBLIC · LIVE`, Symbol Search, ETH selection, indicator library, settings/timezone, right-click chart menu, layouts and splitters. The final state was restored to BTC-USD / UTC / one chart with temporary Stochastic removed. No Alpaca real request was claimed.
+
+## Main integration recovery — 05/09/2026 (Asia/Ho_Chi_Minh)
+
+The local screenshot that triggered the recovery was serving `main` before the two
+PB-038 chart commits had been integrated. Both commits were applied to `main` as
+`c455d92` and pushed to `origin/main`.
+
+- `npm exec -- vitest run src/market/liveMarket.test.ts src/Workspace.test.tsx` → exit 0, 22/22 tests.
+- `npm run build` and `npm run lint` → exit 0; Vite emitted only the existing bundle-size warning.
+- `npm audit --audit-level=high` → exit 0, 0 vulnerabilities.
+- `./gradlew.bat test --tests com.aitrading.market.CoinbaseMarketDataClientTests --no-daemon --console=plain` → `BUILD SUCCESSFUL`.
+- A synthetic local QA account made an authenticated request to `GET /api/market/coinbase/series/BTC-USD/60`; the same-origin proxy returned 350 Coinbase candles.
+
+The disposable local backend was restarted to load the new JAR. Its previous
+database and session cookies are intentionally not retained, so a browser tab
+that was open before the restart must reload and sign in or create a local test
+account again before it can call authenticated market endpoints.
