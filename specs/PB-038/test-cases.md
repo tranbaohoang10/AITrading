@@ -94,3 +94,11 @@ The disposable local backend was restarted to load the new JAR. Its previous
 database and session cookies are intentionally not retained, so a browser tab
 that was open before the restart must reload and sign in or create a local test
 account again before it can call authenticated market endpoints.
+
+## Toolbar and unauthenticated chart recovery — 05/09/2026 (Asia/Ho_Chi_Minh)
+
+- Symbol is a single compact trigger that opens Symbol Search; the native browser select list is no longer used.
+- Timeframe is a compact custom menu. Symbol, Timeframe and Indicators have transparent resting states and only receive a subdued background on hover/focus. Indicators uses a down-facing chevron and remains multi-select.
+- `GET /api/market/coinbase/**` is now public read-only data, constrained by the existing Coinbase symbol/granularity/range validation and an IP rate limit of 180 requests per 15 minutes. Private datasets and all write operations remain authenticated.
+- The first public rate-limit key exceeded the persisted 80-character limit and returned `UNAVAILABLE`; the bucket key was shortened and a regression test now checks that it fits the column.
+- A no-session local request to `GET /api/market/coinbase/series/BTC-USD/60` returned HTTP 200 with 350 candles after the fix.
