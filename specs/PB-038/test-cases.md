@@ -138,3 +138,5 @@ account again before it can call authenticated market endpoints.
 ### Runtime note
 
 The automated in-app browser pauses page timers while its control surface is idle, so it cannot truthfully time a 12-second browser deadline. It did confirm the refreshed Symbol Search catalog and ETH/SOL/XRP/etc. icon controls. The deadline behavior is covered by the deterministic React test above; a normal interactive browser is not timer-paused.
+
+CI workflow `33966850160` ran on commit `d7a31f2`: the frontend job passed. The backend job repeated the pre-existing fail-closed `CleanupTests` fixture-path failure before Java tests/build; it is recorded on Issue #40 and is outside this chart-only change.
