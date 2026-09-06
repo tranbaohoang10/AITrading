@@ -6,6 +6,7 @@ import { atr, bollinger, cci, ema, macd, rsi, sma, stochastic, timeframeMillisec
 import { defaultChartSettings, drawingLabels, type ChartPoint, type ChartSettings, type Drawing, type DrawingTool, type IndicatorConfig, type MagnetMode } from './chartTypes'
 import { captureSvgRegion, sendChartCaptureToAssistant, type CaptureRegion, type ChartCaptureContext } from './chartCapture'
 import { formatMarketPrice } from './liveMarket'
+import { formatChartDate } from './chartTimezone'
 
 type Marker = { id: number; barIndex: number; kind: string }
 type Viewport = { start: number; count: number }
@@ -206,15 +207,14 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
       if (item) {
         ticks.push({
           time: item.time,
-          label: new Intl.DateTimeFormat('en-GB', {
-            timeZone: settings.timezone === 'LOCAL' || settings.timezone === 'EXCHANGE' ? undefined : settings.timezone,
+          label: formatChartDate(item.time, settings.timezone, {
             year: showYear ? 'numeric' : undefined,
             month: 'short',
             day: '2-digit',
             hour: showTime ? '2-digit' : undefined,
             minute: showTime ? '2-digit' : undefined,
             hour12: false
-          }).format(new Date(item.time)).replace(',', '')
+          })
         })
       }
     }
@@ -229,8 +229,7 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
   const pricePrecision = Math.max(settings.pricePrecision ?? 0, importedPrecision)
   const formatPrice = (value: number) => formatMarketPrice(value, settings.priceIncrement ?? 0.01, pricePrecision)
   const formatVolume = (value: number) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2, notation: Math.abs(value) >= 1000 ? 'compact' : 'standard' }).format(value)
-  const formatTimezone = settings.timezone === 'LOCAL' || settings.timezone === 'EXCHANGE' ? undefined : settings.timezone
-  const formatTime = (value: string) => new Intl.DateTimeFormat('en-GB', { timeZone: formatTimezone, month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(value)).replace(',', '')
+  const formatTime = (value: string) => formatChartDate(value, settings.timezone, { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
   const id = () => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `drawing-${Date.now()}`
   const selectedCandle = page.items[clamp(index, 0, total - 1)]
 

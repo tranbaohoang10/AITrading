@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Icon } from './Icon'
 import { displayMarketSymbol, type Instrument } from '../market/liveMarket'
 import type { ChartSettings, IndicatorConfig, IndicatorType } from '../market/chartTypes'
+import { chartTimezoneOptions, formatChartDate, timezoneShort } from '../market/chartTimezone'
 
 const panel = 'absolute right-2 top-2 z-50 w-[min(30rem,calc(100%-1rem))] rounded-xl border border-slate-700 bg-slate-925 p-3 shadow-2xl'
 const symbolPanel = 'absolute left-1/2 top-3 z-50 w-[min(44rem,calc(100%-1.5rem))] -translate-x-1/2 rounded-xl border border-slate-700 bg-slate-925 p-3 shadow-2xl'
@@ -88,7 +89,7 @@ export function IndicatorLibraryModal({ open, search, active, onSearchChange, on
   </div>
 }
 
-const timezones: Array<{ value: ChartSettings['timezone']; label: string }> = [{ value: 'EXCHANGE', label: 'Exchange (UTC)' }, { value: 'LOCAL', label: 'Local browser time' }, { value: 'UTC', label: 'UTC' }, { value: 'Asia/Ho_Chi_Minh', label: 'Asia/Ho_Chi_Minh' }, { value: 'America/New_York', label: 'America/New_York' }, { value: 'Europe/London', label: 'Europe/London' }, { value: 'Asia/Tokyo', label: 'Asia/Tokyo' }]
+const timezones = chartTimezoneOptions
 export function ChartSettingsModal({ open, settings, onChange, onClose }: { open: boolean; settings: ChartSettings; onChange: (next: ChartSettings) => void; onClose: () => void }) {
   if (!open) return null
   const update = (value: Partial<ChartSettings>) => onChange({ ...settings, ...value })
@@ -98,9 +99,8 @@ export function ChartSettingsModal({ open, settings, onChange, onClose }: { open
   </div>
 }
 
-function timezoneForClock(value: ChartSettings['timezone']) { return value === 'LOCAL' ? Intl.DateTimeFormat().resolvedOptions().timeZone : value === 'EXCHANGE' ? 'UTC' : value }
 export function ChartClock({ timezone, onChange }: { timezone: ChartSettings['timezone']; onChange?: (value: ChartSettings['timezone']) => void }) {
   const [now, setNow] = useState(() => new Date())
   useEffect(() => { const timer = window.setInterval(() => setNow(new Date()), 1000); return () => window.clearInterval(timer) }, [])
-  return <details className="relative"><summary aria-label="Chart clock" title="Clock / timezone" className="grid h-7 cursor-pointer list-none place-items-center rounded-md px-1.5 text-[10px] text-slate-500 hover:bg-slate-800 hover:text-slate-100"><Icon name="clock" className="h-3.5 w-3.5" /></summary><div className="absolute bottom-9 right-0 z-40 w-56 rounded-lg border border-slate-700 bg-slate-900 p-2 shadow-2xl"><p className="font-mono text-sm text-slate-100">{new Intl.DateTimeFormat('en-GB', { timeZone: timezoneForClock(timezone), dateStyle: 'medium', timeStyle: 'medium', hour12: false }).format(now)}</p><p className="mt-1 text-[10px] text-slate-500">{timezone === 'EXCHANGE' ? 'Exchange time · UTC for Coinbase public feed' : timezone === 'LOCAL' ? 'Browser local time' : timezone}</p>{onChange && <select aria-label="Clock timezone" value={timezone} onChange={event => onChange(event.target.value as ChartSettings['timezone'])} className={`${field} mt-2 w-full`}>{timezones.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select>}</div></details>
+  return <details className="relative"><summary aria-label="Chart clock" title="Clock / timezone" className="grid h-7 cursor-pointer list-none place-items-center rounded-md px-1.5 text-[10px] text-slate-500 hover:bg-slate-800 hover:text-slate-100"><Icon name="clock" className="h-3.5 w-3.5" /></summary><div className="absolute bottom-9 right-0 z-40 w-56 rounded-lg border border-slate-700 bg-slate-900 p-2 shadow-2xl"><p className="font-mono text-sm text-slate-100">{formatChartDate(now, timezone, { dateStyle: 'medium', timeStyle: 'medium', hour12: false })}</p><p className="mt-1 text-[10px] text-slate-500">{timezone === 'EXCHANGE' ? 'Exchange time · UTC for Coinbase public feed' : timezone === 'LOCAL' ? `Browser local time · ${Intl.DateTimeFormat().resolvedOptions().timeZone}` : `${timezone} · ${timezoneShort(timezone)}`}</p>{onChange && <select aria-label="Clock timezone" value={timezone} onChange={event => onChange(event.target.value as ChartSettings['timezone'])} className={`${field} mt-2 w-full`}>{timezones.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select>}</div></details>
 }
