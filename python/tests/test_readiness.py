@@ -79,7 +79,7 @@ class ReadinessVerifierTests(unittest.TestCase):
             directory = root / "backend/src/main/resources/db/migration"
             directory.mkdir(parents=True)
             ledger = {}
-            for number in range(1, 18):
+            for number in range(1, 19):
                 name = f"V{number}__m.sql"
                 data = f"-- {number}\n".encode()
                 (directory / name).write_bytes(data)
@@ -88,9 +88,9 @@ class ReadinessVerifierTests(unittest.TestCase):
             payload = {"schemaVersion": 1, "algorithm": "SHA-256", "migrations": ledger}
             (root / "docs/readiness-migrations.json").write_text(
                 json.dumps(payload), encoding="utf-8")
-            self.assertEqual(readiness.validate_migrations(root)[0], 17)
+            self.assertEqual(readiness.validate_migrations(root)[0], 18)
             (directory / "V7__m.sql").write_bytes(b"-- 7\r\n")
-            self.assertEqual(readiness.validate_migrations(root)[0], 17)
+            self.assertEqual(readiness.validate_migrations(root)[0], 18)
             (directory / "V7__m.sql").write_text("tampered", encoding="utf-8")
             with self.assertRaisesRegex(readiness.ReadinessFailure, "mismatch"):
                 readiness.validate_migrations(root)
