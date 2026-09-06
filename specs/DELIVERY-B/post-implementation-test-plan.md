@@ -515,7 +515,7 @@ The implementation audit found and repaired these defects: inactive Journal pane
 | A-FE | Frontend full suite 42 files / 278 tests PASS; lint PASS; build PASS. | PASS | `frontend-full-final.log`, `frontend-lint-final.log`, `frontend-build-final.log` |
 | A-BE | Gradle Wrapper `clean test bootJar dependencyInventory` PASS on disposable PostgreSQL. | PASS | `backend-full.log` |
 | A-SEC | npm audit high PASS (0 vulnerabilities); OSV dependency scan PASS; security smoke PASS; readiness PASS; diff check PASS. | PASS | `npm-audit-final.log`, `dependency-audit.log`, `security-smoke.log`, `readiness-final.log` |
-| A-CI | Commit `248b37c0384523a7b686aff2a9a073d7b2b31781` was pushed fast-forward; `git ls-remote` matched the local SHA and workflow `34039884264` completed with frontend and backend PASS. | PASS | GitHub Actions workflow 34039884264 |
+| A-CI | Commit `8aa8200f582f9adef811e3b519eb50957315e174` was pushed fast-forward; `git ls-remote` matched the local SHA and workflow `34040074548` completed with frontend and backend PASS. | PASS | GitHub Actions workflow 34040074548 |
 
 ## Defects fixed
 
