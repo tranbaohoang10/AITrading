@@ -515,7 +515,7 @@ The implementation audit found and repaired these defects: inactive Journal pane
 | A-FE | Frontend full suite 42 files / 278 tests PASS; lint PASS; build PASS. | PASS | `frontend-full-final.log`, `frontend-lint-final.log`, `frontend-build-final.log` |
 | A-BE | Gradle Wrapper `clean test bootJar dependencyInventory` PASS on disposable PostgreSQL. | PASS | `backend-full.log` |
 | A-SEC | npm audit high PASS (0 vulnerabilities); OSV dependency scan PASS; security smoke PASS; readiness PASS; diff check PASS. | PASS | `npm-audit-final.log`, `dependency-audit.log`, `security-smoke.log`, `readiness-final.log` |
-| A-CI | Local commit/push/remote CI not yet executed at the time of this execution update. | NOT RUN | Pending final review |
+| A-CI | Commit `248b37c0384523a7b686aff2a9a073d7b2b31781` was pushed fast-forward; `git ls-remote` matched the local SHA and workflow `34039884264` completed with frontend and backend PASS. | PASS | GitHub Actions workflow 34039884264 |
 
 ## Defects fixed
 
@@ -523,4 +523,4 @@ The implementation audit found and repaired these defects: inactive Journal pane
 
 ## Final verification status
 
-Because the live Forex provider response failed in browser (`Unexpected end of JSON input`), 1024px/390px browser overrides were unavailable, and final push/CI evidence was not yet executed at this update, the evidence-backed verdict is **FAIL — NOT READY**. Issues #43 and #39 remain OPEN until the provider/browser failure is resolved or explicitly accepted, responsive evidence is captured, and CI is green.
+Because the live Forex provider response failed in browser (`Unexpected end of JSON input`) and 1024px/390px browser overrides were unavailable, the evidence-backed verdict remains **FAIL — NOT READY** despite the green final CI workflow. Issues #43 and #39 remain OPEN until the provider/browser failure is resolved or explicitly accepted and responsive evidence is captured.
