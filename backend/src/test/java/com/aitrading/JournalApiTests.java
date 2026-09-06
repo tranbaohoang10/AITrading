@@ -75,6 +75,29 @@ class JournalApiTests {
     long count(String table) {return jdbc.queryForObject("SELECT count(*) FROM trading."+table,Long.class);}
     JsonNode totals(String query)throws Exception {return tree(call(a,"GET",BASE+"/summary"+query,null),200).get("totals");}
 
+    @Test void numberedPagesValidateClampAndIsolateOwners()throws Exception {
+        var empty=tree(call(a,"GET",BASE+"/page"+QUERY+"&page=1&limit=20",null),200);
+        assertThat(empty.get("totalItems").asInt()).isZero();
+        create(b,data());
+        for(int i=0;i<21;i++)create(a,data());
+        var first=tree(call(a,"GET",BASE+"/page"+QUERY+"&page=1&limit=10",null),200);
+        var second=tree(call(a,"GET",BASE+"/page"+QUERY+"&page=2&limit=10",null),200);
+        var third=tree(call(a,"GET",BASE+"/page"+QUERY+"&page=3&limit=10",null),200);
+        assertThat(first.get("totalItems").asInt()).isEqualTo(21);
+        assertThat(first.get("totalPages").asInt()).isEqualTo(3);
+        Set<String> ids=new HashSet<>();
+        for(var page:List.of(first,second,third))for(var entry:page.get("items"))assertThat(ids.add(entry.get("id").asString())).isTrue();
+        assertThat(ids).hasSize(21);
+        var last=third.get("items").get(0);
+        assertThat(call(a,"DELETE",path(last),Map.of("expectedVersion",1)).statusCode()).isEqualTo(204);
+        var clamped=tree(call(a,"GET",BASE+"/page"+QUERY+"&page=3&limit=10",null),200);
+        assertThat(clamped.get("page").asInt()).isEqualTo(2);
+        assertThat(clamped.get("totalItems").asInt()).isEqualTo(20);
+        for(String invalid:List.of("&page=0&limit=20","&page=-1&limit=20","&page=501&limit=20","&page=1&limit=11"))
+            assertThat(call(a,"GET",BASE+"/page"+QUERY+invalid,null).statusCode()).isEqualTo(400);
+        assertThat(tree(call(b,"GET",BASE+"/page"+QUERY,null),200).get("totalItems").asInt()).isEqualTo(1);
+    }
+
     @Test void ownedCrudAndOpenToClosedUseExactFinancialValuesAndVersionedDeletion()throws Exception {
         var data=data();data.put("state","OPEN");data.put("exitTime",null);data.put("exitPrice",null);data.put("exitFee","0");
         var first=create(a,data);assertThat(first.get("version").asInt()).isEqualTo(1);assertThat(first.get("netPnl").isNull()).isTrue();

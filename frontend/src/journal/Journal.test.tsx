@@ -8,7 +8,7 @@ import * as market from '../market/api'
 import * as evaluation from './evaluationApi'
 import { fixture, key, summaryFixture } from './fixtures'
 
-vi.mock('./api', async original => ({ ...await original<typeof import('./api')>(), list: vi.fn(), summary: vi.fn(), get: vi.fn(), save: vi.fn(), remove: vi.fn() }))
+vi.mock('./api', async original => ({ ...await original<typeof import('./api')>(), numberedPage: vi.fn(), list: vi.fn(), summary: vi.fn(), get: vi.fn(), save: vi.fn(), remove: vi.fn() }))
 vi.mock('../market/api', async original => ({ ...await original<typeof import('../market/api')>(), listDatasets: vi.fn(), getDataset: vi.fn(), candles: vi.fn() }))
 vi.mock('../auth/api', async original => ({ ...await original<typeof import('../auth/api')>(), currentUser: vi.fn() }))
 vi.mock('./evaluationApi', async original => ({ ...await original<typeof import('./evaluationApi')>(), latest: vi.fn(), start: vi.fn(), cancel: vi.fn() }))
@@ -19,6 +19,7 @@ function App({ identity = 'a', visible = true }: { identity?: string; visible?: 
 async function select(id = first.id) { const button = await screen.findByRole('button', { name: `Open journal TEST_USD ${id}` });fireEvent.click(button);await screen.findByText(/Edit manual entry/);await waitFor(() => expect(screen.getByLabelText('Entry reason')).not.toBeDisabled()) }
 beforeEach(() => {
   vi.resetAllMocks()
+  vi.mocked(api.numberedPage).mockImplementation(async (filter, page, pageSize) => ({ filter, page, pageSize, items: [first, second], totalItems: 2, totalPages: 1 }))
   vi.mocked(api.list).mockImplementation(async filter => ({ filter, items: [first, second], nextCursor: null }))
   vi.mocked(api.summary).mockImplementation(async filter => summaryFixture(filter, true))
   vi.mocked(api.get).mockImplementation(async id => id === second.id ? second : first)
@@ -36,6 +37,8 @@ it('organizes the workspace into Overview, Trades and AI Review sections', async
   fireEvent.click(screen.getByRole('tab', { name: 'Trades' }))
   expect(screen.getByRole('tab', { name: 'Trades' })).toHaveAttribute('aria-selected', 'true')
   expect(screen.getByRole('tabpanel', { name: 'Journal Trades' })).toBeInTheDocument()
+  expect(screen.queryByRole('tabpanel', { name: 'Journal Overview' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('form', { name: 'Manual journal entry' })).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('tab', { name: 'AI Review' }))
   expect(screen.getByRole('tab', { name: 'AI Review' })).toHaveAttribute('aria-selected', 'true')
   expect(screen.getByRole('tabpanel', { name: /AI Review/ })).toBeInTheDocument()
@@ -59,7 +62,7 @@ it('guards dirty new/selection/refresh, preserves draft on cancellation and acro
   const view = render(<App />);await select();fireEvent.change(screen.getByLabelText('Journal notes'), { target: { value: 'Unsaved unique note' } })
   fireEvent.click(screen.getByRole('button', { name: `Open journal TEST_USD ${second.id}` }));expect(api.get).toHaveBeenCalledTimes(1)
   fireEvent.click(screen.getByRole('button', { name: 'Keep journal draft' }));expect(screen.getByLabelText('Journal notes')).toHaveValue('Unsaved unique note')
-  await act(async () => { view.rerender(<App visible={false} />) });await act(async () => { view.rerender(<App />) });expect(screen.getByLabelText('Journal notes')).toHaveValue('Unsaved unique note')
+  await act(async () => { view.rerender(<App visible={false} />) });await act(async () => { view.rerender(<App />) });fireEvent.click(screen.getByRole('button', { name: 'Resume draft' }));expect(screen.getByLabelText('Journal notes')).toHaveValue('Unsaved unique note')
   fireEvent.click(screen.getByRole('button', { name: 'Refresh journal' }));fireEvent.click(screen.getByRole('button', { name: 'Keep journal draft' }))
   fireEvent.click(screen.getByRole('button', { name: 'New journal entry' }));fireEvent.click(screen.getByRole('button', { name: 'Confirm journal action' }))
   expect(screen.getByLabelText('Journal notes')).toHaveValue('');expect(screen.getByText('New manual entry')).toBeInTheDocument()
@@ -99,7 +102,7 @@ it('ignores late selection and range responses without mixing entry data', async
 it('drops pending reads when identity changes and checks server user before displaying data', async () => {
   let resolve!: (entry: api.Entry) => void;vi.mocked(api.get).mockImplementationOnce(() => new Promise(r => { resolve = r }))
   const view = render(<App />);fireEvent.click(await screen.findByRole('button', { name: `Open journal TEST_USD ${first.id}` }))
-  view.rerender(<App identity="b" />);await act(async () => resolve(first));expect(screen.getByLabelText('Journal notes')).toHaveValue('')
+  view.rerender(<App identity="b" />);await act(async () => resolve(first));fireEvent.click(screen.getByRole('button', { name: 'New journal entry' }));expect(screen.getByLabelText('Journal notes')).toHaveValue('')
   view.unmount()
   const clear = vi.fn(), user = { id: 'a', email: 'a@example.test', displayName: 'A' };vi.mocked(currentUser).mockResolvedValue(user)
   render(<AuthContext.Provider value={{ user, clear, update: vi.fn() }}><App /></AuthContext.Provider>);await screen.findByRole('button', { name: `Open journal TEST_USD ${first.id}` })
@@ -134,7 +137,7 @@ it('supports explicit custom range and open-state invariants without automatic w
   fireEvent.submit(screen.getByRole('form', { name: 'Journal report filters' }));await waitFor(() => expect(api.summary).toHaveBeenLastCalledWith({ from: '2024-02-29', to: '2024-03-01', zone: 'Asia/Ho_Chi_Minh', currency: 'EUR' }, undefined))
 })
 it('retains partial ISO UTC input and sends exact millisecond timestamps from a new form', async () => {
-  render(<App />);await screen.findByLabelText('Realized journal totals')
+  render(<App />);await screen.findByLabelText('Realized journal totals');fireEvent.click(screen.getByRole('button', { name: 'New journal entry' }))
   fireEvent.change(screen.getByLabelText('Entry time · UTC'), { target: { value: '2024-01-' } })
   expect(screen.getByLabelText('Entry time · UTC')).toHaveValue('2024-01-')
   for (const [label, value] of [['Symbol', 'TEST_USD'], ['Quantity', '2'], ['Entry price', '100'], ['Entry time · UTC', '2024-01-01T01:00:00.123Z'], ['Entry reason', 'Actual closed candle reason']]) fireEvent.change(screen.getByLabelText(label), { target: { value } })
@@ -166,4 +169,22 @@ it('warns when manual entry is outside the linked candle range without altering 
   vi.mocked(api.get).mockResolvedValue({ ...first, data: { ...first.data, entryTime: '2024-01-02T00:00:00Z', datasetId: dataset.id } })
   render(<App />);await select();await screen.findByText(/Entry time is outside this dataset/)
   expect(screen.getByLabelText('Saved journal P&L')).toHaveTextContent('0.027');expect(screen.getByLabelText('Entry time · UTC')).toHaveValue('2024-01-02T00:00:00Z')
+})
+
+it('preserves dirty timeframe fields through close confirmation and tab navigation', async () => {
+  render(<App />); await select()
+  fireEvent.change(screen.getByLabelText('Journal notes'), { target: { value: 'retained across tabs' } })
+  for (const timeframe of api.timeframes) {
+    fireEvent.change(screen.getByLabelText('Journal timeframe'), { target: { value: timeframe } })
+    expect(screen.getByLabelText('Journal timeframe')).toHaveValue(timeframe)
+    expect(screen.getByLabelText('Journal notes')).toHaveValue('retained across tabs')
+  }
+  fireEvent.keyDown(screen.getByRole('dialog', { name: 'Journal trade' }), { key: 'Escape' })
+  expect(screen.getByRole('dialog', { name: 'Close unsaved trade' })).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Keep draft and close' }))
+  fireEvent.click(screen.getByRole('tab', { name: 'Trades' }))
+  fireEvent.click(screen.getByRole('tab', { name: 'Overview' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Resume draft' }))
+  expect(screen.getByLabelText('Journal timeframe')).toHaveValue('1d')
+  expect(screen.getByLabelText('Journal notes')).toHaveValue('retained across tabs')
 })

@@ -188,6 +188,19 @@ public class JournalService {
         String next=more?Base64.getUrlEncoder().withoutPadding().encodeToString((activity(last)+"|"+last.id()+"|"+filterHash(range)).getBytes(StandardCharsets.UTF_8)):null;
         return new Page(range.filter(),items,next);
     }
+    public record NumberedPage(Filter filter,List<Entry> items,int page,int pageSize,int totalItems,int totalPages) {
+        public NumberedPage { items=List.copyOf(items); }
+    }
+    @Transactional
+    public NumberedPage page(UserPrincipal user,Range range,int page,int limit) {
+        if(page<1||page>500||(limit!=10&&limit!=20&&limit!=50))throw invalid();
+        // Mutations take the same owner lock: count and slice form one authoritative snapshot.
+        lock(user);
+        var rows=jdbc.query(SELECT_RANGE+"ORDER BY COALESCE(exit_time,entry_time) DESC,id DESC LIMIT 501",this::row,parameters(user,range).toArray());
+        if(rows.size()>500)throw ResourceFailure.conflict();
+        int pages=(rows.size()+limit-1)/limit,actual=Math.min(page,Math.max(1,pages)),start=(actual-1)*limit;
+        return new NumberedPage(range.filter(),rows.subList(start,Math.min(start+limit,rows.size())),actual,limit,rows.size(),pages);
+    }
     private static class Accumulator {
         int closed,open,wins,losses,breakeven;BigDecimal gross=BigDecimal.ZERO,fees=BigDecimal.ZERO,net=BigDecimal.ZERO;
         void add(Entry entry) {

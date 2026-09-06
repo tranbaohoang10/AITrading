@@ -17,6 +17,11 @@ public class JournalController {
             @RequestParam String zone,@RequestParam String currency,@RequestParam(required=false)String limit,@RequestParam(required=false)String cursor) {
         return service.list(user,JournalService.range(from,to,zone,currency),StrategyService.integer(limit,20,50),cursor);
     }
+    @GetMapping("/page")
+    public JournalService.NumberedPage page(@AuthenticationPrincipal UserPrincipal user,@RequestParam String from,@RequestParam String to,
+            @RequestParam String zone,@RequestParam String currency,@RequestParam(required=false)String page,@RequestParam(required=false)String limit) {
+        return service.page(user,JournalService.range(from,to,zone,currency),StrategyService.integer(page,1,500),StrategyService.integer(limit,20,50));
+    }
     @GetMapping("/summary")
     public JournalService.Summary summary(@AuthenticationPrincipal UserPrincipal user,@RequestParam String from,@RequestParam String to,
             @RequestParam String zone,@RequestParam String currency) {return service.summary(user,JournalService.range(from,to,zone,currency));}

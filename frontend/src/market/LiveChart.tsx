@@ -4,7 +4,8 @@ import { ChartClock, ChartSettingsModal, IndicatorLibraryModal, SymbolSearchModa
 import { Icon } from '../components/Icon'
 import type { Candle } from './api'
 import { CandleChart } from './CandleChart'
-import { TIMEFRAMES, timeframeLabel, type Timeframe } from './chartMath'
+import { TimeframePopover } from './TimeframePopover'
+import { timeframeMilliseconds, timeframeLabel, type Timeframe } from './chartMath'
 import { defaultChartSettings, type ChartSettings, type ChartType, type Drawing, type DrawingTool, type IndicatorConfig, type MagnetMode } from './chartTypes'
 import { DEFAULT_INSTRUMENTS, displayMarketSymbol, formatMarketPrice, mergeCandles, type Instrument, type LiveConnectionStatus, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
 import { marketDataProvider } from './MarketDataProviders'
@@ -71,6 +72,7 @@ type ChartCellState = {
   candles: MarketCandle[]
   loading: boolean
   error: string
+  lastUpdate?: number
   status: LiveConnectionStatus
   drawings: Drawing[]
   indicators: IndicatorConfig[]
@@ -102,7 +104,6 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
     return { ...cell, symbol: next, timeframe: instrument?.provider === 'FRANKFURTER' ? '1d' : cell.timeframe, settings: instrument ? { ...cell.settings, priceIncrement: instrument.priceIncrement, pricePrecision: instrument.pricePrecision } : cell.settings }
   })
   const setTimeframe = (next: Timeframe) => updateActiveCell(cell => ({ ...cell, timeframe: instruments.find(item => item.symbol === cell.symbol)?.provider === 'FRANKFURTER' ? '1d' : next }))
-  const setCandles = (update: MarketCandle[] | ((current: MarketCandle[]) => MarketCandle[])) => updateActiveCell(cell => ({ ...cell, candles: typeof update === 'function' ? update(cell.candles) : update }))
   const setDrawings = (update: Drawing[] | ((current: Drawing[]) => Drawing[])) => setCells(current => { const cell = current[activeCell] ?? createChartCell(), next = typeof update === 'function' ? update(cell.drawings) : update; if (JSON.stringify(next) === JSON.stringify(cell.drawings)) return current; const history = drawingHistory.current[activeCell] ?? { past: [], future: [] }; history.past.push(cell.drawings); history.future = []; drawingHistory.current[activeCell] = history; return { ...current, [activeCell]: { ...cell, drawings: next } } })
   const updateDrawingsTransient = (update: Drawing[] | ((current: Drawing[]) => Drawing[])) => updateActiveCell(cell => ({ ...cell, drawings: typeof update === 'function' ? update(cell.drawings) : update }))
   const setIndicators = (update: IndicatorConfig[] | ((current: IndicatorConfig[]) => IndicatorConfig[])) => updateActiveCell(cell => ({ ...cell, indicators: typeof update === 'function' ? update(cell.indicators) : update }))
@@ -179,7 +180,7 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
       const run = { key: runKey, controller, unsubscribe: () => {} }
       cellRuns.current[id] = run
       const cellSymbol = cell.symbol, cellTimeframe = cell.timeframe
-      setCells(current => current[id] ? { ...current, [id]: { ...current[id], loading: true, error: '', status: 'CONNECTING', candles: [] } } : current)
+      setCells(current => current[id] ? { ...current, [id]: { ...current[id], loading: true, error: '', status: 'CONNECTING', candles: [], lastUpdate: undefined } } : current)
       const setCell = (update: (current: ChartCellState) => ChartCellState) => setCells(current => {
         const existing = current[id]
         if (!existing || controller.signal.aborted || cellRuns.current[id] !== run || existing.symbol !== cellSymbol || existing.timeframe !== cellTimeframe) return current
@@ -199,12 +200,14 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
           deadline = setTimeout(() => {
             if (!controller.signal.aborted) setCell(current => current.candles.length ? { ...current, loading: false } : { ...current, loading: false, error: 'Market data request timed out. Retry the chart.', status: 'DISCONNECTED' })
           }, HISTORY_REQUEST_TIMEOUT_MS)
-          run.unsubscribe = provider.subscribeCandles({ symbol: cellSymbol, interval: cellTimeframe }, {
-            onCandle: candle => setCell(current => { const next = mergeCandles(current.candles, candle).slice(-MAX_CACHED_BARS); historyCache.set(cacheKey(cellSymbol, cellTimeframe), next); return { ...current, candles: next } }),
+          const cachedSeed = historyCache.get(cacheKey(cellSymbol, cellTimeframe))?.at(-1)
+          run.unsubscribe = provider.subscribeCandles({ symbol: cellSymbol, interval: cellTimeframe, seed: cachedSeed }, {
+            onCandle: candle => setCell(current => { const next = mergeCandles(current.candles, candle).slice(-MAX_CACHED_BARS); historyCache.set(cacheKey(cellSymbol, cellTimeframe), next); return { ...current, candles: next, lastUpdate: Date.now() } }),
             onStatus: next => setCell(current => ({ ...current, status: next })),
             onReconnect: () => { void mergeHistory(true).catch(() => setCell(current => ({ ...current, error: 'Live stream reconnected, but latest history could not be refreshed.', status: 'DISCONNECTED' }))) },
           })
-          await mergeHistory(true)
+          const history = await mergeHistory(true)
+          if (!history || controller.signal.aborted) return
         } catch (cause) {
           if (!controller.signal.aborted) setCell(current => ({ ...current, error: cause instanceof Error ? cause.message : 'Failed to load market data.', status: 'DISCONNECTED' }))
         } finally {
@@ -221,13 +224,21 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
   const loadOlder = async () => {
     const before = candles[0]?.openTime
     if (!before || olderLoading || candles.length >= MAX_CACHED_BARS || olderBefore.current === before) return
+    const ownerCell = activeCell, ownerRun = cellRuns.current[activeCell]
     olderBefore.current = before; setOlderLoading(true)
     try {
-      const key = cacheKey(symbol, timeframe, before), older = await loadHistorical(provider, { symbol, interval: timeframe, limit: HISTORY_PAGE_SIZE, before: before - 1 }, key)
+      const key = cacheKey(symbol, timeframe, before), older = await loadHistorical(provider, { symbol, interval: timeframe, limit: HISTORY_PAGE_SIZE, before: before - 1, signal: ownerRun?.controller.signal }, key)
+      if (cellRuns.current[ownerCell] !== ownerRun || ownerRun?.controller.signal.aborted) return
       historyCache.set(key, older)
-      if (older.length) setCandles(current => { const next = older.reduce(mergeCandles, current).slice(0, MAX_CACHED_BARS); historyCache.set(cacheKey(symbol, timeframe), next); return next })
+      if (older.length) setCells(current => {
+        const cell = current[ownerCell]
+        if (!cell || cell.symbol !== symbol || cell.timeframe !== timeframe || cellRuns.current[ownerCell] !== ownerRun) return current
+        const next = older.reduce(mergeCandles, cell.candles).slice(-MAX_CACHED_BARS)
+        historyCache.set(cacheKey(symbol, timeframe), next)
+        return { ...current, [ownerCell]: { ...cell, candles: next } }
+      })
     } catch (cause) {
-      if (!(cause instanceof DOMException && cause.name === 'AbortError')) updateActiveCell(current => ({ ...current, error: cause instanceof Error ? cause.message : 'Failed to load older market candles.' }))
+      if (cellRuns.current[ownerCell] === ownerRun && !ownerRun?.controller.signal.aborted && !(cause instanceof DOMException && cause.name === 'AbortError')) updateActiveCell(current => ({ ...current, error: cause instanceof Error ? cause.message : 'Failed to load older market candles.' }))
     } finally { setOlderLoading(false) }
   }
 
@@ -246,13 +257,18 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
   const gridClass = layout === '2H' ? 'grid-cols-2 grid-rows-1' : layout === '2V' ? 'grid-cols-1 grid-rows-2' : layout === '4' ? 'grid-cols-2 grid-rows-2' : layout === '8' ? 'grid-cols-4 grid-rows-2' : 'grid-cols-1 grid-rows-1'
   const gridStyle = { gridTemplateColumns: layout === '2H' || layout === '4' ? `${split.x}fr ${1 - split.x}fr` : layout === '2V' ? '1fr' : layout === '8' ? 'repeat(4, minmax(0, 1fr))' : '1fr', gridTemplateRows: layout === '2V' || layout === '4' || layout === '8' ? `${split.y}fr ${1 - split.y}fr` : '1fr' }
 
+  const [feedNow, setFeedNow] = useState(Date.now)
+  useEffect(() => { const timer = setInterval(() => setFeedNow(Date.now()), 1000); return () => clearInterval(timer) }, [])
+  const lastUpdate = activeState.lastUpdate
+  const feedLabel = activeInstrument.provider === 'FRANKFURTER' ? 'ECB EOD · snapshot' : status === 'LIVE' ? !lastUpdate ? 'Connecting' : feedNow - lastUpdate > Math.max(60_000, timeframeMilliseconds(timeframe) * 2) ? 'Stale' : 'Live' : status[0] + status.slice(1).toLowerCase()
   const chartSource = `${activeInstrument.provider} · ${activeInstrument.feed ?? 'configured'}`
   return <section aria-label="Chart" data-testid="chart-view" className="relative flex h-full min-h-0 flex-col overflow-hidden">
     <header data-testid="chart-toolbar" className="flex min-h-10 shrink-0 items-center gap-1 border-b border-slate-800 bg-slate-925 px-2 py-1">
       <div data-testid="chart-main-controls" className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto chart-tools">
-        <div className="flex h-8 min-w-0 items-center gap-1.5"><button type="button" aria-label="Symbol" aria-haspopup="dialog" aria-expanded={symbolSearchOpen} title="Search symbols" onClick={() => setSymbolSearchOpen(true)} className={`${toolbarTrigger} max-w-36`}><span className="truncate">{displayMarketSymbol(symbol)}</span><Icon name="chevron" className="h-3.5 w-3.5 shrink-0" /></button><span aria-label={chartSource.startsWith('COINBASE') ? `Coinbase · ${status}` : `${chartSource} · ${status}`} title={`${chartSource} · ${status}`} className={`h-1.5 w-1.5 shrink-0 rounded-full ${liveClass[status]}`} /></div>
+        <div className="flex h-8 min-w-0 items-center gap-1.5"><button type="button" aria-label="Symbol" aria-haspopup="dialog" aria-expanded={symbolSearchOpen} title="Search symbols" onClick={() => setSymbolSearchOpen(true)} className={`${toolbarTrigger} max-w-36`}><span className="truncate">{displayMarketSymbol(symbol)}</span><Icon name="chevron" className="h-3.5 w-3.5 shrink-0" /></button><span aria-label={chartSource.startsWith('COINBASE') ? `Coinbase · ${status}` : `${chartSource} · ${status}`} title={`${chartSource} · ${status}`} className={`h-1.5 w-1.5 shrink-0 rounded-full ${liveClass[feedLabel === 'Stale' ? 'DELAYED' : feedLabel === 'Connecting' ? 'CONNECTING' : status]}`} /></div>
         <span role="separator" aria-orientation="vertical" className="mx-1 h-5 w-px shrink-0 bg-slate-700" />
-        <details className="relative shrink-0"><summary aria-label="Timeframe" title="Timeframe" className={`${toolbarTrigger} cursor-pointer list-none [&::-webkit-details-marker]:hidden`}><span>{timeframeLabel(timeframe)}</span><Icon name="chevron" className="h-3.5 w-3.5" /></summary><div role="menu" aria-label="Timeframe choices" className="absolute left-0 top-9 z-40 min-w-24 rounded-lg border border-slate-700 bg-slate-900 p-1 shadow-2xl">{TIMEFRAMES.map(value => { const supported = activeInstrument.provider !== 'FRANKFURTER' || value === '1d'; return <button key={value} type="button" role="menuitemradio" aria-checked={timeframe === value} disabled={!supported} title={supported ? timeframeLabel(value) : 'ECB reference data is available in 1D only'} className={`flex min-h-8 w-full items-center rounded-md px-2 text-left text-xs disabled:cursor-not-allowed disabled:text-slate-600 ${timeframe === value ? 'bg-slate-700 text-white' : 'text-slate-300 hover:bg-slate-800'}`} onClick={event => { setTimeframe(value); event.currentTarget.closest('details')?.removeAttribute('open') }}>{timeframeLabel(value)}</button> })}</div></details>
+        <span role="status" className="shrink-0 text-[10px] text-slate-400">{feedLabel}{lastUpdate && <span className="block">Last update {new Date(lastUpdate).toLocaleTimeString()}</span>}</span>
+        <TimeframePopover value={timeframe} eod={activeInstrument.provider === 'FRANKFURTER'} onChange={setTimeframe} />
         {latest && <span aria-label="Current market price" className="hidden whitespace-nowrap px-1 font-mono text-xs font-semibold text-slate-100 sm:inline">{formatMarketPrice(Number(latest.close), activeInstrument.priceIncrement, activeInstrument.pricePrecision)}</span>}
         <span role="separator" aria-orientation="vertical" className="mx-1 h-5 w-px shrink-0 bg-slate-700" />
         <details className="relative shrink-0"><summary aria-label="Chart type" title="Chart type" className={iconButton}><Icon name="candle" className="h-4 w-4" /></summary><div className="absolute left-0 top-9 z-40 w-40 rounded-lg border border-slate-700 bg-slate-900 p-1.5 shadow-2xl"><p className="px-2 py-1 text-[9px] uppercase tracking-wider text-slate-600">Chart type</p>{(['candles', 'bars', 'line', 'area'] as const).map(type => <button key={type} type="button" className={`flex min-h-8 w-full items-center gap-2 rounded-md px-2 text-left text-xs capitalize ${chartType === type ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800'}`} onClick={event => { setChartType(type); event.currentTarget.closest('details')?.removeAttribute('open') }}>{type}{chartType === type && <span className="ml-auto">✓</span>}</button>)}</div></details>

@@ -1,0 +1,14 @@
+Post-implementation browser follow-up — 06/09/2026
+
+Browser: Codex in-app browser, default 1280x720 viewport.
+Authenticated QA account: synthetic account (credentials omitted).
+
+Steps:
+1. Opened Trading Workspace > Chart.
+2. Opened Symbol Search; EUR/USD was listed as ECB · EOD.
+3. Selected EUR/USD.
+4. Observed topbar: `EUR/USD`, `ECB EOD · snapshot`, `1D`; the chart did not expose intraday timeframe selection for this Frankfurter instrument.
+5. Provider request failed visibly with `Failed to execute 'json' on 'Response': Unexpected end of JSON input` and `Retry market data`.
+6. Clicked Retry market data; the same error remained after 2.5 seconds.
+
+Result: FAIL for live Forex data retrieval. No synthetic candles were rendered. This evidence does not claim a provider-data PASS.

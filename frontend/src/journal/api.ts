@@ -82,6 +82,15 @@ export async function summary(filter: Filter, accountId?: string): Promise<Summa
   for (const value of [totals, ...days.map(day => day.values)]) if (scaled(value.grossPnl) - scaled(value.fees) !== scaled(value.netPnl)) throw invalid()
   return { filter: sameFilter(v.filter, filter), totals, days }
 }
+export type NumberedPage = { filter: Filter; items: Entry[]; page: number; pageSize: number; totalItems: number; totalPages: number }
+export async function numberedPage(filter: Filter, page: number, limit: number, accountId?: string): Promise<NumberedPage> {
+  const v = object(await body(await privateRequest(accountId, `/journal/page?${query(filter)}&page=${page}&limit=${limit}`)))
+  const totalItems = integer(v.totalItems, 0, 500), totalPages = integer(v.totalPages, 0, 50), actual = integer(v.page, 1, 50)
+  if (![10, 20, 50].includes(limit) || v.pageSize !== limit || totalPages !== Math.ceil(totalItems / limit) || actual !== Math.min(page, Math.max(1, totalPages)) || !Array.isArray(v.items)) throw invalid()
+  const items = v.items.map(entry)
+  if (items.length !== Math.min(limit, totalItems - (actual - 1) * limit) || new Set(items.map(row => row.id)).size !== items.length) throw invalid()
+  return { filter: sameFilter(v.filter, filter), items, page: actual, pageSize: limit, totalItems, totalPages }
+}
 export async function get(key: string, accountId?: string): Promise<Entry> {
   const result = entry(await body(await privateRequest(accountId, `/journal/${id(key)}`))); if (result.id !== key) throw invalid(); return result
 }
