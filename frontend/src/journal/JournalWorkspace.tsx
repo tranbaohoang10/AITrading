@@ -17,6 +17,7 @@ function Metrics({ values, currency }: { values: Values; currency: string }) {
 export function JournalWorkspace() {
   const journal = useJournal(), initial = useRef(journal?.load)
   const [range, setRange] = useState<Filter>(() => journal?.filter ?? monthFilter())
+  const [section, setSection] = useState<'overview' | 'trades' | 'review'>('overview')
   useEffect(() => { void initial.current?.() }, [])
   if (!journal) return null
   const { draft, selected } = journal, locked = journal.busy || journal.uncertain || journal.loading || !!journal.confirmation
@@ -30,8 +31,12 @@ export function JournalWorkspace() {
   const submit = (event: FormEvent) => { event.preventDefault(); void journal.save() }
   const matching = journal.datasets.filter(dataset => dataset.symbol === draft.symbol && dataset.timeframe === draft.timeframe)
   return <section className="h-full overflow-y-auto bg-slate-950 p-3 text-slate-100 sm:p-5" aria-label="Private Trading Journal">
-    <header className="mb-4 flex flex-wrap items-start justify-between gap-3"><div><p className="eyebrow">Performance log</p><h1 className="text-xl font-semibold">Journal</h1></div>
+    <header className="mb-4 flex flex-wrap items-start justify-between gap-3"><div><p className="eyebrow">Performance log</p><h1 className="text-xl font-semibold">Journal</h1><p className="mt-1 max-w-2xl text-xs text-slate-500">A private record of realized trades, context and optional AI review. Saved entries remain the source of truth.</p></div>
       <div className="flex flex-wrap gap-2"><button className={`${buttonClass} primary-button`} disabled={locked} onClick={journal.newEntry}>New journal entry</button><button className={buttonClass} disabled={locked} onClick={journal.refresh}>Refresh journal</button></div></header>
+    <div role="tablist" aria-label="Journal sections" className="mb-4 flex w-full max-w-xl gap-1 overflow-x-auto border-b border-slate-800">
+      {([['overview', 'Overview'], ['trades', 'Trades'], ['review', 'AI Review']] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={section === id} aria-controls={`journal-panel-${id}`} onClick={() => setSection(id)} className={`min-h-9 shrink-0 border-b-2 px-3 text-xs font-semibold transition ${section === id ? 'border-slate-200 text-slate-100' : 'border-transparent text-slate-500 hover:text-slate-200'}`}>{label}</button>)}
+    </div>
+    <p role="status" className="mb-4 text-xs text-slate-500">{section === 'overview' ? 'Overview shows the selected reporting range and realized totals.' : section === 'trades' ? 'Trades keeps manual entry editing and the saved chart context together.' : 'AI Review evaluates saved text only; unsaved drafts never leave this browser.'}</p>
     <details className="help-details mb-4"><summary>Journal safety</summary><p>Private manual records with optional AI review. No broker orders are created.</p></details>
     {journal.error && <p role="alert" className="mb-4 border border-rose-900 bg-rose-950/20 p-3 text-sm text-rose-200">{journal.error}</p>}
     {journal.notice && <p role="status" className="mb-4 text-sm text-emerald-300">{journal.notice}</p>}
@@ -48,7 +53,7 @@ export function JournalWorkspace() {
     </form></details>
     <details className="help-details mb-3"><summary>P&amp;L calculation</summary><p>Realized P&amp;L and both fees are recognized when a CLOSED trade exits, in the selected timezone. OPEN records and their fees are excluded until close. One settlement unit at a time; no FX conversion, unrealized P&amp;L or account-equity claim.</p></details>
     {journal.reportLoading && <p role="status" className="py-3 text-sm text-slate-400">Loading journal report…</p>}
-    {journal.report && <div className="mb-6"><p className="mb-2 text-xs text-slate-400">Report: {journal.report.filter.from} → {journal.report.filter.to} · {journal.report.filter.zone} · {journal.report.filter.currency}</p>
+    {journal.report && <div id="journal-panel-overview" role="tabpanel" aria-label="Journal Overview" className="mb-6"><p className="mb-2 text-xs text-slate-400">Report: {journal.report.filter.from} → {journal.report.filter.to} · {journal.report.filter.zone} · {journal.report.filter.currency}</p>
       <Metrics values={journal.report.totals} currency={journal.report.filter.currency} />
       <details className="mt-4" open><summary className="cursor-pointer text-sm font-medium">Daily P&L calendar</summary>
         <div aria-label="Daily realized P&L" className="mt-3 grid grid-cols-2 gap-px border border-slate-800 bg-slate-950 sm:grid-cols-4 xl:grid-cols-7">
@@ -58,7 +63,7 @@ export function JournalWorkspace() {
     </div>}
     <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <div className="min-w-0 space-y-5">
-        <section aria-label="Journal entries in report"><h2 className="mb-2 text-sm font-semibold">Entries in report range</h2><p className="mb-3 text-xs text-slate-500">Closed: exit date · Open: entry date. Refresh after concurrent edits to update this paged view.</p>
+        <section id="journal-panel-trades" role="tabpanel" aria-label="Journal Trades"><h2 className="mb-2 text-sm font-semibold">Trades in report range</h2><p className="mb-3 text-xs text-slate-500">Closed: exit date · Open: entry date. Refresh after concurrent edits to update this paged view.</p>
           {!journal.items.length && !journal.reportLoading && journal.report && <p className="border border-slate-800 p-4 text-sm text-slate-400">No journal entries in this range and settlement unit.</p>}
           <div className="max-h-56 overflow-y-auto divide-y divide-slate-800 border-y border-slate-800">{journal.items.map(item => <button key={item.id} type="button" disabled={locked} aria-label={`Open journal ${item.data.symbol} ${item.id}`} aria-pressed={item.id === selected?.id} className={`flex w-full items-center justify-between gap-3 px-2 py-3 text-left text-xs disabled:opacity-50 ${item.id === selected?.id ? 'bg-slate-800' : 'hover:bg-slate-900'}`} onClick={() => journal.select(item.id)}>
             <span className="min-w-0"><span className="block font-medium">{item.data.symbol} · {item.data.side} · {item.data.state}</span><span className="mt-1 block break-all text-slate-500">{item.data.exitTime ?? item.data.entryTime} · v{item.version}</span></span><span className={`shrink-0 font-mono ${pnlClass(item.netPnl)}`}>{item.netPnl ?? 'Not realized'} {item.netPnl === null ? '' : item.data.settlementCurrency}</span>
@@ -87,7 +92,7 @@ export function JournalWorkspace() {
           {journal.busy && <p role="status" className="text-sm">Saving journal change…</p>}
         </form>
       </div>
-      <aside aria-label="Saved journal chart context" className="min-w-0 space-y-4 border-t border-slate-800 pt-4 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
+      <aside id="journal-panel-review" role="tabpanel" aria-label="AI Review and saved journal chart context" className="min-w-0 space-y-4 border-t border-slate-800 pt-4 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
         <h2 className="text-sm font-semibold">Saved trade · chart context</h2>
         {!selected ? <p className="text-sm text-slate-400">Save or open an entry to inspect its linked chart.</p> : <><p className="break-all text-xs text-slate-500">Entry {selected.id} · v{selected.version}</p><dl aria-label="Saved journal P&L" className="grid grid-cols-2 gap-3 text-xs"><div><dt className="text-slate-400">Gross P&L</dt><dd className="mt-1 break-all font-mono">{selected.grossPnl ?? 'Not realized'}</dd></div><div><dt className="text-slate-400">Net P&L · {selected.data.settlementCurrency}</dt><dd className={`mt-1 break-all font-mono ${pnlClass(selected.netPnl)}`}>{selected.netPnl ?? 'Not realized'}</dd></div></dl>
           {journal.dirty && <p className="text-xs text-amber-200">Chart and P&L show the saved version; your unsaved draft has not changed them.</p>}
@@ -96,7 +101,7 @@ export function JournalWorkspace() {
           {journal.chartError && <div className="space-y-3"><p role="alert" className="text-sm text-amber-200">Linked chart unavailable. {journal.chartError} Journal values are unchanged.</p><button className={buttonClass} onClick={() => { void journal.loadChart() }}>Retry linked chart</button></div>}
           {journal.chart && <><p className="text-xs text-slate-400">{journal.chart.dataset.name} · {journal.chart.dataset.sourceKind} · {journal.chart.dataset.timeframe} · gaps {journal.chart.dataset.gapCount}</p><CandleChart key={`${selected.id}:${journal.chart.start}`} page={journal.chart} /><div className="flex flex-wrap gap-2"><button className={buttonClass} disabled={journal.chartLoading || journal.chart.start === 0} onClick={() => { void journal.loadChart(Math.max(0, (journal.chart?.start ?? 0) - 100)) }}>Earlier chart window</button><button className={buttonClass} disabled={journal.chartLoading || journal.chart.start + journal.chart.items.length >= journal.chart.total} onClick={() => { void journal.loadChart((journal.chart?.start ?? 0) + 100) }}>Later chart window</button></div></>}
           {journal.chartWarning && <p className="text-xs leading-5 text-slate-400">{journal.chartWarning}</p>}
-          <JournalEvaluationPanel entry={selected} dirty={journal.dirty} />
+          <div className="border-t border-slate-800 pt-4"><h3 className="mb-2 text-sm font-semibold">AI Review</h3><JournalEvaluationPanel entry={selected} dirty={journal.dirty} /></div>
         </>}
       </aside>
     </div>

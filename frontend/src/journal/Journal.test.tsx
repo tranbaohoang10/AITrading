@@ -29,6 +29,17 @@ beforeEach(() => {
   vi.mocked(market.getDataset).mockResolvedValue(dataset)
   vi.mocked(market.candles).mockImplementation(async (_dataset, limit, start = 0) => ({ dataset, start, total: 3, items: candles.slice(start, start + limit) }))
 })
+
+it('organizes the workspace into Overview, Trades and AI Review sections', async () => {
+  render(<App />)
+  expect(screen.getByRole('tab', { name: 'Overview' })).toHaveAttribute('aria-selected', 'true')
+  fireEvent.click(screen.getByRole('tab', { name: 'Trades' }))
+  expect(screen.getByRole('tab', { name: 'Trades' })).toHaveAttribute('aria-selected', 'true')
+  expect(screen.getByRole('tabpanel', { name: 'Journal Trades' })).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('tab', { name: 'AI Review' }))
+  expect(screen.getByRole('tab', { name: 'AI Review' })).toHaveAttribute('aria-selected', 'true')
+  expect(screen.getByRole('tabpanel', { name: /AI Review/ })).toBeInTheDocument()
+})
 it('renders exact real totals, inert reasons and explicit saved/no-chart distinction', async () => {
   render(<App />);await select()
   expect(screen.getByLabelText('Entry reason')).toHaveValue('<script>inert reason</script>');expect(document.querySelector('script')).toBeNull()
