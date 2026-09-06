@@ -77,7 +77,12 @@ public class AiTurnStore {
             selected.add(row);characters+=row.content().length();
         }
         Collections.reverse(selected);
-        String hash=MarketCsvParser.hash(JSON.writeValueAsString(selected.stream().map(v->List.of(v.sequence(),v.role(),v.content(),v.imagePng()==null?null:sha(v.imagePng()),v.attachmentContext())).toList()));
+        // Preserve the original text-only provenance representation. Attachment
+        // fields are nullable and must not be passed to List.of.
+        String hash=MarketCsvParser.hash(JSON.writeValueAsString(selected.stream().map(v->
+                v.imagePng()==null && v.attachmentContext()==null
+                        ? List.of(v.sequence(),v.role(),v.content())
+                        : Arrays.asList(v.sequence(),v.role(),v.content(),v.imagePng()==null?null:sha(v.imagePng()),v.attachmentContext())).toList()));
         jdbc.update("""
                 INSERT INTO trading.ai_turn(conversation_id,request_id,expected_version,source_sequence,context_start,context_end,context_count,context_hash,state,provider,model)
                 VALUES (?,?,?,?,?,?,?,?,'PENDING',?,?)

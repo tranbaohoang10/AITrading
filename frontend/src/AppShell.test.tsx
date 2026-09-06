@@ -29,7 +29,7 @@ describe('TASK-002 responsive application shell', () => {
     expect(within(expanded).queryByText(/credits|pricing|subscription/i)).not.toBeInTheDocument()
     fireEvent.click(within(expanded).getByRole('button', { name: /Library/ }))
     expect(screen.queryByRole('complementary', { name: 'Quant navigation' })).not.toBeInTheDocument()
-    expect(await screen.findByRole('heading', { name: 'Documents' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Library' })).toBeInTheDocument()
   })
 
   it('uses compact sidebar and an overlay AI Chat at tablet width', () => {

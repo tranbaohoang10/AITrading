@@ -82,10 +82,11 @@ public class AuthGuardFilter extends OncePerRequestFilter {
             }
             if (user != null && (path.equals("/api/documents") || path.startsWith("/api/documents/"))) {
                 boolean read=java.util.Set.of("GET","HEAD","OPTIONS").contains(request.getMethod());
-                boolean rag=path.equals("/api/documents/rag");
+                boolean rag=path.equals("/api/documents/rag")||path.matches("/api/documents/[0-9a-f-]{36}/rag");
                 allowed=allowed&&limits.allow(read?"doc-read":rag?"ai-start":"doc-write",user.id().toString(),read?300:rag?10:30);
             }
             if(user!=null&&(path.equals("/api/image-analyses")||path.startsWith("/api/image-analyses/"))){boolean read=java.util.Set.of("GET","HEAD","OPTIONS").contains(request.getMethod());allowed=allowed&&limits.allow(read?"ai-read":"ai-start",user.id().toString(),read?300:10);}
+            if(user!=null&&(path.equals("/api/market-intelligence")||path.startsWith("/api/market-intelligence/")))allowed=allowed&&limits.allow("market-intelligence-read",user.id().toString(),120);
             if ("GET".equals(request.getMethod()) && path.equals("/api/auth/csrf"))
                 allowed = limits.allow("csrf-ip", request.getRemoteAddr(), 120);
             if ("POST".equals(request.getMethod())) {

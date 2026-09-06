@@ -7,6 +7,9 @@ plugins {
 group = "com.aitrading"
 version = "0.0.1-SNAPSHOT"
 
+// Apache's 11.0.25 security fixes; keep all embedded Tomcat modules aligned.
+extra["tomcat.version"] = "11.0.25"
+
 dependencyLocking { lockAllConfigurations() }
 
 java {

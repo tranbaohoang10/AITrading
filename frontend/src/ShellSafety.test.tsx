@@ -22,7 +22,7 @@ describe('PB-001 responsive navigation and keyboard', () => {
       const drawer = screen.getByRole('complementary', { name: 'Quant navigation' })
       const target = within(within(drawer).getByRole('navigation', { name: 'Primary navigation' })).getByRole('button', { name: new RegExp(`^${name}$`) })
       fireEvent.click(target)
-      const heading = name === 'Journal' ? 'Trading Journal' : name === 'Library' ? 'Documents' : name
+      const heading = name === 'Journal' ? 'Trading Journal' : name
       expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument()
       expect(screen.queryByTestId('chart-view')).not.toBeInTheDocument()
     }

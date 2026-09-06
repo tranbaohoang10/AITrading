@@ -171,6 +171,13 @@ class BacktestApiTests {
         }finally{restarted.shutdown();}
         assertThat(store.get(user(a),interrupted.id()).state()).isEqualTo("FAILED");
     }
+    @Test void admissionUsesDatabaseClockAndStillRejectsFutureMetadata()throws Exception {
+        jdbc.update("UPDATE trading.market_dataset SET created_at=clock_timestamp()+interval '1 day' WHERE id=?",source.dataset());
+        assertThatThrownBy(()->create(a,source,UUID.randomUUID())).isInstanceOf(BacktestFailure.class).hasMessage("SNAPSHOT_INVALID");
+        jdbc.update("UPDATE trading.market_dataset SET created_at=clock_timestamp() WHERE id=?",source.dataset());
+        var accepted=create(a,source,UUID.randomUUID());
+        assertThat(accepted.state()).isEqualTo("QUEUED");
+    }
     @Test void globalClaimsAreBoundedAndQueuedExpiryIsExplicit()throws Exception {
         var other=sources(b);create(a,source,UUID.randomUUID());create(a,source,UUID.randomUUID());create(b,other,UUID.randomUUID());
         Set<UUID> claimed=new HashSet<>();try(var pool=Executors.newVirtualThreadPerTaskExecutor()) {

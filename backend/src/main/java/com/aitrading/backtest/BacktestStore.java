@@ -66,12 +66,15 @@ public class BacktestStore {
         if(!configured)throw new BacktestFailure(BacktestFailure.Code.WORKER_UNCONFIGURED);
         quota(user);
         var revision=strategies.get(user,strategy,request.revision());var data=market.get(user,dataset);
+        // Dataset metadata is stamped by PostgreSQL. Compare against that same
+        // clock, not a separately sampled JVM clock with different precision.
+        Instant admissionTime=jdbc.queryForObject("SELECT clock_timestamp()",OffsetDateTime.class).toInstant();
         if(!revision.status().equals("VALIDATED")||data.gapCount()!=0||!data.symbol().equals(revision.symbol())||!data.timeframe().equals(revision.timeframe())
-                ||data.candleCount()<revision.minimumBars()||data.createdAt().isAfter(Instant.now()))throw new BacktestFailure(BacktestFailure.Code.SNAPSHOT_INVALID);
+                ||data.candleCount()<revision.minimumBars()||data.createdAt().isAfter(admissionTime))throw new BacktestFailure(BacktestFailure.Code.SNAPSHOT_INVALID);
         var validated=validator.validate(revision.canonicalJson().getBytes(StandardCharsets.UTF_8));
         if(!validated.valid()||!validated.document().hash().equals(revision.hash()))throw new BacktestFailure(BacktestFailure.Code.SNAPSHOT_INVALID);
         Instant cutoff=data.lastTime().plusSeconds(MarketCsvParser.timeframeSeconds(data.timeframe()));
-        if(cutoff.isAfter(Instant.now()))throw new BacktestFailure(BacktestFailure.Code.SNAPSHOT_INVALID);
+        if(cutoff.isAfter(admissionTime))throw new BacktestFailure(BacktestFailure.Code.SNAPSHOT_INVALID);
         var candles=market.candles(user,dataset,"0",5000);
         var input=Map.of("protocolVersion","1.0.0","dsl",BacktestJson.parse(revision.canonicalJson().getBytes(StandardCharsets.UTF_8),65536),"dataset",
                 Map.of("symbol",data.symbol(),"timeframe",data.timeframe(),"timezone","UTC","sourceType",data.sourceKind(),"closedThrough",cutoff.toString(),

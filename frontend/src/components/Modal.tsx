@@ -18,6 +18,13 @@ export function Modal({ open, label, onClose, children, testId }: {
   return <dialog ref={ref} aria-label={label} data-testid={open ? testId : undefined}
     className="app-modal" onCancel={(event) => { event.preventDefault(); close.current() }}
     onKeyDown={(event) => {
+      if (event.key === 'Tab') {
+        const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button, input, select, textarea, a[href], summary, [tabindex]'))
+          .filter(node => node.tabIndex >= 0 && !node.matches(':disabled') && node.getClientRects().length > 0)
+        const first = controls[0], last = controls.at(-1)
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+      }
       if (event.key === 'Escape') { event.preventDefault(); close.current() }
     }}
     onClick={(event) => { if (event.target === event.currentTarget) close.current() }}>

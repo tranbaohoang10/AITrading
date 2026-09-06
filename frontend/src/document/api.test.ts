@@ -8,6 +8,27 @@ const token=()=>response({headerName:'X-CSRF-TOKEN',token:'synthetic'})
 
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals()})
 
+it('validates catalog binding, immutable metadata and bounded inert previews',async()=>{
+ const doc={id:documentId,title:'Evidence',currentVersion:1,createdAt:'2026-09-01T00:00:00Z',updatedAt:'2026-09-01T00:00:00Z'}
+ const version={documentId,version:1,filename:'safe.txt',mediaType:'text/plain',contentHash:'a'.repeat(64),pageCount:1,createdAt:doc.createdAt}
+ const preview={documentId,version:1,chunks:[{chunkIndex:0,pageNumber:null,text:'<script>inert</script>'}]}
+ const net=vi.fn().mockResolvedValueOnce(response([{document:doc,version}])).mockResolvedValueOnce(response({document:doc,versions:[version]})).mockResolvedValueOnce(response(preview))
+ vi.stubGlobal('fetch',net)
+ await expect(api.catalog(account)).resolves.toEqual([{document:doc,version}]);await expect(api.detail(documentId,account)).resolves.toEqual({document:doc,versions:[version]});await expect(api.preview(documentId,1,account)).resolves.toEqual(preview)
+ for(const call of net.mock.calls)expect(new Headers(call[1].headers).get('X-Workspace-User')).toBe(account)
+ for(const invalid of [{document:doc,version:{...version,documentId:account}},{document:doc,version:{...version,mediaType:'text/html'}}]){net.mockResolvedValueOnce(response([invalid]));await expect(api.catalog(account)).rejects.toThrow()}
+ net.mockResolvedValueOnce(response({...preview,documentId:account}));await expect(api.preview(documentId,1,account)).rejects.toThrow()
+ net.mockResolvedValueOnce(response({...preview,chunks:[{chunkIndex:0,pageNumber:51,text:'bad'}]}));await expect(api.preview(documentId,1,account)).rejects.toThrow()
+ await expect(api.preview('../bad',1,account)).rejects.toThrow()
+})
+it('posts selected-source RAG with the same CSRF and expected account protections',async()=>{
+ const net=vi.fn().mockResolvedValueOnce(token()).mockResolvedValueOnce(response(answer));vi.stubGlobal('fetch',net)
+ await api.ask('Evidence?',account,documentId)
+ expect(net.mock.calls[1][0]).toBe(`/api/documents/${documentId}/rag`)
+ expect(new Headers(net.mock.calls[1][1].headers).get('X-Workspace-User')).toBe(account)
+ expect(new Headers(net.mock.calls[1][1].headers).get('X-CSRF-TOKEN')).toBe('synthetic')
+})
+
 it('uploads a bounded multipart body with account binding and CSRF',async()=>{const saved={document:{id:documentId,title:'Evidence',currentVersion:1,createdAt:'2026-09-01T00:00:00Z',updatedAt:'2026-09-01T00:00:00Z'},version:{documentId,version:1,filename:'safe.txt',mediaType:'text/plain',contentHash:'a'.repeat(64),pageCount:0,createdAt:'2026-09-01T00:00:00Z'}};const net=vi.fn().mockResolvedValueOnce(token()).mockResolvedValueOnce(response(saved));vi.stubGlobal('fetch',net);const file=new File(['synthetic'],'safe.txt',{type:'text/plain'});await expect(api.upload(file,'Evidence',0,null,'22222222-2222-4222-8222-222222222222',account)).resolves.toEqual(saved);const options=net.mock.calls[1][1];expect(new Headers(options.headers).get('X-Workspace-User')).toBe(account);expect(new Headers(options.headers).get('X-CSRF-TOKEN')).toBe('synthetic');expect(options.body).toBeInstanceOf(FormData);expect(options.body.get('file')).toBe(file);expect(options.body.get('expectedVersion')).toBe('0')})
 it('deletes with JSON expected version, account binding and CSRF',async()=>{const net=vi.fn().mockResolvedValueOnce(token()).mockResolvedValueOnce(response(null,204));vi.stubGlobal('fetch',net);await api.remove(documentId,1,account);expect(net.mock.calls[1][0]).toContain(`/documents/${documentId}`);const options=net.mock.calls[1][1];expect(JSON.parse(options.body)).toEqual({expectedVersion:1});expect(new Headers(options.headers).get('X-Workspace-User')).toBe(account);expect(new Headers(options.headers).get('X-CSRF-TOKEN')).toBe('synthetic')})
 

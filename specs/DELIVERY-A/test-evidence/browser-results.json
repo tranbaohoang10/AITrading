@@ -1,0 +1,114 @@
+{
+  "results": [
+    {
+      "name": "empty-1440",
+      "width": 1440,
+      "documentWidth": 1440,
+      "bodyWidth": 1440,
+      "panes": "150px 502.156px 426.844px",
+      "dialog": false
+    },
+    {
+      "name": "library-1440",
+      "width": 1440,
+      "documentWidth": 1440,
+      "bodyWidth": 1440,
+      "panes": "150px 502.156px 426.844px",
+      "dialog": false
+    },
+    {
+      "name": "selected-rag",
+      "answer": false,
+      "providerFailure": true
+    },
+    {
+      "name": "selected-rag-1440",
+      "width": 1440,
+      "documentWidth": 1440,
+      "bodyWidth": 1440,
+      "panes": "150px 502.156px 426.844px",
+      "dialog": false
+    },
+    {
+      "name": "global-insufficient",
+      "pass": true
+    },
+    {
+      "name": "immutable-v1-v2",
+      "pass": true
+    },
+    {
+      "name": "versions-1440",
+      "width": 1440,
+      "documentWidth": 1440,
+      "bodyWidth": 1440,
+      "panes": "150px 502.156px 426.844px",
+      "dialog": false
+    },
+    {
+      "name": "pdf-upload-preview",
+      "pass": true
+    },
+    {
+      "name": "detail-1024",
+      "width": 1024,
+      "documentWidth": 1024,
+      "bodyWidth": 1024,
+      "panes": "972px",
+      "dialog": true
+    },
+    {
+      "name": "upload-1024",
+      "width": 1024,
+      "documentWidth": 1024,
+      "bodyWidth": 1024,
+      "panes": "972px",
+      "dialog": true
+    },
+    {
+      "name": "library-1024",
+      "width": 1024,
+      "documentWidth": 1024,
+      "bodyWidth": 1024,
+      "panes": "972px",
+      "dialog": false
+    },
+    {
+      "name": "detail-390",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "panes": "390px",
+      "dialog": true
+    },
+    {
+      "name": "upload-390",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "panes": "390px",
+      "dialog": true
+    },
+    {
+      "name": "library-390",
+      "width": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "panes": "390px",
+      "dialog": false
+    },
+    {
+      "name": "images-empty-1440",
+      "width": 1440,
+      "documentWidth": 1440,
+      "bodyWidth": 1440,
+      "panes": "150px 502.156px 426.844px",
+      "dialog": false
+    },
+    {
+      "name": "delete-reload-owner-isolation",
+      "pass": true
+    }
+  ],
+  "pageErrors": []
+}
