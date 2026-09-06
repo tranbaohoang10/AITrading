@@ -1,6 +1,6 @@
 # Library verification — Refs #42
 
-06/09/2026, Asia/Ho_Chi_Minh. Start SHA: 32e795682ef8b69dad587b0b1c993197648b9a42.
+06/09/2026, Asia/Ho_Chi_Minh. Start SHA: 32e795682ef8b69dad587b0b1c993197648b9a42. Final verified SHA: `c1ddac30081c4ed0661383e21bc8cc452b25e2e9`.
 
 ## Executed checks
 
@@ -18,6 +18,7 @@
 | `scripts/verify_readiness.py` | PASS, exit 0; existing tracked repository offline readiness/secret checks |
 | `git diff --check` | PASS, exit 0 |
 | `git status --short` / scope review | PASS — unrelated pre-existing untracked files remain unstaged and are listed in the delivery note |
+| GitHub Actions run `34025148491` | PASS, backend and frontend jobs completed successfully at the final SHA |
 
 ## Real browser
 
