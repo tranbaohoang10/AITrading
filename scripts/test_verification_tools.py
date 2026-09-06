@@ -48,9 +48,12 @@ class DependencyAuditTests(unittest.TestCase):
 
 
 class CleanupTests(unittest.TestCase):
+    def owned_data(self):
+        return harness.ROOT / "tmp" / "verification-owned" / "data"
+
     def test_already_stopped_cluster_needs_no_stop_command(self):
         with patch.object(harness.subprocess, "run", return_value=subprocess.CompletedProcess([], 3)) as run:
-            harness.stop_owned_cluster("pg_ctl", Path("owned/data"))
+            harness.stop_owned_cluster("pg_ctl", self.owned_data())
             self.assertEqual(run.call_count, 1)
 
     def test_failed_shutdown_and_unknown_status_fail_build(self):
@@ -58,11 +61,11 @@ class CleanupTests(unittest.TestCase):
             with self.subTest(codes=codes), patch.object(harness.subprocess, "run", side_effect=[
                     subprocess.CompletedProcess([], code) for code in codes]):
                 with self.assertRaises(RuntimeError):
-                    harness.stop_owned_cluster("pg_ctl", Path("owned/data"))
+                    harness.stop_owned_cluster("pg_ctl", self.owned_data())
         with patch.object(harness.subprocess, "run", side_effect=[subprocess.CompletedProcess([], 0),
                          subprocess.CalledProcessError(1, "pg_ctl")]):
             with self.assertRaises(subprocess.CalledProcessError):
-                harness.stop_owned_cluster("pg_ctl", Path("owned/data"))
+                harness.stop_owned_cluster("pg_ctl", self.owned_data())
 
 
 if __name__ == "__main__":
