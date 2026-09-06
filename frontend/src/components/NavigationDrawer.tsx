@@ -9,6 +9,7 @@ const primaryViews: Array<{ label: string; view: MobileView; icon: string }> = [
   { label: 'Backtesting', view: 'backtest-results', icon: 'chart' },
   { label: 'Journal', view: 'trading-journal', icon: 'journal' },
   { label: 'Library', view: 'documents', icon: 'layers' },
+  { label: 'Market Intelligence', view: 'market-intelligence', icon: 'chart' },
   { label: 'Account', view: 'account', icon: 'user' },
 ]
 

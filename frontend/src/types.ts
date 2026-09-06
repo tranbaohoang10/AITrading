@@ -15,6 +15,7 @@ export type MobileView =
   | 'trading-journal'
   | 'documents'
   | 'image-analysis'
+  | 'market-intelligence'
   | 'strategies'
   | 'settings'
   | 'account'

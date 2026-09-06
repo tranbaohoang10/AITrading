@@ -23,12 +23,13 @@ import { PineWorkspace } from '../pine/PineWorkspace'
 import { Mql5Workspace } from '../mql5/Mql5Workspace'
 import { DocumentWorkspace } from '../document/DocumentWorkspace'
 import { ImageAnalysisWorkspace } from '../image/ImageAnalysisWorkspace'
+import { MarketIntelligenceWorkspace } from '../market/MarketIntelligenceWorkspace'
 
 
 const mobileTitles: Record<MobileView, string> = {
   'ai-chat': 'Assistant', chart: 'Chart', 'strategy-dsl': 'Strategy DSL', 'pine-script': 'Pine Script', mql5: 'MQL5',
   'backtest-results': 'Backtest Results', trades: 'Trades', 'my-code': 'My Code', 'trading-journal': 'Trading Journal',
-  strategies: 'Strategies', documents: 'Documents', 'image-analysis': 'Image Analysis', settings: 'Settings', account: 'Account',
+  strategies: 'Strategies', documents: 'Documents', 'image-analysis': 'Image Analysis', 'market-intelligence': 'Market Intelligence', settings: 'Settings', account: 'Account',
 }
 
 const workspaceViews: WorkspaceTab[] = ['chart', 'strategy-dsl', 'pine-script', 'mql5', 'backtest-results', 'trades']
@@ -141,6 +142,7 @@ function MobileContent({ view, onNavigate }: { view: MobileView; onNavigate?: (v
     case 'trading-journal': return journal ? <JournalWorkspace /> : <PlaceholderView title="Trading Journal" />
     case 'documents': return <DocumentWorkspace />
     case 'image-analysis': return <ImageAnalysisWorkspace />
+    case 'market-intelligence': return <MarketIntelligenceWorkspace />
     case 'strategies': return <PlaceholderView title="Strategies" />
     case 'settings': return <PlaceholderView title="Settings" />
     case 'account': return <AccountView />

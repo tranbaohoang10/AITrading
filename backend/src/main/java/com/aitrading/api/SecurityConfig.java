@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/journal", "/api/journal/**").authenticated()
                         .requestMatchers("/api/documents", "/api/documents/**").authenticated()
                         .requestMatchers("/api/image-analyses", "/api/image-analyses/**").authenticated()
+                        .requestMatchers("/api/market-intelligence", "/api/market-intelligence/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/audit").authenticated()
                         .anyRequest().denyAll())
                 .csrf(Customizer.withDefaults())
