@@ -1,4 +1,11 @@
 {
+  "journal_calendar_pagination": [
+    "CALENDAR_35_42_PASS: February 2021 has 35 slots; August 2026 has 42 slots",
+    "PAGE4 Showing 61–65 of 65",
+    "FILTER Showing 1–20 of 32",
+    "WIDTH 1440 body 1440; WIDTH 1024 body 1024; WIDTH 390 body 390",
+    "Source: tmp/browser-qa/journal-calendar-final.log"
+  ],
   "sl": [
     "DRAFT_DRAG_PASS",
     "ACTIVE_DRAG_ONE_WRITE_PASS",

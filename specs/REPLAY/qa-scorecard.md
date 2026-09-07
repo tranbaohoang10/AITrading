@@ -79,3 +79,12 @@ and the chronological corrections in test-cases.md for failures and reruns.
 
 Git publication and CI are pending at this revision. Issues remain open until the
 complete Definition of Done, including final review and publication, is satisfied.
+
+## Publication revision — 07/09/2026
+
+The pending statement above describes the local baseline. Implementation and CI
+fixture correction are published through `057628c`; exact-SHA run 34134266248
+passes both jobs. Downloaded CI artifact confirms 331 backend tests, 44 classes,
+zero failures/errors/skips. Frontend CI passes 292 tests, lint/build and full npm
+audit. See publication.md for commits, evidence and external limitations. The
+documentation commit is verified separately before explicit Issue closure.
