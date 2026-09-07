@@ -120,3 +120,32 @@ CNPM artifacts, audit and separate test Markdown are complete; all applicable
 automated frontend/backend/security/build checks pass; browser QA covers desktop,
 tablet and mobile chart flows; exact pushed SHA is verified; Issue #39 is updated
 and closed only when no required criterion remains unverified.
+
+## Product Owner refinement — 07/09/2026
+
+This refinement narrows the next implementation pass to Chart Workspace. Journal
+and unrelated workspaces are explicitly deferred.
+
+1. Move Replay entry into the unused center area of the top chart toolbar as an
+   icon button. Clicking it opens a compact start selector with Day and Month
+   modes before entering the existing Replay simulation. Remove the detached
+   bottom-right Replay button after parity is proven.
+2. Add a dedicated Position Setup entry on the desktop left rail immediately
+   below More (`…`). It opens one panel for Long/Short, current account balance,
+   current-price/manual entry, sizing by risk percentage or verified lot/quantity,
+   and SL/TP percentage. It must reuse Replay calculation and command contracts;
+   it must not create a second execution model or send a broker order.
+3. Expand Symbol Search to all instruments actually returned by accepted and
+   configured providers, using bounded paginated search. Categories are Crypto,
+   Forex, Stocks, ETFs, Futures and CFD only when the corresponding provider is
+   usable. No placeholder/fake instruments. Provider, venue and feed remain visible.
+4. Replace the current handwritten/placeholder symbol badges with a safe icon
+   resolver: approved local open-license asset, approved provider image URL, then
+   a deterministic symbol fallback. TradingView/LuxAlgo assets must not be copied.
+5. Make the timeframe trigger visually match the symbol trigger: translucent
+   hover background, visible downward caret, open state and keyboard behavior.
+6. Crosshair hover must show both the price label on the right axis and the time
+   label on the bottom axis at the same time, clamped inside the chart at edges.
+7. Clicking the clock must open a working timezone selector. UTC, Exchange,
+   Local and the existing named/fixed zones update all chart/time-axis/crosshair
+   display immediately; canonical candle timestamps remain UTC.
