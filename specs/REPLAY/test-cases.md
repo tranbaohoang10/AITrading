@@ -152,3 +152,9 @@ Issues #39, #43, #46, #47 remain OPEN. No final commit/push or CI claim is made.
 - User website at http://127.0.0.1:5175/ now serves the verified backend build. Its owned database was preserved; actual HTTP smoke against API 8081 passes seven groups. Redis current-bar evidence was refreshed with two advancing actual bars; Redis was restarted after the outage check.
 - QA-01 through QA-49 local evidence is mapped in qa-scorecard.md. Live Alpaca stock verification remains BLOCKED_EXTERNAL; fixture tests do not establish credentials or display entitlement. No real broker order was placed.
 - Final local review preserves six unrelated untracked files outside the staged delivery. Git publication and exact-SHA CI verification remain pending at this revision.
+
+## CI correction — 07/09/2026 (Asia/Ho_Chi_Minh)
+
+- Implementation commit 317b60356f9c89e69c230d40ee890fd94fafa1e0 was pushed normally and its remote SHA verified. Run 34134055259 failed in the Python readiness fixture, before Java tests: the fixture still created 18 migrations after the verifier was updated to V19. The earlier 58-test local PASS preceded that verifier change and was not sufficient evidence for the published combination.
+- Updated the synthetic ledger fixture to 19 migrations, retaining CRLF normalization and tampered-hash rejection, and explicitly checking that an unexpected V20 is rejected. No applied migration or production security check was changed.
+- Full Python rerun after the correction: 58 tests PASS, exit 0, tmp/replay-python-ci-correction.log. Frontend job in run 34134055259 passed lint/build/292 tests/dependency audit; backend must pass a new run.
