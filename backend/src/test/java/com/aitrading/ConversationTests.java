@@ -206,6 +206,10 @@ class ConversationTests {
             assertThat(statuses).containsExactlyInAnyOrder(200,409);
             UUID conversationId=UUID.fromString(first.get("id").asString());
             jdbc.update("INSERT INTO trading.conversation_message(conversation_id,sequence,request_id,role,content) SELECT ?,n,gen_random_uuid(),'user','Seed' FROM generate_series(1,1999) n",conversationId);
+            // Bulk fixtures bypass the gradual writes/autovacuum statistics of normal use.
+            // Refresh the planner before FK checks; keep the application's 2s timeout and
+            // every quota/cascade assertion unchanged.
+            jdbc.execute("ANALYZE trading.conversation_message");
             jdbc.update("UPDATE trading.conversation SET last_sequence=1999 WHERE id=?",conversationId);
             var bodies=List.of(Map.of("requestId",UUID.randomUUID().toString(),"content","Last A"),Map.of("requestId",UUID.randomUUID().toString(),"content","Last B"));
             var jobs=List.<Callable<HttpResponse<String>>>of(()->call(a,"POST",target+"/messages",bodies.get(0)),()->call(a,"POST",target+"/messages",bodies.get(1)));

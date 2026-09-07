@@ -117,6 +117,32 @@ public class JournalService {
     }
     @Transactional
     public Entry get(UserPrincipal user,UUID id) {lock(user);return owned(user,id);}
+    @Transactional
+    public Map<String,Object> provenance(UserPrincipal user,UUID id) {
+        lock(user);owned(user,id);
+        var result=jdbc.queryForMap("SELECT source,provenance FROM trading.journal_entry WHERE id=? AND owner_id=?",id,user.id());
+        if(result.get("provenance")!=null)result.put("provenance",JSON.readTree((String)result.get("provenance")));
+        return result;
+    }
+    public record DayNote(String note,int version) {}
+    @Transactional
+    public DayNote note(UserPrincipal user,Range range) {
+        lock(user);
+        return jdbc.query("SELECT note,version FROM trading.journal_day_note WHERE owner_id=? AND day=? AND zone=? AND currency=?",
+                (r,n)->new DayNote(r.getString(1),r.getInt(2)),user.id(),java.sql.Date.valueOf(range.filter().from()),range.filter().zone(),range.filter().currency())
+                .stream().findFirst().orElse(new DayNote("",0));
+    }
+    @Transactional
+    public DayNote saveNote(UserPrincipal user,Range range,DayNote input) {
+        if(input==null||input.version()<0)throw invalid();
+        String content=text(input.note(),4000,false);lock(user);DayNote previous=note(user,range);
+        // An exact retry after a lost response returns the saved result, without another version increment.
+        if(previous.version()==(long)input.version()+1&&previous.note().equals(content))return previous;
+        if(previous.version()!=input.version())throw ResourceFailure.conflict();
+        jdbc.update("INSERT INTO trading.journal_day_note(owner_id,day,zone,currency,note,version) VALUES(?,?,?,?,?,?) ON CONFLICT(owner_id,day,zone,currency) DO UPDATE SET note=EXCLUDED.note,version=EXCLUDED.version",
+                user.id(),java.sql.Date.valueOf(range.filter().from()),range.filter().zone(),range.filter().currency(),content,previous.version()+1);
+        return new DayNote(content,previous.version()+1);
+    }
     private void source(UserPrincipal user,Input data) {
         if(data.datasetId()==null)return;
         var matches=jdbc.queryForList("SELECT id FROM trading.market_dataset WHERE id=? AND owner_id=? AND symbol=? AND timeframe=?",
@@ -135,6 +161,13 @@ public class JournalService {
         Input data=validate(request.entry(),Instant.now());
         String hash=MarketCsvParser.hash(JSON.writeValueAsString(Arrays.asList(entryId,request.expectedVersion(),data)));
         lock(user);Entry current=entryId==null?null:owned(user,entryId);
+        if(current!=null && "REPLAY".equals(jdbc.queryForObject("SELECT source FROM trading.journal_entry WHERE id=?",String.class,entryId))) {
+            Input previous=current.data();
+            Input immutable=new Input(previous.symbol(),previous.timeframe(),previous.settlementCurrency(),previous.side(),previous.state(),
+                    previous.quantity(),previous.entryPrice(),previous.exitPrice(),previous.entryFee(),previous.exitFee(),previous.entryTime(),previous.exitTime(),
+                    data.entryReason(),data.notes(),previous.datasetId());
+            if(!immutable.equals(data))throw ResourceFailure.conflict();
+        }
         var replays=jdbc.queryForList("SELECT entry_id,request_hash,applied_version FROM trading.journal_write WHERE owner_id=? AND request_id=?",user.id(),requestId);
         if(!replays.isEmpty()) {
             var replay=replays.getFirst();if(!hash.equals(replay.get("request_hash")))throw ResourceFailure.conflict();
@@ -193,10 +226,20 @@ public class JournalService {
     }
     @Transactional
     public NumberedPage page(UserPrincipal user,Range range,int page,int limit) {
+        return page(user,range,page,limit,null,null,null,null,null);
+    }
+    @Transactional
+    public NumberedPage page(UserPrincipal user,Range range,int page,int limit,String symbol,String side,String state,String source,String replaySession) {
         if(page<1||page>500||(limit!=10&&limit!=20&&limit!=50))throw invalid();
         // Mutations take the same owner lock: count and slice form one authoritative snapshot.
         lock(user);
-        var rows=jdbc.query(SELECT_RANGE+"ORDER BY COALESCE(exit_time,entry_time) DESC,id DESC LIMIT 501",this::row,parameters(user,range).toArray());
+        String sql=SELECT_RANGE;var args=parameters(user,range);
+        if(symbol!=null&&!symbol.isBlank()){sql+="AND symbol=? ";args.add(MarketCsvParser.symbol(symbol));}
+        if(side!=null&&!side.isBlank()){if(!Set.of("LONG","SHORT").contains(side))throw invalid();sql+="AND side=? ";args.add(side);}
+        if(state!=null&&!state.isBlank()){if(!Set.of("OPEN","CLOSED").contains(state))throw invalid();sql+="AND state=? ";args.add(state);}
+        if(source!=null&&!source.isBlank()){if(!Set.of("MANUAL","REPLAY","BROKER_IMPORT").contains(source))throw invalid();sql+="AND source=? ";args.add(source);}
+        if(replaySession!=null&&!replaySession.isBlank()){sql+="AND replay_session_id=? ";args.add(StrategyService.id(replaySession));}
+        var rows=jdbc.query(sql+"ORDER BY COALESCE(exit_time,entry_time) DESC,id DESC LIMIT 501",this::row,args.toArray());
         if(rows.size()>500)throw ResourceFailure.conflict();
         int pages=(rows.size()+limit-1)/limit,actual=Math.min(page,Math.max(1,pages)),start=(actual-1)*limit;
         return new NumberedPage(range.filter(),rows.subList(start,Math.min(start+limit,rows.size())),actual,limit,rows.size(),pages);

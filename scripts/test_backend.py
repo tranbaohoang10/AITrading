@@ -250,7 +250,13 @@ def serve_owned_api(env: dict[str, str], owned: Path) -> int:
     log_path = owned / "api.log"
     with log_path.open("w", encoding="utf-8") as log:
         def launch() -> subprocess.Popen[bytes]:
-            child = subprocess.Popen([java, "-jar", str(ROOT / "backend/build/libs/api-0.0.1-SNAPSHOT.jar")],
+            jar = ROOT / "backend" / ("build" if API_PORT == 8080 else f"build-browser-{API_PORT}") / "libs/api-0.0.1-SNAPSHOT.jar"
+            # Windows holds a running JAR open. A per-launch copy lets bootJar rebuild
+            # while the owned service stays available; restart retains its database.
+            launch_dir = Path(tempfile.mkdtemp(prefix="api-launch-", dir=owned))
+            running_jar = launch_dir / jar.name
+            shutil.copy2(jar, running_jar)
+            child = subprocess.Popen([java, "-jar", str(running_jar)],
                                      env=env, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT,
                                      creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
             write_backend_state(child.pid, owned)
@@ -365,10 +371,12 @@ def run(args: argparse.Namespace) -> int:
         wrapper = str(ROOT / "backend" / ("gradlew.bat" if os.name == "nt" else "gradlew"))
         if args.serve:
             command = [wrapper, "--no-daemon", "bootJar"]
+            if API_PORT != 8080:
+                command.insert(2, f"-PtestBuildDirectory=build-browser-{API_PORT}")
         elif args.tests:
-            command = [wrapper, "--no-daemon", "test", "--tests", args.tests]
+            command = [wrapper, "--no-daemon", "-PtestBuildDirectory=build-verification", "test", "--tests", args.tests]
         else:
-            command = [wrapper, "--no-daemon", "clean", "test", "bootJar", "dependencyInventory"]
+            command = [wrapper, "--no-daemon", "-PtestBuildDirectory=build-verification", "clean", "test", "bootJar", "dependencyInventory"]
         if args.write_locks:
             command.append("--write-locks")
         result = subprocess.run(command, cwd=ROOT / "backend", env=env, check=False).returncode
@@ -381,12 +389,20 @@ def run(args: argparse.Namespace) -> int:
 
 
 def main() -> int:
+    global API_PORT, API_URL, BACKEND_STATE
     parser = argparse.ArgumentParser()
     parser.add_argument("--write-locks", action="store_true")
     parser.add_argument("--serve", action="store_true", help="Build and serve the API on loopback 8080 with a disposable DB")
+    parser.add_argument("--port", type=int, default=8080, help="Owned browser-test API port (1024–65535)")
     parser.add_argument("--status", action="store_true", help="Show safe local browser-test API status without starting it")
     parser.add_argument("--tests", help="Run one Gradle test selector against an isolated disposable database")
     args = parser.parse_args()
+    if not 1024 <= args.port <= 65535:
+        parser.error("Port must be between 1024 and 65535")
+    API_PORT = args.port
+    API_URL = f"http://127.0.0.1:{API_PORT}"
+    if API_PORT != 8080:
+        BACKEND_STATE = DEV_DIR / f"backend-{API_PORT}.json"
     if sum(bool(value) for value in (args.serve, args.status, args.tests)) > 1:
         parser.error("--serve, --status and --tests cannot be combined")
     try:

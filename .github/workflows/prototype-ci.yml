@@ -43,7 +43,9 @@ jobs:
       - name: Install PostgreSQL test binaries
         run: |
           sudo apt-get update
-          sudo apt-get install --yes postgresql-16
+          sudo apt-get install --yes postgresql-16 redis-server
+      - name: Start disposable loopback Redis
+        run: redis-server --bind 127.0.0.1 --port 6387 --protected-mode yes --save "" --appendonly no --maxmemory 64mb --maxmemory-policy allkeys-lru --daemonize yes --pidfile /tmp/aitrading-redis-qa.pid
       - name: Verify wrapper integrity
         run: echo '7a9ce74cff467ca1bf60a4fcd9f05185acceda4d0f382434d393e17864262c5d  backend/gradle/wrapper/gradle-wrapper.jar' | sha256sum --check
       - name: Verification tools fail closed
@@ -59,15 +61,16 @@ jobs:
       - name: Real PostgreSQL integration and build
         env:
           AITRADING_TEST_PG_BIN: /usr/lib/postgresql/16/bin
+          AITRADING_REDIS_DISPOSABLE: '6387'
         run: python3 scripts/test_backend.py
       - name: Check all resolved Java dependencies
-        run: python3 scripts/check_dependencies.py backend/build/reports/dependencies.txt backend/build/reports/dependency-audit.json
+        run: python3 scripts/check_dependencies.py backend/build-verification/reports/dependencies.txt backend/build-verification/reports/dependency-audit.json
       - name: Publish test evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: backend-verification
           path: |
-            backend/build/test-results/
-            backend/build/reports/
+            backend/build-verification/test-results/
+            backend/build-verification/reports/
           retention-days: 7

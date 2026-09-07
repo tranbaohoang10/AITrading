@@ -87,6 +87,12 @@ public class AuthGuardFilter extends OncePerRequestFilter {
             }
             if(user!=null&&(path.equals("/api/image-analyses")||path.startsWith("/api/image-analyses/"))){boolean read=java.util.Set.of("GET","HEAD","OPTIONS").contains(request.getMethod());allowed=allowed&&limits.allow(read?"ai-read":"ai-start",user.id().toString(),read?300:10);}
             if(user!=null&&(path.equals("/api/market-intelligence")||path.startsWith("/api/market-intelligence/")))allowed=allowed&&limits.allow("market-intelligence-read",user.id().toString(),120);
+            if(user!=null&&path.startsWith("/api/market/providers/"))allowed=allowed&&limits.allow("market-history",user.id().toString(),60);
+            if(user!=null&&(path.equals("/api/replay")||path.startsWith("/api/replay/"))) {
+                // 4x playback emits at most 3600 serialized steps per 15-minute window.
+                boolean command="POST".equals(request.getMethod())&&path.endsWith("/commands");
+                allowed=allowed&&limits.allow(command?"replay-command":"replay-access",user.id().toString(),command?4000:120);
+            }
             if ("GET".equals(request.getMethod()) && path.equals("/api/auth/csrf"))
                 allowed = limits.allow("csrf-ip", request.getRemoteAddr(), 120);
             if ("POST".equals(request.getMethod())) {

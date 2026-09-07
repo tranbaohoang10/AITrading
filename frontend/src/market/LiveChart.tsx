@@ -14,6 +14,14 @@ import { sendChartCaptureToAssistant } from './chartCapture'
 const iconButton = 'icon-tool grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 disabled:opacity-35'
 const toolbarTrigger = 'flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md border border-transparent bg-transparent px-2 text-xs font-semibold text-slate-200 transition hover:bg-slate-800/60 hover:text-white focus-visible:bg-slate-800/60 focus-visible:ring-2 focus-visible:ring-slate-300'
 const liveClass: Record<LiveConnectionStatus, string> = { LIVE: 'bg-emerald-400', DELAYED: 'bg-amber-300', CONNECTING: 'bg-amber-300 animate-pulse', RECONNECTING: 'bg-amber-300 animate-pulse', DISCONNECTED: 'bg-rose-400' }
+/** Its clock updates only the small status label, never the candle workspace. */
+function FeedStatus({ source, reference, partial, status, lastUpdate, timeframe }: { source: string; reference: boolean; partial: boolean; status: LiveConnectionStatus; lastUpdate?: number; timeframe: Timeframe }) {
+  const [now, setNow] = useState(Date.now)
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer) }, [])
+  const label = reference ? 'ECB EOD · snapshot' : partial ? 'Partial candle' : status === 'LIVE' ? !lastUpdate ? 'Connecting' : now - lastUpdate > Math.max(60_000, timeframeMilliseconds(timeframe) * 2) ? 'Stale' : 'Live' : status[0] + status.slice(1).toLowerCase()
+  return <div className="flex shrink-0 items-center gap-1.5"><span aria-label={source.startsWith('COINBASE') ? `Coinbase · ${status}` : `${source} · ${status}`} title={`${source} · ${status}`} className={`h-1.5 w-1.5 shrink-0 rounded-full ${liveClass[label === 'Stale' ? 'DELAYED' : label === 'Connecting' ? 'CONNECTING' : status]}`}/><span role="status" className="shrink-0 text-[10px] text-slate-400">{label}{lastUpdate && <span className="block">Last update {new Date(lastUpdate).toLocaleTimeString()}</span>}</span></div>
+}
+
 const INITIAL_HISTORY_BARS = 300, HISTORY_PAGE_SIZE = 300, MAX_CACHED_BARS = 20_000, HISTORY_REQUEST_TIMEOUT_MS = 12_000
 const historyCache = new Map<string, MarketCandle[]>()
 const cacheKey = (symbol: LiveSymbol, timeframe: Timeframe, before?: number) => `${symbol}|${timeframe}|${before ?? 'latest'}`
@@ -257,17 +265,13 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
   const gridClass = layout === '2H' ? 'grid-cols-2 grid-rows-1' : layout === '2V' ? 'grid-cols-1 grid-rows-2' : layout === '4' ? 'grid-cols-2 grid-rows-2' : layout === '8' ? 'grid-cols-4 grid-rows-2' : 'grid-cols-1 grid-rows-1'
   const gridStyle = { gridTemplateColumns: layout === '2H' || layout === '4' ? `${split.x}fr ${1 - split.x}fr` : layout === '2V' ? '1fr' : layout === '8' ? 'repeat(4, minmax(0, 1fr))' : '1fr', gridTemplateRows: layout === '2V' || layout === '4' || layout === '8' ? `${split.y}fr ${1 - split.y}fr` : '1fr' }
 
-  const [feedNow, setFeedNow] = useState(Date.now)
-  useEffect(() => { const timer = setInterval(() => setFeedNow(Date.now()), 1000); return () => clearInterval(timer) }, [])
-  const lastUpdate = activeState.lastUpdate
-  const feedLabel = activeInstrument.provider === 'FRANKFURTER' ? 'ECB EOD · snapshot' : status === 'LIVE' ? !lastUpdate ? 'Connecting' : feedNow - lastUpdate > Math.max(60_000, timeframeMilliseconds(timeframe) * 2) ? 'Stale' : 'Live' : status[0] + status.slice(1).toLowerCase()
   const chartSource = `${activeInstrument.provider} · ${activeInstrument.feed ?? 'configured'}`
   return <section aria-label="Chart" data-testid="chart-view" className="relative flex h-full min-h-0 flex-col overflow-hidden">
     <header data-testid="chart-toolbar" className="flex min-h-10 shrink-0 items-center gap-1 border-b border-slate-800 bg-slate-925 px-2 py-1">
       <div data-testid="chart-main-controls" className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto chart-tools">
-        <div className="flex h-8 min-w-0 items-center gap-1.5"><button type="button" aria-label="Symbol" aria-haspopup="dialog" aria-expanded={symbolSearchOpen} title="Search symbols" onClick={() => setSymbolSearchOpen(true)} className={`${toolbarTrigger} max-w-36`}><span className="truncate">{displayMarketSymbol(symbol)}</span><Icon name="chevron" className="h-3.5 w-3.5 shrink-0" /></button><span aria-label={chartSource.startsWith('COINBASE') ? `Coinbase · ${status}` : `${chartSource} · ${status}`} title={`${chartSource} · ${status}`} className={`h-1.5 w-1.5 shrink-0 rounded-full ${liveClass[feedLabel === 'Stale' ? 'DELAYED' : feedLabel === 'Connecting' ? 'CONNECTING' : status]}`} /></div>
+        <div className="flex h-8 min-w-0 items-center gap-1.5"><button type="button" aria-label="Symbol" aria-haspopup="dialog" aria-expanded={symbolSearchOpen} title="Search symbols" onClick={() => setSymbolSearchOpen(true)} className={`${toolbarTrigger} max-w-36`}><span className="truncate">{displayMarketSymbol(symbol)}</span><Icon name="chevron" className="h-3.5 w-3.5 shrink-0" /></button></div>
         <span role="separator" aria-orientation="vertical" className="mx-1 h-5 w-px shrink-0 bg-slate-700" />
-        <span role="status" className="shrink-0 text-[10px] text-slate-400">{feedLabel}{lastUpdate && <span className="block">Last update {new Date(lastUpdate).toLocaleTimeString()}</span>}</span>
+        <FeedStatus source={chartSource} reference={activeInstrument.provider === 'FRANKFURTER'} partial={!!candles.at(-1)?.partial} status={status} lastUpdate={activeState.lastUpdate} timeframe={timeframe}/>
         <TimeframePopover value={timeframe} eod={activeInstrument.provider === 'FRANKFURTER'} onChange={setTimeframe} />
         {latest && <span aria-label="Current market price" className="hidden whitespace-nowrap px-1 font-mono text-xs font-semibold text-slate-100 sm:inline">{formatMarketPrice(Number(latest.close), activeInstrument.priceIncrement, activeInstrument.pricePrecision)}</span>}
         <span role="separator" aria-orientation="vertical" className="mx-1 h-5 w-px shrink-0 bg-slate-700" />

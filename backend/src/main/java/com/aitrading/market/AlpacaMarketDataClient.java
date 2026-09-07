@@ -24,7 +24,26 @@ public class AlpacaMarketDataClient {
         requireConfigured(); validSymbol(symbol); if(limit<1||limit>AlpacaMarketDataMapper.MAX_BARS)throw new IllegalArgumentException("Invalid candle limit");
         String nativeTimeframe=switch(timeframe) { case "1m"->"1Min"; case "5m"->"5Min"; case "15m"->"15Min"; case "30m"->"30Min"; case "1h"->"1Hour"; case "4h"->"4Hour"; case "1d"->"1Day"; default->throw new IllegalArgumentException("Invalid timeframe"); };
         StringBuilder query=new StringBuilder("timeframe=").append(nativeTimeframe).append("&limit=").append(limit).append("&feed=iex&sort=asc"); if(before!=null)query.append("&end=").append(URLEncoder.encode(before.toString(),StandardCharsets.UTF_8));
-        return AlpacaMarketDataMapper.bars(request(DATA.resolve("/stocks/"+symbol+"/bars?"+query)),timeframe,now);
+        return AlpacaMarketDataMapper.bars(request(DATA.resolve("/v2/stocks/"+symbol+"/bars?"+query)),timeframe,now);
+    }
+    public List<AlpacaMarketDataMapper.Bar> history(String symbol,String timeframe,Instant from,Instant to) {
+        requireConfigured();validSymbol(symbol);MarketDataProvider.range(timeframe,from,to);
+        String nativeTimeframe=switch(timeframe) {case "1m"->"1Min";case "5m"->"5Min";case "15m"->"15Min";case "30m"->"30Min";case "1h"->"1Hour";case "4h"->"4Hour";case "1d"->"1Day";default->throw new IllegalArgumentException("Invalid timeframe");};
+        String query="timeframe="+nativeTimeframe+"&limit=1000&feed=iex&adjustment=raw&sort=asc&start="+URLEncoder.encode(from.toString(),StandardCharsets.UTF_8)+"&end="+URLEncoder.encode(to.toString(),StandardCharsets.UTF_8);
+        var rows=new TreeMap<Instant,AlpacaMarketDataMapper.Bar>();var seen=new HashSet<String>();String token=null;
+        for(int page=0;page<25;page++) {
+            String raw=request(DATA.resolve("/v2/stocks/"+symbol+"/bars?"+query+(token==null?"":"&page_token="+URLEncoder.encode(token,StandardCharsets.UTF_8))));
+            for(var bar:AlpacaMarketDataMapper.bars(raw,timeframe,Instant.now())) {
+                if(bar.openTime().isBefore(from)||!bar.openTime().isBefore(to))continue;
+                var previous=rows.putIfAbsent(bar.openTime(),bar);
+                if(previous!=null&&!previous.equals(bar)||rows.size()>20_000)throw new AlpacaDataFailure("ALPACA_INVALID_RESPONSE",502);
+            }
+            var node=JsonMapper.builder().build().readTree(raw).get("next_page_token");
+            if(node==null||node.isNull())return List.copyOf(rows.values());
+            if(!node.isString()||node.asString().length()>2048||node.asString().isBlank()||!seen.add(node.asString()))throw new AlpacaDataFailure("ALPACA_INVALID_RESPONSE",502);
+            token=node.asString();
+        }
+        throw new AlpacaDataFailure("ALPACA_HISTORY_LIMIT",502);
     }
     public List<Map<String,String>> searchAssets(String query) {
         requireConfigured(); if(query==null||query.strip().length()>64)throw new IllegalArgumentException("Invalid search");
@@ -40,7 +59,7 @@ public class AlpacaMarketDataClient {
         synchronized(this) {
             current=assets;
             if(current!=null&&current.expiresAt().isAfter(Instant.now())) return current.body();
-            String body=request(TRADING.resolve("/assets?status=active&asset_class=us_equity"));
+            String body=request(TRADING.resolve("/v2/assets?status=active&asset_class=us_equity"));
             assets=new AssetSnapshot(body,Instant.now().plus(ASSET_CACHE_TTL));
             return body;
         }

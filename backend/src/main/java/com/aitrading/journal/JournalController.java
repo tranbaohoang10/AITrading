@@ -19,14 +19,20 @@ public class JournalController {
     }
     @GetMapping("/page")
     public JournalService.NumberedPage page(@AuthenticationPrincipal UserPrincipal user,@RequestParam String from,@RequestParam String to,
-            @RequestParam String zone,@RequestParam String currency,@RequestParam(required=false)String page,@RequestParam(required=false)String limit) {
-        return service.page(user,JournalService.range(from,to,zone,currency),StrategyService.integer(page,1,500),StrategyService.integer(limit,20,50));
+            @RequestParam String zone,@RequestParam String currency,@RequestParam(required=false)String page,@RequestParam(required=false)String limit,
+            @RequestParam(required=false)String symbol,@RequestParam(required=false)String side,@RequestParam(required=false)String state,
+            @RequestParam(required=false)String source,@RequestParam(required=false)String replaySession) {
+        return service.page(user,JournalService.range(from,to,zone,currency),StrategyService.integer(page,1,500),StrategyService.integer(limit,20,50),symbol,side,state,source,replaySession);
     }
     @GetMapping("/summary")
     public JournalService.Summary summary(@AuthenticationPrincipal UserPrincipal user,@RequestParam String from,@RequestParam String to,
             @RequestParam String zone,@RequestParam String currency) {return service.summary(user,JournalService.range(from,to,zone,currency));}
     @GetMapping("/{id}")
     public JournalService.Entry get(@AuthenticationPrincipal UserPrincipal user,@PathVariable String id) {return service.get(user,StrategyService.id(id));}
+    @GetMapping("/{id}/provenance") public Object provenance(@AuthenticationPrincipal UserPrincipal user,@PathVariable String id){return service.provenance(user,StrategyService.id(id));}
+    @GetMapping("/day-note") public Object note(@AuthenticationPrincipal UserPrincipal user,@RequestParam String date,@RequestParam String zone,@RequestParam String currency){return service.note(user,JournalService.range(date,date,zone,currency));}
+    public record NoteWrite(String date,String zone,String currency,String note,int version) {}
+    @PostMapping("/day-note") public Object saveNote(@AuthenticationPrincipal UserPrincipal user,@RequestBody NoteWrite body){return service.saveNote(user,JournalService.range(body.date(),body.date(),body.zone(),body.currency()),new JournalService.DayNote(body.note(),body.version()));}
     @PostMapping(consumes="application/json")
     public JournalService.Saved create(@AuthenticationPrincipal UserPrincipal user,@RequestBody JournalService.Write body) {return service.write(user,null,body);}
     @PostMapping(value="/{id}",consumes="application/json")

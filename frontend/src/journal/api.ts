@@ -83,8 +83,8 @@ export async function summary(filter: Filter, accountId?: string): Promise<Summa
   return { filter: sameFilter(v.filter, filter), totals, days }
 }
 export type NumberedPage = { filter: Filter; items: Entry[]; page: number; pageSize: number; totalItems: number; totalPages: number }
-export async function numberedPage(filter: Filter, page: number, limit: number, accountId?: string): Promise<NumberedPage> {
-  const v = object(await body(await privateRequest(accountId, `/journal/page?${query(filter)}&page=${page}&limit=${limit}`)))
+export async function numberedPage(filter: Filter, page: number, limit: number, accountId?: string, filters: Record<string, string> = {}): Promise<NumberedPage> {
+  const v = object(await body(await privateRequest(accountId, `/journal/page?${query(filter)}&page=${page}&limit=${limit}&${new URLSearchParams(filters)}`)))
   const totalItems = integer(v.totalItems, 0, 500), totalPages = integer(v.totalPages, 0, 50), actual = integer(v.page, 1, 50)
   if (![10, 20, 50].includes(limit) || v.pageSize !== limit || totalPages !== Math.ceil(totalItems / limit) || actual !== Math.min(page, Math.max(1, totalPages)) || !Array.isArray(v.items)) throw invalid()
   const items = v.items.map(entry)

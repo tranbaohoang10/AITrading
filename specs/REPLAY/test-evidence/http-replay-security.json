@@ -1,0 +1,36 @@
+{
+  "at": "2026-09-07T14:24:26.253555+00:00",
+  "status": "PASS",
+  "cases": [
+    "anonymous replay/provider/stream denied",
+    "CSRF enforced; daily FX reference rejected for trading replay",
+    "owner isolation; prefix only; duplicate intent once; conflicting identity/stale version denied",
+    "Step transfers one new candle; exact retry preserves cursor/version/window",
+    "Short execution; duplicate close projects one Journal row; filters/provenance owned; immutable execution and editable review",
+    "daily note owner isolation, duplicate retry, stale edit and UTF-8 bound",
+    "provider/key namespace injection denied"
+  ],
+  "provider": "BINANCE",
+  "instrument": "BTCUSDT",
+  "currency": "USDT",
+  "balance": 9993.6355293562,
+  "execution": {
+    "id": "c8a8da56-6345-40fe-963d-e02c3870695a",
+    "state": "CLOSED",
+    "side": "SHORT",
+    "quantity": 0.07773874,
+    "intendedEntry": 64317.99,
+    "stop": 64961.1699,
+    "target": 63031.6302,
+    "entry": 64318.0,
+    "entryTime": "2026-08-07T01:00:00Z",
+    "exit": 64399.87,
+    "exitTime": "2026-08-07T02:00:00Z",
+    "entryFee": 0.0,
+    "exitFee": 0.0,
+    "exitReason": "MANUAL",
+    "ambiguity": null,
+    "netPnl": -6.3644706438
+  },
+  "cacheStatus": "DEGRADED"
+}

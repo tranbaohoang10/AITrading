@@ -1,0 +1,9 @@
+{
+  "date": "07/09/2026",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "tests": { "command": "npm test -- --run", "cwd": "frontend", "exit": 0, "files": 48, "passed": 292, "failed": 0, "log": "tmp/replay-frontend-complete.log" },
+  "build": { "command": "npm run build", "cwd": "frontend", "exit": 0, "log": "tmp/replay-build-complete.log", "limitation": "Informational Vite large-chunk warning remains" },
+  "lint": { "command": "npm run lint", "cwd": "frontend", "exit": 0, "log": "tmp/replay-lint-complete.log" },
+  "productionDependencyAudit": { "command": "npm --prefix frontend audit --omit=dev --audit-level=low", "exit": 0, "vulnerabilities": 0 },
+  "scope": "Local verification; GitHub CI is recorded separately after publication"
+}

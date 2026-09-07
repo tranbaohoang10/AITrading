@@ -1,0 +1,28 @@
+[
+  {
+    "command": "python scripts/verify_readiness.py",
+    "exit": 0,
+    "log": "tmp\\replay-supporting-check-0.log",
+    "scope": "Existing PB-026 readiness plus V19 ledger and architecture; not final Replay completion"
+  },
+  {
+    "command": "python scripts/check_dsl_fixtures.py",
+    "exit": 0,
+    "log": "tmp\\replay-supporting-check-1.log"
+  },
+  {
+    "command": "python -m unittest discover -s python/tests -v",
+    "exit": 0,
+    "log": "tmp\\replay-supporting-check-2.log"
+  },
+  {
+    "command": "python scripts/backtest_ui_fixtures.py --check",
+    "exit": 0,
+    "log": "tmp\\replay-supporting-check-3.log"
+  },
+  {
+    "command": "python -m unittest discover -s scripts -p test_verification_tools.py -v",
+    "exit": 0,
+    "log": "tmp\\replay-supporting-check-4.log"
+  }
+]

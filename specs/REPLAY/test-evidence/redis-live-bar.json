@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "transport": "Actual Coinbase WebSocket to backend SSE and Redis",
+  "receivedBytes": 55371,
+  "first": {
+    "provider": "COINBASE",
+    "symbol": "BTC-USD",
+    "candle": {
+      "time": "2026-09-07T14:23:00Z",
+      "open": 79089.16,
+      "high": 79091.83,
+      "low": 79089.15,
+      "close": 79091.83,
+      "volume": 0.07312168
+    },
+    "partial": true,
+    "timeframe": "1m",
+    "lastEventAt": "2026-09-07T14:23:13.545732Z"
+  },
+  "second": {
+    "provider": "COINBASE",
+    "symbol": "BTC-USD",
+    "candle": {
+      "time": "2026-09-07T14:23:00Z",
+      "open": 79089.16,
+      "high": 79093.43,
+      "low": 79079.27,
+      "close": 79079.27,
+      "volume": 0.25847644
+    },
+    "partial": true,
+    "timeframe": "1m",
+    "lastEventAt": "2026-09-07T14:23:23.522861Z"
+  }
+}

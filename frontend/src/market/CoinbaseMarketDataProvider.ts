@@ -1,5 +1,6 @@
 import { timeframeMilliseconds, type Timeframe } from './chartMath'
 import { workspaceHeaders } from '../auth/api'
+import { backendCoinbaseStream } from './backendCoinbaseStream'
 import { COINBASE_DEFAULT_SYMBOLS, DEFAULT_INSTRUMENTS, isLiveSymbol, validMarketCandle, type CandleSubscription, type Instrument, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
 
 type Socket = Pick<WebSocket, 'close' | 'send' | 'onopen' | 'onmessage' | 'onerror' | 'onclose'>
@@ -152,6 +153,7 @@ export class CoinbaseMarketDataProvider implements MarketDataProvider {
   }
 
   subscribeCandles({ symbol, interval, seed }: { symbol: LiveSymbol; interval: Timeframe; seed?: MarketCandle }, subscription: CandleSubscription): () => void {
+    if (this.accountId) return backendCoinbaseStream(this.accountId, symbol, interval, subscription, this.fetcher)
     let disposed = false, opened = false, polling = false, delay = 1_000, socket: Socket | null = null, retry: ReturnType<typeof setTimeout> | null = null
     let connectTimeout: ReturnType<typeof setTimeout> | null = null, pollTimer: ReturnType<typeof setTimeout> | null = null
     let current = seed?.symbol === symbol && seed.interval === interval ? { ...seed } : null

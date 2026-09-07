@@ -1,0 +1,38 @@
+[
+  {
+    "path": "/api/market/providers/capabilities",
+    "status": 200
+  },
+  {
+    "path": "/api/market/providers/capabilities",
+    "status": 200
+  },
+  {
+    "path": "/api/replay",
+    "status": 200
+  },
+  {
+    "path": "/api/replay",
+    "status": 200
+  },
+  {
+    "path": "/api/market/providers/COINBASE/coverage",
+    "status": 200
+  },
+  {
+    "path": "/api/replay",
+    "status": 200
+  },
+  {
+    "path": "/api/replay/7cd25257-a99d-4dea-ab8d-fa5f04f96217/commands",
+    "status": 200
+  },
+  {
+    "path": "/api/replay/7cd25257-a99d-4dea-ab8d-fa5f04f96217/commands",
+    "status": 200
+  },
+  {
+    "path": "/api/replay/7cd25257-a99d-4dea-ab8d-fa5f04f96217/commands",
+    "status": 200
+  }
+]

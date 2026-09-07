@@ -20,6 +20,9 @@ frontend/coverage/
 # Spring Boot and Gradle
 backend/.gradle/
 backend/build/
+backend/build-verification/
+backend/build-browser/
+backend/build-browser-*/
 backend/out/
 
 # Python

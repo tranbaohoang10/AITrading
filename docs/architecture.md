@@ -172,3 +172,35 @@ multi-node scheduler coordination, backup/restore operations, broker connectivit
 external data licensing, live orders, payment and compliance certification are
 outside the implemented scope. Historical returns and AI analysis never guarantee
 future performance.
+
+## 07/09/2026 — Replay, Journal và market cache (Refs #39, #43, #46, #47)
+
+V19 bổ sung `replay_session`, `replay_trade`, `replay_command` và
+`journal_day_note`. Session lưu snapshot lịch sử đã chọn, identity của nguồn,
+con trỏ, vốn, phí và chính sách khớp lệnh. API chỉ trả phần nến đã mở; lệnh Step
+có thể trả cửa sổ nến bổ sung theo `X-Replay-Known-Cursor`. Trade, số dư và bản ghi
+Journal được ghi trong cùng transaction. Khóa theo owner/session và request hash
+ngăn lệnh trùng hoặc cập nhật từ phiên bản cũ. Journal giữ provenance thực thi
+bất biến, cho phép sửa phần nhận xét; ghi chú ngày có version riêng.
+
+```mermaid
+erDiagram
+    app_user ||--o{ replay_session : owns
+    replay_session ||--o{ replay_trade : executes
+    replay_session ||--o{ replay_command : deduplicates
+    replay_trade ||--o| journal_entry : projects
+    app_user ||--o{ journal_day_note : writes
+```
+
+Redis là cache tùy chọn cho catalog, coverage, history, current bar, latest price
+và feed health. Mỗi key chứa namespace có version và provider; payload có giới hạn
+kích thước, TTL và kiểm tra lại khi đọc. Singleflight và lease có owner giảm tải
+yêu cầu trùng. Mất Redis chuyển sang DEGRADED; Spring Session vẫn dùng JDBC,
+execution vẫn bền vững trong PostgreSQL. Coinbase WebSocket được tổng hợp ở backend
+và truyền qua SSE có ràng buộc workspace; trình duyệt không kết nối Redis.
+
+Thiết kế, giới hạn provider và bằng chứng kiểm tra hiện tại ở
+[Replay design](../specs/REPLAY/design.md),
+[provider audit](market-data/provider-audit.md) và
+[Replay verification](../specs/REPLAY/test-cases.md). Phần này mô tả thay đổi đang
+kiểm tra, không xác nhận hoàn tất QA hoặc CI.

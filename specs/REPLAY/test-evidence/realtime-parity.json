@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "provider": "COINBASE",
+  "symbol": "BTC-USD",
+  "timeframe": "1m",
+  "backendStream": {
+    "time": "2026-09-07T06:48:00Z",
+    "open": 79652.76,
+    "high": 79665,
+    "low": 79652.75,
+    "close": 79664.9,
+    "volume": 1.16546385
+  },
+  "officialRest": {
+    "time": "2026-09-07T06:48:00Z",
+    "open": 79652.76,
+    "high": 79665,
+    "low": 79652.75,
+    "close": 79664.9,
+    "volume": 1.16546385
+  },
+  "checks": {
+    "open": true,
+    "high": true,
+    "low": true,
+    "close": true,
+    "volume": true
+  },
+  "eventCount": 598
+}

@@ -7,6 +7,9 @@ plugins {
 group = "com.aitrading"
 version = "0.0.1-SNAPSHOT"
 
+// Isolated test builds must not delete the JAR held by the local browser server.
+providers.gradleProperty("testBuildDirectory").orNull?.let { layout.buildDirectory.set(file(it)) }
+
 // Apache's 11.0.25 security fixes; keep all embedded Tomcat modules aligned.
 extra["tomcat.version"] = "11.0.25"
 
@@ -25,6 +28,7 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-flyway")
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-session-jdbc")
 	implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")

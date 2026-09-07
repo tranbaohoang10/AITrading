@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "cacheStatus": "DEGRADED",
+  "candles": 24,
+  "persistedRows": 2,
+  "unchangedJournal": true,
+  "unchangedProviderHistory": true
+}

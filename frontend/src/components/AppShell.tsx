@@ -37,6 +37,7 @@ const workspaceViews: WorkspaceTab[] = ['chart', 'strategy-dsl', 'pine-script', 
 export function AppShell() {
   const mode = useViewportMode()
   const trading = useTrading()
+  const journal = useJournal()
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [tabletChatOpen, setTabletChatOpen] = useState(false)
   const [mobileView, setMobileView] = useState<MobileView>('chart')
@@ -54,6 +55,8 @@ export function AppShell() {
   }, [resizing])
 
   const navigateDesktop = (action: string) => {
+    if (action in mobileTitles) setMobileView(action as MobileView)
+    else if (action === 'workspace') setMobileView('chart')
     setPlatformView(null)
     if (action === 'ai-chat') {
       if (mode === 'tablet') setTabletChatOpen(true)
@@ -65,9 +68,11 @@ export function AppShell() {
 
   const selectMobileView = (view: MobileView) => {
     setMobileView(view)
+    setPlatformView(workspaceViews.includes(view as WorkspaceTab) ? null : view)
     if (workspaceViews.includes(view as WorkspaceTab)) trading.setActiveTab(view as WorkspaceTab)
   }
 
+  const renderShell = () => {
   if (mode === 'desktop') {
     return (
       <div data-layout="desktop" className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
@@ -123,6 +128,9 @@ export function AppShell() {
       </main>
     </div>
   )
+  }
+  const journalActive = (mode === 'mobile' ? mobileView : platformView) === 'trading-journal'
+  return <>{renderShell()}{journal && journalActive && <div className="fixed bottom-0 right-0 z-10 overflow-y-auto bg-slate-950 text-slate-100" style={{ left: mode === 'desktop' ? chatWidth + 1 : mode === 'tablet' ? 52 : 0, top: mode === 'mobile' ? 56 : 0 }}><JournalWorkspace /></div>}</>
 }
 
 function MobileContent({ view, onNavigate }: { view: MobileView; onNavigate?: (view: MobileView) => void }) {
@@ -139,7 +147,7 @@ function MobileContent({ view, onNavigate }: { view: MobileView; onNavigate?: (v
     case 'backtest-results': return <BacktestResults />
     case 'trades': return <TradesView mode="mobile" />
     case 'my-code': return <PlaceholderView title="My Code" />
-    case 'trading-journal': return journal ? <JournalWorkspace /> : <PlaceholderView title="Trading Journal" />
+    case 'trading-journal': return journal ? null : <PlaceholderView title="Trading Journal" />
     case 'documents': return <DocumentWorkspace />
     case 'image-analysis': return <ImageAnalysisWorkspace />
     case 'market-intelligence': return <MarketIntelligenceWorkspace />

@@ -86,24 +86,25 @@ describe('PB-034 Coinbase market-data contract', () => {
     vi.useRealTimers()
   })
 
-  it('falls back to delayed same-origin polling when Coinbase WebSocket cannot connect', async () => {
+  it('reconnects the authenticated backend stream without polling REST or opening a provider socket', async () => {
     vi.useFakeTimers()
     try {
-      const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify([
-        [Math.floor(baseTime / 1000), '99', '102', '100', '101', '5'],
-      ]), { status: 200 }))
+      const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 503 }))
       const socket = { send: vi.fn(), close: vi.fn(), onopen: null, onmessage: null, onerror: null, onclose: null }
       const provider = new CoinbaseMarketDataProvider(fetcher, () => socket as never, 'http://127.0.0.1/api/market/coinbase', undefined, () => baseTime + 60_000, undefined, accountId)
       const onCandle = vi.fn(), onStatus = vi.fn()
       const stop = provider.subscribeCandles({ symbol: 'BTC-USD', interval: '1m' }, { onCandle, onStatus, onReconnect: vi.fn() })
 
-      await vi.advanceTimersByTimeAsync(5_000)
-      expect(String(fetcher.mock.calls[0][0])).toContain('/api/market/coinbase/series/BTC-USD/60/')
+      await vi.advanceTimersByTimeAsync(1_000)
+      expect(fetcher).toHaveBeenCalledTimes(2)
+      expect(String(fetcher.mock.calls[0][0])).toBe('/api/market/stream?symbol=BTC-USD&timeframe=1m')
       expect(new Headers(fetcher.mock.calls[0][1]?.headers).get('X-Workspace-User')).toBe(accountId)
-      expect(onCandle).toHaveBeenCalledWith(expect.objectContaining({ symbol: 'BTC-USD', openTime: baseTime }))
-      expect(onStatus).toHaveBeenLastCalledWith('DELAYED')
+      expect(onCandle).not.toHaveBeenCalled()
+      expect(onStatus).toHaveBeenLastCalledWith('DISCONNECTED')
       stop()
-      expect(socket.close).toHaveBeenCalledTimes(1)
+      expect(socket.close).not.toHaveBeenCalled()
+      await vi.advanceTimersByTimeAsync(30_000)
+      expect(fetcher).toHaveBeenCalledTimes(2)
     } finally {
       vi.useRealTimers()
     }

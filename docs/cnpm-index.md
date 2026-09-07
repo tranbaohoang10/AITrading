@@ -33,3 +33,19 @@ implementation documents are manufactured for them.
 - AI real-provider evidence uses synthetic data and never includes a key value.
 - DONE requires its Issue, publication evidence and required CI; the readiness
   report cannot promote an incomplete or optional item.
+
+## 07/09/2026 — bộ tài liệu Replay đang kiểm tra
+
+Refs #39, #43, #46, #47. Đây là phạm vi mới sau bộ PB-026; kết quả readiness của
+PB-026 không đồng nghĩa phạm vi Replay đã DONE.
+
+| Tài liệu | Nội dung |
+| --- | --- |
+| [Yêu cầu](../specs/REPLAY/requirements.md) | Yêu cầu gốc và QA-01 đến QA-49 |
+| [Thiết kế](../specs/REPLAY/design.md) | Use case, acceptance, sequence/class/ERD, execution và trust boundaries |
+| [Nghiên cứu UI](../specs/REPLAY/ux-research.md) | Nguồn tham khảo workflow và lựa chọn tương tác |
+| [Provider audit](market-data/provider-audit.md) | License, entitlement, capability và hạn chế từng nguồn |
+| [Kiểm thử riêng](../specs/REPLAY/test-cases.md) | Lệnh, kết quả, lỗi phát hiện và phạm vi chưa hoàn tất |
+
+V19 đã được thêm vào ledger SHA-256; hash V1–V18 được kiểm tra và giữ nguyên.
+Chỉ đóng các Issue trên sau khi hoàn thành kiểm tra, commit/push và CI tương ứng.

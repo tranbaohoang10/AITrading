@@ -1,0 +1,35 @@
+{
+  "sl": [
+    "DRAFT_DRAG_PASS",
+    "ACTIVE_DRAG_ONE_WRITE_PASS",
+    "WIDTH 1440 { width: 1440, body: 1440 }",
+    "WIDTH 1024 { width: 1024, body: 1024 }",
+    "WIDTH 390 { width: 390, body: 390 }"
+  ],
+  "tp_indicator": [
+    "INDICATOR_PREFIX_UI_PASS",
+    "DRAFT_TP_DRAG_PASS",
+    "ACTIVE_TP_DRAG_ONE_WRITE_PASS",
+    "WIDTH 1440 { width: 1440, body: 1440 }",
+    "WIDTH 1024 { width: 1024, body: 1024 }",
+    "WIDTH 390 { width: 390, body: 390 }"
+  ],
+  "journal_review": [
+    "REVIEW_WIDTH 1440 { width: 1440, body: 1440 }",
+    "REVIEW_WIDTH 1024 { width: 1024, body: 1024 }",
+    "REVIEW_WIDTH 390 { width: 390, body: 390 }",
+    "REPLAY_READONLY_REVIEW_SAVE_MANUAL_UNLOCK_PASS"
+  ],
+  "fx": [
+    "FX_HTTP /api/market/frankfurter/candles 200",
+    "FX_OBSERVATIONS 300",
+    "FX_WIDTH 1440 { width: 1440, body: 1440 }",
+    "FX_WIDTH 1024 { width: 1024, body: 1024 }",
+    "FX_WIDTH 390 { width: 390, body: 390 }",
+    "FX_HTTP /api/market/providers/capabilities 200",
+    "FX_HTTP /api/market/providers/capabilities 200",
+    "FX_HTTP /api/replay 200",
+    "FX_HTTP /api/replay 200",
+    "FX_EOD_ONLY_REPLAY_UNSUPPORTED_PASS [ 'Coinbase Public', 'Binance Public Data' ]"
+  ]
+}

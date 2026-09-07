@@ -33,6 +33,7 @@ export type MarketCandle = {
   close: string
   volume: string
   closed: boolean
+  partial?: boolean
 }
 
 export const DEFAULT_INSTRUMENTS: Instrument[] = [
@@ -107,7 +108,7 @@ export function validMarketCandle(value: Omit<MarketCandle, 'symbol' | 'interval
   const open = finiteDecimal(value.open), high = finiteDecimal(value.high), low = finiteDecimal(value.low), close = finiteDecimal(value.close), volume = finiteDecimal(value.volume, true)
   if (!open || !high || !low || !close || volume === null || !Number.isSafeInteger(value.openTime) || !Number.isSafeInteger(value.closeTime) || value.openTime < 0 || value.closeTime < value.openTime) return null
   if (Number(high) < Math.max(Number(open), Number(close), Number(low)) || Number(low) > Math.min(Number(open), Number(close), Number(high))) return null
-  return { symbol, interval, openTime: value.openTime, closeTime: value.closeTime, open, high, low, close, volume, closed: value.closed }
+  return { symbol, interval, openTime: value.openTime, closeTime: value.closeTime, open, high, low, close, volume, closed: value.closed, ...(typeof value.partial === 'boolean' ? { partial: value.partial } : {}) }
 }
 
 export function mergeCandles(current: MarketCandle[], incoming: MarketCandle): MarketCandle[] {

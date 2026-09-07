@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/ai/capabilities").authenticated()
                         .requestMatchers("/api/backtests", "/api/backtests/**").authenticated()
                         .requestMatchers("/api/journal", "/api/journal/**").authenticated()
+                        .requestMatchers("/api/replay", "/api/replay/**").authenticated()
                         .requestMatchers("/api/documents", "/api/documents/**").authenticated()
                         .requestMatchers("/api/image-analyses", "/api/image-analyses/**").authenticated()
                         .requestMatchers("/api/market-intelligence", "/api/market-intelligence/**").authenticated()

@@ -1,0 +1,38 @@
+[
+  {
+    "path": "/api/market/providers/capabilities",
+    "status": 200
+  },
+  {
+    "path": "/api/replay",
+    "status": 200
+  },
+  {
+    "path": "/api/market/providers/capabilities",
+    "status": 200
+  },
+  {
+    "path": "/api/replay",
+    "status": 200
+  },
+  {
+    "path": "/api/market/providers/BINANCE/coverage",
+    "status": 200
+  },
+  {
+    "path": "/api/replay",
+    "status": 200
+  },
+  {
+    "path": "/api/replay/c7526ed1-d9e6-4e04-8cdd-c31f43b6451e/commands",
+    "status": 200
+  },
+  {
+    "path": "/api/replay/c7526ed1-d9e6-4e04-8cdd-c31f43b6451e/commands",
+    "status": 200
+  },
+  {
+    "path": "/api/replay/c7526ed1-d9e6-4e04-8cdd-c31f43b6451e/commands",
+    "status": 200
+  }
+]

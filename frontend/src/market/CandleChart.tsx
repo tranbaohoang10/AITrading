@@ -8,7 +8,7 @@ import { captureSvgRegion, sendChartCaptureToAssistant, type CaptureRegion, type
 import { formatMarketPrice } from './liveMarket'
 import { formatChartDate } from './chartTimezone'
 
-type Marker = { id: number; barIndex: number; kind: string }
+type Marker = { id: number; barIndex: number; kind: string; price?: number }
 type Viewport = { start: number; count: number }
 type PriceRange = { lower: number; upper: number }
 type ScreenPoint = { x: number; y: number }
@@ -32,7 +32,7 @@ const singlePointTools = new Set<DrawingTool>(['horizontal', 'horizontalRay', 'v
 const editableTarget = (target: EventTarget | null) => target instanceof HTMLElement && (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)
 const navigationTool = (tool: DrawingTool) => tool === 'cursor' || tool === 'crosshair'
 
-export function CandleChart({ page, markers = [], frozen = false, dataSource = 'imported', sourceLabel, timeframe = '1h', settings = defaultChartSettings, indicators = [], activeTool = 'cursor', drawings = [], selectedDrawingId, magnet = 'off', stayInMode = false, onAddDrawing, onUpdateDrawing, onCommitDrawingEdit, onSelectDrawing, onDeleteSelected, onDeleteDrawing, onUndo, onRedo, onCancelTool, onCaptureRequest, onToggleIndicator, onRemoveIndicator, onOpenIndicators, onOpenSettings, onRequestOlder }: {
+export function CandleChart({ page, markers = [], frozen = false, dataSource = 'imported', sourceLabel, timeframe = '1h', settings = defaultChartSettings, indicators = [], activeTool = 'cursor', drawings = [], selectedDrawingId, magnet = 'off', stayInMode = false, onAddDrawing, onUpdateDrawing, onCommitDrawingEdit, onSelectDrawing, onDeleteSelected, onDeleteDrawing, onUndo, onRedo, onCancelTool, onCaptureRequest, onToggleIndicator, onRemoveIndicator, onOpenIndicators, onOpenSettings, onRequestOlder, fitDrawingPrices = false, lockedDrawingHandles = [], positionLabel }: {
   page: { dataset: { symbol: string }; items: Candle[] }
   markers?: Marker[]; frozen?: boolean; dataSource?: string; sourceLabel?: string; timeframe?: string; settings?: ChartSettings; indicators?: IndicatorConfig[]
  activeTool?: DrawingTool; drawings?: Drawing[]; selectedDrawingId?: string | null; magnet?: MagnetMode; stayInMode?: boolean
@@ -42,6 +42,7 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
   onToggleIndicator?: (id: string) => void; onRemoveIndicator?: (id: string) => void; onOpenIndicators?: () => void
   onOpenSettings?: () => void
   onRequestOlder?: () => void
+  fitDrawingPrices?: boolean; lockedDrawingHandles?: number[]; positionLabel?: string
 }) {
   const total = page.items.length
   const displaySymbol = page.dataset.symbol.replace(/-/g, '/')
@@ -150,7 +151,8 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
 
   const autoPrices = (() => {
     const lows = visibleItems.map(candle => Number(candle.low)), highs = visibleItems.map(candle => Number(candle.high))
-    const minimum = Math.min(...lows), maximum = Math.max(...highs), padding = Math.max((maximum - minimum) * .08, Math.abs(maximum) * .001, 1e-8)
+    const levels = fitDrawingPrices ? drawings.flatMap(d => d.points.map(p => p.price)).concat(markers.flatMap(m => m.price === undefined ? [] : [m.price])).filter(Number.isFinite) : []
+    const minimum = Math.min(...lows, ...levels), maximum = Math.max(...highs, ...levels), padding = Math.max((maximum - minimum) * .08, Math.abs(maximum) * .001, 1e-8)
     return { lower: minimum - padding, upper: maximum + padding }
   })()
   const prices = manualPrices ?? autoPrices
@@ -404,6 +406,8 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
   if (!visibleItems.length) return <p className="p-6 text-sm text-slate-400">No candles in this window. Choose an earlier window.</p>
 
   const beginEdit = (event: ReactPointerEvent<SVGElement>, drawing: Drawing, handle: number | 'move') => {
+    if (lockedDrawingHandles.length && (handle === 'move' || lockedDrawingHandles.includes(handle))) return
+    if (fitDrawingPrices) setManualPrices(prices)
     if (activeTool !== 'cursor' || drawing.locked) return
     event.stopPropagation(); const owner = event.currentTarget.ownerSVGElement; if (!owner) return
     const rect = owner.getBoundingClientRect(), synthetic = { ...event, currentTarget: owner, clientX: event.clientX || rect.left, clientY: event.clientY || rect.top } as unknown as ReactPointerEvent<SVGSVGElement>
@@ -411,7 +415,7 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
   }
   const projected = (drawing: Drawing) => drawing.points.map(point => ({ x: xTime(point.time), y: yPrice(point.price) }))
   const projectedPoint = (point: ChartPoint) => ({ x: xTime(point.time), y: yPrice(point.price) })
-  const handles = (drawing: Drawing, points: ScreenPoint[]) => selectedDrawingId === drawing.id && activeTool === 'cursor' ? points.map((point, position) => <circle key={`handle-${position}`} data-drawing-handle={position} cx={point.x} cy={point.y} r="5" fill="#f4f5f7" stroke="#20242b" strokeWidth="2" className="cursor-grab" onPointerDown={event => beginEdit(event, drawing, position)}/>) : null
+  const handles = (drawing: Drawing, points: ScreenPoint[]) => selectedDrawingId === drawing.id && activeTool === 'cursor' ? points.map((point, position) => lockedDrawingHandles.includes(position) ? null : <circle key={`handle-${position}`} data-drawing-handle={position} cx={point.x} cy={point.y} r="5" fill="#f4f5f7" stroke="#20242b" strokeWidth="2" className="cursor-grab" onPointerDown={event => beginEdit(event, drawing, position)}/>) : null
   const drawingShape = (drawing: Drawing) => {
     if (drawing.visible === false) return null
     const points = projected(drawing), selected = selectedDrawingId === drawing.id, color = selected ? '#f4f5f7' : '#9aa1ad', strokeWidth = selected ? 2 : 1.4
@@ -440,7 +444,7 @@ export function CandleChart({ page, markers = [], frozen = false, dataSource = '
       const entry = drawing.points[0]?.price ?? 0, stop = drawing.points[1]?.price ?? entry, target = drawing.points[2]?.price ?? entry, long = drawing.type === 'longPosition', valid = drawing.points.length >= 3 && (long ? target > entry && entry > stop : stop > entry && entry > target)
       const risk = Math.abs(entry - stop), reward = Math.abs(target - entry), ratio = risk > 0 ? reward / risk : 0, riskPercent = entry ? risk / Math.abs(entry) * 100 : 0, rewardPercent = entry ? reward / Math.abs(entry) * 100 : 0
       const x1 = Math.min(a.x, b.x, c.x), x2 = Math.max(a.x, b.x, c.x, x1 + 90), entryY = yPrice(entry), stopY = yPrice(stop), targetY = yPrice(target)
-      return wrap(<><rect x={x1} y={Math.min(entryY, targetY)} width={x2 - x1} height={Math.abs(targetY - entryY)} fill="#16a085" fillOpacity=".14"/><rect x={x1} y={Math.min(entryY, stopY)} width={x2 - x1} height={Math.abs(stopY - entryY)} fill="#f04452" fillOpacity=".14"/><line x1={x1} x2={x2} y1={entryY} y2={entryY} stroke={valid ? color : '#fb7185'} strokeWidth="1.5"/><text x={x1 + 6} y={entryY - 7} fill={valid ? settings.textColor : '#fb7185'} fontSize="9">{valid ? `${long ? 'LONG' : 'SHORT'} · Risk ${riskPercent.toFixed(2)}% · Reward ${rewardPercent.toFixed(2)}% · R:R ${ratio.toFixed(2)}` : 'Invalid position levels'}</text></>)
+      return wrap(<><rect x={x1} y={Math.min(entryY, targetY)} width={x2 - x1} height={Math.abs(targetY - entryY)} fill="#16a085" fillOpacity=".14"/><rect x={x1} y={Math.min(entryY, stopY)} width={x2 - x1} height={Math.abs(stopY - entryY)} fill="#f04452" fillOpacity=".14"/><line x1={x1} x2={x2} y1={entryY} y2={entryY} stroke={valid ? color : '#fb7185'} strokeWidth="1.5"/><text x={x1 + 6} y={entryY - 7} fill={valid ? settings.textColor : '#fb7185'} fontSize="9">{valid ? positionLabel ?? `${long ? 'LONG' : 'SHORT'} · Risk ${riskPercent.toFixed(2)}% · Reward ${rewardPercent.toFixed(2)}% · R:R ${ratio.toFixed(2)}` : 'Invalid position levels'}</text></>)
     }
     const dx = b.x - a.x, dy = b.y - a.y
     const rayEnd = drawing.type === 'ray' ? (() => { const targetX = dx >= 0 ? left + width : left, scale = Math.abs(dx) < 1 ? 1 : (targetX - a.x) / dx; return { x: targetX, y: a.y + dy * scale } })() : drawing.type === 'extended' ? (() => { const scaleA = Math.abs(dx) < 1 ? 1 : (left - a.x) / dx, scaleB = Math.abs(dx) < 1 ? 1 : (left + width - a.x) / dx; return { start: { x: left, y: a.y + dy * scaleA }, end: { x: left + width, y: a.y + dy * scaleB } } })() : null

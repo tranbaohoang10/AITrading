@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "scope": "Browser network interruption/recovery; provider socket retirement verified separately by fixture",
+  "network": [
+    {
+      "path": "/api/market/stream",
+      "status": 200
+    },
+    {
+      "path": "/api/market/stream",
+      "status": 200
+    },
+    {
+      "path": "/api/market/stream",
+      "status": 200
+    }
+  ]
+}
