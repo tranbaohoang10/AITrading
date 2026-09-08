@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 /** Official daily archives only. No broker API, scraping or cross-source fallback. */
 @Service
 public class BinanceArchiveProvider implements MarketDataProvider {
+    private final BinanceSpotCatalog catalog = new BinanceSpotCatalog();
     private static final List<String> TF=List.of("1m","5m","15m","30m","1h","4h","1d");
     private static final Set<String> SYMBOLS=Set.of("BTCUSDT","ETHUSDT","SOLUSDT");
     private static final int MAX_ZIP=8_000_000, MAX_EXPANDED=16_000_000;
@@ -23,19 +24,20 @@ public class BinanceArchiveProvider implements MarketDataProvider {
     public Capabilities capabilities() {
         return new Capabilities("BINANCE","Binance Public Data",List.of("CRYPTO"),TF,
                 true,false,false,false,false,true,true,true,false,false,true,"ACCEPTED",
-                "BULK_ARCHIVE",1440,"UTC",true,List.of("Selected Spot daily archives; no realtime feed",
+                "BULK_ARCHIVE",1440,"UTC",true,List.of("Public Spot catalog and daily archives; no realtime feed",
                 "Futures archives not enabled without verified contract sizing", "Historical quantity only; exchange increments not asserted"));
     }
     public List<Instrument> search(String query) {
         if(query==null||query.length()>64)throw new IllegalArgumentException("Invalid search");
-        return SYMBOLS.stream().sorted().filter(s->s.contains(query.toUpperCase(Locale.ROOT))).map(this::instrument).toList();
+        return catalog.instruments().stream().filter(i->(i.providerSymbol()+" "+i.displaySymbol()+" Binance "+i.base()+" "+i.quote()).toUpperCase(Locale.ROOT).contains(query.toUpperCase(Locale.ROOT))).toList();
     }
     public Instrument instrument(String symbol) {
-        if(!SYMBOLS.contains(symbol))throw new IllegalArgumentException("Unsupported Binance instrument");
+        if(symbol==null||!symbol.matches("[A-Z0-9]{2,32}"))throw new IllegalArgumentException("Invalid Binance instrument");
+        if(!SYMBOLS.contains(symbol))return catalog.instruments().stream().filter(i->i.providerSymbol().equals(symbol)).findFirst().orElseThrow(()->new IllegalArgumentException("Unsupported Binance instrument"));
         return new Instrument("BINANCE:"+symbol,symbol.replace("USDT","/USDT"),symbol,"BINANCE","CRYPTO",
                 symbol.substring(0,symbol.length()-4),"USDT","Binance","USDT","SPOT","UTC",null,null,null,
                 null,null,"BASE_QUANTITY",null,BigDecimal.ONE,null,"QUANTITY_ONLY",
-                List.of("HISTORICAL"),TF,"UNKNOWN");
+                List.of("HISTORICAL"),TF,"UNKNOWN",symbol.replace("USDT","/USDT"));
     }
     public List<Candle> history(String symbol,String timeframe,Instant from,Instant to) {
         instrument(symbol); MarketDataProvider.range(timeframe,from,to);

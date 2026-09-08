@@ -23,15 +23,15 @@ public class CoinbaseHistoryProvider implements MarketDataProvider {
         var root=JsonMapper.builder().build().readTree(client.products());
         for(var item:root) {
             String symbol=item.path("id").asString();
-            if(!symbol.matches("[A-Z][A-Z0-9]{0,14}-USD") || !symbol.contains(query.toUpperCase(Locale.ROOT))) continue;
+            if(!symbol.matches("[A-Z][A-Z0-9]{0,14}-USD") || !(symbol+" Coinbase PUBLIC "+item.path("display_name").asString()).toUpperCase(Locale.ROOT).contains(query.toUpperCase(Locale.ROOT))) continue;
             BigDecimal price=new BigDecimal(item.path("quote_increment").asString());
             BigDecimal qty=new BigDecimal(item.path("base_increment").asString());
             if(price.signum()<=0||qty.signum()<=0||price.scale()>12||qty.scale()>12)continue;
             result.add(new Instrument("COINBASE:"+symbol,symbol.replace('-', '/'),symbol,"COINBASE",
                     "CRYPTO",symbol.substring(0,symbol.length()-4),"USD","Coinbase","USD","SPOT","UTC",
                     price,qty,qty.scale(),null,null,"BASE_QUANTITY",null,BigDecimal.ONE,null,
-                    "INCREMENTS_VERIFIED",List.of("HISTORICAL","REALTIME"),TF,"UNKNOWN"));
-            if(result.size()==50)break;
+                    "INCREMENTS_VERIFIED",List.of("HISTORICAL","REALTIME"),TF,"UNKNOWN",item.path("display_name").asString().isBlank()?symbol:item.path("display_name").asString()));
+
         }
         return List.copyOf(result);
     }

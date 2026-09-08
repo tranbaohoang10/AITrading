@@ -18,7 +18,7 @@ public class AlpacaHistoryProvider implements MarketDataProvider {
     public List<Instrument> search(String query) {
         return client.searchAssets(query).stream().filter(m->m.get("symbol").matches("[A-Z][A-Z0-9.]{0,9}")).map(m->new Instrument(
                 "ALPACA:"+m.get("symbol"),m.get("symbol"),m.get("symbol"),"ALPACA","US_EQUITY",m.get("symbol"),"USD",m.get("exchange"),"USD","IEX","America/New_York",
-                null,null,null,null,null,"SHARES",null,BigDecimal.ONE,null,"QUANTITY_ONLY",List.of("HISTORICAL","IEX"),TF,"UNKNOWN")).toList();
+                null,null,null,null,null,"SHARES",null,BigDecimal.ONE,null,"QUANTITY_ONLY",List.of("HISTORICAL","IEX"),TF,"UNKNOWN",m.get("name"))).toList();
     }
     public Instrument instrument(String symbol) {
         if(symbol==null||!symbol.matches("[A-Z][A-Z0-9.]{0,9}"))throw new IllegalArgumentException("Invalid symbol");

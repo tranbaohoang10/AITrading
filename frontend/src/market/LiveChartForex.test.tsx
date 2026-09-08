@@ -17,7 +17,8 @@ describe('LiveChart Forex reference mode', () => {
     await screen.findByRole('img', { name: /live Coinbase candlesticks/i })
     fireEvent.click(screen.getByLabelText('Symbol'))
     const ethereum = screen.getByRole('img', { name: 'Ethereum / US Dollar icon' })
-    expect(ethereum.querySelector('svg')).toBeInTheDocument()
+    expect(ethereum).toHaveAttribute('src', '/symbol-icons/eth.svg')
+    expect(ethereum.getAttribute('title')).toContain('CC0-1.0')
     expect(ethereum).not.toHaveTextContent('Ξ')
   })
 

@@ -18,13 +18,13 @@ public class FrankfurterHistoryProvider implements MarketDataProvider {
     }
     public List<Instrument> search(String query) {
         if(query==null||query.length()>64)throw new IllegalArgumentException("Invalid search");
-        return SYMBOLS.stream().filter(s->s.contains(query.toUpperCase(Locale.ROOT))).map(this::instrument).toList();
+        return client.symbols().stream().filter(s->s.contains(query.toUpperCase(Locale.ROOT))).map(this::instrument).toList();
     }
     public Instrument instrument(String symbol) {
-        if(!SYMBOLS.contains(symbol))throw new IllegalArgumentException("Unsupported reference pair");
+        if(!SYMBOLS.contains(symbol)&&!client.symbols().contains(symbol))throw new IllegalArgumentException("Unsupported reference pair");
         return new Instrument("FRANKFURTER:"+symbol,symbol.replace('-','/'),symbol,"FRANKFURTER","FX_REFERENCE",
                 symbol.substring(0,3),symbol.substring(4),"ECB reference",symbol.substring(4),"REFERENCE","UTC",
-                null,null,null,null,null,"NOT_TRADABLE",null,null,null,"UNSUPPORTED",List.of("EOD_REFERENCE"),List.of("1d"),"UNKNOWN");
+                null,null,null,null,null,"NOT_TRADABLE",null,null,null,"UNSUPPORTED",List.of("EOD_REFERENCE"),List.of("1d"),"UNKNOWN",symbol.replace('-','/')+" · ECB reference");
     }
     public List<Candle> history(String symbol,String timeframe,Instant from,Instant to) {
         MarketDataProvider.range(timeframe,from,to);instrument(symbol);

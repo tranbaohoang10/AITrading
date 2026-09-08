@@ -39,8 +39,23 @@ public class FrankfurterMarketDataClient {
     public FrankfurterMarketDataClient() { this(BASE, HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NEVER).build()); }
     FrankfurterMarketDataClient(URI base, HttpClient http) { this.base = base; this.http = http; }
 
+    private List<String> catalog=List.of(); private long catalogExpires, catalogRetry;
+    public synchronized List<String> symbols() {
+        if(System.nanoTime()<catalogExpires)return catalog;
+        if(System.nanoTime()<catalogRetry)throw new FrankfurterDataFailure("FRANKFURTER_PROVIDER_UNAVAILABLE",503);
+        try {
+            byte[] bytes=BinanceArchiveProvider.fetch(http,base.resolve("/v2/rates?providers=ECB"),MAX_RESPONSE_BYTES,System.nanoTime()+Duration.ofSeconds(10).toNanos());
+            var rows=JsonMapper.builder().build().readTree(new String(bytes,StandardCharsets.UTF_8));
+            if(!rows.isArray()||rows.size()>500)throw invalid();
+            var symbols=new java.util.TreeSet<String>();
+            for(var row:rows) { String b=text(row,"base"),q=text(row,"quote"); decimal(row.get("rate"));
+                if(!b.matches("[A-Z]{3}")||!q.matches("[A-Z]{3}")||b.equals(q)||!symbols.add(b+"-"+q))throw invalid(); }
+            catalog=List.copyOf(symbols); catalogExpires=System.nanoTime()+Duration.ofHours(1).toNanos(); return catalog;
+        } catch(Exception failure) { if(failure instanceof InterruptedException)Thread.currentThread().interrupt();catalogRetry=System.nanoTime()+Duration.ofSeconds(30).toNanos();throw new FrankfurterDataFailure("FRANKFURTER_PROVIDER_UNAVAILABLE",502); }
+    }
     public List<Candle> candles(String symbol, int limit, Long before) {
         Pair pair = PAIRS.get(symbol);
+        if(pair==null&&symbol!=null&&symbol.matches("[A-Z]{3}-[A-Z]{3}")&&catalog.contains(symbol))pair=new Pair(symbol.substring(0,3),symbol.substring(4));
         if (pair == null || limit < 1 || limit > MAX_CANDLES || before != null && (before < 0 || before > 4_102_444_800_000L)) throw new IllegalArgumentException("Invalid Forex reference request");
         LocalDate end = (before == null ? Instant.now() : Instant.ofEpochMilli(before)).atZone(ZoneOffset.UTC).toLocalDate();
         LocalDate start = end.minusDays(Math.max(14, Math.min(1_800, limit * 4)));

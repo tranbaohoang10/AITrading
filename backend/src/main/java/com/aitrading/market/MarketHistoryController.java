@@ -12,6 +12,8 @@ public class MarketHistoryController {
     public MarketHistoryController(MarketHistoryService service){this.service=service;}
     @GetMapping("/capabilities") public Map<String,Object> capabilities(){return Map.of("items",service.capabilities(),"cacheStatus",service.cacheStatus());}
     @GetMapping("/{provider}/instruments") public Object search(@PathVariable String provider,@RequestParam(defaultValue="")String query){return service.search(provider,query);}
+    @GetMapping("/{provider}/catalog") public Object catalog(@PathVariable String provider,@RequestParam(defaultValue="")String query,
+            @RequestParam(defaultValue="")String assetClass,@RequestParam(required=false)String cursor){return service.catalog(provider,query,assetClass,cursor);}
     @GetMapping("/{provider}/coverage") public Object coverage(@PathVariable String provider,@RequestParam String symbol,
             @RequestParam String timeframe,@RequestParam Instant from,@RequestParam Instant to){return service.coverage(provider,symbol,timeframe,from,to);}
     @GetMapping("/{provider}/history") public Object history(@PathVariable String provider,@RequestParam String symbol,

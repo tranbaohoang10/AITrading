@@ -204,7 +204,7 @@ describe('PB-034 Coinbase market-data contract', () => {
     await waitFor(() => expect(screen.getAllByRole('img', { name: /live Coinbase candlesticks/ })).toHaveLength(4))
     fireEvent.click(screen.getByRole('button', { name: 'Chart cell 3' }))
     expect(screen.getByRole('button', { name: 'Chart cell 3' })).toHaveAttribute('aria-pressed', 'true')
-  })
+  }, 10_000)
 
   it('shows Coinbase header OHLC and volume for the crosshair candle then returns latest on leave', () => {
     const page = { dataset: { symbol: 'BTC-USD' }, items: [

@@ -3,14 +3,15 @@ import { DEFAULT_INSTRUMENTS, FRANKFURTER_DEFAULT_SYMBOLS, validMarketCandle, ty
 
 const ROOT = '/api/market/frankfurter'
 const POLL_INTERVAL_MS = 15 * 60_000
-const allowedSymbols = new Set<string>(FRANKFURTER_DEFAULT_SYMBOLS)
 
 export class FrankfurterMarketDataProvider implements MarketDataProvider {
+  private readonly symbols = new Set<string>(FRANKFURTER_DEFAULT_SYMBOLS)
+  registerCatalogSymbol(symbol: string) { if (/^[A-Z]{3}-[A-Z]{3}$/.test(symbol)) this.symbols.add(symbol) }
   readonly capabilities: ProviderCapabilities = { provider: 'FRANKFURTER', assetClasses: ['FOREX'], modes: ['HISTORICAL', 'DELAYED'], feed: 'ECB · EOD', configured: true, status: 'ACCEPTED' }
   constructor(private readonly fetcher: typeof fetch = globalThis.fetch.bind(globalThis)) {}
 
   async getHistoricalCandles(request: { symbol: LiveSymbol; interval: Timeframe; limit: number; before?: number; signal?: AbortSignal }): Promise<MarketCandle[]> {
-    if (!allowedSymbols.has(request.symbol) || request.interval !== '1d') throw new Error('Forex reference data is available in 1D only.')
+    if (!this.symbols.has(request.symbol) || request.interval !== '1d') throw new Error('Forex reference data is available in 1D only.')
     const query = new URLSearchParams({ symbol: request.symbol, limit: String(Math.min(600, Math.max(1, Math.floor(request.limit))) ) })
     if (request.before !== undefined) query.set('before', String(Math.floor(request.before)))
     const response = await this.fetcher(`${ROOT}/candles?${query}`, { credentials: 'same-origin', headers: { Accept: 'application/json' }, signal: request.signal })

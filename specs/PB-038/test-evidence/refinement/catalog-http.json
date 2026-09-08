@@ -1,0 +1,23 @@
+{
+  "anonymousDenied": true,
+  "accountMismatchDenied": true,
+  "invalidProviderCursorClassRejected": true,
+  "providers": {
+    "COINBASE": {
+      "status": "PASS",
+      "firstPage": 50,
+      "sample": "COINBASE:A8-USD",
+      "nextPage": true
+    },
+    "BINANCE": {
+      "status": "PASS",
+      "firstPage": 50,
+      "sample": "BINANCE:0GTRY",
+      "nextPage": true
+    },
+    "FRANKFURTER": {
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Unexpected HTTP 502, expected 200; body suppressed"
+    }
+  }
+}

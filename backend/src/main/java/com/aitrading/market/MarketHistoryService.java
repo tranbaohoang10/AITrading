@@ -33,11 +33,41 @@ public class MarketHistoryService {
                 var rows=JSON.readValue(value,MarketDataProvider.Instrument[].class);
                 return rows.length<=50&&Arrays.stream(rows).allMatch(i->i!=null&&provider.equals(i.provider())&&i.providerSymbol()!=null&&i.providerSymbol().length()<=32);
             }catch(RuntimeException malformed){return false;}
-        },()->JSON.writeValueAsString(p.search(query)));
+        },()->JSON.writeValueAsString(p.search(query).stream().limit(50).toList()));
         return List.of(JSON.readValue(raw,MarketDataProvider.Instrument[].class));
     }
+    private record CatalogSnapshot(List<MarketDataProvider.Instrument> rows,long expires) {}
+    private final Map<String,CatalogSnapshot> catalogs=new java.util.concurrent.ConcurrentHashMap<>();
+    private synchronized List<MarketDataProvider.Instrument> catalogSnapshot(String id,MarketDataProvider p) {
+        var cached=catalogs.get(id);
+        if(cached!=null&&System.nanoTime()<cached.expires())return cached.rows();
+        var rows=p.search("");
+        if(rows.size()>20000||rows.stream().anyMatch(i->i==null||!id.equals(i.provider())||!i.instrumentId().equals(id+":"+i.providerSymbol()))||rows.stream().map(MarketDataProvider.Instrument::instrumentId).distinct().count()!=rows.size())throw new IllegalArgumentException("Invalid catalog");
+        catalogs.put(id,new CatalogSnapshot(List.copyOf(rows),System.nanoTime()+Duration.ofMinutes(5).toNanos()));return rows;
+    }
+    public record CatalogPage(List<MarketDataProvider.Instrument> items,String nextCursor) {}
+    public CatalogPage catalog(String id,String query,String assetClass,String cursor) {
+        var p=provider(id);
+        if(query==null||query.length()>64||assetClass==null||!Set.of("","CRYPTO","FOREX","STOCK","ETF","FUTURES","CFD").contains(assetClass))throw new IllegalArgumentException("Invalid catalog query");
+        String binding=MarketCache.key("catalog",id,query.toUpperCase(Locale.ROOT)+"|"+assetClass).substring("aitrading:v1:market:catalog:".length()+id.length()+1);
+        int offset=0;
+        if(cursor!=null&&!cursor.isEmpty()) {
+            if(cursor.length()>160)throw new IllegalArgumentException("Invalid cursor");
+            try { String[] parts=new String(Base64.getUrlDecoder().decode(cursor),java.nio.charset.StandardCharsets.UTF_8).split(":");
+                if(parts.length!=2||!binding.equals(parts[0]))throw new IllegalArgumentException("Invalid cursor");
+                offset=Integer.parseInt(parts[1]);
+            } catch(RuntimeException bad){throw new IllegalArgumentException("Invalid cursor");}
+            if(offset<0||offset>20000||offset%50!=0)throw new IllegalArgumentException("Invalid cursor");
+        }
+        var rows=catalogSnapshot(id,p).stream().filter(i->(i.providerSymbol()+" "+i.displaySymbol()+" "+i.name()+" "+i.base()+" "+i.quote()+" "+i.exchange()+" "+i.provider()).toUpperCase(Locale.ROOT).contains(query.toUpperCase(Locale.ROOT))).filter(i->assetClass.isEmpty()||assetClass.equals(i.assetClass())||assetClass.equals("FOREX")&&i.assetClass().equals("FX_REFERENCE")||assetClass.equals("STOCK")&&i.assetClass().equals("US_EQUITY"))
+                .sorted(Comparator.comparing(MarketDataProvider.Instrument::instrumentId)).toList();
+        if(rows.size()>20000||rows.stream().map(MarketDataProvider.Instrument::instrumentId).distinct().count()!=rows.size())throw new IllegalArgumentException("Invalid catalog");
+        int end=Math.min(rows.size(),offset+50);
+        String next=end<rows.size()?Base64.getUrlEncoder().withoutPadding().encodeToString((binding+":"+end).getBytes(java.nio.charset.StandardCharsets.UTF_8)):null;
+        return new CatalogPage(rows.subList(Math.min(offset,rows.size()),end),next);
+    }
     public MarketDataProvider.Instrument instrument(String provider,String symbol){
-        if(symbol==null||!symbol.matches("[A-Z][A-Z0-9.\\-]{0,31}"))throw new IllegalArgumentException("Invalid symbol");
+        if(symbol==null||!symbol.matches("[A-Z0-9][A-Z0-9.\\-]{0,31}"))throw new IllegalArgumentException("Invalid symbol");
         return search(provider,symbol).stream().filter(i->i.providerSymbol().equals(symbol)).findFirst().orElseThrow(()->new IllegalArgumentException("Unsupported instrument"));
     }
     public List<MarketDataProvider.Candle> history(String provider,String symbol,String timeframe,Instant from,Instant to) {

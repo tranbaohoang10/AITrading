@@ -100,3 +100,60 @@ No chart library or Alpaca SDK is added. The existing SVG renderer satisfies the
 current chart contract, and Java 21 `HttpClient`/WebSocket keeps raw provider
 mapping server-side without a new dependency. A dependency would require a new
 acceptance need and lockfile/license/audit evidence.
+
+
+## Revision 07/09/2026 — implemented Chart refinement (Refs #39)
+
+The top toolbar now opens the Day/Month Replay launcher. Clock is also on this
+bar and opens a portal below its trigger. Timeframe and Clock share anchored
+viewport positioning; their menu/dialog keyboard semantics remain appropriate
+to their respective controls. These details supersede the earlier placement notes.
+
+| Use case | Actor / precondition | Main flow / outcome | Failure flow |
+| --- | --- | --- | --- |
+| UC-R1 Start historical Replay | Signed-in owner, accepted instrument | Choose UTC Day/Month, check coverage, Start creates existing Replay session | Invalid/future/>20k range or unknown coverage disables Start; uncertain writes retry the identical request |
+| UC-R2 Position Setup | Owner of a started/resumed Replay | Rail button below More opens balance, side, current/manual entry, risk/quantity and percentage levels; confirm existing simulation command | No session: explain prerequisite and offer start/resume; invalid levels/insufficient balance disable confirmation |
+| UC-R3 Browse provider catalog | Signed-in owner | Select configured source, debounce query, move through 50-row cursor pages, select stable provider identity | Provider/entitlement failure is explicit; old results cleared; retry or select another source |
+| UC-R4 Display timezone | Chart loaded | Select UTC/Exchange/Local/named timezone; axis/crosshair reformat | UTC candle timestamps are unchanged |
+
+```mermaid
+sequenceDiagram
+    actor Owner
+    participant UI as ReplayLauncher / ReplayWorkspace
+    participant API as Existing Replay API
+    participant Store as Existing Replay state
+    Owner->>UI: Day/Month and range
+    UI->>API: GET provider coverage
+    API-->>UI: Verified requested interval or unavailable
+    Owner->>UI: Start / edit Position Setup
+    UI->>API: POST replay (existing idempotency key)
+    API->>Store: Existing session persistence
+    API-->>UI: Balance and revealed candle prefix
+    UI->>UI: One Entry/SL/TP draft drives panel and drawing
+    Owner->>UI: Confirm simulation
+    UI->>API: Existing CONFIRM command and expectedVersion
+    API-->>UI: Pending entry / next revealed open execution
+```
+
+```mermaid
+classDiagram
+    ReplayLauncher --> ReplayWorkspace : launch draft
+    ReplayWorkspace --> CandleChart : revealed candles and position drawing
+    ReplayWorkspace --> ReplayAPI : existing commands
+    LiveChart --> SymbolCatalogSearch
+    SymbolCatalogSearch --> MarketHistoryService : authenticated catalog pages
+    MarketHistoryService --> MarketDataProvider : validated provider snapshot
+    SymbolCatalogSearch --> SymbolIcon : local licensed art / fallback
+```
+
+No ERD or migration changes. Catalog snapshots are bounded in memory (20,000
+instruments/provider, five-minute service TTL), cursors bind provider/query/class,
+and the DOM contains at most 50 result rows. Current Binance Spot quantity filters
+do not prove historical lot semantics; position sizing stays Quantity. Stock/ETF
+classification remains the provider's US equity grouping pending Alpaca entitlement
+verification; there is no guessed ETF classifier. Futures and CFD remain gated.
+
+The live-chart rail opens the Replay prerequisite panel when no session is open.
+The complete Position Setup is in the existing Replay workspace and consumes its
+actual available balance and revealed price. It does not invent a live account
+balance or connect drawings to a broker.

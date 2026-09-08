@@ -152,3 +152,26 @@ The run guard now skips only a matching, non-aborted run. Cell updates also requ
 - Frontend lint and production build: PASS (exit 0), existing bundle-size warning only.
 - Real browser after starting the local services and signing in with a synthetic QA account: BTC/USD 1m, 300 loaded candles, Coinbase LIVE. Reload verification follows.
 - Reload verification completed: the same browser tab loaded BTC/USD again, reached Coinbase LIVE and displayed 301 loaded candles. Screenshot inspection confirmed visible candlesticks and volume; loading was absent. Frontend/backend remain running locally for review.
+
+
+## 07/09/2026 — Refinement implementation evidence
+
+See [refinement-tests.md](refinement-tests.md) for the new interaction, catalog,
+license, security and responsive checks. Earlier fixed-seven-pair assertions describe
+the earlier implementation; the new catalog accepts only pairs returned by the
+validated provider snapshot. Frankfurter currently returns external HTTP 403;
+Alpaca is not configured. Issue #39 remains OPEN.
+
+## 08/09/2026 — Resume verification
+
+The final Replay coverage-invalidation test passed in the targeted PB-038 set
+(14/14). A full-suite-only timing flake in the existing multi-chart integration
+case was reproduced: the unchanged assertions passed alone in 2.71 seconds but
+crossed the five-second default under parallel load. A ten-second local timeout
+was applied to that integration test; the repeated full frontend run passed all
+53 files and 301 tests. Lint, production build, complete disposable backend
+harness, 6 verification-tool tests, 58 Python tests, readiness, production npm
+audit and diff-check passed. Current local browser smoke at 1440, 1024 and 390
+CSS pixels passed for chart visibility, Replay, Position Setup, timeframe and
+timezone; the browser console had no warnings or errors. Provider blockers remain
+Frankfurter HTTP 403 upstream and missing Alpaca credentials/display entitlement.

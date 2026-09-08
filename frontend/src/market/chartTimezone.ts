@@ -2,7 +2,7 @@ import type { ChartSettings } from './chartTypes'
 
 export type ChartTimezone = ChartSettings['timezone']
 export const chartTimezoneOptions: Array<{ value: ChartTimezone; label: string; short: string }> = [
-  { value: 'EXCHANGE', label: 'Exchange (UTC)', short: 'UTC' },
+  { value: 'EXCHANGE', label: 'Exchange', short: 'UTC' },
   { value: 'LOCAL', label: 'Local browser time', short: 'Local' },
   { value: 'UTC', label: 'UTC', short: 'UTC' },
   { value: 'Asia/Ho_Chi_Minh', label: 'Asia/Ho_Chi_Minh (ICT)', short: 'ICT' },

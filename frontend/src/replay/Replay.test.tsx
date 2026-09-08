@@ -73,3 +73,16 @@ it('explains a next-open balance rejection instead of silently returning to a dr
   fireEvent.click(await screen.findByRole('button', { name: /Resume COINBASE/ }))
   expect(await screen.findByText(/next open price and fees exceeded available balance/)).toBeInTheDocument()
 })
+
+it('position setup exposes percentage levels and verified quantity fallback without draft writes', async () => {
+  render(<ReplayWorkspace account={account} onClose={() => {}} />)
+  fireEvent.click(await screen.findByRole('button', { name: /Resume COINBASE/ }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Long' }))
+  expect(screen.getByRole('complementary', { name: 'Position Setup' })).toBeVisible()
+  expect(screen.getByText(/lot metadata unavailable/i)).toBeVisible()
+  fireEvent.change(screen.getByLabelText('Stop Loss %'), { target: { value: '3' } })
+  fireEvent.change(screen.getByLabelText('Take Profit %'), { target: { value: '6' } })
+  expect(Number((screen.getByLabelText('Stop Loss') as HTMLInputElement).value)).toBe(97)
+  expect(Number((screen.getByLabelText('Take Profit') as HTMLInputElement).value)).toBe(106)
+  expect(api.write).not.toHaveBeenCalled()
+})

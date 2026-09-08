@@ -50,7 +50,7 @@ public class AlpacaMarketDataClient {
         String raw=assetSnapshot();
         final var json=JsonMapper.builder().build(); final var root=json.readTree(raw); if(root==null||!root.isArray())throw new AlpacaDataFailure("ALPACA_INVALID_RESPONSE",502);
         String needle=query.strip().toLowerCase(Locale.ROOT); List<Map<String,String>> result=new ArrayList<>();
-        for(var item:root) { String symbol=item.path("symbol").asString(), name=item.path("name").asString(), exchange=item.path("exchange").asString(); if(symbol.toLowerCase(Locale.ROOT).contains(needle)||name.toLowerCase(Locale.ROOT).contains(needle)) { result.add(Map.of("symbol",symbol,"name",name,"exchange",exchange)); if(result.size()==50)break; } }
+        for(var item:root) { String symbol=item.path("symbol").asString(), name=item.path("name").asString(), exchange=item.path("exchange").asString(); if(symbol.toLowerCase(Locale.ROOT).contains(needle)||name.toLowerCase(Locale.ROOT).contains(needle)) { result.add(Map.of("symbol",symbol,"name",name,"exchange",exchange)); if(result.size()>20000)throw new AlpacaDataFailure("ALPACA_INVALID_RESPONSE",502); } }
         return result;
     }
     private String assetSnapshot() {

@@ -20,7 +20,7 @@ public interface MarketDataProvider {
             BigDecimal minNotional, String sizeUnit, BigDecimal contractSize,
             BigDecimal pointValue, BigDecimal lotSize, String sizingStatus,
             List<String> supportedModes, List<String> supportedTimeframes,
-            String historyCoverageStatus) {}
+            String historyCoverageStatus, String name) {}
     record Candle(Instant time, BigDecimal open, BigDecimal high, BigDecimal low,
             BigDecimal close, BigDecimal volume) {
         public Candle {
