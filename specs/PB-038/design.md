@@ -157,3 +157,35 @@ The live-chart rail opens the Replay prerequisite panel when no session is open.
 The complete Position Setup is in the existing Replay workspace and consumes its
 actual available balance and revealed price. It does not invent a live account
 balance or connect drawings to a broker.
+
+## 09/09/2026 — Owner refinement implementation
+
+Use case: an authenticated researcher selects a discovered live instrument and a display timezone, observes real price updates and current wall-clock without changing candle UTC identity.
+
+Flow: provider capabilities -> validated paginated catalog -> canonical grouping retaining internal routes -> live/icon eligibility -> selected existing provider -> historical snapshot plus validated stream -> CandleChart. Completed catalog pages are cached within the account-bound provider instance for five minutes (400-page cap); abort and repeated-cursor limits remain. No canonical entry fabricates a provider instrument.
+
+Clock flow: selected timezone and verified exchange metadata -> Intl formatter -> independent memoized LivePriceAxisBadge interval. Parent candle/indicator geometry does not receive timer state. Wall-clock is distinct from live event/candle timestamps.
+
+Class impact: existing Instrument adds optional exchangeTimezone; CanonicalInstrument groups existing Instrument routes; LivePriceAxisBadge renders the SVG price/time overlay. Database/ERD impact: none. Redis keys and JDBC session storage are unchanged.
+
+Failure behavior: unknown Exchange choice disabled; historical-only routes excluded from live picker; catalog failure retryable without removing seven categories; missing provider adapter/config is not LIVE. Security: fixed same-origin APIs, validated identities/timezones, no secret or executable SVG content, bounded account-local catalog cache.
+
+## 09/09/2026 — Provider completion architecture correction
+
+The final provider boundary consists of `MarketDataProvider` for account-derived
+catalog/history and `MarketStreamProvider` for same-origin authenticated SSE.
+Coinbase, Alpaca, OANDA and cTrader own separate shared stream hubs and Redis key
+namespaces. Alpaca consumes IEX trades; OANDA consumes pricing midpoints; cTrader
+consumes official framed protobuf spot messages. Provider payloads terminate in
+the backend and only neutral candles reach React.
+
+Catalog cache lifetime is five minutes and its scope is the authenticated account,
+not one React component instance. A bounded 32-scope/400-entry in-memory design
+survives desktop/tablet/mobile `ChartView` remounts without crossing accounts.
+Abort checks, response validation and cursor bounds remain in each access path.
+
+OANDA exposes currency instruments plus recognized metal/energy/agricultural
+commodity CFDs from the actual account catalog; it does not classify every CFD as
+commodity. cTrader exposes only recognized fiat pairs and metal/oil instruments;
+symbols such as BTCUSD or US500 are not guessed into Forex. Database/ERD impact
+remains none. Credentials remain deployment environment values only.

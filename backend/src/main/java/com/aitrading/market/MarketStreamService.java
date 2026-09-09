@@ -13,13 +13,15 @@ import tools.jackson.databind.json.JsonMapper;
 
 /** Shared public Coinbase trades; no REST polling and no private account data in events. */
 @Service
-public class MarketStreamService {
+public class MarketStreamService implements MarketStreamProvider {
     private static final JsonMapper JSON=JsonMapper.builder().build();
     private final ScheduledExecutorService scheduler=Executors.newScheduledThreadPool(2,Thread.ofPlatform().daemon().factory());
     private final ConcurrentHashMap<String,Hub> hubs=new ConcurrentHashMap<>();
     private final MarketCache cache;
     private final HttpClient http=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
     public MarketStreamService(MarketCache cache){this.cache=cache;}
+    public String providerId(){return "COINBASE";}
+    public boolean configured(){return true;}
     public SseEmitter subscribe(String symbol,String timeframe) {
         if(symbol==null||!symbol.matches("[A-Z][A-Z0-9]{0,14}-USD"))throw new IllegalArgumentException("Invalid stream symbol");
         int step=MarketDataProvider.seconds(timeframe);
@@ -75,7 +77,7 @@ public class MarketStreamService {
                             var price=new BigDecimal(event.path("price").asString());var size=new BigDecimal(event.path("size").asString());
                             if(accumulator.accept(trade,time,price,size,Instant.now())) {
                                 var next=accumulator.candle();boolean partial=accumulator.partial();
-                                lastEvent=Instant.now();bar=next;status=partial?"DELAYED":"LIVE";
+                                lastEvent=Instant.now();bar=next;status="LIVE";
                                 var state=Map.of("provider","COINBASE","symbol",symbol,"timeframe",timeframe,"candle",next,"lastEventAt",time.toString(),"partial",partial);
                                 publish("candle",state);
                                 publish("status",Map.of("status",status,"provider","COINBASE","partial",partial));

@@ -1,24 +1,34 @@
 import type { ChartSettings } from './chartTypes'
 
 export type ChartTimezone = ChartSettings['timezone']
-export const chartTimezoneOptions: Array<{ value: ChartTimezone; label: string; short: string }> = [
-  { value: 'EXCHANGE', label: 'Exchange', short: 'UTC' },
-  { value: 'LOCAL', label: 'Local browser time', short: 'Local' },
-  { value: 'UTC', label: 'UTC', short: 'UTC' },
-  { value: 'Asia/Ho_Chi_Minh', label: 'Asia/Ho_Chi_Minh (ICT)', short: 'ICT' },
-  { value: 'America/New_York', label: 'America/New_York (ET)', short: 'ET' },
-  { value: 'Europe/London', label: 'Europe/London (GMT/BST)', short: 'LDN' },
-  { value: 'Asia/Tokyo', label: 'Asia/Tokyo (JST)', short: 'JST' },
-  { value: 'UTC-05:00', label: 'UTC−05:00 fixed', short: 'UTC−5' },
-  { value: 'UTC+07:00', label: 'UTC+07:00 fixed', short: 'UTC+7' },
-  { value: 'UTC+09:00', label: 'UTC+09:00 fixed', short: 'UTC+9' },
-]
+const cityZones: Array<[string, string]> = [["Pacific/Honolulu","Honolulu"],["America/Anchorage","Anchorage"],["America/Juneau","Juneau"],["America/Los_Angeles","Los Angeles"],["America/Vancouver","Vancouver"],["America/Phoenix","Phoenix"],["America/Denver","Denver"],["America/Mexico_City","Mexico City"],["America/El_Salvador","San Salvador"],["America/Chicago","Chicago"],["America/Bogota","Bogota"],["America/Lima","Lima"],["America/New_York","New York"],["America/Toronto","Toronto"],["America/Caracas","Caracas"],["America/Halifax","Halifax"],["America/Santiago","Santiago"],["America/Argentina/Buenos_Aires","Buenos Aires"],["America/Sao_Paulo","Sao Paulo"],["Atlantic/Reykjavik","Reykjavik"],["Europe/London","London"],["Europe/Berlin","Berlin"],["Europe/Paris","Paris"],["Europe/Zurich","Zurich"],["Africa/Johannesburg","Johannesburg"],["Europe/Istanbul","Istanbul"],["Europe/Moscow","Moscow"],["Asia/Riyadh","Riyadh"],["Asia/Dubai","Dubai"],["Asia/Kolkata","Mumbai"],["Asia/Bangkok","Bangkok"],["Asia/Ho_Chi_Minh","Ho Chi Minh"],["Asia/Singapore","Singapore"],["Asia/Hong_Kong","Hong Kong"],["Asia/Shanghai","Shanghai"],["Asia/Taipei","Taipei"],["Asia/Tokyo","Tokyo"],["Asia/Seoul","Seoul"],["Australia/Perth","Perth"],["Australia/Adelaide","Adelaide"],["Australia/Brisbane","Brisbane"],["Australia/Sydney","Sydney"],["Pacific/Auckland","Auckland"]]
+export function timezoneOffsetMinutes(zone: string, instant: Date): number {
+  const offset = new Intl.DateTimeFormat('en', { timeZone: zone, timeZoneName: 'longOffset' }).formatToParts(instant).find(part => part.type === 'timeZoneName')!.value
+  const match = /GMT([+-])(\d{2}):(\d{2})/.exec(offset)
+  return match ? (match[1] === '-' ? -1 : 1) * (Number(match[2]) * 60 + Number(match[3])) : 0
+}
+export function chartTimezoneOptionsAt(instant = new Date()): Array<{ value: string; label: string; short: string }> {
+  const zones = cityZones.flatMap(([value, city]) => {
+    try {
+      const minutes = timezoneOffsetMinutes(value, instant), absolute = Math.abs(minutes)
+      const offset = 'UTC' + (minutes < 0 ? '-' : '+') + Math.floor(absolute / 60) + (absolute % 60 ? ':' + String(absolute % 60).padStart(2, '0') : '')
+      return [{ value, city, minutes, label: '(' + offset + ') ' + city, short: city }]
+    } catch { return [] }
+  }).sort((first, second) => first.minutes - second.minutes || first.city.localeCompare(second.city))
+  return [{ value: 'UTC', label: 'UTC', short: 'UTC' }, { value: 'EXCHANGE', label: 'Exchange', short: 'Exchange' }, { value: 'LOCAL', label: 'Local time', short: 'Local' }, ...zones]
+}
+export const chartTimezoneOptions = chartTimezoneOptionsAt()
 
 const fixedOffset = (value: ChartTimezone) => {
   const match = /^UTC([+-])(\d{2}):(\d{2})$/.exec(value)
   if (!match) return null
   const minutes = Number(match[2]) * 60 + Number(match[3])
   return (match[1] === '-' ? -1 : 1) * minutes
+}
+
+export function validExchangeTimezone(value: unknown): string | undefined {
+  if (typeof value !== 'string' || value.length > 80) return undefined
+  try { new Intl.DateTimeFormat('en', { timeZone: value }); return value } catch { return undefined }
 }
 
 export function timezoneForIntl(value: ChartTimezone): string | undefined {

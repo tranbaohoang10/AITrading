@@ -12,7 +12,7 @@ describe('chart timezone formatting', () => {
 
   it('keeps IANA zones and readable short labels', () => {
     expect(timezoneForIntl('Asia/Ho_Chi_Minh')).toBe('Asia/Ho_Chi_Minh')
-    expect(timezoneShort('America/New_York')).toBe('ET')
+    expect(timezoneShort('America/New_York')).toBe('New York')
     expect(formatChartDate(instant, 'Asia/Ho_Chi_Minh', { hour: '2-digit', minute: '2-digit', hour12: false })).toBe('07:00')
   })
 })

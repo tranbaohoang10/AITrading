@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { createElement, type FunctionComponent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { LiveChart } from './LiveChart'
@@ -14,7 +14,7 @@ const Fixture = LiveChart as FunctionComponent<{ provider: MarketDataProvider }>
 describe('LiveChart Forex reference mode', () => {
   it('renders recognizable vector crypto logos in the symbol picker', async () => {
     render(createElement(Fixture, { provider }))
-    await screen.findByRole('img', { name: /live Coinbase candlesticks/i })
+    await screen.findByRole('img', { name: /market data candlesticks/i })
     fireEvent.click(screen.getByLabelText('Symbol'))
     const ethereum = screen.getByRole('img', { name: 'Ethereum / US Dollar icon' })
     expect(ethereum).toHaveAttribute('src', '/symbol-icons/eth.svg')
@@ -22,18 +22,13 @@ describe('LiveChart Forex reference mode', () => {
     expect(ethereum).not.toHaveTextContent('Ξ')
   })
 
-  it('shows currency icons, chooses a Forex reference pair, and locks the chart to daily data', async () => {
+  it('keeps historical-only Forex pairs out of the normal live symbol picker', async () => {
     render(createElement(Fixture, { provider }))
-    await screen.findByRole('img', { name: /live Coinbase candlesticks/i })
+    await screen.findByRole('img', { name: /market data candlesticks/i })
     fireEvent.click(screen.getByLabelText('Symbol'))
     fireEvent.click(screen.getByRole('tab', { name: 'Forex' }))
-    expect(screen.getByRole('img', { name: 'EUR and USD currency flags' })).toBeInTheDocument()
-    expect(screen.getAllByText('ECB · EOD')).toHaveLength(7)
-    fireEvent.click(screen.getByRole('button', { name: /EUR\/USD Euro \/ U\.S\. Dollar/ }))
-    await waitFor(() => expect(provider.getHistoricalCandles).toHaveBeenLastCalledWith(expect.objectContaining({ symbol: 'EUR-USD', interval: '1d' })))
-    expect(screen.getByLabelText('FRANKFURTER · ECB · EOD · DELAYED')).toBeInTheDocument()
-    fireEvent.click(screen.getByLabelText('Timeframe'))
-    expect(screen.getByRole('menuitemradio', { name: '1m' })).toBeDisabled()
-    expect(screen.getByRole('menuitemradio', { name: '1D' })).toHaveAttribute('aria-checked', 'true')
+    expect(screen.getByText('No live symbol matches this search.')).toBeVisible()
+    expect(screen.queryByRole('img', { name: 'EUR and USD currency flags' })).not.toBeInTheDocument()
+    expect(provider.getHistoricalCandles).not.toHaveBeenCalledWith(expect.objectContaining({ symbol: 'EUR-USD' }))
   })
 })

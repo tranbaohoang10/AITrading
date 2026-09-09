@@ -8,6 +8,11 @@ it('validates provider, timeframe, UTC boundary, OHLC and partial provenance', (
   expect(streamCandle(data, 'BTC-USD', '1m')).toMatchObject({ open: '100', volume: '2', partial: false })
   for (const invalid of [{ ...data, provider: 'BINANCE' }, { ...data, partial: 'false' }, { ...data, timeframe: '5m' }, { ...data, candle: { ...data.candle, time: '2025-01-01T00:00:01Z' } }, { ...data, candle: { ...data.candle, high: 99 } }]) expect(streamCandle(invalid, 'BTC-USD', '1m')).toBeNull()
 })
+it('validates an Alpaca candle only for its exact internal route', () => {
+  const equity = { ...data, provider: 'ALPACA', symbol: 'AAPL' }
+  expect(streamCandle(equity, 'AAPL', '1m', 'ALPACA')).not.toBeNull()
+  expect(streamCandle(equity, 'AAPL', '1m', 'COINBASE')).toBeNull()
+})
 it('uses an owner-bound same-origin stream, parses split frames and coalesces tick updates', async () => {
   vi.useFakeTimers()
   let output!: ReadableStreamDefaultController<Uint8Array>
@@ -19,11 +24,14 @@ it('uses an owner-bound same-origin stream, parses split frames and coalesces ti
   await vi.advanceTimersByTimeAsync(0)
   expect(fetcher.mock.calls[0][0]).toBe('/api/market/stream?symbol=BTC-USD&timeframe=1m')
   expect(fetcher.mock.calls[0][1].headers.get('X-Workspace-User')).toBe(account)
+  output.enqueue(new TextEncoder().encode('event:status\ndata:{"status":"LIVE"}\n\n'))
+  await vi.advanceTimersByTimeAsync(0)
+  expect(onStatus).not.toHaveBeenCalledWith('LIVE')
   const frame = `event:candle\ndata:${JSON.stringify(data)}\n\n`, encoder = new TextEncoder()
   output.enqueue(encoder.encode(frame.slice(0, 20)))
   output.enqueue(encoder.encode(frame.slice(20) + frame + frame))
   await vi.advanceTimersByTimeAsync(249); expect(onCandle).not.toHaveBeenCalled()
-  await vi.advanceTimersByTimeAsync(1); expect(onCandle).toHaveBeenCalledTimes(1)
+  await vi.advanceTimersByTimeAsync(1); expect(onCandle).toHaveBeenCalledTimes(1); expect(onStatus).toHaveBeenLastCalledWith('LIVE')
   dispose();output.close();await vi.advanceTimersByTimeAsync(60_000)
   expect(fetcher).toHaveBeenCalledTimes(1);expect(onReconnect).not.toHaveBeenCalled()
 })

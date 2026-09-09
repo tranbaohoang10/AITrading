@@ -33,6 +33,8 @@ it('clock portals below the toolbar and returns focus after timezone selection a
 
 it('keeps both crosshair axis badges inside the SVG at the left and right edges', () => {
   render(<CandleChart page={{ dataset: { symbol: 'BTC-USD' }, items: [{ ordinal: 0, time: '2025-01-01T00:00:00Z', open: '100', high: '110', low: '90', close: '105', volume: '1' }] }} />)
+  expect(screen.getByTestId('live-price-axis-badge')).toHaveTextContent('105')
+  expect(screen.getByTestId('price-clock')).toHaveTextContent(/\d{2}:\d{2}:\d{2}/)
   const svg = screen.getByRole('img', { name: /candlesticks/ })
   for (const x of [13, 820]) {
     fireEvent.pointerMove(svg, { clientX: x, clientY: 60 })
@@ -42,4 +44,13 @@ it('keeps both crosshair axis badges inside the SVG at the left and right edges'
     expect(Number(rect.getAttribute('x'))).toBeGreaterThanOrEqual(0)
     expect(Number(rect.getAttribute('x')) + Number(rect.getAttribute('width'))).toBeLessThanOrEqual(900)
   }
+})
+
+it('uses verified Exchange timezone metadata and disables unknown Exchange choices', () => {
+  const view = render(<ChartClock timezone="UTC" onChange={() => {}} />)
+  fireEvent.click(screen.getByLabelText('Chart clock'))
+  expect(screen.getByRole('option', { name: 'Exchange' })).toBeDisabled()
+  view.rerender(<ChartClock timezone="EXCHANGE" exchangeTimezone="Europe/Berlin" onChange={() => {}} />)
+  expect(screen.getByRole('option', { name: 'Exchange' })).not.toBeDisabled()
+  expect(screen.getByLabelText('Chart clock')).not.toHaveTextContent('Europe/Berlin')
 })

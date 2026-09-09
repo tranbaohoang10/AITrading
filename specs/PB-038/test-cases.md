@@ -175,3 +175,25 @@ audit and diff-check passed. Current local browser smoke at 1440, 1024 and 390
 CSS pixels passed for chart visibility, Replay, Position Setup, timeframe and
 timezone; the browser console had no warnings or errors. Provider blockers remain
 Frankfurter HTTP 403 upstream and missing Alpaca credentials/display entitlement.
+
+## 09/09/2026 — Product Owner refinement
+
+See [owner-refinement-tests.md](owner-refinement-tests.md) for current acceptance status. This overrides earlier normal-provider-label, hidden-category and four-coin descriptions. Current-price wall clock, city timezone/DST, canonical route grouping, real paginated discovery and licensed additional icons are implemented. Full feature remains PARTIAL; OANDA/cTrader adapters and Alpaca realtime are not represented as completed.
+
+## 09/09/2026 — Provider completion results
+
+Historical PARTIAL statements above are superseded by the append-only completion
+evidence in `owner-refinement-tests.md`.
+
+| Scope | Result | Evidence |
+| --- | --- | --- |
+| Alpaca mapping/reconnect/config fail-closed | PASS_LOCAL | Parser and bounded exponential backoff tests; server-only IEX adapter |
+| OANDA catalog/candles/pricing mapping | PASS_LOCAL | Account-catalog mapper rejects unsupported CFD classes; candle and midpoint fixtures pass |
+| cTrader protobuf/catalog/trendbar/spot mapping | PASS_LOCAL | Official field IDs, bounded frames/trendbars, TLS hostname verification and classification fixtures pass |
+| Account-isolated catalog remount cache | PASS | Unit regression plus browser 1440/1024/390; no repeated catalog requests/429 |
+| Coinbase actual realtime regression | PASS | Six required crypto symbols received real events and changed candles |
+| Alpaca/OANDA/cTrader actual authenticated events | BLOCKED_EXTERNAL | Required credentials and account/display entitlements unavailable |
+| Full frontend | PASS | 55 files / 316 tests; lint/build exit 0 |
+| Full backend | PASS | 342 discovered; 339 passed; 3 Redis skipped; 0 failure/error |
+| Redis integration | PASS | 3/3 against owned disposable Redis 8.4.2, then shutdown verified |
+| Dependency/security | PASS | npm production audit 0; OSV 144/0; readiness PASS |

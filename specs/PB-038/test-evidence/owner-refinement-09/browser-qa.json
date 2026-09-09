@@ -1,0 +1,492 @@
+{
+  "symbols": [
+    {
+      "symbol": "BTC/USD",
+      "firstChart": "c1 · active\nBTC/USD · LIVE · 1m\nO 78,864.68\nH 78,874.00\nL 78,861.75\nC 78,871.44\n+6.76 (+0.01%)\nVolume 0.03\n09 Sept 06:40\n09 Sept 06:58\n09 Sept 07:16\n09 Sept 07:34\n09 Sept 07:53\n09 Sept 08:11\n09 Sept 08:29\n09 Sept 08:48\nVolume\n78,871.44\n08:48:10\n78,400.00\n78,500.00\n78,600.00\n78,700.00\n78,800.00\n78,900.00\n173–301 / 301 loaded; 129 visible bars\nGo to latest",
+      "secondChart": "c1 · active\nBTC/USD · LIVE · 1m\nO 78,864.68\nH 78,874.00\nL 78,861.75\nC 78,866.46\n+1.78 (+0.00%)\nVolume 0.28\n09 Sept 06:40\n09 Sept 06:58\n09 Sept 07:16\n09 Sept 07:34\n09 Sept 07:53\n09 Sept 08:11\n09 Sept 08:29\n09 Sept 08:48\nVolume\n78,866.46\n08:48:16\n78,400.00\n78,500.00\n78,600.00\n78,700.00\n78,800.00\n78,900.00\n173–301 / 301 loaded; 129 visible bars\nGo to latest",
+      "first": "78,871.44",
+      "second": "78,866.46",
+      "firstStatus": "REALTIME\nLive\nFirst tick 08:48:03 · Last tick 08:48:09 · Candle 08:48:00",
+      "lastStatus": "REALTIME\nLive\nFirst tick 08:48:03 · Last tick 08:48:15 · Candle 08:48:00",
+      "candles": "BTC/USD live market candlesticks, 129 candles in LOCAL (129 of 301 loaded). Smooth cursor-centered wheel zoom and horizontal time pan; right price axis controls display scale."
+    },
+    {
+      "symbol": "ETH/USD",
+      "firstChart": "c1 · active\nETH/USD · LIVE · 1m\nO 2,498.22\nH 2,498.22\nL 2,497.78\nC 2,497.78\n-0.44 (-0.02%)\nVolume 13.06\n09 Sept 06:40\n09 Sept 06:58\n09 Sept 07:16\n09 Sept 07:34\n09 Sept 07:53\n09 Sept 08:11\n09 Sept 08:29\n09 Sept 08:48\nVolume\n2,497.78\n08:48:18\n2,485.00\n2,490.00\n2,495.00\n2,500.00\n172–300 / 300 loaded; 129 visible bars\nGo to latest",
+      "secondChart": "c1 · active\nETH/USD · LIVE · 1m\nO 2,498.22\nH 2,498.22\nL 2,497.36\nC 2,497.39\n-0.83 (-0.03%)\nVolume 16.9\n09 Sept 06:40\n09 Sept 06:58\n09 Sept 07:16\n09 Sept 07:34\n09 Sept 07:53\n09 Sept 08:11\n09 Sept 08:29\n09 Sept 08:48\nVolume\n2,497.39\n08:48:24\n2,485.00\n2,490.00\n2,495.00\n2,500.00\n172–300 / 300 loaded; 129 visible bars\nGo to latest",
+      "first": "2,497.78",
+      "second": "2,497.39",
+      "firstStatus": "REALTIME\nLive\nFirst tick 08:48:18 · Last tick 08:48:18 · Candle 08:48:00 (partial)",
+      "lastStatus": "REALTIME\nLive\nFirst tick 08:48:18 · Last tick 08:48:24 · Candle 08:48:00 (partial)",
+      "candles": "ETH/USD live market candlesticks, 129 candles in LOCAL (129 of 300 loaded). Smooth cursor-centered wheel zoom and horizontal time pan; right price axis controls display scale."
+    },
+    {
+      "symbol": "SOL/USD",
+      "firstChart": "c1 · active\nSOL/USD · LIVE · 1m\nO 103.76\nH 103.76\nL 103.76\nC 103.76\n+0.00 (+0.00%)\nVolume 5.87\n09 Sept 06:40\n09 Sept 06:58\n09 Sept 07:16\n09 Sept 07:34\n09 Sept 07:53\n09 Sept 08:11\n09 Sept 08:29\n09 Sept 08:48\nVolume\n103.76\n08:48:27\n103.20\n103.40\n103.60\n103.80\n104.00\n172–300 / 300 loaded; 129 visible bars\nGo to latest",
+      "secondChart": "c1 · active\nSOL/USD · LIVE · 1m\nO 103.76\nH 103.77\nL 103.75\nC 103.75\n-0.01 (-0.01%)\nVolume 44.74\n09 Sept 06:40\n09 Sept 06:58\n09 Sept 07:16\n09 Sept 07:34\n09 Sept 07:53\n09 Sept 08:11\n09 Sept 08:29\n09 Sept 08:48\nVolume\n103.75\n08:48:33\n103.20\n103.40\n103.60\n103.80\n104.00\n172–300 / 300 loaded; 129 visible bars\nGo to latest",
+      "first": "103.76",
+      "second": "103.75",
+      "firstStatus": "REALTIME\nLive\nFirst tick 08:48:27 · Last tick 08:48:27 · Candle 08:48:00 (partial)",
+      "lastStatus": "REALTIME\nLive\nFirst tick 08:48:27 · Last tick 08:48:32 · Candle 08:48:00 (partial)",
+      "candles": "SOL/USD live market candlesticks, 129 candles in LOCAL (129 of 300 loaded). Smooth cursor-centered wheel zoom and horizontal time pan; right price axis controls display scale."
+    },
+    {
+      "symbol": "XRP/USD",
+      "firstChart": "c1 · active\nXRP/USD · LIVE · 1m\nO 1.4170\nH 1.4170\nL 1.4170\nC 1.4170\n+0.0000 (+0.00%)\nVolume 500\n09 Sept 06:40\n09 Sept 06:58\n09 Sept 07:16\n09 Sept 07:34\n09 Sept 07:53\n09 Sept 08:11\n09 Sept 08:29\n09 Sept 08:48\nVolume\n1.4170\n08:48:37\n1.4100\n1.4150\n1.4200\n1.4250\n172–300 / 300 loaded; 129 visible bars\nGo to latest",
+      "secondChart": "c1 · active\nXRP/USD · LIVE · 1m\nO 1.4170\nH 1.4171\nL 1.4170\nC 1.4171\n+0.0001 (+0.01%)\nVolume 1.38K\n09 Sept 06:40\n09 Sept 06:58\n09 Sept 07:16\n09 Sept 07:34\n09 Sept 07:53\n09 Sept 08:11\n09 Sept 08:29\n09 Sept 08:48\nVolume\n1.4171\n08:48:43\n1.4100\n1.4150\n1.4200\n1.4250\n172–300 / 300 loaded; 129 visible bars\nGo to latest",
+      "first": "1.4170",
+      "second": "1.4171",
+      "firstStatus": "REALTIME\nLive\nFirst tick 08:48:37 · Last tick 08:48:37 · Candle 08:48:00 (partial)",
+      "lastStatus": "REALTIME\nLive\nFirst tick 08:48:37 · Last tick 08:48:43 · Candle 08:48:00 (partial)",
+      "candles": "XRP/USD live market candlesticks, 129 candles in LOCAL (129 of 300 loaded). Smooth cursor-centered wheel zoom and horizontal time pan; right price axis controls display scale."
+    },
+    {
+      "symbol": "ADA/USD",
+      "firstChart": "c1 · active\nADA/USD · LIVE · 1m\nO 0.21960\nH 0.21960\nL 0.21960\nC 0.21960\n+0.00000 (+0.00%)\nVolume 828.04\n09 Sept 06:40\n09 Sept 06:58\n09 Sept 07:16\n09 Sept 07:34\n09 Sept 07:53\n09 Sept 08:11\n09 Sept 08:29\n09 Sept 08:48\nVolume\n0.21960\n08:48:46\n0.21850\n0.21900\n0.21950\n0.22000\n0.22050\n0.22100\n172–300 / 300 loaded; 129 visible bars\nGo to latest",
+      "secondChart": "c1 · active\nADA/USD · LIVE · 1m\nO 0.21960\nH 0.21960\nL 0.21937\nC 0.21937\n-0.00023 (-0.10%)\nVolume 9.87K\n09 Sept 06:40\n09 Sept 06:58\n09 Sept 07:16\n09 Sept 07:34\n09 Sept 07:53\n09 Sept 08:11\n09 Sept 08:29\n09 Sept 08:48\nVolume\n0.21937\n08:48:52\n0.21850\n0.21900\n0.21950\n0.22000\n0.22050\n0.22100\n172–300 / 300 loaded; 129 visible bars\nGo to latest",
+      "first": "0.21960",
+      "second": "0.21937",
+      "firstStatus": "REALTIME\nLive\nFirst tick 08:48:46 · Last tick 08:48:46 · Candle 08:48:00 (partial)",
+      "lastStatus": "REALTIME\nLive\nFirst tick 08:48:46 · Last tick 08:48:50 · Candle 08:48:00 (partial)",
+      "candles": "ADA/USD live market candlesticks, 129 candles in LOCAL (129 of 300 loaded). Smooth cursor-centered wheel zoom and horizontal time pan; right price axis controls display scale."
+    },
+    {
+      "symbol": "DOGE/USD",
+      "firstChart": "c1 · active\nDOGE/USD · LIVE · 1m\nO 0.09024\nH 0.09024\nL 0.09024\nC 0.09024\n+0.00000 (+0.00%)\nVolume 93.5\n09 Sept 06:41\n09 Sept 06:59\n09 Sept 07:17\n09 Sept 07:35\n09 Sept 07:54\n09 Sept 08:12\n09 Sept 08:30\n09 Sept 08:49\nVolume\n0.09024\n08:49:11\n0.08980\n0.09000\n0.09020\n0.09040\n0.09060\n0.09080\n0.09100\n169–297 / 297 loaded; 129 visible bars\nGo to latest",
+      "secondChart": "c1 · active\nDOGE/USD · LIVE · 1m\nO 0.09024\nH 0.09024\nL 0.09024\nC 0.09024\n+0.00000 (+0.00%)\nVolume 93.5\n09 Sept 06:41\n09 Sept 06:59\n09 Sept 07:17\n09 Sept 07:35\n09 Sept 07:54\n09 Sept 08:12\n09 Sept 08:30\n09 Sept 08:49\nVolume\n0.09024\n08:49:17\n0.08980\n0.09000\n0.09020\n0.09040\n0.09060\n0.09080\n0.09100\n169–297 / 297 loaded; 129 visible bars\nGo to latest",
+      "first": "0.09024",
+      "second": "0.09024",
+      "firstStatus": "REALTIME\nLive\nFirst tick 08:49:11 · Last tick 08:49:11 · Candle 08:49:00 (partial)",
+      "lastStatus": "REALTIME\nLive\nFirst tick 08:49:11 · Last tick 08:49:11 · Candle 08:49:00 (partial)",
+      "candles": "DOGE/USD live market candlesticks, 129 candles in LOCAL (129 of 297 loaded). Smooth cursor-centered wheel zoom and horizontal time pan; right price axis controls display scale."
+    }
+  ],
+  "timezones": [
+    {
+      "zone": "UTC",
+      "axis": "01:48:04",
+      "toolbar": "01:48:04",
+      "synchronized": true
+    },
+    {
+      "zone": "Asia/Ho_Chi_Minh",
+      "axis": "08:48:05",
+      "toolbar": "08:48:05",
+      "synchronized": true
+    },
+    {
+      "zone": "America/New_York",
+      "axis": "21:48:07",
+      "toolbar": "21:48:07",
+      "synchronized": true
+    },
+    {
+      "zone": "EXCHANGE",
+      "axis": "01:48:08",
+      "toolbar": "01:48:08",
+      "synchronized": true
+    },
+    {
+      "zone": "LOCAL",
+      "axis": "08:48:09",
+      "toolbar": "08:48:09",
+      "synchronized": true
+    }
+  ],
+  "responsive": [
+    {
+      "width": 1440,
+      "first": {
+        "axis": "01:47:52",
+        "toolbar": "01:47:52",
+        "synchronized": true
+      },
+      "second": {
+        "axis": "01:47:55",
+        "toolbar": "01:47:55",
+        "synchronized": true
+      },
+      "clockAdvanced": true,
+      "clocksSynchronized": true,
+      "icons": [
+        {
+          "src": "/symbol-icons/ada.svg",
+          "loaded": true
+        }
+      ],
+      "providerVisible": false
+    },
+    {
+      "width": 1024,
+      "first": {
+        "axis": "01:47:56",
+        "toolbar": "01:47:56",
+        "synchronized": true
+      },
+      "second": {
+        "axis": "01:47:58",
+        "toolbar": "01:47:58",
+        "synchronized": true
+      },
+      "clockAdvanced": true,
+      "clocksSynchronized": true,
+      "icons": [
+        {
+          "src": "/symbol-icons/ada.svg",
+          "loaded": true
+        }
+      ],
+      "providerVisible": false
+    },
+    {
+      "width": 390,
+      "first": {
+        "axis": "01:47:59",
+        "toolbar": "01:47:59",
+        "synchronized": true
+      },
+      "second": {
+        "axis": "01:48:02",
+        "toolbar": "01:48:02",
+        "synchronized": true
+      },
+      "clockAdvanced": true,
+      "clocksSynchronized": true,
+      "icons": [
+        {
+          "src": "/symbol-icons/ada.svg",
+          "loaded": true
+        }
+      ],
+      "providerVisible": false
+    }
+  ],
+  "capabilities": [
+    {
+      "providerId": "FRANKFURTER",
+      "displayName": "Frankfurter · ECB daily reference",
+      "assetClasses": [
+        "FX_REFERENCE"
+      ],
+      "supportedTimeframes": [
+        "1d"
+      ],
+      "historical": true,
+      "realtime": false,
+      "delayed": true,
+      "snapshot": false,
+      "eod": true,
+      "bulkHistorical": false,
+      "historicalReplaySupported": false,
+      "symbolSearchSupported": true,
+      "requiresApiKey": false,
+      "requiresEntitlement": false,
+      "displayAllowed": true,
+      "licenseStatus": "ACCEPTED",
+      "coverageDiscoveryMode": "REQUEST_RANGE",
+      "maxCandlesPerRequest": 600,
+      "providerTimezone": "UTC",
+      "configured": true,
+      "limitations": [
+        "One daily reference observation; equal OHLC and zero volume are not traded market prices",
+        "No intraday candles, live FX feed, lot sizing or trading Replay"
+      ]
+    },
+    {
+      "providerId": "CTRADER",
+      "displayName": "cTrader Open API",
+      "assetClasses": [
+        "FOREX",
+        "COMMODITY"
+      ],
+      "supportedTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "4h",
+        "1d"
+      ],
+      "historical": true,
+      "realtime": true,
+      "delayed": false,
+      "snapshot": true,
+      "eod": false,
+      "bulkHistorical": false,
+      "historicalReplaySupported": true,
+      "symbolSearchSupported": true,
+      "requiresApiKey": true,
+      "requiresEntitlement": true,
+      "displayAllowed": true,
+      "licenseStatus": "CONDITIONAL",
+      "coverageDiscoveryMode": "ACCOUNT_CATALOG",
+      "maxCandlesPerRequest": 1000,
+      "providerTimezone": "UTC",
+      "configured": false,
+      "limitations": [
+        "OAuth access token and authorized cTrader account required",
+        "Symbols are discovered from the configured broker account",
+        "Spot event timestamps and broker-specific CFD availability are authoritative"
+      ]
+    },
+    {
+      "providerId": "COINBASE",
+      "displayName": "Coinbase Public",
+      "assetClasses": [
+        "CRYPTO"
+      ],
+      "supportedTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "1h",
+        "1d"
+      ],
+      "historical": true,
+      "realtime": true,
+      "delayed": false,
+      "snapshot": false,
+      "eod": false,
+      "bulkHistorical": false,
+      "historicalReplaySupported": true,
+      "symbolSearchSupported": true,
+      "requiresApiKey": false,
+      "requiresEntitlement": false,
+      "displayAllowed": true,
+      "licenseStatus": "ACCEPTED",
+      "coverageDiscoveryMode": "REST_PAGED",
+      "maxCandlesPerRequest": 300,
+      "providerTimezone": "UTC",
+      "configured": true,
+      "limitations": [
+        "Public Exchange WebSocket; no-tick intervals can be absent",
+        "Earliest history is not globally guaranteed"
+      ]
+    },
+    {
+      "providerId": "BINANCE",
+      "displayName": "Binance Public Data",
+      "assetClasses": [
+        "CRYPTO"
+      ],
+      "supportedTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "4h",
+        "1d"
+      ],
+      "historical": true,
+      "realtime": false,
+      "delayed": false,
+      "snapshot": false,
+      "eod": false,
+      "bulkHistorical": true,
+      "historicalReplaySupported": true,
+      "symbolSearchSupported": true,
+      "requiresApiKey": false,
+      "requiresEntitlement": false,
+      "displayAllowed": true,
+      "licenseStatus": "ACCEPTED",
+      "coverageDiscoveryMode": "BULK_ARCHIVE",
+      "maxCandlesPerRequest": 1440,
+      "providerTimezone": "UTC",
+      "configured": true,
+      "limitations": [
+        "Public Spot catalog and daily archives; no realtime feed",
+        "Futures archives not enabled without verified contract sizing",
+        "Historical quantity only; exchange increments not asserted"
+      ]
+    },
+    {
+      "providerId": "OANDA",
+      "displayName": "OANDA v20",
+      "assetClasses": [
+        "FOREX",
+        "COMMODITY"
+      ],
+      "supportedTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "4h",
+        "1d"
+      ],
+      "historical": true,
+      "realtime": true,
+      "delayed": false,
+      "snapshot": true,
+      "eod": false,
+      "bulkHistorical": false,
+      "historicalReplaySupported": true,
+      "symbolSearchSupported": true,
+      "requiresApiKey": true,
+      "requiresEntitlement": true,
+      "displayAllowed": true,
+      "licenseStatus": "CONDITIONAL",
+      "coverageDiscoveryMode": "ACCOUNT_CATALOG",
+      "maxCandlesPerRequest": 5000,
+      "providerTimezone": "UTC",
+      "configured": false,
+      "limitations": [
+        "Availability is limited to the configured account catalog",
+        "Pricing stream may suppress intermediate prices and is not tick-complete",
+        "CFD display entitlement must be verified for the configured account"
+      ]
+    },
+    {
+      "providerId": "ALPACA",
+      "displayName": "Alpaca · IEX",
+      "assetClasses": [
+        "STOCK",
+        "ETF"
+      ],
+      "supportedTimeframes": [
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "4h",
+        "1d"
+      ],
+      "historical": true,
+      "realtime": true,
+      "delayed": false,
+      "snapshot": false,
+      "eod": false,
+      "bulkHistorical": false,
+      "historicalReplaySupported": true,
+      "symbolSearchSupported": true,
+      "requiresApiKey": true,
+      "requiresEntitlement": true,
+      "displayAllowed": true,
+      "licenseStatus": "CONDITIONAL",
+      "coverageDiscoveryMode": "REST_PAGED",
+      "maxCandlesPerRequest": 1000,
+      "providerTimezone": "America/New_York",
+      "configured": false,
+      "limitations": [
+        "Requires configured credentials and applicable display entitlement",
+        "IEX only, not consolidated SIP; raw unadjusted bars",
+        "Quantity-only simulation; no verified lot or contract metadata"
+      ]
+    }
+  ],
+  "errors": [],
+  "responses": [
+    {
+      "url": "/api/market/stream?symbol=BTC-USD&timeframe=1m",
+      "status": 200
+    },
+    {
+      "url": "/api/market/coinbase/series/BTC-USD/60/1788900470933/1788918470933",
+      "status": 200
+    },
+    {
+      "url": "/api/market/stream?symbol=BTC-USD&timeframe=1m",
+      "status": 200
+    },
+    {
+      "url": "/api/market/providers/capabilities",
+      "status": 200
+    },
+    {
+      "url": "/api/market/providers/COINBASE/catalog?query=&assetClass=",
+      "status": 200
+    },
+    {
+      "url": "/api/market/providers/COINBASE/catalog?query=&assetClass=&cursor=Y2JlNWNmZGY3YzIxMThhOWMzZDc4ZWYxZDY4NGYzYWZhMDg5MjAxMzUyODg2NDQ5YTA2YTY1MTFjZmVmNzRhNzo1MA",
+      "status": 200
+    },
+    {
+      "url": "/api/market/providers/COINBASE/catalog?query=&assetClass=&cursor=Y2JlNWNmZGY3YzIxMThhOWMzZDc4ZWYxZDY4NGYzYWZhMDg5MjAxMzUyODg2NDQ5YTA2YTY1MTFjZmVmNzRhNzoxMDA",
+      "status": 200
+    },
+    {
+      "url": "/api/market/providers/COINBASE/catalog?query=&assetClass=&cursor=Y2JlNWNmZGY3YzIxMThhOWMzZDc4ZWYxZDY4NGYzYWZhMDg5MjAxMzUyODg2NDQ5YTA2YTY1MTFjZmVmNzRhNzoxNTA",
+      "status": 200
+    },
+    {
+      "url": "/api/market/providers/COINBASE/catalog?query=&assetClass=&cursor=Y2JlNWNmZGY3YzIxMThhOWMzZDc4ZWYxZDY4NGYzYWZhMDg5MjAxMzUyODg2NDQ5YTA2YTY1MTFjZmVmNzRhNzoyMDA",
+      "status": 200
+    },
+    {
+      "url": "/api/market/providers/COINBASE/catalog?query=&assetClass=&cursor=Y2JlNWNmZGY3YzIxMThhOWMzZDc4ZWYxZDY4NGYzYWZhMDg5MjAxMzUyODg2NDQ5YTA2YTY1MTFjZmVmNzRhNzoyNTA",
+      "status": 200
+    },
+    {
+      "url": "/api/market/providers/COINBASE/catalog?query=&assetClass=&cursor=Y2JlNWNmZGY3YzIxMThhOWMzZDc4ZWYxZDY4NGYzYWZhMDg5MjAxMzUyODg2NDQ5YTA2YTY1MTFjZmVmNzRhNzozMDA",
+      "status": 200
+    },
+    {
+      "url": "/api/market/providers/COINBASE/catalog?query=&assetClass=&cursor=Y2JlNWNmZGY3YzIxMThhOWMzZDc4ZWYxZDY4NGYzYWZhMDg5MjAxMzUyODg2NDQ5YTA2YTY1MTFjZmVmNzRhNzozNTA",
+      "status": 200
+    },
+    {
+      "url": "/api/market/providers/COINBASE/catalog?query=&assetClass=&cursor=Y2JlNWNmZGY3YzIxMThhOWMzZDc4ZWYxZDY4NGYzYWZhMDg5MjAxMzUyODg2NDQ5YTA2YTY1MTFjZmVmNzRhNzo0MDA",
+      "status": 200
+    },
+    {
+      "url": "/api/market/providers/COINBASE/catalog?query=&assetClass=&cursor=Y2JlNWNmZGY3YzIxMThhOWMzZDc4ZWYxZDY4NGYzYWZhMDg5MjAxMzUyODg2NDQ5YTA2YTY1MTFjZmVmNzRhNzo0NTA",
+      "status": 200
+    },
+    {
+      "url": "/api/market/stream?symbol=BTC-USD&timeframe=1m",
+      "status": 200
+    },
+    {
+      "url": "/api/market/stream?symbol=BTC-USD&timeframe=1m",
+      "status": 200
+    },
+    {
+      "url": "/api/market/stream?symbol=BTC-USD&timeframe=1m",
+      "status": 200
+    },
+    {
+      "url": "/api/market/stream?symbol=ETH-USD&timeframe=1m",
+      "status": 200
+    },
+    {
+      "url": "/api/market/coinbase/series/ETH-USD/60/1788900496808/1788918496808",
+      "status": 200
+    },
+    {
+      "url": "/api/market/stream?symbol=SOL-USD&timeframe=1m",
+      "status": 200
+    },
+    {
+      "url": "/api/market/coinbase/series/SOL-USD/60/1788900505585/1788918505585",
+      "status": 200
+    },
+    {
+      "url": "/api/market/stream?symbol=XRP-USD&timeframe=1m",
+      "status": 200
+    },
+    {
+      "url": "/api/market/coinbase/series/XRP-USD/60/1788900514146/1788918514146",
+      "status": 200
+    },
+    {
+      "url": "/api/market/stream?symbol=ADA-USD&timeframe=1m",
+      "status": 200
+    },
+    {
+      "url": "/api/market/coinbase/series/ADA-USD/60/1788900524477/1788918524477",
+      "status": 200
+    },
+    {
+      "url": "/api/market/stream?symbol=DOGE-USD&timeframe=1m",
+      "status": 200
+    },
+    {
+      "url": "/api/market/coinbase/series/DOGE-USD/60/1788900533013/1788918533013",
+      "status": 200
+    }
+  ]
+}

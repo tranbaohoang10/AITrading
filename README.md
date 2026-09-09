@@ -270,6 +270,22 @@ Run `python -m unittest discover -s python/tests -v`. See the
 [execution/precision/security contract](specs/PB-010/design.md) and
 [test plan](specs/PB-010/test-cases.md). No new Python dependency is required.
 
+## Optional market-data provider configuration (PB-038)
+
+Coinbase remains public. Alpaca, OANDA and cTrader stay fail-closed until their
+server process environment is configured. Set variable names only in deployment
+configuration; never commit values or expose them to the browser:
+
+`ALPACA_API_KEY_ID`, `ALPACA_API_SECRET_KEY`; `OANDA_API_TOKEN`,
+`OANDA_ACCOUNT_ID`, `OANDA_ENVIRONMENT` (`practice` or `live`);
+`CTRADER_CLIENT_ID`, `CTRADER_CLIENT_SECRET`, `CTRADER_ACCESS_TOKEN`,
+`CTRADER_ACCOUNT_ID`, `CTRADER_ENVIRONMENT` (`demo` or `live`).
+
+Provider catalog availability is account-derived. A configured credential does
+not by itself prove display entitlement or live PASS; actual authenticated events
+must be observed. The repository intentionally has no tracked `.env` example
+because its security workflow rejects tracked `.env*` files.
+
 ## AI provider boundary (PB-008 — verified Gemini / optional OpenAI)
 
 Business logic depends on the neutral `AiProvider` contract. Select one adapter at

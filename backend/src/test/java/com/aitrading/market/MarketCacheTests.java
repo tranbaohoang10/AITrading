@@ -15,6 +15,8 @@ class MarketCacheTests {
     @Test void keysSeparateProvidersAndRejectNamespaceInjection() {
         var cache=new MarketCache(mock(StringRedisTemplate.class),false);
         assertNotEquals(KEY,MarketCache.key("history","BINANCE","BTC-USD|1h"));
+        assertNotEquals(MarketCache.key("bar","ALPACA","AAPL|1m"),MarketCache.key("bar","OANDA","AAPL|1m"));
+        assertNotEquals(MarketCache.key("bar","OANDA","EUR_USD|1m"),MarketCache.key("bar","CTRADER","EUR_USD|1m"));
         assertFalse(KEY.contains("BTC-USD"));
         assertThrows(IllegalArgumentException.class,()->MarketCache.key("history:session","COINBASE","x"));
         assertThrows(IllegalArgumentException.class,()->cache.store("aitrading:v1:market:session:user","x",TTL));

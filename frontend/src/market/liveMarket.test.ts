@@ -63,9 +63,11 @@ describe('PB-034 Coinbase market-data contract', () => {
   it('updates a matching current bucket and appends one later bucket from Coinbase matches', () => {
     const sockets: Array<{ send: ReturnType<typeof vi.fn>; close: ReturnType<typeof vi.fn>; onopen: ((event: Event) => void) | null; onmessage: ((event: MessageEvent) => void) | null; onerror: ((event: Event) => void) | null; onclose: ((event: CloseEvent) => void) | null }> = []
     const provider = new CoinbaseMarketDataProvider(vi.fn(), () => { const socket = { send: vi.fn(), close: vi.fn(), onopen: null, onmessage: null, onerror: null, onclose: null }; sockets.push(socket); return socket as never })
-    const onCandle = vi.fn(), stop = provider.subscribeCandles({ symbol: 'BTC-USD', interval: '1m', seed: candle() }, { onCandle, onStatus: vi.fn(), onReconnect: vi.fn() })
+    const onCandle = vi.fn(), onStatus = vi.fn(), stop = provider.subscribeCandles({ symbol: 'BTC-USD', interval: '1m', seed: candle() }, { onCandle, onStatus, onReconnect: vi.fn() })
     sockets[0].onopen?.(new Event('open'))
+    expect(onStatus).not.toHaveBeenCalledWith('LIVE')
     sockets[0].onmessage?.(new MessageEvent('message', { data: JSON.stringify({ type: 'match', product_id: 'BTC-USD', time: new Date(baseTime + 10_000).toISOString(), price: '103', size: '2' }) }))
+    expect(onStatus).toHaveBeenLastCalledWith('LIVE')
     sockets[0].onmessage?.(new MessageEvent('message', { data: JSON.stringify({ type: 'match', product_id: 'BTC-USD', time: new Date(baseTime + 60_000).toISOString(), price: '104', size: '3' }) }))
     expect(onCandle).toHaveBeenNthCalledWith(1, expect.objectContaining({ openTime: baseTime, high: '103', close: '103', volume: '7' }))
     expect(onCandle).toHaveBeenNthCalledWith(2, expect.objectContaining({ openTime: baseTime, closed: true }))
@@ -114,7 +116,7 @@ describe('PB-034 Coinbase market-data contract', () => {
     const unsubscribe = vi.fn()
     const provider: MarketDataProvider = { getHistoricalCandles: vi.fn(async ({ symbol, interval }) => [{ ...candle(baseTime, symbol), interval }]), subscribeCandles: vi.fn((_request, subscription: CandleSubscription) => { subscription.onStatus('LIVE'); return unsubscribe }) }
     render(createElement(LiveChartFixture, { provider }))
-    await screen.findByLabelText('Coinbase · LIVE')
+    await screen.findByRole('img', { name: /BTC\/USD .*candlesticks/i })
     expect(provider.getHistoricalCandles).toHaveBeenCalledWith(expect.objectContaining({ symbol: 'BTC-USD', interval: '1m', limit: 300 }))
     fireEvent.click(screen.getByLabelText('Symbol'))
     fireEvent.click(screen.getByRole('button', { name: /ETH\/USD/ }))
@@ -123,7 +125,7 @@ describe('PB-034 Coinbase market-data contract', () => {
     fireEvent.click(screen.getByLabelText('Timeframe'))
     fireEvent.click(screen.getByRole('menuitemradio', { name: '5m' }))
     await waitFor(() => expect(unsubscribe).toHaveBeenCalledTimes(2))
-    expect(screen.getByRole('img', { name: /ETH\/USD live Coinbase candlesticks/i })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: /ETH\/USD market data candlesticks/i })).toBeInTheDocument()
     const toolbar = screen.getByTestId('chart-toolbar')
     expect(toolbar.querySelector('.ml-auto')?.textContent).toContain('')
   })
@@ -132,7 +134,7 @@ describe('PB-034 Coinbase market-data contract', () => {
     let resolveHistory!: (items: MarketCandle[]) => void
     const pendingHistory = new Promise<MarketCandle[]>(resolve => { resolveHistory = resolve })
     const provider: MarketDataProvider = {
-      getHistoricalCandles: vi.fn(({ symbol }) => symbol === 'POL-USD' ? pendingHistory : Promise.resolve([candle(baseTime - 60_000, symbol)])),
+      getHistoricalCandles: vi.fn(({ symbol }) => symbol === 'XRP-USD' ? pendingHistory : Promise.resolve([candle(baseTime - 60_000, symbol)])),
       subscribeCandles: vi.fn((request, subscription) => {
         subscription.onStatus('LIVE')
         subscription.onCandle(candle(baseTime, request.symbol))
@@ -140,13 +142,13 @@ describe('PB-034 Coinbase market-data contract', () => {
       }),
     }
     render(createElement(LiveChartFixture, { provider }))
-    await screen.findByLabelText('Coinbase · LIVE')
+    await screen.findByRole('img', { name: /BTC\/USD .*candlesticks/i })
     fireEvent.click(screen.getByLabelText('Symbol'))
-    fireEvent.click(screen.getByRole('button', { name: /POL\/USD/ }))
-    expect(await screen.findByRole('img', { name: /POL\/USD live Coinbase candlesticks, 1 candles/ })).toBeInTheDocument()
-    expect(screen.getByLabelText('Coinbase · LIVE')).toBeInTheDocument()
-    await act(async () => resolveHistory([candle(baseTime - 60_000, 'POL-USD')]))
-    await waitFor(() => expect(screen.getByRole('img', { name: /POL\/USD live Coinbase candlesticks, 2 candles/ })).toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: /XRP\/USD/ }))
+    expect(await screen.findByRole('img', { name: /XRP\/USD live market candlesticks, 1 candles/ })).toBeInTheDocument()
+    expect(screen.getByTestId('realtime-status')).toHaveTextContent('RealtimeLive')
+    await act(async () => resolveHistory([candle(baseTime - 60_000, 'XRP-USD')]))
+    await waitFor(() => expect(screen.getByRole('img', { name: /XRP\/USD live market candlesticks, 2 candles/ })).toBeInTheDocument())
   })
 
   it('turns a stalled historical request into a retryable chart error', async () => {
@@ -170,7 +172,7 @@ describe('PB-034 Coinbase market-data contract', () => {
   it('offers real Coinbase studies and selectable multi-chart layouts', async () => {
     const provider: MarketDataProvider = { getHistoricalCandles: vi.fn(async ({ symbol }) => Array.from({ length: 40 }, (_, index) => candle(baseTime + index * 60_000, symbol, String(101 + index % 5)))), subscribeCandles: vi.fn((_request, subscription) => { subscription.onStatus('LIVE'); return vi.fn() }) }
     render(createElement(LiveChartFixture, { provider }))
-    await screen.findByLabelText('Coinbase · LIVE')
+    await screen.findByRole('img', { name: /BTC\/USD .*candlesticks/i })
     fireEvent.click(screen.getByLabelText('Timeframe'))
     fireEvent.click(screen.getByRole('menuitemradio', { name: '15m' }))
     await waitFor(() => expect(screen.getByRole('img', { name: /40 candles/ })).toBeInTheDocument())
@@ -201,7 +203,7 @@ describe('PB-034 Coinbase market-data contract', () => {
     fireEvent.click(screen.getByLabelText('Chart layout'))
     fireEvent.click(screen.getByRole('button', { name: 'Layout 4' }))
     expect(screen.getAllByRole('button', { name: /Chart cell/ })).toHaveLength(4)
-    await waitFor(() => expect(screen.getAllByRole('img', { name: /live Coinbase candlesticks/ })).toHaveLength(4))
+    await waitFor(() => expect(screen.getAllByRole('img', { name: /market data candlesticks/ })).toHaveLength(4))
     fireEvent.click(screen.getByRole('button', { name: 'Chart cell 3' }))
     expect(screen.getByRole('button', { name: 'Chart cell 3' })).toHaveAttribute('aria-pressed', 'true')
   }, 10_000)
@@ -248,7 +250,7 @@ describe('PB-034 Coinbase market-data contract', () => {
   it('keeps only compact primary drawing groups and confirms destructive remove-all', async () => {
     const provider: MarketDataProvider = { getHistoricalCandles: vi.fn(async ({ symbol }) => [candle(baseTime, symbol)]), subscribeCandles: vi.fn((_request, subscription) => { subscription.onStatus('LIVE'); return vi.fn() }) }
     render(createElement(LiveChartFixture, { provider }))
-    await screen.findByLabelText('Coinbase · LIVE')
+    await screen.findByRole('img', { name: /BTC\/USD .*candlesticks/i })
     expect(screen.getByRole('button', { name: 'Cursor tools' })).toBeInTheDocument()
     for (const name of ['Lines & Channels tools', 'Fibonacci tools', 'Patterns tools', 'Shapes tools', 'Text / Annotation tools', 'Position / Risk tools', 'Measure tools', 'More drawing controls']) expect(screen.getByRole('button', { name })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Zoom In/ })).not.toBeInTheDocument()
@@ -259,7 +261,7 @@ describe('PB-034 Coinbase market-data contract', () => {
   it('supports Alt shortcuts for the primary line tools', async () => {
     const provider: MarketDataProvider = { getHistoricalCandles: vi.fn(async ({ symbol }) => [candle(baseTime, symbol)]), subscribeCandles: vi.fn((_request, subscription) => { subscription.onStatus('LIVE'); return vi.fn() }) }
     render(createElement(LiveChartFixture, { provider }))
-    await screen.findByLabelText('Coinbase · LIVE')
+    await screen.findByRole('img', { name: /BTC\/USD .*candlesticks/i })
     fireEvent.keyDown(window, { key: 't', altKey: true })
     expect(screen.getByRole('button', { name: 'Lines & Channels tools' })).toHaveAttribute('aria-pressed', 'true')
     fireEvent.keyDown(window, { key: 'h', altKey: true })

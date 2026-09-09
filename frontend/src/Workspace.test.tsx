@@ -51,7 +51,7 @@ describe('TASK-003 through TASK-007 workspace behavior', () => {
     })
     vi.stubGlobal('fetch', fetcher)
     render(<AuthContext.Provider value={{ user: { id: '11111111-1111-4111-8111-111111111111', email: 'chart@example.test', displayName: 'Chart QA' }, update: vi.fn(), clear: vi.fn() }}><ConversationProvider><App /></ConversationProvider></AuthContext.Provider>)
-    return screen.findByRole('img', { name: /live Coinbase candlesticks/ }).then(() => {
+    return screen.findByRole('img', { name: /market data candlesticks/ }).then(() => {
     fireEvent.click(screen.getByLabelText('Lines & Channels tools'))
     expect(screen.getByLabelText('Lines & Channels tools')).toHaveClass('text-slate-100')
 

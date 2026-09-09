@@ -1,0 +1,112 @@
+[
+  {
+    "width": 1440,
+    "height": 900,
+    "firstPrice": "77,917.99",
+    "secondPrice": "77,918.02",
+    "priceChanged": true,
+    "realtime": "RealtimeLiveFirst tick 9:03:49 PM · Last tick 9:03:53 PM · Candle 9:03:00 PM",
+    "realtimeBox": {
+      "x": 485.28125,
+      "y": 48,
+      "width": 287.125,
+      "height": 34.5
+    },
+    "chartBox": {
+      "x": 405,
+      "y": 87.5,
+      "width": 1035,
+      "height": 812.5
+    },
+    "search": null,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "failedRequests": []
+  },
+  {
+    "width": 1024,
+    "height": 768,
+    "firstPrice": "77,926.03",
+    "secondPrice": "77,901.21",
+    "priceChanged": true,
+    "realtime": "RealtimeLiveFirst tick 9:03:56 PM · Last tick 9:03:59 PM · Candle 9:03:00 PM",
+    "realtimeBox": {
+      "x": 176.28125,
+      "y": 48,
+      "width": 286.671875,
+      "height": 34.5
+    },
+    "chartBox": {
+      "x": 96,
+      "y": 87.5,
+      "width": 928,
+      "height": 680.5
+    },
+    "search": {
+      "tabs": [
+        "All",
+        "Stocks",
+        "ETFs",
+        "Crypto",
+        "Futures",
+        "Forex",
+        "Commodities"
+      ],
+      "symbols": [
+        "BTC/USDBTC-USD",
+        "ETH/USDETH-USD",
+        "SOL/USDSOL-USD",
+        "XRP/USDXRP-USD"
+      ],
+      "providerVisible": false
+    },
+    "consoleErrors": [],
+    "pageErrors": [],
+    "failedRequests": [
+      "GET http://127.0.0.1:5173/api/market/providers/capabilities net::ERR_ABORTED"
+    ]
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "firstPrice": "78,030.44",
+    "secondPrice": "78,033.28",
+    "priceChanged": true,
+    "realtime": "RealtimeLiveFirst tick 21:09:37 · Last tick 21:09:40 · Candle 21:09:00",
+    "realtimeBox": {
+      "x": 124.28125,
+      "y": 60,
+      "width": 214.171875,
+      "height": 34.5
+    },
+    "chartBox": {
+      "x": 0,
+      "y": 175.5,
+      "width": 390,
+      "height": 668.5
+    },
+    "search": {
+      "tabs": [
+        "All",
+        "Stocks",
+        "ETFs",
+        "Crypto",
+        "Futures",
+        "Forex",
+        "Commodities"
+      ],
+      "symbols": [
+        "BTC/USDBTC-USD",
+        "ETH/USDETH-USD",
+        "SOL/USDSOL-USD",
+        "XRP/USDXRP-USD"
+      ],
+      "providerVisible": false
+    },
+    "consoleErrors": [],
+    "pageErrors": [],
+    "failedRequests": [
+      "GET http://127.0.0.1:5173/api/market/providers/capabilities net::ERR_ABORTED"
+    ]
+  }
+]

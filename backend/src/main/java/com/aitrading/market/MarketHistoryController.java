@@ -20,5 +20,7 @@ public class MarketHistoryController {
             @RequestParam String timeframe,@RequestParam Instant from,@RequestParam Instant to){return service.history(provider,symbol,timeframe,from,to);}
     @ExceptionHandler(CoinbaseDataFailure.class) ResponseEntity<Map<String,String>> failure(CoinbaseDataFailure error){return ResponseEntity.status(error.status()).body(Map.of("code",error.code()));}
     @ExceptionHandler(AlpacaDataFailure.class) ResponseEntity<Map<String,String>> failure(AlpacaDataFailure error){return ResponseEntity.status(error.status()).body(Map.of("code",error.code()));}
+    @ExceptionHandler(OandaDataFailure.class) ResponseEntity<Map<String,String>> failure(OandaDataFailure error){return ResponseEntity.status(error.status()).body(Map.of("code",error.code()));}
+    @ExceptionHandler(CtraderDataFailure.class) ResponseEntity<Map<String,String>> failure(CtraderDataFailure error){return ResponseEntity.status(error.status()).body(Map.of("code",error.code()));}
     @ExceptionHandler(FrankfurterDataFailure.class) ResponseEntity<Map<String,String>> failure(FrankfurterDataFailure error){return ResponseEntity.status(error.status()).body(Map.of("code",error.code()));}
 }

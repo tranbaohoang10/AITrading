@@ -20,6 +20,8 @@ public class AlpacaMarketDataClient {
     private record AssetSnapshot(String body, Instant expiresAt) {}
     public AlpacaMarketDataClient(@Value("${aitrading.market.alpaca.key-id:}") String keyId,@Value("${aitrading.market.alpaca.secret-key:}") String secretKey) { this.keyId=keyId==null?"":keyId.strip(); this.secretKey=secretKey==null?"":secretKey.strip(); }
     public boolean configured() { return !keyId.isEmpty()&&!secretKey.isEmpty()&&keyId.length()<=256&&secretKey.length()<=512; }
+    String keyId(){requireConfigured();return keyId;}
+    String secretKey(){requireConfigured();return secretKey;}
     public List<AlpacaMarketDataMapper.Bar> candles(String symbol,String timeframe,int limit,Instant before,Instant now) {
         requireConfigured(); validSymbol(symbol); if(limit<1||limit>AlpacaMarketDataMapper.MAX_BARS)throw new IllegalArgumentException("Invalid candle limit");
         String nativeTimeframe=switch(timeframe) { case "1m"->"1Min"; case "5m"->"5Min"; case "15m"->"15Min"; case "30m"->"30Min"; case "1h"->"1Hour"; case "4h"->"4Hour"; case "1d"->"1Day"; default->throw new IllegalArgumentException("Invalid timeframe"); };

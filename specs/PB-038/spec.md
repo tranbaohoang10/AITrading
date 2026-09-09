@@ -149,3 +149,21 @@ and unrelated workspaces are explicitly deferred.
 7. Clicking the clock must open a working timezone selector. UTC, Exchange,
    Local and the existing named/fixed zones update all chart/time-axis/crosshair
    display immediately; canonical candle timestamps remain UTC.
+
+## Product Owner override — 08/09/2026
+
+The newer [Product Owner refinement](product-owner-refinement-2026-09-08.md) overrides conflicting earlier acceptance criteria: provider routing is internal, normal Symbol Search is canonical-symbol-first, seven categories remain visible, no four-coin restriction, and icons plus actual live updates are required. Current price must display current wall-clock time below it. Curated city timezone labels use dynamic DST-aware offsets, and Exchange uses verified metadata. This refinement is IN_PROGRESS; prior PASS records do not establish its completion.
+
+## Provider completion status — 09/09/2026
+
+Alpaca IEX, OANDA v20 and cTrader Open API adapters are implemented behind
+server-only configuration, fixed hosts, validated provider/account catalogs,
+bounded history and shared realtime SSE routing. Stock/ETF icons and account-
+scoped catalog remount caching are complete. Unsupported or unconfigured routes
+remain absent from normal Symbol Search. Coinbase browser QA uses actual public
+history and trade events rather than mocks.
+
+The implementation state is complete, but the feature is not DONE: no external
+Alpaca, OANDA or cTrader credentials/entitlements are available, so their real
+authenticated-event acceptance checks remain `BLOCKED_EXTERNAL`. Issue #39
+remains open until those checks can be performed and pass.

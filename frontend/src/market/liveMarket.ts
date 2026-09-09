@@ -5,7 +5,7 @@ export const COINBASE_DEFAULT_SYMBOLS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-U
 export const FRANKFURTER_DEFAULT_SYMBOLS = ['EUR-USD', 'GBP-USD', 'USD-JPY', 'USD-CHF', 'AUD-USD', 'USD-CAD', 'NZD-USD'] as const
 export type LiveSymbol = string
 export type LiveConnectionStatus = 'CONNECTING' | 'LIVE' | 'DELAYED' | 'RECONNECTING' | 'DISCONNECTED'
-export type AssetClass = 'CRYPTO' | 'STOCK' | 'ETF' | 'FOREX' | 'FUTURES'
+export type AssetClass = 'CRYPTO' | 'STOCK' | 'ETF' | 'FOREX' | 'FUTURES' | 'COMMODITY'
 export type MarketDataMode = 'HISTORICAL' | 'REALTIME' | 'DELAYED' | 'SNAPSHOT'
 
 export type Instrument = {
@@ -18,6 +18,7 @@ export type Instrument = {
   base?: string
   quote?: string
   exchange?: string
+  exchangeTimezone?: string
   provider: string
   feed?: string
   priceIncrement: number
@@ -40,17 +41,17 @@ export type MarketCandle = {
 }
 
 export const DEFAULT_INSTRUMENTS: Instrument[] = [
-  { symbol: 'BTC-USD', displaySymbol: 'BTC/USD', name: 'Bitcoin / US Dollar', assetClass: 'CRYPTO', base: 'BTC', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
-  { symbol: 'ETH-USD', displaySymbol: 'ETH/USD', name: 'Ethereum / US Dollar', assetClass: 'CRYPTO', base: 'ETH', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
-  { symbol: 'SOL-USD', displaySymbol: 'SOL/USD', name: 'Solana / US Dollar', assetClass: 'CRYPTO', base: 'SOL', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
-  { symbol: 'XRP-USD', displaySymbol: 'XRP/USD', name: 'XRP / US Dollar', assetClass: 'CRYPTO', base: 'XRP', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
-  { symbol: 'ADA-USD', displaySymbol: 'ADA/USD', name: 'Cardano / US Dollar', assetClass: 'CRYPTO', base: 'ADA', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
-  { symbol: 'DOGE-USD', displaySymbol: 'DOGE/USD', name: 'Dogecoin / US Dollar', assetClass: 'CRYPTO', base: 'DOGE', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
-  { symbol: 'LTC-USD', displaySymbol: 'LTC/USD', name: 'Litecoin / US Dollar', assetClass: 'CRYPTO', base: 'LTC', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
-  { symbol: 'BCH-USD', displaySymbol: 'BCH/USD', name: 'Bitcoin Cash / US Dollar', assetClass: 'CRYPTO', base: 'BCH', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
-  { symbol: 'LINK-USD', displaySymbol: 'LINK/USD', name: 'Chainlink / US Dollar', assetClass: 'CRYPTO', base: 'LINK', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
-  { symbol: 'AVAX-USD', displaySymbol: 'AVAX/USD', name: 'Avalanche / US Dollar', assetClass: 'CRYPTO', base: 'AVAX', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
-  { symbol: 'POL-USD', displaySymbol: 'POL/USD', name: 'Polygon Ecosystem Token / US Dollar', assetClass: 'CRYPTO', base: 'POL', quote: 'USD', exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'BTC-USD', displaySymbol: 'BTC/USD', name: 'Bitcoin / US Dollar', assetClass: 'CRYPTO', base: 'BTC', quote: 'USD', exchange: 'Coinbase', exchangeTimezone: 'UTC', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'ETH-USD', displaySymbol: 'ETH/USD', name: 'Ethereum / US Dollar', assetClass: 'CRYPTO', base: 'ETH', quote: 'USD', exchange: 'Coinbase', exchangeTimezone: 'UTC', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'SOL-USD', displaySymbol: 'SOL/USD', name: 'Solana / US Dollar', assetClass: 'CRYPTO', base: 'SOL', quote: 'USD', exchange: 'Coinbase', exchangeTimezone: 'UTC', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'XRP-USD', displaySymbol: 'XRP/USD', name: 'XRP / US Dollar', assetClass: 'CRYPTO', base: 'XRP', quote: 'USD', exchange: 'Coinbase', exchangeTimezone: 'UTC', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'ADA-USD', displaySymbol: 'ADA/USD', name: 'Cardano / US Dollar', assetClass: 'CRYPTO', base: 'ADA', quote: 'USD', exchange: 'Coinbase', exchangeTimezone: 'UTC', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'DOGE-USD', displaySymbol: 'DOGE/USD', name: 'Dogecoin / US Dollar', assetClass: 'CRYPTO', base: 'DOGE', quote: 'USD', exchange: 'Coinbase', exchangeTimezone: 'UTC', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'LTC-USD', displaySymbol: 'LTC/USD', name: 'Litecoin / US Dollar', assetClass: 'CRYPTO', base: 'LTC', quote: 'USD', exchange: 'Coinbase', exchangeTimezone: 'UTC', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'BCH-USD', displaySymbol: 'BCH/USD', name: 'Bitcoin Cash / US Dollar', assetClass: 'CRYPTO', base: 'BCH', quote: 'USD', exchange: 'Coinbase', exchangeTimezone: 'UTC', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'LINK-USD', displaySymbol: 'LINK/USD', name: 'Chainlink / US Dollar', assetClass: 'CRYPTO', base: 'LINK', quote: 'USD', exchange: 'Coinbase', exchangeTimezone: 'UTC', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'AVAX-USD', displaySymbol: 'AVAX/USD', name: 'Avalanche / US Dollar', assetClass: 'CRYPTO', base: 'AVAX', quote: 'USD', exchange: 'Coinbase', exchangeTimezone: 'UTC', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'REALTIME'] },
+  { symbol: 'POL-USD', displaySymbol: 'POL/USD', name: 'Polygon Ecosystem Token / US Dollar', assetClass: 'CRYPTO', base: 'POL', quote: 'USD', exchange: 'Coinbase', exchangeTimezone: 'UTC', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'REALTIME'] },
   { symbol: 'EUR-USD', displaySymbol: 'EUR/USD', name: 'Euro / U.S. Dollar', assetClass: 'FOREX', base: 'EUR', quote: 'USD', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'DELAYED'] },
   { symbol: 'GBP-USD', displaySymbol: 'GBP/USD', name: 'British Pound / U.S. Dollar', assetClass: 'FOREX', base: 'GBP', quote: 'USD', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'DELAYED'] },
   { symbol: 'USD-JPY', displaySymbol: 'USD/JPY', name: 'U.S. Dollar / Japanese Yen', assetClass: 'FOREX', base: 'USD', quote: 'JPY', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.001, pricePrecision: 3, modes: ['HISTORICAL', 'DELAYED'] },

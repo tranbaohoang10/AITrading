@@ -26,8 +26,8 @@ class MarketStreamTests {
             hub.onText(old,event.apply(999L,bucket.plusSeconds(90)),true);
             assertNull(hub.snapshot());
             hub.onText(replacement,event.apply(3L,bucket.plusSeconds(90)),true);
-            assertEquals("DELAYED",hub.status);assertEquals(true,hub.snapshot().get("partial"));
-            hub.onClose(old,1006,"Late close");assertEquals("DELAYED",hub.status);
+            assertEquals("LIVE",hub.status);assertEquals(true,hub.snapshot().get("partial"));
+            hub.onClose(old,1006,"Late close");assertEquals("LIVE",hub.status);
             hub.onText(replacement,event.apply(4L,bucket.plusSeconds(120)),true);
             assertEquals("LIVE",hub.status);assertEquals(false,hub.snapshot().get("partial"));
             var snapshot=hub.snapshot();

@@ -23,8 +23,8 @@ export type ChartSettings = {
   showCrosshair: boolean; showIndicatorTitles: boolean; showIndicatorValues: boolean
   candleBorders: boolean; candleWicks: boolean
   bullColor: string; bearColor: string; background: string; gridColor: string; textColor: string; separatorColor: string
-  exchangeTimezone?: 'UTC' | 'America/New_York'
-  spacing: number; timezone: 'UTC' | 'Asia/Ho_Chi_Minh' | 'America/New_York' | 'Europe/London' | 'Asia/Tokyo' | 'LOCAL' | 'EXCHANGE' | 'UTC-05:00' | 'UTC+07:00' | 'UTC+09:00'
+  exchangeTimezone?: string
+  spacing: number; timezone: string
   priceIncrement?: number; pricePrecision?: number
 }
 

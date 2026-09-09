@@ -83,3 +83,46 @@ pending and disabled, not inferred permission. No third-party repository code co
 
 No new provider contract is inferred from these audits. Real Binance/Coinbase
 browser evidence and Redis tests are recorded separately from licensing status.
+
+## 09/09/2026 — Owner refinement audit limitation
+
+Official OANDA account/pricing documentation and cTrader connection documentation could not be fetched in this environment (connection refused on port 443). This does not prove the services are generally unavailable; it blocks current API/terms verification here. Alpaca real-time stock data documentation returned HTTP 200, but no authorized credentials/entitlement or genuine live adapter has been established. No new broker route is enabled or inferred from sample symbol names. See specs/PB-038/owner-refinement-tests.md for explicit unfinished implementation versus external blockers.
+
+## 09/09/2026 — Provider completion implementation audit
+
+- `dereknguyen269/free-services` is classified `INFRA_REFERENCE_ONLY`. Its
+  current README is a curated list of hosting, database, cache, monitoring and
+  other developer free tiers. Upstash and Redis Cloud may be useful operational
+  references, but the repository is not an executable or licensed financial
+  market-data source and is not accepted for Forex, CFD, Stock, Futures or crypto
+  candles. No dependency or runtime feed was added from it.
+- Alpaca now has a server-side IEX WebSocket adapter using authenticated trade
+  subscriptions, bounded frames, validated symbols/events, candle aggregation,
+  provider-specific Redis state, shared subscriptions and bounded reconnect.
+- OANDA now has a server-side v20 account-catalog adapter, bounded midpoint
+  candlestick windows and the authenticated pricing HTTP stream. Only instruments
+  returned by the configured account become routes; `USOIL` is exposed only when
+  the actual `WTICO_USD` instrument is present.
+- cTrader now has a minimal protobuf wire implementation derived from Spotware's
+  official schemas, TLS hostname verification, application/account auth, broker
+  symbol discovery, trendbars and spot subscriptions over the official demo/live
+  proxy hosts. It does not scrape or substitute an HTTP quote source.
+- External terms pages for OANDA/cTrader still refused HTTPS from this environment.
+  Official OANDA's `v20-python` source and Spotware's official protobuf/example
+  repositories were used as protocol evidence. Real account entitlement and live
+  events remain `BLOCKED_EXTERNAL` until credentials are supplied privately.
+
+## 09/09/2026 — Final provider audit correction
+
+The earlier statement that the Alpaca/OANDA/cTrader adapters were unfinished is
+historical. All three adapters are now locally implemented and test-verified.
+Spotware protobuf field IDs were checked against official commit
+`3fd8bddfbe0cfc2ecfda079623dc4e498af11e66`; OANDA protocol behavior remains
+based on the official `oanda/v20-python` implementation because the documentation
+host refused this environment's HTTPS connection.
+
+Catalog exposure remains fail-closed and account-derived. OANDA does not map every
+CFD to commodity, and cTrader does not infer every six-character symbol is Forex.
+Real display entitlement and authenticated event evidence are still external
+requirements, so implementation completion does not change their
+`BLOCKED_EXTERNAL` QA status.

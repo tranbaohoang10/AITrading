@@ -17,7 +17,7 @@ it('loads candles after StrictMode cancels the initial setup', async () => {
     subscribeCandles: vi.fn((_request, subscription) => { subscription.onStatus('LIVE'); return vi.fn() }),
   }
   render(<StrictMode><LiveChart provider={provider} /></StrictMode>)
-  expect(await screen.findByRole('img', { name: /BTC\/USD live Coinbase candlesticks, 1 candles/ })).toBeInTheDocument()
+  expect(await screen.findByRole('img', { name: /BTC\/USD market data candlesticks, 1 candles/ })).toBeInTheDocument()
   expect(provider.getHistoricalCandles).toHaveBeenCalledTimes(2)
   expect(screen.queryByText(/Loading BTC\/USD/)).not.toBeInTheDocument()
 })

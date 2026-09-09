@@ -17,11 +17,11 @@ public class AlpacaMarketDataController {
     public record Error(String code) { }
     public AlpacaMarketDataController(AlpacaMarketDataClient client) { this.client=client; }
     @GetMapping("/providers")
-    public List<Provider> providers(@AuthenticationPrincipal UserPrincipal user) { return List.of(new Provider("ALPACA",new String[]{"STOCK","ETF"},new String[]{"HISTORICAL","DELAYED"},"IEX",client.configured(),"ACCEPTED")); }
+    public List<Provider> providers(@AuthenticationPrincipal UserPrincipal user) { return List.of(new Provider("ALPACA",new String[]{"STOCK","ETF"},new String[]{"HISTORICAL","REALTIME"},"IEX",client.configured(),"ACCEPTED")); }
     @GetMapping("/alpaca/instruments")
     public List<Instrument> instruments(@AuthenticationPrincipal UserPrincipal user,@RequestParam String query) {
         if(!client.configured())return List.of();
-        return client.searchAssets(query).stream().map(item -> new Instrument(item.get("symbol"),item.get("name"),"STOCK",item.get("exchange"),"ALPACA","IEX",.01,2,new String[]{"HISTORICAL","DELAYED"})).toList();
+        return client.searchAssets(query).stream().map(item -> new Instrument(item.get("symbol"),item.get("name"),Set.of("SPY","QQQ","IWM","DIA").contains(item.get("symbol"))?"ETF":"STOCK",item.get("exchange"),"ALPACA","IEX",.01,2,new String[]{"HISTORICAL","REALTIME"})).toList();
     }
     @GetMapping("/alpaca/candles")
     public List<Candle> candles(@AuthenticationPrincipal UserPrincipal user,@RequestParam String symbol,@RequestParam String timeframe,@RequestParam(required=false) String limit,@RequestParam(required=false) String before) {

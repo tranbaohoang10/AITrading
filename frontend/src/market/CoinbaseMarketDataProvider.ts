@@ -113,7 +113,7 @@ export class CoinbaseMarketDataProvider implements MarketDataProvider {
       const base = typeof product.base_currency === 'string' ? product.base_currency : symbol.split('-')[0]
       const quote = typeof product.quote_currency === 'string' ? product.quote_currency : symbol.split('-')[1]
       const increment = typeof product.quote_increment === 'string' && Number(product.quote_increment) > 0 ? Number(product.quote_increment) : fallback?.priceIncrement ?? .01
-      return [{ symbol, displaySymbol: `${base}/${quote}`, name: typeof product.display_name === 'string' ? product.display_name : `${base} / ${quote}`, assetClass: 'CRYPTO' as const, base, quote, exchange: 'Coinbase', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: increment, pricePrecision: fallback?.pricePrecision ?? Math.max(0, String(product.quote_increment ?? '').split('.')[1]?.length ?? 2), modes: ['HISTORICAL', 'REALTIME'] as Instrument['modes'] }]
+      return [{ symbol, displaySymbol: `${base}/${quote}`, name: typeof product.display_name === 'string' ? product.display_name : `${base} / ${quote}`, assetClass: 'CRYPTO' as const, base, quote, exchange: 'Coinbase', exchangeTimezone: 'UTC', provider: 'COINBASE', feed: 'PUBLIC', priceIncrement: increment, pricePrecision: fallback?.pricePrecision ?? Math.max(0, String(product.quote_increment ?? '').split('.')[1]?.length ?? 2), modes: ['HISTORICAL', 'REALTIME'] as Instrument['modes'] }]
     })
     const bySymbol = new Map(listed.map(item => [item.symbol, item] as const))
     const defaults = COINBASE_DEFAULT_SYMBOLS.map(symbol => bySymbol.get(symbol)).filter(Boolean) as Instrument[]
@@ -154,7 +154,7 @@ export class CoinbaseMarketDataProvider implements MarketDataProvider {
 
   subscribeCandles({ symbol, interval, seed }: { symbol: LiveSymbol; interval: Timeframe; seed?: MarketCandle }, subscription: CandleSubscription): () => void {
     if (this.accountId) return backendCoinbaseStream(this.accountId, symbol, interval, subscription, this.fetcher)
-    let disposed = false, opened = false, polling = false, delay = 1_000, socket: Socket | null = null, retry: ReturnType<typeof setTimeout> | null = null
+    let disposed = false, opened = false, liveConfirmed = false, polling = false, delay = 1_000, socket: Socket | null = null, retry: ReturnType<typeof setTimeout> | null = null
     let connectTimeout: ReturnType<typeof setTimeout> | null = null, pollTimer: ReturnType<typeof setTimeout> | null = null
     let current = seed?.symbol === symbol && seed.interval === interval ? { ...seed } : null
     const schedule = () => {
@@ -172,7 +172,7 @@ export class CoinbaseMarketDataProvider implements MarketDataProvider {
       } else if (openTime === current.openTime) {
         current = validMarketCandle({ ...current, high: String(Math.max(Number(current.high), Number(trade.price))), low: String(Math.min(Number(current.low), Number(trade.price))), close: trade.price, volume: String(Number(current.volume) + Number(trade.size)), closed: false }, symbol, interval)
       } else return
-      if (current) subscription.onCandle(current)
+      if (current) { subscription.onCandle(current); if (!liveConfirmed) { liveConfirmed = true; if (connectTimeout) clearTimeout(connectTimeout); connectTimeout = null; subscription.onStatus('LIVE') } }
     }
     const startPolling = () => {
       if (disposed || polling) return
@@ -200,13 +200,11 @@ export class CoinbaseMarketDataProvider implements MarketDataProvider {
       try { socket = this.socketFactory(this.streamBase) } catch { schedule(); return }
       connectTimeout = setTimeout(startPolling, STREAM_CONNECT_TIMEOUT_MS)
       socket.onopen = () => {
-        if (connectTimeout) clearTimeout(connectTimeout)
-        connectTimeout = null
         if (disposed || polling || !socket) return
         try { socket.send(JSON.stringify({ type: 'subscribe', product_ids: [symbol], channels: ['matches'] })) }
         catch { socket.close(); return }
         if (opened) subscription.onReconnect()
-        opened = true; delay = 1_000; subscription.onStatus('LIVE')
+        opened = true; liveConfirmed = false; delay = 1_000
       }
       socket.onmessage = event => {
         if (disposed || typeof event.data !== 'string') return

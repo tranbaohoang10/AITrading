@@ -169,7 +169,7 @@ describe('PB-006 private market UI (API contract mocks)', () => {
     fireEvent.click(screen.getByLabelText('Timeframe'))
     expect(screen.getByRole('button', { name: /15m Unavailable/ })).toBeDisabled()
     fireEvent.click(screen.getByRole('button', { name: /4h UTC/ }))
-    expect(screen.getByRole('img', { name: /25 candles in UTC/ })).toBeInTheDocument()
+    expect(await screen.findByRole('img', { name: /25 candles in UTC/ })).toBeInTheDocument()
     fireEvent.click(screen.getByLabelText('Chart type'))
     fireEvent.click(screen.getByRole('button', { name: 'Bars' }))
     expect(screen.getByRole('img', { name: /imported bars/ })).toBeInTheDocument()
