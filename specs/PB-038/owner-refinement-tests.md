@@ -156,3 +156,61 @@ blockers because no credentials or account entitlements are configured.
 Final local status: **IMPLEMENTATION COMPLETE — EXTERNAL CREDENTIALS REQUIRED**.
 Issue #39 remains OPEN because the Definition of Done requires genuine
 authenticated events for the three conditional providers before DONE/closure.
+
+## Chart interaction correction — 09/09/2026
+
+The Product Owner clarified from the supplied screenshots that Position Setup
+must remain an inline chart planning surface, Bar Replay must select its starting
+candle directly on the chart, and the realtime badge must not hide the current
+price. This correction preserves the existing Replay simulation workspace and
+provider adapters; it does not add broker execution or a new data source.
+
+### Delivered behavior
+
+- Position Setup opens below the chart rail button and exposes Long/Short, Entry,
+  Stop Loss %, Take Profit %, default capital and Account % or Lot/quantity sizing.
+  It calculates Entry/SL/TP/quantity/risk/reward and emits one visual position
+  drawing. It does not navigate to or create a Replay session.
+- Bar Replay launcher no longer contains Day/Month/calendar/coverage fields.
+  Selecting the toolbar action enters candle-selection mode on the active chart;
+  the selected candle receives a blue cut marker and candles to the right are
+  dimmed as unrevealed. The inline confirmation starts the existing Replay using
+  the selected candle as `from` and the latest loaded candle close as `to`.
+- Realtime status now renders only a compact colored dot and state label. First
+  tick, last tick, active candle and partial-candle details remain available in
+  the element `title` and accessible name.
+
+### Verification
+
+- Targeted Vitest: 4 files / 11 tests PASS.
+- Regression Vitest after updating the compact-status contract: 1 file / 17
+  tests PASS.
+- Full frontend Vitest: 56 files / 319 tests PASS.
+- ESLint: PASS. TypeScript + Vite build: PASS; the existing >500 kB chunk warning
+  remains informational. `npm audit --audit-level=high`: PASS, 0 vulnerabilities.
+- `git diff --check`: PASS.
+- Browser QA at `http://127.0.0.1:5173/`: Position Setup displayed all requested
+  fields and calculations; Replay selected a real visible BTC/USD candle, rendered
+  `Replay start`, exposed Start/choose/cancel controls and left the chart usable;
+  the toolbar showed compact `Live` beside the current price. Browser console had
+  zero warning/error entries after these interactions.
+
+### Provider/account handoff
+
+- Official registration/account pages were opened for Alpaca, OANDA, cTrader,
+  Twelve Data and Alpha Vantage, plus the official Binance public-data repository.
+- The Product Owner reported successful login to four provider sites. No password,
+  token or API key was read, copied, entered into the application or committed.
+- Coinbase and Binance public data require no account for the already implemented
+  public routes; Frankfurter remains no-key daily ECB reference data.
+- Alpaca, OANDA and cTrader remain the conditional runtime integrations because
+  their backend adapters are implemented and their credentials/entitlements are
+  required for authenticated browser evidence. Twelve Data remains RESEARCH_ONLY
+  for this human-visible chart under the audited individual-plan display terms;
+  Alpha Vantage remains rejected for active multi-chart use under its standard
+  free request limit and realtime entitlement constraints.
+
+Final status after this correction remains
+**IMPLEMENTATION COMPLETE — EXTERNAL CREDENTIALS REQUIRED**. Issue #39 stays OPEN
+until authorized backend environment credentials and real authenticated provider
+events are available; account login alone is not recorded as configured API access.

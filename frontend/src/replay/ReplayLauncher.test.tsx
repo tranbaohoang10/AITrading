@@ -1,26 +1,27 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { ReplayLauncher, replayRange } from './ReplayLauncher'
-import * as api from './api'
-vi.mock('./api', async original => ({ ...await original<typeof import('./api')>(), read: vi.fn() }))
-it('maps leap days and months to exclusive UTC boundaries and rejects invalid dates', () => {
-  expect(replayRange('DAY', '2024-02-29')).toEqual({ from: '2024-02-29T00:00:00Z', to: '2024-03-01T00:00:00Z' })
-  expect(replayRange('MONTH', '2024-02')).toEqual({ from: '2024-02-01T00:00:00Z', to: '2024-03-01T00:00:00Z' })
-  expect(replayRange('DAY', '2025-02-29')).toBeNull()
-})
-it('requires coverage, invalidates it on range edits and forwards the frozen identity', async () => {
-  vi.mocked(api.read).mockResolvedValue({ status: 'PARTIAL', verifiedFromUtc: '2025-01-01T00:00:00Z', verifiedThroughUtc: '2025-01-01T23:00:00Z' })
-  const launch = vi.fn()
-  render(<ReplayLauncher account="test" provider="COINBASE" symbol="BTC-USD" timeframe="1h" onLaunch={launch} />)
+import { fireEvent, render, screen } from '@testing-library/react'
+import { ReplayLauncher } from './ReplayLauncher'
+
+it('starts candle selection on the chart without calendar or coverage controls', () => {
+  const selectStart = vi.fn(), cancel = vi.fn()
+  render(<ReplayLauncher selecting={false} onSelectStart={selectStart} onCancel={cancel} />)
+
   fireEvent.click(screen.getByRole('button', { name: 'Open Bar Replay' }))
-  expect(screen.getByRole('button', { name: 'Start Replay' })).toBeDisabled()
-  fireEvent.change(screen.getByLabelText('Replay day'), { target: { value: '2025-01-01' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Check available history' }))
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Start Replay' })).toBeEnabled())
-  fireEvent.change(screen.getByLabelText('Replay day'), { target: { value: '2025-01-02' } })
-  expect(screen.getByRole('button', { name: 'Start Replay' })).toBeDisabled()
-  fireEvent.change(screen.getByLabelText('Replay day'), { target: { value: '2025-01-01' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Check available history' }))
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Start Replay' })).toBeEnabled())
-  fireEvent.click(screen.getByRole('button', { name: 'Start Replay' }))
-  expect(launch).toHaveBeenCalledWith(expect.objectContaining({ provider: 'COINBASE', instrument: 'BTC-USD', from: '2025-01-01T00:00:00Z', to: '2025-01-02T00:00:00Z' }))
+  expect(screen.getByText(/Choose the starting candle directly on the chart/)).toBeVisible()
+  expect(screen.queryByLabelText(/Replay day|Replay month/)).toBeNull()
+  expect(screen.queryByRole('button', { name: /Check available history/ })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: 'Select start on chart' }))
+  expect(selectStart).toHaveBeenCalledTimes(1)
+})
+
+it('shows an existing cut and lets the user choose again or cancel', () => {
+  const selectStart = vi.fn(), cancel = vi.fn()
+  render(<ReplayLauncher selecting selectedTime="2026-09-09T06:00:00.000Z" onSelectStart={selectStart} onCancel={cancel} />)
+
+  fireEvent.click(screen.getByRole('button', { name: 'Open Bar Replay' }))
+  expect(screen.getByText(/Selected:/)).toBeVisible()
+  fireEvent.click(screen.getByRole('button', { name: 'Choose another candle' }))
+  expect(selectStart).toHaveBeenCalledTimes(1)
+  fireEvent.click(screen.getByRole('button', { name: 'Open Bar Replay' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel Replay selection' }))
+  expect(cancel).toHaveBeenCalledTimes(1)
 })

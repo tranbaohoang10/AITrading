@@ -46,6 +46,19 @@ it('keeps both crosshair axis badges inside the SVG at the left and right edges'
   }
 })
 
+it('selects the Replay start candle and shades candles to its right', () => {
+  const selectTime = vi.fn(), items = Array.from({ length: 3 }, (_, ordinal) => ({ ordinal, time: new Date(Date.parse('2026-09-09T00:00:00Z') + ordinal * 3_600_000).toISOString(), open: '100', high: '110', low: '90', close: '105', volume: '1' }))
+  const view = render(<CandleChart page={{ dataset: { symbol: 'BTC-USD' }, items }} replaySelecting onSelectReplayTime={selectTime} />)
+  const chart = screen.getByRole('img', { name: /candlesticks/ })
+  vi.spyOn(chart, 'getBoundingClientRect').mockReturnValue({ x: 0, y: 0, top: 0, left: 0, bottom: 420, right: 900, width: 900, height: 420, toJSON: () => ({}) })
+  expect(chart.getAttribute('class')).toContain('cursor-col-resize')
+  fireEvent.pointerDown(chart, { button: 0, pointerId: 1, clientX: 417, clientY: 120 })
+  expect(selectTime).toHaveBeenCalledWith(items[1].time)
+
+  view.rerender(<CandleChart page={{ dataset: { symbol: 'BTC-USD' }, items }} replayCutTime={items[1].time} />)
+  expect(screen.getByTestId('replay-cut-overlay')).toHaveTextContent('Replay start')
+})
+
 it('uses verified Exchange timezone metadata and disables unknown Exchange choices', () => {
   const view = render(<ChartClock timezone="UTC" onChange={() => {}} />)
   fireEvent.click(screen.getByLabelText('Chart clock'))
