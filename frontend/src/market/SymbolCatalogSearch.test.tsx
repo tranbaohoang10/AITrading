@@ -29,6 +29,20 @@ it('discovers approved live instruments on later catalog pages', async () => {
   expect(searchPage).toHaveBeenCalledWith(expect.objectContaining({ cursor: 'next' }))
 })
 
+it('keeps All symbols from healthy providers when another live provider fails', async () => {
+  const searchPage = vi.fn(async ({ provider }: { provider: string }) => {
+    if (provider === 'ALPACA') throw new Error('ALPACA_AUTH_FAILED')
+    return { items: DEFAULT_INSTRUMENTS.filter(item => item.assetClass === 'CRYPTO'), nextCursor: null }
+  })
+  render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [
+    { providerId: 'COINBASE', displayName: 'Coinbase', assetClasses: ['CRYPTO'], realtime: true },
+    { providerId: 'ALPACA', displayName: 'Alpaca · IEX', assetClasses: ['STOCK', 'ETF'], realtime: true },
+  ], searchPage }} onSelect={() => {}} onClose={() => {}} />)
+  expect(await screen.findByText('Bitcoin / US Dollar')).toBeVisible()
+  expect(screen.getByText('Ethereum / US Dollar')).toBeVisible()
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+})
+
 it('renders approved stock and ETF icons without exposing provider or feed text in normal rows', async () => {
   const equities: Instrument[] = [
     { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'ALPACA:AAPL', symbol: 'AAPL', displaySymbol: 'AAPL', base: 'AAPL', quote: 'USD', name: 'Apple Inc.', assetClass: 'STOCK', provider: 'ALPACA', feed: 'IEX', modes: ['HISTORICAL', 'REALTIME'] },

@@ -48,8 +48,10 @@ export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider:
         } while (cursor)
         return { items, nextCursor: null }
       })
-      void Promise.all(requests).then(pages => {
+      void Promise.allSettled(requests).then(results => {
         if (controller.signal.aborted) return
+        const pages = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : [])
+        if (!pages.length) throw new Error('All provider catalogs failed')
         const catalog = canonicalCatalog(pages.flatMap(next => next.items))
         const items = catalog.flatMap(instrument => {
           const route = instrument.routes.find(item => item.modes.includes('REALTIME') && hasApprovedSymbolIcon(item) && (category === 'ALL' || String(item.assetClass) === category))
