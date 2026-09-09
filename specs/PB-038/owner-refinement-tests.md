@@ -149,11 +149,11 @@ blockers because no credentials or account entitlements are configured.
 
 | Provider | Required variable | Configured | What remains | QA enabled after supply |
 | --- | --- | --- | --- | --- |
-| Alpaca | `ALPACA_API_KEY_ID`, `ALPACA_API_SECRET_KEY` | NO | Authorized Market Data account and applicable IEX/display entitlement | Asset catalog, history, auth, actual AAPL/SPY trade events, candle update and reconnect |
+| Alpaca | `ALPACA_API_KEY_ID`, `ALPACA_API_SECRET_KEY` | YES via backend capability; provider auth failed | Restart patched backend with the same intended Paper credentials, then resolve any remaining provider auth/entitlement rejection | Asset catalog, history, auth, actual AAPL/SPY trade events, candle update and reconnect |
 | OANDA | `OANDA_API_TOKEN`, `OANDA_ACCOUNT_ID`, `OANDA_ENVIRONMENT` | NO | Authorized practice/live account whose actual catalog contains requested instruments and permits display | EURUSD/GBPUSD/USDJPY and available metals/oil history, pricing events, candle update and reconnect |
 | cTrader | `CTRADER_CLIENT_ID`, `CTRADER_CLIENT_SECRET`, `CTRADER_ACCESS_TOKEN`, `CTRADER_ACCOUNT_ID`, `CTRADER_ENVIRONMENT` | NO | Approved Open API app, OAuth token and authorized demo/live broker account | Broker catalog, trendbars, actual spot events, supported Forex/commodity candle update and reconnect |
 
-Final local status: **IMPLEMENTATION COMPLETE — EXTERNAL CREDENTIALS REQUIRED**.
+Final local status: **ALPACA BLOCKED_AUTH_FAILED; OTHER CONDITIONAL PROVIDERS REQUIRE EXTERNAL CREDENTIALS**.
 Issue #39 remains OPEN because the Definition of Done requires genuine
 authenticated events for the three conditional providers before DONE/closure.
 
@@ -210,7 +210,7 @@ provider adapters; it does not add broker execution or a new data source.
   Alpha Vantage remains rejected for active multi-chart use under its standard
   free request limit and realtime entitlement constraints.
 
-Final status after this correction remains
-**IMPLEMENTATION COMPLETE — EXTERNAL CREDENTIALS REQUIRED**. Issue #39 stays OPEN
-until authorized backend environment credentials and real authenticated provider
-events are available; account login alone is not recorded as configured API access.
+Final status after authenticated Alpaca QA is
+**ALPACA BLOCKED_AUTH_FAILED / PATCHED BACKEND RESTART REQUIRED**. Issue #39 stays
+OPEN until catalog/history, WebSocket authentication and genuine provider events
+are verified. See `test-evidence/alpaca-authenticated-qa-2026-09-09.md`.

@@ -12,7 +12,7 @@ import tools.jackson.databind.json.JsonMapper;
 @Service
 public class AlpacaMarketDataClient {
     private static final URI DATA=URI.create("https://data.alpaca.markets/v2");
-    private static final URI TRADING=URI.create("https://api.alpaca.markets/v2");
+    private static final URI TRADING=URI.create("https://paper-api.alpaca.markets/v2");
     private static final Duration ASSET_CACHE_TTL=Duration.ofMinutes(5);
     private final HttpClient http=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NEVER).build();
     private final String keyId,secretKey;
@@ -70,6 +70,7 @@ public class AlpacaMarketDataClient {
         try {
             HttpRequest request=HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(15)).header("APCA-API-KEY-ID",keyId).header("APCA-API-SECRET-KEY",secretKey).header("Accept","application/json").GET().build();
             HttpResponse<String> response=http.send(request,HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if(response.statusCode()==401||response.statusCode()==403)throw new AlpacaDataFailure("ALPACA_AUTH_FAILED",502);
             if(response.statusCode()==429)throw new AlpacaDataFailure("ALPACA_RATE_LIMIT",429);
             if(response.statusCode()<200||response.statusCode()>299)throw new AlpacaDataFailure("ALPACA_PROVIDER_UNAVAILABLE",502);
             if(response.body().length()>8_000_000)throw new AlpacaDataFailure("ALPACA_RESPONSE_TOO_LARGE",502);

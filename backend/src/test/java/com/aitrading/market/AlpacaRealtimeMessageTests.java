@@ -1,7 +1,10 @@
 package com.aitrading.market;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import org.mockito.ArgumentCaptor;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -23,5 +26,15 @@ class AlpacaRealtimeMessageTests {
         var provider=new AlpacaStreamProvider(new AlpacaMarketDataClient("key","secret"),mock(MarketCache.class));var hub=provider.new Hub("AAPL|1m","AAPL","1m",60);hub.clients.add(mock(SseEmitter.class));
         try{hub.reconnect();assertEquals(2000,hub.reconnectDelayMillis);hub.retry.cancel(false);hub.reconnect();assertEquals(4000,hub.reconnectDelayMillis);}
         finally{hub.clients.clear();hub.stop();provider.close();}
+    }
+    @Test void publishesAuthenticatedBeforeSubscribingForTrades(){
+        var provider=new AlpacaStreamProvider(new AlpacaMarketDataClient("key","secret"),mock(MarketCache.class));var hub=provider.new Hub("AAPL|1m","AAPL","1m",60);var emitter=mock(SseEmitter.class);hub.clients.add(emitter);var socket=mock(java.net.http.WebSocket.class);hub.socket=socket;
+        try{
+            hub.onText(socket,"[{\"T\":\"success\",\"msg\":\"authenticated\"}]",true);
+            assertTrue(hub.authenticated);assertEquals("AUTHENTICATED",hub.status);
+            var payload=ArgumentCaptor.forClass(CharSequence.class);verify(socket).sendText(payload.capture(),eq(true));
+            var json=tools.jackson.databind.json.JsonMapper.builder().build().readTree(payload.getValue().toString());
+            assertEquals("subscribe",json.path("action").asString());assertEquals("AAPL",json.path("trades").get(0).asString());
+        } finally { hub.clients.clear();hub.stop();provider.close(); }
     }
 }

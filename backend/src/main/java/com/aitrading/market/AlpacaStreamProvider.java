@@ -48,8 +48,8 @@ public class AlpacaStreamProvider implements MarketStreamProvider {
             synchronized(this){if(stopped||ws!=socket)return null;if(text.length()+data.length()>65536){text.setLength(0);ws.abort();reconnect();return null;}text.append(data);
                 if(last){String raw=text.toString();text.setLength(0);try{
                     var root=JSON.readTree(raw);if(root!=null&&root.isArray()&&root.size()<=1000)for(var event:root){
-                        if("success".equals(event.path("T").asString())&&"authenticated".equals(event.path("msg").asString())&&!authenticated){authenticated=true;reconnectDelayMillis=1000;if(watchdog!=null)watchdog.cancel(false);ws.sendText(JSON.writeValueAsString(Map.of("action","subscribe","trades",List.of(symbol))),true);}
-                        if("error".equals(event.path("T").asString()))throw new AlpacaDataFailure("ALPACA_STREAM_AUTH_FAILED",503);
+                        if("success".equals(event.path("T").asString())&&"authenticated".equals(event.path("msg").asString())&&!authenticated){authenticated=true;status="AUTHENTICATED";publish("status",Map.of("status",status,"provider","ALPACA"));reconnectDelayMillis=1000;if(watchdog!=null)watchdog.cancel(false);ws.sendText(JSON.writeValueAsString(Map.of("action","subscribe","trades",List.of(symbol))),true);}
+                        if("error".equals(event.path("T").asString())){status="AUTH_FAILED";publish("status",Map.of("status",status,"provider","ALPACA"));throw new AlpacaDataFailure("ALPACA_STREAM_AUTH_FAILED",503);}
                     }
                     for(var trade:AlpacaRealtimeMessage.trades(raw,symbol,Instant.now()))if(trade.id()>lastTrade){bar=MarketStreamService.aggregate(bar,trade.time(),trade.price(),trade.size(),seconds);lastTrade=trade.id();lastEvent=trade.time();reconnectDelayMillis=1000;status="LIVE";publish("candle",snapshot());cache();}
                 }catch(RuntimeException invalid){ws.abort();reconnect();}}

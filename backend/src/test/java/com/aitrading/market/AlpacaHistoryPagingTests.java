@@ -53,4 +53,18 @@ class AlpacaHistoryPagingTests {
         }
         assertThrows(AlpacaDataFailure.class,()->new AlpacaMarketDataClient("","").history("AAPL","1m",from,to));
     }
+    @Test void paperCatalogUsesPaperTradingHostAndMapsRejectedCredentials() throws Exception {
+        var requests=new ArrayList<HttpRequest>();
+        var client=client(List.of("[{\"symbol\":\"AAPL\",\"name\":\"Apple Inc.\",\"exchange\":\"NASDAQ\"}]"),requests);
+        assertEquals("AAPL",client.searchAssets("AAPL").getFirst().get("symbol"));
+        assertEquals("paper-api.alpaca.markets",requests.getFirst().uri().getHost());
+
+        var http=mock(HttpClient.class);var response=mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(401);when(response.body()).thenReturn("{}");
+        when(http.<String>send(any(HttpRequest.class),any(HttpResponse.BodyHandler.class))).thenReturn(response);
+        var rejected=new AlpacaMarketDataClient("synthetic-key","synthetic-secret");
+        ReflectionTestUtils.setField(rejected,"http",http);
+        var failure=assertThrows(AlpacaDataFailure.class,()->rejected.searchAssets("AAPL"));
+        assertEquals("ALPACA_AUTH_FAILED",failure.code());
+    }
 }

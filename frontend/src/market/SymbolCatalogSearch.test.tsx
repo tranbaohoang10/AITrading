@@ -29,6 +29,19 @@ it('discovers approved live instruments on later catalog pages', async () => {
   expect(searchPage).toHaveBeenCalledWith(expect.objectContaining({ cursor: 'next' }))
 })
 
+it('renders approved stock and ETF icons without exposing provider or feed text in normal rows', async () => {
+  const equities: Instrument[] = [
+    { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'ALPACA:AAPL', symbol: 'AAPL', displaySymbol: 'AAPL', base: 'AAPL', quote: 'USD', name: 'Apple Inc.', assetClass: 'STOCK', provider: 'ALPACA', feed: 'IEX', modes: ['HISTORICAL', 'REALTIME'] },
+    { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'ALPACA:NVDA', symbol: 'NVDA', displaySymbol: 'NVDA', base: 'NVDA', quote: 'USD', name: 'NVIDIA Corporation', assetClass: 'STOCK', provider: 'ALPACA', feed: 'IEX', modes: ['HISTORICAL', 'REALTIME'] },
+    { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'ALPACA:SPY', symbol: 'SPY', displaySymbol: 'SPY', base: 'SPY', quote: 'USD', name: 'SPDR S&P 500 ETF Trust', assetClass: 'ETF', provider: 'ALPACA', feed: 'IEX', modes: ['HISTORICAL', 'REALTIME'] },
+    { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'ALPACA:QQQ', symbol: 'QQQ', displaySymbol: 'QQQ', base: 'QQQ', quote: 'USD', name: 'Invesco QQQ Trust', assetClass: 'ETF', provider: 'ALPACA', feed: 'IEX', modes: ['HISTORICAL', 'REALTIME'] },
+  ]
+  const searchPage = vi.fn(async ({ assetClass }: { assetClass?: string }) => ({ items: equities.filter(item => !assetClass || item.assetClass === assetClass), nextCursor: null }))
+  render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [{ providerId: 'ALPACA', displayName: 'Alpaca · IEX', assetClasses: ['STOCK', 'ETF'], realtime: true }], searchPage }} onSelect={() => {}} onClose={() => {}} />)
+  for (const name of ['Apple Inc.', 'NVIDIA Corporation', 'SPDR S&P 500 ETF Trust', 'Invesco QQQ Trust']) expect(await screen.findByRole('img', { name: `${name} icon` })).toBeVisible()
+  expect(screen.queryByText(/Alpaca|IEX/)).not.toBeInTheDocument()
+})
+
 it('stops a repeated catalog cursor rather than looping requests', async () => {
   const searchPage = vi.fn(async () => ({ items: [], nextCursor: 'repeat' }))
   render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [{ providerId: 'COINBASE', displayName: 'Coinbase', assetClasses: ['CRYPTO'], realtime: true }], searchPage }} onSelect={() => {}} onClose={() => {}} />)
