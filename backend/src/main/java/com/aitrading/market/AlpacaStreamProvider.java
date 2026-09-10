@@ -122,7 +122,7 @@ public class AlpacaStreamProvider implements MarketStreamProvider,WebSocket.List
         volatile String status="CONNECTING";volatile MarketDataProvider.Candle bar;volatile Instant lastEvent;long lastTrade=-1,lastCacheWrite;
         Hub(String key,String symbol,String timeframe,int seconds){this.key=key;this.symbol=symbol;this.timeframe=timeframe;this.seconds=seconds;}
         synchronized Map<String,Object> snapshot(){return bar==null?null:Map.of("provider","ALPACA","symbol",symbol,"timeframe",timeframe,"candle",bar,"partial",true);}
-        synchronized void accept(AlpacaRealtimeMessage.Trade trade){if(trade.id()<=lastTrade)return;bar=MarketStreamService.aggregate(bar,trade.time(),trade.price(),trade.size(),seconds);lastTrade=trade.id();lastEvent=trade.time();publishStatus("LIVE");cache();}
+        synchronized void accept(AlpacaRealtimeMessage.Trade trade){if(trade.id()<=lastTrade)return;bar=MarketStreamService.aggregate(bar,trade.time(),trade.price(),trade.size(),seconds);lastTrade=trade.id();lastEvent=trade.time();publishStatus("LIVE");publish("candle",snapshot());cache();}
         void publishStatus(String next){status=next;publish("status",Map.of("status",next,"provider","ALPACA"));}
         void cache(){long now=System.nanoTime();if(bar!=null&&now-lastCacheWrite>TimeUnit.SECONDS.toNanos(1)){lastCacheWrite=now;cache.store(MarketCache.key("bar","ALPACA",key),JSON.writeValueAsString(snapshot()),Duration.ofMinutes(5));}}
         void publish(String event,Object value){for(var emitter:clients)send(emitter,event,value);}

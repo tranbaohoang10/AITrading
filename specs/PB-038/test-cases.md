@@ -243,6 +243,17 @@ evidence in `owner-refinement-tests.md`.
 | Dependency/security | PASS | Production npm audit found 0 vulnerabilities; `git diff --check` PASS; no provider secret was read, logged or added |
 | Remaining Issue #39 condition | BLOCKED_MARKET_CLOSED | Official Alpaca session was closed, so no actual IEX trade-to-CandleChart update was fabricated or marked PASS |
 
+## 10/09/2026 — Alpaca market-open CandleChart and Redis follow-up
+
+| Scope | Result | Evidence |
+| --- | --- | --- |
+| Root cause | PASS | Backend had aggregated and cached real Alpaca trades but omitted the SSE `candle` publish, leaving the browser at `Connected`. |
+| AAPL/NVDA/SPY/QQQ live events | PASS | Market-open browser QA received actual IEX provider ticks for all four symbols; each changed OHLC/current price/volume and reached `Live`. |
+| Redis current bar | PASS | All four tested symbol/timeframe identities produced an ALPACA current-bar key with a valid five-minute-class TTL; no cached history was treated as a tick. |
+| Symbol switching and cleanup | PASS | NVDA → SPY → QQQ → AAPL produced only the selected symbol's candles; existing unit coverage verifies last-hub unsubscribe and socket cleanup. |
+| Regression verification | PASS | Focused backend 8/8; full backend 49 suites/354 tests with 0 failures/errors and 3 environment-dependent Redis skips; full frontend 57 files/336 tests; lint/build/audit PASS. |
+| Issue #39 condition | PASS | The previously blocked requirement is now satisfied by real provider events updating CandleChart during an open US session. |
+
 ## 10/09/2026 — Symbol Search loading-state follow-up
 
 | Scope | Result | Evidence |

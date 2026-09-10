@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -47,6 +48,14 @@ class AlpacaRealtimeMessageTests {
         try{
             provider.onText(socket,raw,true);var firstAapl=aapl.bar;var firstNvda=nvda.bar;assertNotNull(firstAapl);assertNotNull(firstNvda);assertEquals("230.25",firstAapl.close().toPlainString());assertEquals("180.5",firstNvda.close().toPlainString());assertEquals("LIVE",aapl.status);assertEquals("LIVE",nvda.status);
             provider.onText(socket,raw,true);assertEquals(firstAapl,aapl.bar);assertEquals(firstNvda,nvda.bar);
+        } finally { provider.close(); }
+    }
+    @Test void publishesEachAcceptedTradeAsAnSseCandle() throws Exception {
+        var cache=mock(MarketCache.class);var provider=new AlpacaStreamProvider(new AlpacaMarketDataClient("key","secret"),cache);var hub=provider.new Hub("NVDA|30m","NVDA","30m",1800);var emitter=mock(SseEmitter.class);hub.clients.add(emitter);
+        try{
+            hub.accept(new AlpacaRealtimeMessage.Trade("NVDA",84,Instant.parse("2026-09-10T13:35:03Z"),new java.math.BigDecimal("218.44"),new java.math.BigDecimal("34")));
+            assertNotNull(hub.bar);assertEquals("LIVE",hub.status);verify(emitter,times(2)).send(org.mockito.ArgumentMatchers.any(SseEmitter.SseEventBuilder.class));
+            verify(cache).store(eq(MarketCache.key("bar","ALPACA","NVDA|30m")),org.mockito.ArgumentMatchers.contains("\"provider\":\"ALPACA\""),eq(java.time.Duration.ofMinutes(5)));
         } finally { provider.close(); }
     }
     @Test void unsubscribesOnlyAfterTheLastTimeframeHubForASymbolIsRemoved() throws Exception {

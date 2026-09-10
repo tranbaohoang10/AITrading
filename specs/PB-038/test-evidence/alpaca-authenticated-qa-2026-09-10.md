@@ -1,7 +1,8 @@
 # PB-038 — Alpaca authenticated QA — 10/09/2026
 
-Status: **BLOCKED_MARKET_CLOSED**. Issue #39 remains open. Code under test was
-committed as `8aeb07588d1042612ed4c74979d4b4080f0492db` on `main`. No API key, secret, session token, request
+Status: **PASS** after the market-open follow-up below. The initial closed-market
+audit tested commit `8aeb07588d1042612ed4c74979d4b4080f0492db` on `main`; the follow-up tests the
+current PB-038 fix that publishes accepted Alpaca trades to CandleChart. No API key, secret, session token, request
 authentication header or raw account response is present in this evidence.
 
 ## Runtime and credential safety
@@ -150,15 +151,55 @@ Historical result: **48/48 PASS; 8/8 symbols PASS**.
 
 | Symbol | Catalog | Icon | Historical | WS Auth | Live Event | Candle Update | Result |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| AAPL | PASS | PASS | PASS 6/6; browser PASS | PASS | BLOCKED_MARKET_CLOSED | BLOCKED_MARKET_CLOSED | BLOCKED_MARKET_CLOSED |
-| NVDA | PASS | PASS | PASS 6/6; browser PASS | PASS shared IEX | BLOCKED_MARKET_CLOSED | BLOCKED_MARKET_CLOSED | BLOCKED_MARKET_CLOSED |
-| SPY | PASS | PASS | PASS 6/6; browser PASS | PASS shared IEX | BLOCKED_MARKET_CLOSED | BLOCKED_MARKET_CLOSED | BLOCKED_MARKET_CLOSED |
-| QQQ | PASS | PASS | PASS 6/6; browser PASS | PASS shared IEX | BLOCKED_MARKET_CLOSED | BLOCKED_MARKET_CLOSED | BLOCKED_MARKET_CLOSED |
+| AAPL | PASS | PASS | PASS 6/6; browser PASS | PASS | PASS | PASS | PASS |
+| NVDA | PASS | PASS | PASS 6/6; browser PASS | PASS shared IEX | PASS | PASS | PASS |
+| SPY | PASS | PASS | PASS 6/6; browser PASS | PASS shared IEX | PASS | PASS | PASS |
+| QQQ | PASS | PASS | PASS 6/6; browser PASS | PASS shared IEX | PASS | PASS | PASS |
 
 ## Final result
 
 - Credential, account, catalog, Stocks, ETFs, 48-case historical, realtime auth,
   reconnect, browser, icons, backend tests, frontend tests, lint and build: PASS.
-- Actual realtime event and realtime candle update: **BLOCKED_MARKET_CLOSED**.
-- Global result: **BLOCKED**, not PASS. Issue #39 must remain open until a real
-  provider trade updates CandleChart during an open market session.
+- Actual realtime event and realtime candle update: **PASS** in the market-open
+  follow-up below.
+- Global result: **PASS** for the requested authenticated Alpaca PB-038 scope.
+
+## Market-open follow-up — 10/09/2026 21:01–21:15 Asia/Ho_Chi_Minh
+
+- Root cause: `AlpacaStreamProvider.Hub.accept()` aggregated each real trade,
+  published `LIVE`, and stored the current bar in Redis, but did not publish the
+  SSE `candle` event. The browser therefore remained at `Connected` even though
+  Redis already contained the current NVDA bar.
+- Fix: each accepted, deduplicated provider trade now publishes the current
+  partial candle to all matching SSE clients before storing the same snapshot in
+  Redis. No history polling or mock event is used.
+- The repository-owned backend lifecycle manager restarted from the rebuilt JAR,
+  preserving its database and configured environment. Health returned `UP`.
+- Browser Symbol Search retained correct local icons and did not expose Alpaca or
+  IEX in normal AAPL, NVDA, SPY or QQQ rows.
+- Browser actual-provider observations:
+
+| Symbol | Browser timeframe | First provider tick UTC | Later provider tick UTC | Observed current price | Candle/volume update | Result |
+| --- | --- | --- | --- | ---: | --- | --- |
+| AAPL | 30m | 14:06:04 | 14:06:15 | 319.71 | OHLC updated; volume 1.37K | PASS |
+| NVDA | 1m | 14:03:23 | 14:03:27 | 218.21 | OHLC updated; volume 649 | PASS |
+| SPY | 30m | 14:04:33 | 14:04:43 | 757.41 | OHLC updated; volume 634 | PASS |
+| QQQ | 30m | 14:04:59 | 14:05:40 | 708.89 | OHLC updated; volume 322 | PASS |
+
+- Redis current-bar keys for `AAPL|30m`, `NVDA|1m`, `SPY|30m` and `QQQ|30m`
+  all existed after their browser provider events. Observed TTLs were between 82
+  and 299 seconds and payload lengths were 178–179 bytes; values and credentials
+  were not printed.
+- Symbol switching exercised unsubscribe/cleanup by moving NVDA → SPY → QQQ →
+  AAPL. Each new symbol received only its own candle and reached `Live`; no stale
+  previous-symbol candle appeared.
+- Focused backend regression: 8 tests, 0 failed/error/skipped. The new regression
+  requires an accepted trade to produce both SSE status and candle sends and a
+  five-minute Redis current-bar write.
+- Full backend: 49 suites, 354 tests, 0 failed/error, 3 Redis integration tests
+  skipped because the canonical disposable PostgreSQL command did not start an
+  owned Redis instance; `bootJar` and dependency inventory PASS. The already
+  running Redis relay was independently verified above.
+- Full frontend: 57 files, 336 tests PASS; ESLint, production build and production
+  dependency audit PASS with zero vulnerabilities. Existing bundle-size warning
+  only.
