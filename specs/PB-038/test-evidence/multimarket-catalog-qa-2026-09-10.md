@@ -82,7 +82,7 @@ session token, account identifier or provider authentication header.
 
 ## Verification
 
-- Focused frontend catalog/icon tests: 17/17 PASS.
+- Focused frontend catalog/icon tests: 18/18 PASS.
 - `python scripts/test_backend.py`: PASS, Gradle `BUILD SUCCESSFUL` in 5m02s.
 - `npm run lint`: PASS.
 - `npm run build`: PASS; existing chunk-size warning only.
