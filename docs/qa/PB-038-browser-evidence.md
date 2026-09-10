@@ -68,3 +68,13 @@ the server remained fail-closed without `ALPACA_API_KEY_ID` and
   tooltip states that realtime resumes only on a provider trade. No mock,
   historical replay or polling event was counted as realtime. Browser logs had no
   runtime error/warning; Vite emitted development-only HMR debug messages.
+
+## Follow-up evidence — 10/09/2026 catalog loading state
+
+- Browser automation caught a short false `No live instruments available.` frame
+  while provider capabilities were still pending. The dialog now retains its
+  loading state until capability discovery has either succeeded or failed.
+- The same authenticated browser session then showed the balanced All catalog in
+  the expected Crypto, Stock, ETF, Forex and Commodity rotation. Selecting SPY
+  loaded 300 actual historical candles; the transient connected state settled to
+  the official `Market closed` state and was not counted as a live provider event.

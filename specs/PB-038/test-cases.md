@@ -242,3 +242,13 @@ evidence in `owner-refinement-tests.md`.
 | Full backend and Redis | PASS | 49 suites / 353 tests; 0 failure, 0 error, 0 skipped; bootJar and dependency inventory PASS |
 | Dependency/security | PASS | Production npm audit found 0 vulnerabilities; `git diff --check` PASS; no provider secret was read, logged or added |
 | Remaining Issue #39 condition | BLOCKED_MARKET_CLOSED | Official Alpaca session was closed, so no actual IEX trade-to-CandleChart update was fabricated or marked PASS |
+
+## 10/09/2026 — Symbol Search loading-state follow-up
+
+| Scope | Result | Evidence |
+| --- | --- | --- |
+| Initial catalog state | PASS | Symbol Search now retains `Loading market symbols…` until provider capabilities resolve instead of briefly rendering the false empty state `No live instruments available.` |
+| Browser catalog | PASS | Authenticated browser loaded the balanced All sequence across Crypto, Stock, ETF, Forex and Commodity; SPY selection loaded 300 real historical candles and then settled on truthful `Market closed`. |
+| Focused regression | PASS | Component regression holds the capabilities promise pending, verifies loading remains visible, then verifies the provider-backed BTC row appears after resolution. |
+| Frontend verification | PASS | 57 files / 334 tests; lint, production build and high-severity npm audit all exited 0. The build emitted only the existing bundle-size warning. |
+| Remaining Issue #39 condition | BLOCKED_MARKET_CLOSED | No actual Alpaca IEX trade event was available during the closed session; realtime PASS remains intentionally unclaimed. |

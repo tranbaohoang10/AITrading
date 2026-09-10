@@ -96,18 +96,23 @@ function emptyState(category: Category, sources: CatalogProvider[]): string {
 export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider: Pick<MarketDataProvider, 'searchPage' | 'catalogProviders'>; onSelect: (instrument: Instrument) => void; onClose: () => void }) {
   const [sources, setSources] = useState<CatalogProvider[]>([]), [query, setQuery] = useState(''), [category, setCategory] = useState<Category>('ALL')
   const [page, setPage] = useState<CatalogPage>({ items: [], nextCursor: null }), [busy, setBusy] = useState(true), [error, setError] = useState(''), [retry, setRetry] = useState(0)
+  const [sourceState, setSourceState] = useState<'LOADING' | 'READY' | 'ERROR'>('LOADING')
   const dialog = useRef<HTMLDivElement>(null), previousFocus = useRef(document.activeElement)
   const activeSources = useMemo(() => sources.filter(source => category === 'ALL' || source.assetClasses.some(assetClass => normalizedClass(assetClass) === category)), [category, sources])
   const searchableSources = useMemo(() => activeSources.filter(source => source.configured !== false && (source.realtime || source.providerId === 'FRANKFURTER' && Boolean(source.historical || source.delayed || source.eod))), [activeSources])
 
   useEffect(() => {
     const controller = new AbortController()
-    void provider.catalogProviders?.(controller.signal).then(items => { if (!controller.signal.aborted) setSources(items) }).catch(() => { if (!controller.signal.aborted) setError('Live symbols are temporarily unavailable. Retry.') }).finally(() => { if (!controller.signal.aborted) setBusy(false) })
+    setSourceState('LOADING'); setBusy(true); setError('')
+    if (!provider.catalogProviders) { setSources([]); setSourceState('READY'); setBusy(false); return () => controller.abort() }
+    void provider.catalogProviders(controller.signal).then(items => { if (!controller.signal.aborted) { setSources(items); setSourceState('READY') } }).catch(() => { if (!controller.signal.aborted) { setSourceState('ERROR'); setError('Live symbols are temporarily unavailable. Retry.'); setBusy(false) } })
     return () => controller.abort()
   }, [provider, retry])
   useEffect(() => () => { (previousFocus.current as HTMLElement | null)?.focus() }, [])
 
   useEffect(() => {
+    if (sourceState === 'LOADING') return
+    if (sourceState === 'ERROR') { setPage({ items: [], nextCursor: null }); setBusy(false); return }
     if (!searchableSources.length) { setPage({ items: [], nextCursor: null }); setBusy(false); setError(''); return }
     const controller = new AbortController(); let disposed = false; setBusy(true); setError(''); setPage({ items: [], nextCursor: null })
     const requestTimeout = setTimeout(() => controller.abort('timeout'), SYMBOL_CATALOG_TIMEOUT_MS)
@@ -128,7 +133,7 @@ export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider:
       }).catch(() => { if (!disposed) setError(controller.signal.aborted ? 'Symbol catalog request timed out. Retry.' : 'Live symbols are temporarily unavailable. Retry.') }).finally(() => { if (!disposed) { clearTimeout(requestTimeout); setBusy(false) } })
     }, 250)
     return () => { disposed = true; clearTimeout(timer); clearTimeout(requestTimeout); controller.abort() }
-  }, [category, provider, query, retry, searchableSources])
+  }, [category, provider, query, searchableSources, sourceState])
 
   const normalizedQuery = query.trim().toLowerCase().replace(/[-/\s_]/g, '')
   const visibleItems = useMemo(() => page.items.filter(item => !normalizedQuery || `${item.symbol} ${item.displaySymbol ?? ''} ${item.name} ${item.base ?? ''} ${item.quote ?? ''}`.toLowerCase().replace(/[-/\s_]/g, '').includes(normalizedQuery)), [normalizedQuery, page.items])

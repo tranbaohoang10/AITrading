@@ -5,6 +5,17 @@ import type { CatalogProvider } from './providerCatalog'
 
 const coinbase: CatalogProvider = { providerId: 'COINBASE', displayName: 'Coinbase', assetClasses: ['CRYPTO'], configured: true, historical: true, realtime: true, delayed: false, eod: false }
 
+it('keeps the loading state until provider capabilities resolve', async () => {
+  let resolveSources!: (sources: CatalogProvider[]) => void
+  const catalogProviders = vi.fn(() => new Promise<CatalogProvider[]>(resolve => { resolveSources = resolve }))
+  const searchPage = vi.fn(async () => ({ items: [DEFAULT_INSTRUMENTS[0]], nextCursor: null }))
+  render(<SymbolCatalogSearch provider={{ catalogProviders, searchPage }} onSelect={() => {}} onClose={() => {}} />)
+  expect(screen.getByText('Loading market symbols…')).toBeVisible()
+  expect(screen.queryByText('No live instruments available.')).not.toBeInTheDocument()
+  await act(async () => { resolveSources([coinbase]) })
+  expect(await screen.findByText('Bitcoin / US Dollar')).toBeVisible()
+})
+
 it('uses trader categories, keeps the category bar visible and curates empty-query crypto', async () => {
   const historicalOnly = { ...DEFAULT_INSTRUMENTS[1], symbol: 'BTC-USDT', displaySymbol: 'BTC/USDT', provider: 'BINANCE', modes: ['HISTORICAL'] as Instrument['modes'] }
   const noApprovedIcon = { ...DEFAULT_INSTRUMENTS[4], base: 'UNKNOWN', symbol: 'UNKNOWN-USD', displaySymbol: 'UNKNOWN/USD' }
