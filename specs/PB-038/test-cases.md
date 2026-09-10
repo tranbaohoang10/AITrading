@@ -252,3 +252,16 @@ evidence in `owner-refinement-tests.md`.
 | Focused regression | PASS | Component regression holds the capabilities promise pending, verifies loading remains visible, then verifies the provider-backed BTC row appears after resolution. |
 | Frontend verification | PASS | 57 files / 334 tests; lint, production build and high-severity npm audit all exited 0. The build emitted only the existing bundle-size warning. |
 | Remaining Issue #39 condition | BLOCKED_MARKET_CLOSED | No actual Alpaca IEX trade event was available during the closed session; realtime PASS remains intentionally unclaimed. |
+
+## 10/09/2026 — Idle session and Symbol Search recovery
+
+| Scope | Result | Evidence |
+| --- | --- | --- |
+| Backend lifetime | PASS | Java API, Vite and Redis remained alive; `/api/health` returned `UP`. The disappearing symbol list was not caused by a backend shutdown. |
+| Root cause | PASS | The authenticated Spring Session intentionally expires after 30 idle minutes. The stale React account previously remained visible while catalog requests received HTTP 401. |
+| Visible activity | PASS | Foreground pointer/keyboard activity revalidates the session at most once per 10 minutes, preserving the sliding session without an unconditional background keepalive. |
+| Resume and 401 handling | PASS | Focus, online and visible-tab resume force a session check. An expired session or any authenticated market HTTP 401 clears the stale account and returns to Sign in instead of showing an empty Symbol Search. |
+| Focused regression | PASS | Authentication, market-provider and Symbol Search suites: 3 files / 34 tests. Market account binding and 401 fail-closed behavior remain covered. |
+| Browser recovery | PASS | The already-expired QA session immediately rendered Sign in after HMR; the obsolete workspace and empty Symbol Search were removed. |
+| Full frontend | PASS | 57 files / 336 tests with one worker; lint, production build and high-severity npm audit exited 0. Existing bundle-size warning only. |
+| Remaining Issue #39 condition | BLOCKED_MARKET_CLOSED | This recovery does not claim the still-unobserved Alpaca IEX trade-to-candle event. |

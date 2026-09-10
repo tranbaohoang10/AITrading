@@ -12,3 +12,10 @@ it('binds Forex and equity requests to the account that created the provider', a
   await first.getHistoricalCandles({ symbol: 'AAPL', interval: '1d', limit: 10 })
   expect(fetcher.mock.calls.map(([, options]) => new Headers(options.headers).get('X-Workspace-User'))).toEqual([firstId, secondId, firstId])
 })
+
+it('notifies the authenticated shell when a market request finds an expired session', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 401, headers: { 'Content-Type': 'application/json' } })))
+  const expired = vi.fn(), provider = createMarketDataProvider('00000000-0000-4000-8000-000000000001', expired)
+  await expect(provider.catalogProviders?.()).rejects.toThrow('Provider catalog unavailable')
+  expect(expired).toHaveBeenCalledTimes(1)
+})

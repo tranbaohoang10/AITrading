@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { AuthenticatedApp } from './AuthenticatedApp'
+import { AuthenticatedApp, SESSION_REVALIDATE_MS } from './AuthenticatedApp'
 import { AuthForm } from './AuthForm'
 import { AccountView } from './AccountView'
 import { AuthContext } from './AuthContext'
@@ -66,6 +66,28 @@ describe('PB-003 real entrypoint auth boundary (API contract mocks)', () => {
   it('does not accept a malformed profile as an authenticated user', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(200, { email: 'a@example.test' })))
     await expect(currentUser()).rejects.toThrow('invalid account response')
+  })
+
+  it('revalidates throttled user activity and returns to sign in after expiry on resume', async () => {
+    vi.useFakeTimers()
+    let checks = 0, expired = false
+    const network = vi.fn(async (path: string) => {
+      if (path === '/api/auth/me') { checks += 1; return response(expired ? 401 : 200, user) }
+      if (path === '/api/market/providers/capabilities') return response(200, { items: [] })
+      return response(200, [])
+    })
+    vi.stubGlobal('fetch', network)
+    try {
+      render(<AuthenticatedApp />)
+      await act(async () => { await Promise.resolve() })
+      expect(screen.getByTestId('chart-view')).toBeInTheDocument()
+      await act(async () => { await vi.advanceTimersByTimeAsync(SESSION_REVALIDATE_MS); window.dispatchEvent(new Event('pointerdown')); await Promise.resolve() })
+      expect(checks).toBe(2)
+      expired = true
+      await act(async () => { window.dispatchEvent(new Event('focus')); await Promise.resolve() })
+      expect(screen.getByRole('heading', { name: 'Sign in' })).toBeInTheDocument()
+      expect(checks).toBe(3)
+    } finally { vi.useRealTimers() }
   })
 })
 

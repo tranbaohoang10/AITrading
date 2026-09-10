@@ -78,3 +78,17 @@ the server remained fail-closed without `ALPACA_API_KEY_ID` and
   the expected Crypto, Stock, ETF, Forex and Commodity rotation. Selecting SPY
   loaded 300 actual historical candles; the transient connected state settled to
   the official `Market closed` state and was not counted as a live provider event.
+
+## Follow-up evidence — 10/09/2026 idle-session recovery
+
+- Java API, Vite and Redis were still running and the API health endpoint returned
+  `UP`. Backend logs showed the 30-minute asynchronous stream timeout, while the
+  configured authenticated session also retained its intentional 30-minute idle
+  expiry. The backend process had not shut down.
+- The frontend now revalidates foreground user activity with a ten-minute
+  throttle, and forces revalidation when the tab becomes visible, receives focus
+  or returns online. It does not run an unconditional hidden-tab keepalive.
+- Any authenticated market response with HTTP 401 now clears the stale account.
+  Browser QA with the already-expired local session rendered Sign in immediately
+  after HMR instead of leaving an obsolete chart shell whose Symbol Search became
+  empty.

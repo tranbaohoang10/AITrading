@@ -8,12 +8,14 @@ import { DEFAULT_INSTRUMENTS, FRANKFURTER_DEFAULT_SYMBOLS, type Instrument, type
 
 const isForex = (symbol: LiveSymbol) => (FRANKFURTER_DEFAULT_SYMBOLS as readonly string[]).includes(symbol)
 const isCrypto = (symbol: LiveSymbol) => !isForex(symbol) && symbol.includes('-')
-export function createMarketDataProvider(accountId?: string): MarketDataProvider {
+export function createMarketDataProvider(accountId?: string, onUnauthorized?: () => void): MarketDataProvider {
   const coinbase = accountId ? coinbaseMarketDataFor(accountId) : coinbaseMarketData
-  const ownerFetch: typeof fetch = (input, options = {}) => {
+  const ownerFetch: typeof fetch = async (input, options = {}) => {
     const headers = new Headers(options.headers)
     workspaceHeaders(accountId).forEach((value, name) => headers.set(name, value))
-    return globalThis.fetch(input, { ...options, headers })
+    const response = await globalThis.fetch(input, { ...options, headers })
+    if (response.status === 401) onUnauthorized?.()
+    return response
   }
   const forex = accountId ? new FrankfurterMarketDataProvider(ownerFetch) : frankfurterMarketData
   const stocks = accountId ? new AlpacaMarketDataProvider(ownerFetch, accountId) : alpacaMarketData
