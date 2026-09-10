@@ -20,10 +20,8 @@ export class AlpacaMarketDataProvider implements MarketDataProvider {
   async listProducts(signal?: AbortSignal): Promise<LiveSymbol[]> { return (await this.listInstruments(signal)).map(item => item.symbol) }
   subscribeCandles(request: { symbol: LiveSymbol; interval: Timeframe; seed?: MarketCandle }, subscription: { onCandle: (candle: MarketCandle) => void; onStatus: (status: LiveConnectionStatus) => void; onReconnect: () => void }): () => void {
     if (this.accountId) return backendProviderStream(this.accountId, 'ALPACA', request.symbol, request.interval, subscription, this.fetcher)
-    let active = true
-    const poll = async () => { try { const values = await this.getHistoricalCandles({ symbol: request.symbol, interval: request.interval, limit: 1 }); if (active && values[0]) subscription.onCandle(values[0]) } catch { if (active) subscription.onStatus('DISCONNECTED') } }
-    subscription.onStatus('DELAYED'); const timer = window.setInterval(() => void poll(), 30_000)
-    return () => { active = false; window.clearInterval(timer) }
+    subscription.onStatus('DISCONNECTED')
+    return () => {}
   }
   private async json<T>(url: string, signal?: AbortSignal): Promise<T> {
     const response = await this.fetcher(url, { credentials: 'same-origin', headers: { Accept: 'application/json' }, signal })

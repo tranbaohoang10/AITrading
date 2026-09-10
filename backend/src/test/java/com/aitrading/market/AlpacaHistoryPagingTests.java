@@ -38,6 +38,11 @@ class AlpacaHistoryPagingTests {
         }
         assertTrue(requests.getLast().uri().getRawQuery().contains("page_token=token%2B%2F%3D"));
     }
+    @Test void latestCandlesUseBoundedRangeAndDescendingRawIexBars() throws Exception {
+        var requests=new ArrayList<HttpRequest>();var client=client(List.of("{\"bars\":["+bar(0,101)+"],\"next_page_token\":null}"),requests);
+        var now=Instant.parse("2025-01-08T00:00:00Z");var result=client.candles("AAPL","1m",300,null,now);
+        assertEquals(1,result.size());var query=requests.getFirst().uri().getRawQuery();assertTrue(query.contains("feed=iex&adjustment=raw&sort=desc"));assertTrue(query.contains("start=2025-01-01T00%3A00%3A00Z"));assertTrue(query.contains("end=2025-01-08T00%3A00%3A00Z"));
+    }
     @Test void rejectsTokenCyclesAndConflictingHistoricalBoundaries() throws Exception {
         for(var pages:List.of(
                 List.of("{\"bars\":[],\"next_page_token\":\"cycle\"}","{\"bars\":[],\"next_page_token\":\"cycle\"}"),

@@ -1,7 +1,7 @@
 import { canonicalCatalog } from './canonicalCatalog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { hasApprovedSymbolIcon, SymbolIcon } from '../components/SymbolIcon'
+import { approvedEquityIconBases, hasApprovedSymbolIcon, SymbolIcon } from '../components/SymbolIcon'
 import type { Instrument, MarketDataProvider } from './liveMarket'
 import type { CatalogPage, CatalogProvider } from './providerCatalog'
 
@@ -34,19 +34,11 @@ export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider:
     if (!activeSources.length) { setPage({ items: [], nextCursor: null }); setBusy(false); setError(''); return }
     const controller = new AbortController(); setBusy(true); setError(''); setPage({ items: [], nextCursor: null })
     const timer = setTimeout(() => {
-      const requests = activeSources.map(async source => {
-        const items: Instrument[] = [], cursors = new Set<string>()
-        let cursor: string | undefined
-        do {
-          const next = await provider.searchPage?.({ provider: source.providerId, query: '', assetClass: category === 'ALL' ? '' : category, cursor, signal: controller.signal })
-          if (!next || controller.signal.aborted) break
-          items.push(...next.items)
-          if (next.nextCursor && cursors.has(next.nextCursor)) throw new Error('Repeated catalog cursor')
-          cursor = next.nextCursor ?? undefined
-          if (cursor) cursors.add(cursor)
-          if (cursors.size >= 400) throw new Error('Catalog limit exceeded')
-        } while (cursor)
-        return { items, nextCursor: null }
+      const compactQuery = query.trim().toLowerCase().replace(/[-/\s_]/g, '')
+      const serverQuery = (compactQuery.endsWith('usd') && compactQuery.length > 3 ? compactQuery.slice(0, -3).toUpperCase() : query.trim()).slice(0, 64)
+      const requests = activeSources.flatMap(source => {
+        const queries = serverQuery ? [serverQuery] : source.providerId === 'ALPACA' ? approvedEquityIconBases : ['']
+        return queries.map(async featuredQuery => await provider.searchPage?.({ provider: source.providerId, query: featuredQuery, assetClass: category === 'ALL' ? '' : category, signal: controller.signal }) ?? { items: [], nextCursor: null })
       })
       void Promise.allSettled(requests).then(results => {
         if (controller.signal.aborted) return
@@ -61,7 +53,7 @@ export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider:
       }).catch(() => { if (!controller.signal.aborted) setError('Live symbols are temporarily unavailable. Retry.') }).finally(() => { if (!controller.signal.aborted) setBusy(false) })
     }, 250)
     return () => { clearTimeout(timer); controller.abort() }
-  }, [activeSources, category, provider, retry])
+  }, [activeSources, category, provider, query, retry])
 
   const normalizedQuery = query.trim().toLowerCase().replace(/[-/\s_]/g, '')
   const visibleItems = useMemo(() => page.items.filter(item => !normalizedQuery || `${item.symbol} ${item.displaySymbol ?? ''} ${item.name} ${item.base ?? ''} ${item.quote ?? ''}`.toLowerCase().replace(/[-/\s_]/g, '').includes(normalizedQuery)), [normalizedQuery, page.items])

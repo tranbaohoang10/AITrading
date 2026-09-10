@@ -5,6 +5,7 @@ export const approvedCryptoIconBases = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE
 const localIcons = new Set<string>(approvedCryptoIconBases)
 const commodityIcons: Record<string, string> = { XAU: 'gold', XAG: 'silver', USOIL: 'oil' }
 const equityIcons: Record<string, string> = { AAPL: 'apple', NVDA: 'nvidia', MSFT: 'microsoft', TSLA: 'tesla', AMZN: 'amazon', META: 'meta', GOOGL: 'google', GOOG: 'google', AMD: 'amd', SPY: 'spy', QQQ: 'qqq', IWM: 'iwm', DIA: 'dia' }
+export const approvedEquityIconBases = Object.freeze(Object.keys(equityIcons))
 const flags: Record<string, string> = { AUD: '🇦🇺', CAD: '🇨🇦', CHF: '🇨🇭', EUR: '🇪🇺', GBP: '🇬🇧', JPY: '🇯🇵', NZD: '🇳🇿', USD: '🇺🇸' }
 const instrumentBase = (instrument: Pick<Instrument, 'symbol' | 'base'>) => (instrument.base ?? instrument.symbol.split(/[-/]/)[0]).toUpperCase()
 export function hasApprovedSymbolIcon(instrument: Pick<Instrument, 'symbol' | 'base' | 'quote' | 'assetClass'>): boolean {

@@ -25,7 +25,8 @@ public class AlpacaMarketDataClient {
     public List<AlpacaMarketDataMapper.Bar> candles(String symbol,String timeframe,int limit,Instant before,Instant now) {
         requireConfigured(); validSymbol(symbol); if(limit<1||limit>AlpacaMarketDataMapper.MAX_BARS)throw new IllegalArgumentException("Invalid candle limit");
         String nativeTimeframe=switch(timeframe) { case "1m"->"1Min"; case "5m"->"5Min"; case "15m"->"15Min"; case "30m"->"30Min"; case "1h"->"1Hour"; case "4h"->"4Hour"; case "1d"->"1Day"; default->throw new IllegalArgumentException("Invalid timeframe"); };
-        StringBuilder query=new StringBuilder("timeframe=").append(nativeTimeframe).append("&limit=").append(limit).append("&feed=iex&sort=asc"); if(before!=null)query.append("&end=").append(URLEncoder.encode(before.toString(),StandardCharsets.UTF_8));
+        Instant end=before==null?now:before;long lookbackDays=switch(timeframe){case "1m"->7;case "5m"->14;case "15m"->30;case "30m"->60;case "1h"->90;case "4h"->400;case "1d"->600;default->throw new IllegalArgumentException("Invalid timeframe");};
+        StringBuilder query=new StringBuilder("timeframe=").append(nativeTimeframe).append("&limit=").append(limit).append("&feed=iex&adjustment=raw&sort=desc&start=").append(URLEncoder.encode(end.minus(Duration.ofDays(lookbackDays)).toString(),StandardCharsets.UTF_8)).append("&end=").append(URLEncoder.encode(end.toString(),StandardCharsets.UTF_8));
         return AlpacaMarketDataMapper.bars(request(DATA.resolve("/v2/stocks/"+symbol+"/bars?"+query)),timeframe,now);
     }
     public List<AlpacaMarketDataMapper.Bar> history(String symbol,String timeframe,Instant from,Instant to) {
