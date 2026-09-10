@@ -35,4 +35,14 @@ class CatalogPagingTests {
         assertThrows(IllegalArgumentException.class,()->service.catalog("COINBASE","","","../../secret"));
         assertThrows(IllegalArgumentException.class,()->service.catalog("https://localhost","","",null));
     }
+    @Test void putsPopularAlpacaStocksAndEtfsOnTheFirstBoundedPage() {
+        var client=mock(AlpacaMarketDataClient.class);when(client.configured()).thenReturn(true);
+        var symbols=new ArrayList<>(List.of("ZZZZ","SPY","AAPL","QQQ","NVDA","MSFT","TSLA","IWM","DIA"));
+        for(int index=0;index<60;index++)symbols.add("X"+index);
+        when(client.searchAssets("")).thenReturn(symbols.stream().map(symbol->Map.of("symbol",symbol,"name",symbol+" name","exchange","NASDAQ")).toList());
+        var service=new MarketHistoryService(List.of(new AlpacaHistoryProvider(client)),new MarketCache(mock(org.springframework.data.redis.core.StringRedisTemplate.class),false));
+        var first=service.catalog("ALPACA","","",null);
+        assertEquals(List.of("AAPL","NVDA","MSFT","TSLA","SPY","QQQ","IWM","DIA"),first.items().stream().limit(8).map(MarketDataProvider.Instrument::providerSymbol).toList());
+        assertNotNull(first.nextCursor());
+    }
 }

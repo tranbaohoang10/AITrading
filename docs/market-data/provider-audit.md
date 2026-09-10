@@ -144,3 +144,23 @@ requirements, so implementation completion does not change their
 - Direct 10/09/2026 checks returned EUR/USD and XAU/USD from the official API;
   the same-origin backend returned three validated candles for each, and the
   latest XAU/USD close matched the upstream value `4398.63`.
+
+## 10/09/2026 — Catalog balance, recent-history cache and truthful equity status
+
+- Empty Symbol Search no longer lets the largest provider dominate the first
+  viewport. It interleaves up to eight rows per available class in the order
+  Crypto, Stock, ETF, Forex and Commodity. The empty Crypto subset is limited to
+  16 popular/liquid USD assets with approved local icons; typed search still uses
+  the bounded real Coinbase catalog.
+- Alpaca popular Stock/ETF instruments are ranked onto the first bounded catalog
+  page, allowing the frontend to obtain the approved set with one account-bound
+  request instead of one request per symbol.
+- Recent Alpaca chart history now uses the existing server-side Redis cache. A
+  closed-session key remains stable until the official Alpaca next-open instant;
+  open-market snapshots use a 30-second bucket, and explicit older-page cursors
+  remain immutable for one day. Cached payloads are schema, symbol, timeframe,
+  ordering and OHLC validated before use.
+- Redis accelerates historical/snapshot delivery only. It never promotes a cached
+  candle to a provider trade. Official WebSocket authentication/subscription maps
+  to `Connected`; the official Alpaca clock maps a closed session to
+  `Market closed`; only an actual provider trade maps the chart to `Live`.

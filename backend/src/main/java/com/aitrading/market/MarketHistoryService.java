@@ -7,6 +7,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 @Service
 public class MarketHistoryService {
+    private static final Map<String,Integer> ALPACA_FEATURED_RANK=featuredRank(List.of("AAPL","NVDA","MSFT","TSLA","AMZN","META","GOOGL","GOOG","AMD","SPY","QQQ","IWM","DIA"));
     private final Map<String,MarketDataProvider> providers;
     private final MarketCache cache;
     private static final JsonMapper JSON=JsonMapper.builder().build();
@@ -60,7 +61,7 @@ public class MarketHistoryService {
             if(offset<0||offset>20000||offset%50!=0)throw new IllegalArgumentException("Invalid cursor");
         }
         var rows=catalogSnapshot(id,p).stream().filter(i->(i.providerSymbol()+" "+i.displaySymbol()+" "+i.name()+" "+i.base()+" "+i.quote()+" "+i.exchange()+" "+i.provider()).toUpperCase(Locale.ROOT).contains(query.toUpperCase(Locale.ROOT))).filter(i->assetClass.isEmpty()||assetClass.equals(i.assetClass())||assetClass.equals("FOREX")&&i.assetClass().equals("FX_REFERENCE")||assetClass.equals("STOCK")&&i.assetClass().equals("US_EQUITY"))
-                .sorted(Comparator.comparing(MarketDataProvider.Instrument::instrumentId)).toList();
+                .sorted(catalogOrder(id)).toList();
         if(rows.size()>20000||rows.stream().map(MarketDataProvider.Instrument::instrumentId).distinct().count()!=rows.size())throw new IllegalArgumentException("Invalid catalog");
         int end=Math.min(rows.size(),offset+50);
         String next=end<rows.size()?Base64.getUrlEncoder().withoutPadding().encodeToString((binding+":"+end).getBytes(java.nio.charset.StandardCharsets.UTF_8)):null;
@@ -114,4 +115,11 @@ public class MarketHistoryService {
                 List.of("Only requested range probed; no global earliest date asserted", "Missing buckets remain gaps"));
     }
     public String cacheStatus(){return cache.status();}
+    private static Map<String,Integer> featuredRank(List<String> symbols) {
+        var ranks=new HashMap<String,Integer>();for(int index=0;index<symbols.size();index++)ranks.put(symbols.get(index),index);return Map.copyOf(ranks);
+    }
+    private static Comparator<MarketDataProvider.Instrument> catalogOrder(String provider) {
+        return Comparator.comparingInt((MarketDataProvider.Instrument item)->"ALPACA".equals(provider)?ALPACA_FEATURED_RANK.getOrDefault(item.providerSymbol(),Integer.MAX_VALUE):0)
+                .thenComparing(MarketDataProvider.Instrument::instrumentId);
+    }
 }

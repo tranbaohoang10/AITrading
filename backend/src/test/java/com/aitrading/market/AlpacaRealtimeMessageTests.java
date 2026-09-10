@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import org.mockito.ArgumentCaptor;
 import java.time.Instant;
 import java.util.List;
@@ -59,6 +60,15 @@ class AlpacaRealtimeMessageTests {
         var provider=new AlpacaStreamProvider(new AlpacaMarketDataClient("key","secret"),mock(MarketCache.class));var existing=provider.new Hub("AAPL|1m","AAPL","1m",60);existing.clients.add(mock(SseEmitter.class));provider.hubs.put(existing.key,existing);provider.started=true;provider.authenticated=true;provider.status="AUTHENTICATED";provider.socket=mock(java.net.http.WebSocket.class);
         try{
             var emitter=provider.subscribe("NVDA","1m");assertEquals("AUTHENTICATED",provider.hubs.get("NVDA|1m").status);verify(provider.socket).sendText(org.mockito.ArgumentMatchers.contains("NVDA"),eq(true));emitter.complete();
+        } finally { provider.close(); }
+    }
+    @Test void distinguishesMarketClosedFromAStaleOrDisconnectedStream() {
+        var client=mock(AlpacaMarketDataClient.class);var provider=new AlpacaStreamProvider(client,mock(MarketCache.class));var hub=provider.new Hub("AAPL|1m","AAPL","1m",60);hub.clients.add(mock(SseEmitter.class));hub.status="SUBSCRIBED";provider.hubs.put(hub.key,hub);provider.authenticated=true;
+        try{
+            when(client.marketClock()).thenReturn(new AlpacaMarketDataClient.MarketClock(false,Instant.parse("2026-09-10T09:00:00Z"),Instant.parse("2026-09-10T13:30:00Z"),Instant.parse("2026-09-10T20:00:00Z")));
+            provider.heartbeat();assertEquals("MARKET_CLOSED",hub.status);
+            when(client.marketClock()).thenReturn(new AlpacaMarketDataClient.MarketClock(true,Instant.parse("2026-09-10T14:00:00Z"),Instant.parse("2026-09-11T13:30:00Z"),Instant.parse("2026-09-10T20:00:00Z")));
+            provider.heartbeat();assertEquals("SUBSCRIBED",hub.status);
         } finally { provider.close(); }
     }
 }

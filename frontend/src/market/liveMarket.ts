@@ -4,7 +4,7 @@ import { TIMEFRAMES, type Timeframe } from './chartMath'
 export const COINBASE_DEFAULT_SYMBOLS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'ADA-USD', 'DOGE-USD', 'LTC-USD', 'BCH-USD', 'LINK-USD', 'AVAX-USD', 'POL-USD'] as const
 export const FRANKFURTER_DEFAULT_SYMBOLS = ['EUR-USD', 'GBP-USD', 'USD-JPY', 'USD-CHF', 'AUD-USD', 'USD-CAD', 'NZD-USD', 'XAU-USD', 'XAG-USD', 'XPT-USD', 'XPD-USD'] as const
 export type LiveSymbol = string
-export type LiveConnectionStatus = 'CONNECTING' | 'LIVE' | 'DELAYED' | 'RECONNECTING' | 'DISCONNECTED'
+export type LiveConnectionStatus = 'CONNECTING' | 'CONNECTED' | 'LIVE' | 'MARKET_CLOSED' | 'DELAYED' | 'RECONNECTING' | 'DISCONNECTED'
 export type AssetClass = 'CRYPTO' | 'STOCK' | 'ETF' | 'FOREX' | 'FUTURES' | 'COMMODITY'
 export type MarketDataMode = 'HISTORICAL' | 'REALTIME' | 'DELAYED' | 'SNAPSHOT'
 

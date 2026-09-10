@@ -27,18 +27,34 @@ it('uses trader categories, keeps the category bar visible and curates empty-que
   expect(await screen.findByText(/Realtime Forex is NOT_READY.*cTrader is not configured/)).toBeVisible()
 })
 
-it('keeps popular crypto bounded for empty query but searches the full provider catalog when typed', async () => {
+it('keeps only approved-icon crypto for empty query but searches the full provider catalog when typed', async () => {
   const obscure = { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'COINBASE:OBSCURE-USD', symbol: 'OBSCURE-USD', providerSymbol: 'OBSCURE-USD', displaySymbol: 'OBSCURE/USD', base: 'OBSCURE', name: 'Obscure token' }
   const bonk = { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'COINBASE:BONK-USD', symbol: 'BONK-USD', providerSymbol: 'BONK-USD', displaySymbol: 'BONK/USD', base: 'BONK', name: 'BONK-USD' }
   const searchPage = vi.fn(async ({ query }: { query: string }) => ({ items: query ? [obscure] : [DEFAULT_INSTRUMENTS[0], bonk, obscure], nextCursor: null }))
   render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [coinbase], searchPage }} onSelect={() => {}} onClose={() => {}} />)
   expect(await screen.findByText('BTC/USD')).toBeVisible()
-  expect(screen.getByText('BONK/USD')).toBeVisible()
+  expect(screen.queryByText('BONK/USD')).not.toBeInTheDocument()
   expect(screen.queryByText('OBSCURE/USD')).not.toBeInTheDocument()
-  expect(featuredCryptoBases.length).toBeLessThanOrEqual(40)
+  expect(featuredCryptoBases.length).toBeLessThanOrEqual(20)
   fireEvent.change(screen.getByLabelText('Search symbols'), { target: { value: 'OBSCURE' } })
   expect(await screen.findByText('OBSCURE/USD')).toBeVisible()
   expect(searchPage).toHaveBeenCalledWith(expect.objectContaining({ query: 'OBSCURE' }))
+})
+
+it('interleaves the All preview across available asset classes', async () => {
+  const reference: CatalogProvider = { providerId: 'FRANKFURTER', displayName: 'Frankfurter', assetClasses: ['FX_REFERENCE', 'COMMODITY'], configured: true, historical: true, realtime: false, delayed: true, eod: true }
+  const alpaca: CatalogProvider = { providerId: 'ALPACA', displayName: 'Alpaca', assetClasses: ['STOCK', 'ETF'], configured: true, realtime: true }
+  const rows: Instrument[] = [
+    DEFAULT_INSTRUMENTS[0],
+    { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'ALPACA:AAPL', symbol: 'AAPL', displaySymbol: 'AAPL', base: 'AAPL', name: 'Apple Inc.', assetClass: 'STOCK', provider: 'ALPACA' },
+    { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'ALPACA:SPY', symbol: 'SPY', displaySymbol: 'SPY', base: 'SPY', name: 'SPDR S&P 500 ETF Trust', assetClass: 'ETF', provider: 'ALPACA' },
+    DEFAULT_INSTRUMENTS.find(item => item.symbol === 'EUR-USD')!,
+    DEFAULT_INSTRUMENTS.find(item => item.symbol === 'XAU-USD')!,
+  ]
+  const searchPage = vi.fn(async ({ provider }: { provider: string }) => ({ items: rows.filter(row => row.provider === provider), nextCursor: null }))
+  render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [coinbase, alpaca, reference], searchPage }} onSelect={() => {}} onClose={() => {}} />)
+  const visible = await Promise.all(['BTC/USD', 'AAPL', 'SPY', 'EUR/USD', 'XAU/USD'].map(label => screen.findByText(label)))
+  for (let index = 0; index < visible.length - 1; index += 1) expect(visible[index].compareDocumentPosition(visible[index + 1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })
 
 it('shows real Frankfurter daily-reference Forex without labeling it realtime', async () => {
@@ -80,13 +96,16 @@ it('bounds Coinbase catalog pagination even when every page returns another curs
 
 it('keeps the bounded Alpaca featured queries exact instead of accepting substring matches', async () => {
   const alpaca: CatalogProvider = { providerId: 'ALPACA', displayName: 'Alpaca · IEX', assetClasses: ['STOCK', 'ETF'], configured: true, historical: true, realtime: true }
-  const searchPage = vi.fn(async ({ query }: { query: string }) => ({ items: [
-    { ...DEFAULT_INSTRUMENTS[0], instrumentId: `ALPACA:${query}`, provider: 'ALPACA', providerSymbol: query, symbol: query, displaySymbol: query, base: query, assetClass: 'STOCK' as const },
-    { ...DEFAULT_INSTRUMENTS[0], instrumentId: `ALPACA:${query}X`, provider: 'ALPACA', providerSymbol: `${query}X`, symbol: `${query}X`, displaySymbol: `${query}X`, base: `${query}X`, assetClass: 'STOCK' as const },
-  ], nextCursor: null }))
+  const featured = ['AAPL', 'NVDA', 'MSFT', 'TSLA', 'SPY', 'QQQ', 'IWM', 'DIA']
+  const searchPage = vi.fn(async () => ({ items: featured.flatMap(symbol => [
+    { ...DEFAULT_INSTRUMENTS[0], instrumentId: `ALPACA:${symbol}`, provider: 'ALPACA', providerSymbol: symbol, symbol, displaySymbol: symbol, base: symbol, assetClass: 'STOCK' as const },
+    { ...DEFAULT_INSTRUMENTS[0], instrumentId: `ALPACA:${symbol}X`, provider: 'ALPACA', providerSymbol: `${symbol}X`, symbol: `${symbol}X`, displaySymbol: `${symbol}X`, base: `${symbol}X`, assetClass: 'STOCK' as const },
+  ]), nextCursor: null }))
   const items = await loadCatalogSource({ searchPage }, alpaca, '', '', new AbortController().signal)
   expect(items.map(item => item.symbol)).toEqual(expect.arrayContaining(['AAPL', 'NVDA', 'SPY', 'QQQ']))
   expect(items.some(item => item.symbol.endsWith('X'))).toBe(false)
+  expect(searchPage).toHaveBeenCalledTimes(1)
+  expect(searchPage).toHaveBeenCalledWith(expect.objectContaining({ query: '' }))
 })
 
 it('aborts a stalled catalog request at the UI timeout', async () => {

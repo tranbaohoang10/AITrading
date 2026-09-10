@@ -18,7 +18,7 @@ import { PositionSetupPopover } from './PositionSetupPopover'
 
 const iconButton = 'icon-tool grid h-8 w-8 shrink-0 place-items-center rounded-md text-slate-500 transition hover:bg-slate-800 hover:text-slate-100 focus-visible:ring-2 focus-visible:ring-slate-300 disabled:opacity-35'
 const toolbarTrigger = 'flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md border border-transparent bg-transparent px-2 text-xs font-semibold text-slate-200 transition hover:bg-slate-800/60 hover:text-white focus-visible:bg-slate-800/60 focus-visible:ring-2 focus-visible:ring-slate-300'
-const liveClass: Record<LiveConnectionStatus, string> = { LIVE: 'bg-emerald-400', DELAYED: 'bg-amber-300', CONNECTING: 'bg-amber-300 animate-pulse', RECONNECTING: 'bg-amber-300 animate-pulse', DISCONNECTED: 'bg-rose-400' }
+const liveClass: Record<LiveConnectionStatus, string> = { LIVE: 'bg-emerald-400', CONNECTED: 'bg-sky-400', MARKET_CLOSED: 'bg-slate-400', DELAYED: 'bg-amber-300', CONNECTING: 'bg-amber-300 animate-pulse', RECONNECTING: 'bg-amber-300 animate-pulse', DISCONNECTED: 'bg-rose-400' }
 /** Its clock updates only the realtime status, never the candle workspace. */
 function RealtimeStatus({ status, firstEventAt, lastUpdate, activeCandleTime, partial, timeframe, timezone }: { timezone: string; status: LiveConnectionStatus; firstEventAt?: number; lastUpdate?: number; activeCandleTime?: number; partial?: boolean; timeframe: Timeframe }) {
   const [now, setNow] = useState(Date.now)
@@ -27,9 +27,13 @@ function RealtimeStatus({ status, firstEventAt, lastUpdate, activeCandleTime, pa
   const confirmedLive = status === 'LIVE' && Boolean(lastUpdate), stale = confirmedLive && now - lastUpdate! > staleAfter
   const effectiveStatus: LiveConnectionStatus = stale ? 'DELAYED' : status === 'LIVE' && !lastUpdate ? 'CONNECTING' : status
   const label = stale ? 'Stale' : status === 'LIVE' && !lastUpdate ? 'Waiting for first tick' : status === 'CONNECTING' ? 'Waiting for first tick' : status[0] + status.slice(1).toLowerCase()
-  const visibleLabel = effectiveStatus === 'LIVE' ? 'Live' : effectiveStatus === 'CONNECTING' ? 'Waiting' : effectiveStatus === 'RECONNECTING' ? 'Reconnecting' : effectiveStatus === 'DELAYED' ? stale ? 'Stale' : 'Delayed' : 'Offline'
+  const visibleLabel = effectiveStatus === 'LIVE' ? 'Live' : effectiveStatus === 'CONNECTED' ? 'Connected' : effectiveStatus === 'MARKET_CLOSED' ? 'Market closed' : effectiveStatus === 'CONNECTING' ? 'Waiting' : effectiveStatus === 'RECONNECTING' ? 'Reconnecting' : effectiveStatus === 'DELAYED' ? stale ? 'Stale' : 'Delayed' : 'Offline'
   const time = (value?: number) => value ? formatChartDate(new Date(value), timezone, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '—'
-  const detail = `Realtime · ${label}. First tick ${time(firstEventAt ?? lastUpdate)}. Last tick ${time(lastUpdate)}. Candle ${time(activeCandleTime)}${partial ? ' (partial)' : ''}.`
+  const detail = effectiveStatus === 'MARKET_CLOSED'
+    ? `Market closed · showing the latest historical or cached candle. Realtime resumes only when Alpaca sends a new provider trade.`
+    : effectiveStatus === 'CONNECTED'
+      ? `Realtime connected · subscription active; waiting for the first provider trade. Cached history is not treated as a live tick.`
+      : `Realtime · ${label}. First tick ${time(firstEventAt ?? lastUpdate)}. Last tick ${time(lastUpdate)}. Candle ${time(activeCandleTime)}${partial ? ' (partial)' : ''}.`
   return <div data-testid="realtime-status" role="status" aria-label={detail} title={detail} className="flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-slate-800 bg-slate-950/60 px-2 text-[10px] leading-none text-slate-300"><span className={`h-1.5 w-1.5 shrink-0 rounded-full ${liveClass[effectiveStatus]}`}/><span className="font-semibold">{visibleLabel}</span></div>
 }
 
@@ -199,7 +203,8 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
       const run = { key: runKey, controller, unsubscribe: () => {} }
       cellRuns.current[id] = run
       const cellSymbol = cell.symbol, cellTimeframe = cell.timeframe
-      setCells(current => current[id] ? { ...current, [id]: { ...current[id], loading: true, error: '', status: 'CONNECTING', candles: [], firstEventAt: undefined, lastUpdate: undefined } } : current)
+      const cachedHistory = historyCache.get(cacheKey(cellSymbol, cellTimeframe)) ?? []
+      setCells(current => current[id] ? { ...current, [id]: { ...current[id], loading: !cachedHistory.length, error: '', status: 'CONNECTING', candles: cachedHistory, firstEventAt: undefined, lastUpdate: undefined } } : current)
       const setCell = (update: (current: ChartCellState) => ChartCellState) => setCells(current => {
         const existing = current[id]
         if (!existing || controller.signal.aborted || cellRuns.current[id] !== run || existing.symbol !== cellSymbol || existing.timeframe !== cellTimeframe) return current

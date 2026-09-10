@@ -227,3 +227,18 @@ evidence in `owner-refinement-tests.md`.
 | Frontend full | PASS | 57 files / 331 tests; lint, production build and npm audit passed. Build emitted only the existing chunk-size warning. |
 | Backend full | PASS | `python scripts/test_backend.py` completed `BUILD SUCCESSFUL`, shut down its owned PostgreSQL instance and retained no credentials file. |
 | Remaining issue blocker | BLOCKED_MARKET_CLOSED | This refinement does not change the earlier Alpaca requirement: Issue #39 remains open until an actual IEX provider event updates an Alpaca CandleChart while market conditions allow. |
+
+## 10/09/2026 — Symbol distribution and Redis latency remediation
+
+| Scope | Result | Evidence |
+| --- | --- | --- |
+| Balanced empty `All` preview | PASS | Browser order interleaved Crypto/Stock/ETF/Forex/Commodity; component test verifies round-robin grouping and max eight rows per class |
+| Curated empty Crypto | PASS | 16 popular/liquid USD assets with approved icons; obscure/no-icon assets absent from empty query but remain searchable by typed real-catalog query |
+| Alpaca default catalog request count | PASS | Frontend regression verifies one empty-query request; backend regression ranks featured Stocks/ETFs onto page one |
+| Recent Alpaca history Redis cache | PASS | Dedicated test verifies one provider call across two closed-session requests; full Redis integration executed with zero skips |
+| Browser latency observation | PASS | AAPL cold ~2.1 s; full-reload Redis hit ~0.48 s; warm catalog reopen ~0.55 s; measurements are local observations, not an SLA |
+| Realtime truthfulness | PASS | Cache/history never emits `Live`; browser showed `Market closed`; `Connected` requires auth/subscription and `Live` still requires actual provider trade |
+| Full frontend | PASS | 57 files / 333 tests; lint and production build exit 0; existing >500 kB bundle warning only |
+| Full backend and Redis | PASS | 49 suites / 353 tests; 0 failure, 0 error, 0 skipped; bootJar and dependency inventory PASS |
+| Dependency/security | PASS | Production npm audit found 0 vulnerabilities; `git diff --check` PASS; no provider secret was read, logged or added |
+| Remaining Issue #39 condition | BLOCKED_MARKET_CLOSED | Official Alpaca session was closed, so no actual IEX trade-to-CandleChart update was fabricated or marked PASS |

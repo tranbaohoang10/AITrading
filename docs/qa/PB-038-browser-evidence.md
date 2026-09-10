@@ -48,3 +48,23 @@ the server remained fail-closed without `ALPACA_API_KEY_ID` and
 - Browser console inspection after the QA sequence returned no messages. Futures
   and unavailable realtime commodity routes remain truthful NOT_READY states;
   no USOIL symbol or realtime event was fabricated.
+
+## Follow-up evidence — 10/09/2026 cache and balanced catalog
+
+- Real browser Symbol Search `All` interleaved BTC, AAPL, SPY, AUD/USD and
+  XAG/USD before the second row of each class. Crypto without an approved icon
+  was absent from the empty query; Stocks/ETFs retained approved icons; normal
+  rows contained no Alpaca/IEX provider text.
+- The previous AAPL selection observation took about 4.1 seconds before the chart
+  appeared. After the catalog and recent-history remediation, an Alpaca cold load
+  on the disposable QA backend took about 2.1 seconds, while the same AAPL history
+  loaded after a full page reload from Redis in about 0.48 seconds. Catalog open
+  after reload was about 1.11 seconds and a warm reopen about 0.55 seconds. These
+  are local browser observations, not a production latency SLA.
+- Redis QA used a loopback-only, no-persistence Redis 8.4.2 process. Exactly one
+  hashed Alpaca recent-history key existed after the AAPL flow; no cached payload,
+  credential or secret was read into evidence.
+- AAPL displayed `Market closed` with the latest historical/cached candle. The
+  tooltip states that realtime resumes only on a provider trade. No mock,
+  historical replay or polling event was counted as realtime. Browser logs had no
+  runtime error/warning; Vite emitted development-only HMR debug messages.

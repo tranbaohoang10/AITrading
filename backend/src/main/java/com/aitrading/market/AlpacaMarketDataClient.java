@@ -14,10 +14,14 @@ public class AlpacaMarketDataClient {
     private static final URI DATA=URI.create("https://data.alpaca.markets/v2");
     private static final URI TRADING=URI.create("https://paper-api.alpaca.markets/v2");
     private static final Duration ASSET_CACHE_TTL=Duration.ofMinutes(5);
+    private static final Duration CLOCK_CACHE_TTL=Duration.ofSeconds(30);
     private final HttpClient http=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NEVER).build();
     private final String keyId,secretKey;
     private volatile AssetSnapshot assets;
+    private volatile ClockSnapshot clock;
     private record AssetSnapshot(String body, Instant expiresAt) {}
+    private record ClockSnapshot(MarketClock value, Instant expiresAt) {}
+    public record MarketClock(boolean open,Instant timestamp,Instant nextOpen,Instant nextClose) {}
     public AlpacaMarketDataClient(@Value("${aitrading.market.alpaca.key-id:}") String keyId,@Value("${aitrading.market.alpaca.secret-key:}") String secretKey) { this.keyId=keyId==null?"":keyId.strip(); this.secretKey=secretKey==null?"":secretKey.strip(); }
     public boolean configured() { return !keyId.isEmpty()&&!secretKey.isEmpty()&&keyId.length()<=256&&secretKey.length()<=512; }
     String keyId(){requireConfigured();return keyId;}
@@ -55,6 +59,19 @@ public class AlpacaMarketDataClient {
         String needle=query.strip().toLowerCase(Locale.ROOT); List<Map<String,String>> result=new ArrayList<>();
         for(var item:root) { String symbol=item.path("symbol").asString(), name=item.path("name").asString(), exchange=item.path("exchange").asString(); if(symbol.toLowerCase(Locale.ROOT).contains(needle)||name.toLowerCase(Locale.ROOT).contains(needle)) { result.add(Map.of("symbol",symbol,"name",name,"exchange",exchange)); if(result.size()>20000)throw new AlpacaDataFailure("ALPACA_INVALID_RESPONSE",502); } }
         return result;
+    }
+    public MarketClock marketClock() {
+        requireConfigured();var current=clock;var now=Instant.now();
+        if(current!=null&&current.expiresAt().isAfter(now))return current.value();
+        synchronized(this) {
+            current=clock;now=Instant.now();if(current!=null&&current.expiresAt().isAfter(now))return current.value();
+            var root=JsonMapper.builder().build().readTree(request(TRADING.resolve("/v2/clock")));
+            try {
+                if(root==null||!root.isObject()||!root.path("is_open").isBoolean())throw new IllegalArgumentException();
+                var value=new MarketClock(root.path("is_open").asBoolean(),Instant.parse(root.path("timestamp").asString()),Instant.parse(root.path("next_open").asString()),Instant.parse(root.path("next_close").asString()));
+                clock=new ClockSnapshot(value,now.plus(CLOCK_CACHE_TTL));return value;
+            } catch(RuntimeException invalid) { throw new AlpacaDataFailure("ALPACA_INVALID_RESPONSE",502); }
+        }
     }
     private String assetSnapshot() {
         AssetSnapshot current=assets;

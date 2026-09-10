@@ -39,7 +39,8 @@ export function backendProviderStream(account: string, provider: string, symbol:
       emit(candle)
     } else if (event === 'status' && data && typeof data === 'object' && 'status' in data) {
       const next = data.status
-      if (typeof next === 'string' && ['CONNECTING', 'DELAYED', 'RECONNECTING', 'DISCONNECTED'].includes(next)) setStatus(next as LiveConnectionStatus)
+      if (next === 'AUTHENTICATED' || next === 'SUBSCRIBED') setStatus('CONNECTED')
+      else if (typeof next === 'string' && ['CONNECTING', 'MARKET_CLOSED', 'DELAYED', 'RECONNECTING', 'DISCONNECTED'].includes(next)) setStatus(next as LiveConnectionStatus)
     }
   }
   const connect = async () => {

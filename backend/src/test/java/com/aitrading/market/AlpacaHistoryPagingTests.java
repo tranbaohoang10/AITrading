@@ -72,4 +72,10 @@ class AlpacaHistoryPagingTests {
         var failure=assertThrows(AlpacaDataFailure.class,()->rejected.searchAssets("AAPL"));
         assertEquals("ALPACA_AUTH_FAILED",failure.code());
     }
+    @Test void parsesAndCachesTheOfficialPaperMarketClock() throws Exception {
+        var requests=new ArrayList<HttpRequest>();var client=client(List.of("{\"timestamp\":\"2026-09-10T09:00:00Z\",\"is_open\":false,\"next_open\":\"2026-09-10T13:30:00Z\",\"next_close\":\"2026-09-10T20:00:00Z\"}"),requests);
+        var first=client.marketClock();var second=client.marketClock();
+        assertFalse(first.open());assertEquals(Instant.parse("2026-09-10T13:30:00Z"),first.nextOpen());assertEquals(first,second);
+        assertEquals(1,requests.size());assertEquals("paper-api.alpaca.markets",requests.getFirst().uri().getHost());assertEquals("/v2/clock",requests.getFirst().uri().getPath());
+    }
 }

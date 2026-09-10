@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import { backendCoinbaseStream, streamCandle } from './backendCoinbaseStream'
+import { backendCoinbaseStream, backendProviderStream, streamCandle } from './backendCoinbaseStream'
 
 const account = '00000000-0000-4000-8000-000000000001'
 const data = { provider: 'COINBASE', symbol: 'BTC-USD', timeframe: '1m', partial: false, candle: { time: '2025-01-01T00:00:00Z', open: 100, high: 110, low: 90, close: 105, volume: 2 } }
@@ -12,6 +12,19 @@ it('validates an Alpaca candle only for its exact internal route', () => {
   const equity = { ...data, provider: 'ALPACA', symbol: 'AAPL' }
   expect(streamCandle(equity, 'AAPL', '1m', 'ALPACA')).not.toBeNull()
   expect(streamCandle(equity, 'AAPL', '1m', 'COINBASE')).toBeNull()
+})
+it('maps authenticated subscriptions and the official market clock to clear UX states', async () => {
+  vi.useFakeTimers()
+  let output!: ReadableStreamDefaultController<Uint8Array>
+  const body = new ReadableStream<Uint8Array>({ start(controller) { output = controller } })
+  const fetcher = vi.fn().mockResolvedValue(new Response(body, { headers: { 'Content-Type': 'text/event-stream' } }))
+  const onStatus = vi.fn(), dispose = backendProviderStream(account, 'ALPACA', 'AAPL', '1m', { onCandle: vi.fn(), onStatus, onReconnect: vi.fn() }, fetcher)
+  await vi.advanceTimersByTimeAsync(0)
+  output.enqueue(new TextEncoder().encode('event:status\ndata:{"status":"SUBSCRIBED"}\n\nevent:status\ndata:{"status":"MARKET_CLOSED"}\n\n'))
+  await vi.advanceTimersByTimeAsync(0)
+  expect(onStatus).toHaveBeenCalledWith('CONNECTED')
+  expect(onStatus).toHaveBeenLastCalledWith('MARKET_CLOSED')
+  dispose();output.close()
 })
 it('uses an owner-bound same-origin stream, parses split frames and coalesces tick updates', async () => {
   vi.useFakeTimers()

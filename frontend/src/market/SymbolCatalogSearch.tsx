@@ -1,7 +1,7 @@
 import { canonicalCatalog } from './canonicalCatalog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { approvedEquityIconBases, SymbolIcon } from '../components/SymbolIcon'
+import { approvedCryptoIconBases, approvedEquityIconBases, hasApprovedSymbolIcon, SymbolIcon } from '../components/SymbolIcon'
 import type { Instrument, MarketDataProvider } from './liveMarket'
 import type { CatalogPage, CatalogProvider } from './providerCatalog'
 
@@ -18,7 +18,7 @@ const categories: Array<{ value: Category; label: string }> = [
 const normalizedClass = (value: string) => value === 'FX_REFERENCE' ? 'FOREX' : value === 'US_EQUITY' ? 'STOCK' : value
 export const COINBASE_CATALOG_MAX_PAGES = 20
 export const SYMBOL_CATALOG_TIMEOUT_MS = 20_000
-export const featuredCryptoBases = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA', 'AVAX', 'LINK', 'LTC', 'BCH', 'DOT', 'SUI', 'UNI', 'AAVE', 'XLM', 'HBAR', 'ATOM', 'NEAR', 'ICP', 'FIL', 'APT', 'ARB', 'OP', 'INJ', 'POL', 'TON', 'SHIB', 'PEPE', 'BONK', 'WIF', 'FLOKI'] as const
+export const featuredCryptoBases = approvedCryptoIconBases.filter(base => base !== 'USDT')
 const featuredCryptoSet = new Set<string>(featuredCryptoBases)
 const cryptoNames: Record<string, string> = { BTC: 'Bitcoin', ETH: 'Ethereum', SOL: 'Solana', XRP: 'XRP', DOGE: 'Dogecoin', ADA: 'Cardano', AVAX: 'Avalanche', LINK: 'Chainlink', LTC: 'Litecoin', BCH: 'Bitcoin Cash', DOT: 'Polkadot', SUI: 'Sui', UNI: 'Uniswap', AAVE: 'Aave', XLM: 'Stellar', HBAR: 'Hedera', ATOM: 'Cosmos', NEAR: 'NEAR Protocol', ICP: 'Internet Computer', FIL: 'Filecoin', APT: 'Aptos', ARB: 'Arbitrum', OP: 'Optimism', INJ: 'Injective', POL: 'Polygon Ecosystem Token', TON: 'Toncoin', SHIB: 'Shiba Inu', PEPE: 'Pepe', BONK: 'Bonk', WIF: 'dogwifhat', FLOKI: 'FLOKI' }
 const featuredRank = new Map<string, number>([
@@ -26,6 +26,8 @@ const featuredRank = new Map<string, number>([
   ...approvedEquityIconBases.flatMap((base, index) => ([`STOCK:${base}`, `ETF:${base}`] as const).map(key => [key, featuredCryptoBases.length + index] as const)),
 ])
 const assetRank = new Map<Category, number>((['CRYPTO', 'STOCK', 'ETF', 'FOREX', 'COMMODITY', 'FUTURES'] as Category[]).map((assetClass, index) => [assetClass, index]))
+const allPreviewOrder: Instrument['assetClass'][] = ['CRYPTO', 'STOCK', 'ETF', 'FOREX', 'COMMODITY']
+const ALL_PREVIEW_PER_CLASS = 8
 const instrumentBase = (instrument: Instrument) => (instrument.base ?? instrument.symbol.split(/[-/]/)[0]).toUpperCase()
 const instrumentIdentity = (instrument: Instrument) => instrument.instrumentId ?? `${instrument.provider}:${instrument.providerSymbol ?? instrument.symbol}`
 
@@ -33,11 +35,9 @@ export async function loadCatalogSource(provider: Pick<MarketDataProvider, 'sear
   const referenceForex = source.providerId === 'FRANKFURTER' && Boolean(source.historical || source.delayed || source.eod)
   if (!provider.searchPage || source.configured === false || (!source.realtime && !referenceForex)) return []
   if (!query && source.providerId === 'ALPACA') {
-    const results = await Promise.allSettled(approvedEquityIconBases.map(featuredQuery => provider.searchPage!({ provider: source.providerId, query: featuredQuery, assetClass, signal })))
-    if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
-    const pages = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : [])
-    if (!pages.length) throw new Error('Provider catalog unavailable')
-    return pages.flatMap((page, index) => page.items.filter(instrument => (instrument.providerSymbol ?? instrument.symbol).toUpperCase() === approvedEquityIconBases[index]))
+    const page = await provider.searchPage({ provider: source.providerId, query: '', assetClass, signal })
+    const approved = new Set<string>(approvedEquityIconBases)
+    return page.items.filter(instrument => approved.has((instrument.providerSymbol ?? instrument.symbol).toUpperCase()))
   }
   const items: Instrument[] = [], seenCursors = new Set<string>()
   let cursor: string | undefined
@@ -71,7 +71,15 @@ function routeForCategory(routes: Instrument[], category: Category): Instrument 
 
 function curatedEmptyQuery(instruments: Instrument[], query: string): Instrument[] {
   if (query.trim()) return instruments
-  return instruments.filter(instrument => instrument.assetClass !== 'CRYPTO' || featuredCryptoSet.has(instrumentBase(instrument)))
+  return instruments.filter(instrument => instrument.assetClass !== 'CRYPTO' || featuredCryptoSet.has(instrumentBase(instrument)) && hasApprovedSymbolIcon(instrument))
+}
+
+function balancedAllPreview(instruments: Instrument[], category: Category, query: string): Instrument[] {
+  if (category !== 'ALL' || query.trim()) return instruments
+  const groups = allPreviewOrder.map(assetClass => instruments.filter(instrument => instrument.assetClass === assetClass).slice(0, ALL_PREVIEW_PER_CLASS))
+  const result: Instrument[] = []
+  for (let index = 0; index < ALL_PREVIEW_PER_CLASS; index += 1) for (const group of groups) if (group[index]) result.push(group[index])
+  return result
 }
 
 function emptyState(category: Category, sources: CatalogProvider[]): string {
@@ -112,10 +120,10 @@ export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider:
         const providerItems = results.flatMap(result => result.status === 'fulfilled' ? result.value : [])
         if (!providerItems.length && results.every(result => result.status === 'rejected')) throw new Error('All provider catalogs failed')
         const catalog = canonicalCatalog(providerItems)
-        const items = curatedEmptyQuery(preferUsdAndSort(catalog.flatMap(instrument => {
+        const items = balancedAllPreview(curatedEmptyQuery(preferUsdAndSort(catalog.flatMap(instrument => {
           const route = routeForCategory(instrument.routes, category)
           return route ? [route] : []
-        })), query)
+        })), query), category, query)
         setPage({ items, nextCursor: null })
       }).catch(() => { if (!disposed) setError(controller.signal.aborted ? 'Symbol catalog request timed out. Retry.' : 'Live symbols are temporarily unavailable. Retry.') }).finally(() => { if (!disposed) { clearTimeout(requestTimeout); setBusy(false) } })
     }, 250)

@@ -98,8 +98,12 @@ public class AlpacaStreamProvider implements MarketStreamProvider,WebSocket.List
     void publishStatus(String next){for(var hub:hubs.values())hub.publishStatus(next);}
     void heartbeat(){
         Instant now=Instant.now();
+        Boolean marketOpen=null;
+        if(authenticated)try{marketOpen=client.marketClock().open();}catch(RuntimeException unavailable){marketOpen=null;}
         for(var hub:hubs.values()){
-            if(hub.lastEvent!=null&&Duration.between(hub.lastEvent,now).getSeconds()>30)hub.publishStatus("DELAYED");
+            if(Boolean.FALSE.equals(marketOpen))hub.publishStatus("MARKET_CLOSED");
+            else if(Boolean.TRUE.equals(marketOpen)&&hub.lastEvent!=null&&Duration.between(hub.lastEvent,now).getSeconds()>30)hub.publishStatus("DELAYED");
+            else if(Boolean.TRUE.equals(marketOpen)&&"MARKET_CLOSED".equals(hub.status))hub.publishStatus("SUBSCRIBED");
             hub.publish("heartbeat",Map.of("at",now.toString(),"status",hub.status));
         }
     }
