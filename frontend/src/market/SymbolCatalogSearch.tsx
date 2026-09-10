@@ -1,7 +1,7 @@
 import { canonicalCatalog } from './canonicalCatalog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { approvedEquityIconBases, hasApprovedSymbolIcon, SymbolIcon } from '../components/SymbolIcon'
+import { approvedEquityIconBases, SymbolIcon } from '../components/SymbolIcon'
 import type { Instrument, MarketDataProvider } from './liveMarket'
 import type { CatalogPage, CatalogProvider } from './providerCatalog'
 
@@ -16,44 +16,98 @@ const categories: Array<{ value: Category; label: string }> = [
   { value: 'COMMODITY', label: 'Commodities' },
 ]
 const normalizedClass = (value: string) => value === 'FX_REFERENCE' ? 'FOREX' : value === 'US_EQUITY' ? 'STOCK' : value
+export const COINBASE_CATALOG_MAX_PAGES = 20
+export const SYMBOL_CATALOG_TIMEOUT_MS = 20_000
+const featuredCryptoBases = ['BTC', 'ETH', 'SOL', 'XRP', 'DOGE', 'ADA', 'AVAX', 'LINK', 'LTC', 'BCH', 'DOT', 'SUI', 'UNI', 'AAVE', 'SHIB', 'PEPE', 'XLM', 'HBAR']
+const cryptoNames: Record<string, string> = { BTC: 'Bitcoin', ETH: 'Ethereum', SOL: 'Solana', XRP: 'XRP', DOGE: 'Dogecoin', ADA: 'Cardano', AVAX: 'Avalanche', LINK: 'Chainlink', LTC: 'Litecoin', BCH: 'Bitcoin Cash', DOT: 'Polkadot', SUI: 'Sui', UNI: 'Uniswap', AAVE: 'Aave', SHIB: 'Shiba Inu', PEPE: 'Pepe', XLM: 'Stellar', HBAR: 'Hedera' }
+const featuredRank = new Map<string, number>([
+  ...featuredCryptoBases.map((base, index) => [`CRYPTO:${base}`, index] as const),
+  ...approvedEquityIconBases.flatMap((base, index) => ([`STOCK:${base}`, `ETF:${base}`] as const).map(key => [key, featuredCryptoBases.length + index] as const)),
+])
+const assetRank = new Map<Category, number>((['CRYPTO', 'STOCK', 'ETF', 'FOREX', 'COMMODITY', 'FUTURES'] as Category[]).map((assetClass, index) => [assetClass, index]))
+const instrumentBase = (instrument: Instrument) => (instrument.base ?? instrument.symbol.split(/[-/]/)[0]).toUpperCase()
+const instrumentIdentity = (instrument: Instrument) => instrument.instrumentId ?? `${instrument.provider}:${instrument.providerSymbol ?? instrument.symbol}`
+
+export async function loadCatalogSource(provider: Pick<MarketDataProvider, 'searchPage'>, source: CatalogProvider, query: string, assetClass: string, signal: AbortSignal): Promise<Instrument[]> {
+  if (!provider.searchPage || source.configured === false || !source.realtime) return []
+  if (!query && source.providerId === 'ALPACA') {
+    const results = await Promise.allSettled(approvedEquityIconBases.map(featuredQuery => provider.searchPage!({ provider: source.providerId, query: featuredQuery, assetClass, signal })))
+    if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
+    const pages = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : [])
+    if (!pages.length) throw new Error('Provider catalog unavailable')
+    return pages.flatMap((page, index) => page.items.filter(instrument => (instrument.providerSymbol ?? instrument.symbol).toUpperCase() === approvedEquityIconBases[index]))
+  }
+  const items: Instrument[] = [], seenCursors = new Set<string>()
+  let cursor: string | undefined
+  const maxPages = source.providerId === 'COINBASE' ? COINBASE_CATALOG_MAX_PAGES : 1
+  for (let pageNumber = 0; pageNumber < maxPages; pageNumber += 1) {
+    const page = await provider.searchPage({ provider: source.providerId, query, assetClass, cursor, signal })
+    items.push(...page.items)
+    if (!page.nextCursor || seenCursors.has(page.nextCursor)) break
+    seenCursors.add(page.nextCursor)
+    cursor = page.nextCursor
+  }
+  return items
+}
+
+function preferUsdAndSort(instruments: Instrument[]): Instrument[] {
+  const named = instruments.map(instrument => instrument.assetClass === 'CRYPTO' && instrument.quote === 'USD' && cryptoNames[instrumentBase(instrument)] ? { ...instrument, name: `${cryptoNames[instrumentBase(instrument)]} / US Dollar` } : instrument)
+  const unique = [...new Map(named.map(instrument => [instrumentIdentity(instrument), instrument])).values()]
+  const usdCryptoBases = new Set(unique.filter(instrument => instrument.assetClass === 'CRYPTO' && instrument.quote === 'USD').map(instrumentBase))
+  return unique.filter(instrument => instrument.assetClass !== 'CRYPTO' || instrument.quote === 'USD' || !usdCryptoBases.has(instrumentBase(instrument))).sort((left, right) => {
+    const leftRank = featuredRank.get(`${left.assetClass}:${instrumentBase(left)}`) ?? Number.MAX_SAFE_INTEGER
+    const rightRank = featuredRank.get(`${right.assetClass}:${instrumentBase(right)}`) ?? Number.MAX_SAFE_INTEGER
+    return leftRank - rightRank || (assetRank.get(left.assetClass) ?? 99) - (assetRank.get(right.assetClass) ?? 99) || (left.displaySymbol ?? left.symbol).localeCompare(right.displaySymbol ?? right.symbol)
+  })
+}
+
+function emptyState(category: Category, sources: CatalogProvider[]): string {
+  if (category === 'FUTURES') return 'Futures market data is NOT_READY. No approved realtime futures catalog is configured.'
+  if (category === 'FOREX') {
+    const reference = sources.some(source => source.providerId === 'FRANKFURTER' && source.configured !== false && (source.historical || source.delayed || source.eod))
+    const ctraderReady = sources.some(source => source.providerId === 'CTRADER' && source.configured !== false && source.realtime)
+    if (!ctraderReady) return `Realtime Forex is NOT_READY. cTrader is not configured${reference ? '; Frankfurter is historical/delayed reference data only.' : '.'}`
+  }
+  if (category === 'COMMODITY' && !sources.some(source => source.providerId === 'CTRADER' && source.configured !== false && source.realtime)) return 'Realtime commodities are NOT_READY. cTrader is not configured; XAU/USD, XAG/USD and USOIL are not fabricated.'
+  return 'No live instruments available.'
+}
 
 export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider: Pick<MarketDataProvider, 'searchPage' | 'catalogProviders'>; onSelect: (instrument: Instrument) => void; onClose: () => void }) {
   const [sources, setSources] = useState<CatalogProvider[]>([]), [query, setQuery] = useState(''), [category, setCategory] = useState<Category>('ALL')
   const [page, setPage] = useState<CatalogPage>({ items: [], nextCursor: null }), [busy, setBusy] = useState(true), [error, setError] = useState(''), [retry, setRetry] = useState(0)
   const dialog = useRef<HTMLDivElement>(null), previousFocus = useRef(document.activeElement)
   const activeSources = useMemo(() => sources.filter(source => category === 'ALL' || source.assetClasses.some(assetClass => normalizedClass(assetClass) === category)), [category, sources])
+  const searchableSources = useMemo(() => activeSources.filter(source => source.configured !== false && source.realtime), [activeSources])
 
   useEffect(() => {
     const controller = new AbortController()
-    void provider.catalogProviders?.(controller.signal).then(items => { if (!controller.signal.aborted) setSources(items.filter(item => item.realtime)) }).catch(() => { if (!controller.signal.aborted) setError('Live symbols are temporarily unavailable. Retry.') }).finally(() => { if (!controller.signal.aborted) setBusy(false) })
+    void provider.catalogProviders?.(controller.signal).then(items => { if (!controller.signal.aborted) setSources(items) }).catch(() => { if (!controller.signal.aborted) setError('Live symbols are temporarily unavailable. Retry.') }).finally(() => { if (!controller.signal.aborted) setBusy(false) })
     return () => controller.abort()
   }, [provider, retry])
   useEffect(() => () => { (previousFocus.current as HTMLElement | null)?.focus() }, [])
 
   useEffect(() => {
-    if (!activeSources.length) { setPage({ items: [], nextCursor: null }); setBusy(false); setError(''); return }
-    const controller = new AbortController(); setBusy(true); setError(''); setPage({ items: [], nextCursor: null })
+    if (!searchableSources.length) { setPage({ items: [], nextCursor: null }); setBusy(false); setError(''); return }
+    const controller = new AbortController(); let disposed = false; setBusy(true); setError(''); setPage({ items: [], nextCursor: null })
+    const requestTimeout = setTimeout(() => controller.abort('timeout'), SYMBOL_CATALOG_TIMEOUT_MS)
     const timer = setTimeout(() => {
       const compactQuery = query.trim().toLowerCase().replace(/[-/\s_]/g, '')
       const serverQuery = (compactQuery.endsWith('usd') && compactQuery.length > 3 ? compactQuery.slice(0, -3).toUpperCase() : query.trim()).slice(0, 64)
-      const requests = activeSources.flatMap(source => {
-        const queries = serverQuery ? [serverQuery] : source.providerId === 'ALPACA' ? approvedEquityIconBases : ['']
-        return queries.map(async featuredQuery => await provider.searchPage?.({ provider: source.providerId, query: featuredQuery, assetClass: category === 'ALL' ? '' : category, signal: controller.signal }) ?? { items: [], nextCursor: null })
-      })
+      const requests = searchableSources.map(source => loadCatalogSource(provider, source, serverQuery, category === 'ALL' ? '' : category, controller.signal))
       void Promise.allSettled(requests).then(results => {
-        if (controller.signal.aborted) return
-        const pages = results.flatMap(result => result.status === 'fulfilled' ? [result.value] : [])
-        if (!pages.length) throw new Error('All provider catalogs failed')
-        const catalog = canonicalCatalog(pages.flatMap(next => next.items))
-        const items = catalog.flatMap(instrument => {
-          const route = instrument.routes.find(item => item.modes.includes('REALTIME') && hasApprovedSymbolIcon(item) && (category === 'ALL' || String(item.assetClass) === category))
+        if (disposed) return
+        const providerItems = results.flatMap(result => result.status === 'fulfilled' ? result.value : [])
+        if (!providerItems.length && results.every(result => result.status === 'rejected')) throw new Error('All provider catalogs failed')
+        const catalog = canonicalCatalog(providerItems)
+        const items = preferUsdAndSort(catalog.flatMap(instrument => {
+          const route = instrument.routes.find(item => item.modes.includes('REALTIME') && (category === 'ALL' || String(item.assetClass) === category))
           return route ? [route] : []
-        })
+        }))
         setPage({ items, nextCursor: null })
-      }).catch(() => { if (!controller.signal.aborted) setError('Live symbols are temporarily unavailable. Retry.') }).finally(() => { if (!controller.signal.aborted) setBusy(false) })
+      }).catch(() => { if (!disposed) setError(controller.signal.aborted ? 'Symbol catalog request timed out. Retry.' : 'Live symbols are temporarily unavailable. Retry.') }).finally(() => { if (!disposed) { clearTimeout(requestTimeout); setBusy(false) } })
     }, 250)
-    return () => { clearTimeout(timer); controller.abort() }
-  }, [activeSources, category, provider, query, retry])
+    return () => { disposed = true; clearTimeout(timer); clearTimeout(requestTimeout); controller.abort() }
+  }, [category, provider, query, retry, searchableSources])
 
   const normalizedQuery = query.trim().toLowerCase().replace(/[-/\s_]/g, '')
   const visibleItems = useMemo(() => page.items.filter(item => !normalizedQuery || `${item.symbol} ${item.displaySymbol ?? ''} ${item.name} ${item.base ?? ''} ${item.quote ?? ''}`.toLowerCase().replace(/[-/\s_]/g, '').includes(normalizedQuery)), [normalizedQuery, page.items])
@@ -64,7 +118,7 @@ export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider:
   }}><div className="flex items-center justify-between"><strong>Symbol Search</strong><button aria-label="Close Symbol Search" className={field} onClick={onClose}>×</button></div>
     <input autoFocus aria-label="Search symbols" maxLength={64} placeholder="Search symbol..." value={query} onChange={event => setQuery(event.target.value)} className={`${field} mt-3`} />
     <div role="tablist" aria-label="Symbol categories" className="my-2 flex gap-1 overflow-x-auto border-b border-slate-800 pb-2">{categories.map(item => <button key={item.value} type="button" role="tab" aria-selected={category === item.value} onClick={() => setCategory(item.value)} className={`shrink-0 rounded-md px-3 py-1.5 text-xs font-semibold ${category === item.value ? 'bg-slate-100 text-slate-950' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}>{item.label}</button>)}</div>
-    {error ? <div role="alert" className="p-3 text-xs text-amber-300">{error}<button className={`${field} ml-2`} onClick={() => setRetry(value => value + 1)}>Retry</button></div> : busy ? <p role="status" className="p-3 text-xs">Loading live symbols…</p> : !visibleItems.length ? <p role="status" className="p-3 text-xs">No live instruments available.</p> : null}
+    {error ? <div role="alert" className="p-3 text-xs text-amber-300">{error}<button className={`${field} ml-2`} onClick={() => setRetry(value => value + 1)}>Retry</button></div> : busy ? <p role="status" className="p-3 text-xs">Loading live symbols…</p> : !visibleItems.length ? <p role="status" className="p-3 text-xs">{emptyState(category, sources)}</p> : null}
     <div className="min-h-0 overflow-auto">{visibleItems.map(instrument => <button key={instrument.instrumentId ?? `${instrument.provider}:${instrument.symbol}`} onClick={() => onSelect(instrument)} className="flex min-h-14 w-full items-center gap-3 rounded px-2 text-left hover:bg-slate-800"><SymbolIcon instrument={instrument}/><span className="min-w-0 flex-1"><span className="block truncate text-sm">{instrument.displaySymbol ?? instrument.symbol}</span><span className="block truncate text-xs text-slate-400">{instrument.name}</span></span></button>)}</div>
   </div></div>, document.body)
 }

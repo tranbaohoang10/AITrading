@@ -1,33 +1,66 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { SymbolCatalogSearch } from './SymbolCatalogSearch'
+import { act, fireEvent, render, screen } from '@testing-library/react'
+import { COINBASE_CATALOG_MAX_PAGES, loadCatalogSource, SYMBOL_CATALOG_TIMEOUT_MS, SymbolCatalogSearch } from './SymbolCatalogSearch'
 import { DEFAULT_INSTRUMENTS, type Instrument } from './liveMarket'
-it('uses trader categories, hides providers and lists only live symbols with approved icons', async () => {
+import type { CatalogProvider } from './providerCatalog'
+
+const coinbase: CatalogProvider = { providerId: 'COINBASE', displayName: 'Coinbase', assetClasses: ['CRYPTO'], configured: true, historical: true, realtime: true, delayed: false, eod: false }
+
+it('uses trader categories, hides providers and lists actual live symbols with icon fallbacks', async () => {
   const historicalOnly = { ...DEFAULT_INSTRUMENTS[1], symbol: 'BTC-USDT', displaySymbol: 'BTC/USDT', provider: 'BINANCE', modes: ['HISTORICAL'] as Instrument['modes'] }
   const noApprovedIcon = { ...DEFAULT_INSTRUMENTS[4], base: 'UNKNOWN', symbol: 'UNKNOWN-USD', displaySymbol: 'UNKNOWN/USD' }
   const searchPage = vi.fn(async ({ query }: { query: string }) => ({ items: query === '' ? [...DEFAULT_INSTRUMENTS.filter(item => item.assetClass === 'CRYPTO'), historicalOnly, noApprovedIcon] : query.includes('ETH') ? [DEFAULT_INSTRUMENTS[1]] : query.includes('SOL') ? [DEFAULT_INSTRUMENTS[2]] : query.includes('XRP') ? [DEFAULT_INSTRUMENTS[3]] : [], nextCursor: null }))
   const select = vi.fn()
-  render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [{ providerId: 'COINBASE', displayName: 'Coinbase', assetClasses: ['CRYPTO'], realtime: true }], searchPage }} onSelect={select} onClose={() => {}} />)
+  render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [coinbase], searchPage }} onSelect={select} onClose={() => {}} />)
   expect(await screen.findByText('Bitcoin / US Dollar')).toBeVisible()
   for (const category of ['All', 'Stocks', 'ETFs', 'Crypto', 'Futures', 'Forex', 'Commodities']) expect(screen.getByRole('tab', { name: category })).toBeInTheDocument()
   expect(screen.queryByLabelText('Symbol provider')).not.toBeInTheDocument()
   expect(screen.queryByText(/Provider catalogs only|Coinbase|Binance|PUBLIC · HISTORICAL/i)).not.toBeInTheDocument()
   expect(screen.queryByText('BTC/USDT')).not.toBeInTheDocument()
-  expect(screen.queryByText('UNKNOWN/USD')).not.toBeInTheDocument()
+  expect(screen.getByText('UNKNOWN/USD')).toBeVisible()
+  expect(screen.getByRole('img', { name: 'Cardano / US Dollar symbol fallback' })).toHaveTextContent('UNK')
   expect(screen.getByText('ADA/USD')).toBeVisible()
   expect(screen.getByText('DOGE/USD')).toBeVisible()
   fireEvent.change(screen.getByLabelText('Search symbols'), { target: { value: 'ETHUSD' } })
   expect(await screen.findByText('Ethereum / US Dollar')).toBeVisible()
   expect(searchPage).toHaveBeenCalledWith(expect.objectContaining({ query: 'ETH' }))
   fireEvent.click(screen.getByRole('tab', { name: 'Forex' }))
-  expect(await screen.findByText('No live instruments available.')).toBeVisible()
+  expect(await screen.findByText(/Realtime Forex is NOT_READY.*cTrader is not configured/)).toBeVisible()
 })
 
-it('does not crawl every later catalog page when the first page is sufficient', async () => {
-  const searchPage = vi.fn(async () => ({ items: [DEFAULT_INSTRUMENTS[5]], nextCursor: 'next' }))
-  render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [{ providerId: 'COINBASE', displayName: 'Coinbase', assetClasses: ['CRYPTO'], realtime: true }], searchPage }} onSelect={() => {}} onClose={() => {}} />)
-  expect(await screen.findByText('DOGE/USD')).toBeVisible()
-  expect(searchPage).toHaveBeenCalledTimes(1)
-  expect(searchPage).toHaveBeenCalledWith(expect.not.objectContaining({ cursor: expect.anything() }))
+it('paginates Coinbase discovery, deduplicates identities and stops repeated cursors', async () => {
+  const searchPage = vi.fn(async ({ cursor }: { cursor?: string }) => cursor ? { items: [DEFAULT_INSTRUMENTS[0], DEFAULT_INSTRUMENTS[1]], nextCursor: 'same' } : { items: [DEFAULT_INSTRUMENTS[0]], nextCursor: 'same' })
+  const items = await loadCatalogSource({ searchPage }, coinbase, '', '', new AbortController().signal)
+  expect(searchPage).toHaveBeenCalledTimes(2)
+  expect(new Set(items.map(item => item.symbol))).toEqual(new Set(['BTC-USD', 'ETH-USD']))
+})
+
+it('bounds Coinbase catalog pagination even when every page returns another cursor', async () => {
+  const searchPage = vi.fn(async ({ cursor }: { cursor?: string }) => ({ items: [], nextCursor: String(Number(cursor ?? '0') + 1) }))
+  await loadCatalogSource({ searchPage }, coinbase, '', '', new AbortController().signal)
+  expect(searchPage).toHaveBeenCalledTimes(COINBASE_CATALOG_MAX_PAGES)
+})
+
+it('keeps the bounded Alpaca featured queries exact instead of accepting substring matches', async () => {
+  const alpaca: CatalogProvider = { providerId: 'ALPACA', displayName: 'Alpaca · IEX', assetClasses: ['STOCK', 'ETF'], configured: true, historical: true, realtime: true }
+  const searchPage = vi.fn(async ({ query }: { query: string }) => ({ items: [
+    { ...DEFAULT_INSTRUMENTS[0], instrumentId: `ALPACA:${query}`, provider: 'ALPACA', providerSymbol: query, symbol: query, displaySymbol: query, base: query, assetClass: 'STOCK' as const },
+    { ...DEFAULT_INSTRUMENTS[0], instrumentId: `ALPACA:${query}X`, provider: 'ALPACA', providerSymbol: `${query}X`, symbol: `${query}X`, displaySymbol: `${query}X`, base: `${query}X`, assetClass: 'STOCK' as const },
+  ], nextCursor: null }))
+  const items = await loadCatalogSource({ searchPage }, alpaca, '', '', new AbortController().signal)
+  expect(items.map(item => item.symbol)).toEqual(expect.arrayContaining(['AAPL', 'NVDA', 'SPY', 'QQQ']))
+  expect(items.some(item => item.symbol.endsWith('X'))).toBe(false)
+})
+
+it('aborts a stalled catalog request at the UI timeout', async () => {
+  vi.useFakeTimers()
+  try {
+    const searchPage = vi.fn(({ signal }: { signal?: AbortSignal }) => new Promise<never>((_resolve, reject) => signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })))
+    render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [coinbase], searchPage }} onSelect={() => {}} onClose={() => {}} />)
+    await act(async () => { await Promise.resolve() })
+    await act(async () => { await vi.advanceTimersByTimeAsync(250) })
+    await act(async () => { await vi.advanceTimersByTimeAsync(SYMBOL_CATALOG_TIMEOUT_MS) })
+    expect(screen.getByRole('alert')).toHaveTextContent('timed out')
+  } finally { vi.useRealTimers() }
 })
 
 it('keeps All symbols from healthy providers when another live provider fails', async () => {
@@ -36,12 +69,24 @@ it('keeps All symbols from healthy providers when another live provider fails', 
     return { items: DEFAULT_INSTRUMENTS.filter(item => item.assetClass === 'CRYPTO'), nextCursor: null }
   })
   render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [
-    { providerId: 'COINBASE', displayName: 'Coinbase', assetClasses: ['CRYPTO'], realtime: true },
+    coinbase,
     { providerId: 'ALPACA', displayName: 'Alpaca · IEX', assetClasses: ['STOCK', 'ETF'], realtime: true },
   ], searchPage }} onSelect={() => {}} onClose={() => {}} />)
   expect(await screen.findByText('Bitcoin / US Dollar')).toBeVisible()
   expect(screen.getByText('Ethereum / US Dollar')).toBeVisible()
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+})
+
+it('does not promote crypto assets that merely collide with featured equity tickers', async () => {
+  const rows = [
+    { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'COINBASE:META-USD', symbol: 'META-USD', providerSymbol: 'META-USD', displaySymbol: 'META/USD', base: 'META', name: 'META-USD' },
+    { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'ALPACA:META', symbol: 'META', providerSymbol: 'META', displaySymbol: 'META', base: 'META', quote: 'USD', name: 'Meta Platforms, Inc.', assetClass: 'STOCK', provider: 'ALPACA', feed: 'IEX' },
+  ] as Instrument[]
+  const searchPage = vi.fn(async ({ provider }: { provider: string }) => ({ items: rows.filter(row => row.provider === provider), nextCursor: null }))
+  render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [coinbase, { providerId: 'ALPACA', displayName: 'Alpaca · IEX', assetClasses: ['STOCK'], realtime: true }], searchPage }} onSelect={() => {}} onClose={() => {}} />)
+  const equity = await screen.findByRole('button', { name: /Meta Platforms, Inc\./ })
+  const crypto = screen.getByRole('button', { name: /META-USD symbol fallback/ })
+  expect(equity.compareDocumentPosition(crypto) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })
 
 it('renders approved stock and ETF icons without exposing provider or feed text in normal rows', async () => {
@@ -59,7 +104,7 @@ it('renders approved stock and ETF icons without exposing provider or feed text 
 
 it('reports unavailable only when every active provider request fails', async () => {
   const searchPage = vi.fn(async () => { throw new Error('Provider unavailable') })
-  render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [{ providerId: 'COINBASE', displayName: 'Coinbase', assetClasses: ['CRYPTO'], realtime: true }], searchPage }} onSelect={() => {}} onClose={() => {}} />)
+  render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [coinbase], searchPage }} onSelect={() => {}} onClose={() => {}} />)
   expect(await screen.findByRole('alert')).toHaveTextContent('temporarily unavailable')
   expect(searchPage).toHaveBeenCalledTimes(1)
 })

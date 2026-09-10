@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Instrument } from '../market/liveMarket'
 
-export const approvedCryptoIconBases = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'LINK', 'AVAX', 'LTC', 'BCH', 'USDT'] as const
+export const approvedCryptoIconBases = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'LINK', 'AVAX', 'LTC', 'BCH', 'USDT', 'DOT', 'SUI', 'UNI', 'AAVE', 'XLM', 'HBAR'] as const
 const localIcons = new Set<string>(approvedCryptoIconBases)
 const commodityIcons: Record<string, string> = { XAU: 'gold', XAG: 'silver', USOIL: 'oil' }
 const equityIcons: Record<string, string> = { AAPL: 'apple', NVDA: 'nvidia', MSFT: 'microsoft', TSLA: 'tesla', AMZN: 'amazon', META: 'meta', GOOGL: 'google', GOOG: 'google', AMD: 'amd', SPY: 'spy', QQQ: 'qqq', IWM: 'iwm', DIA: 'dia' }

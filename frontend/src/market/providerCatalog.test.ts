@@ -18,11 +18,12 @@ it('keeps provider identity internal and rejects historical-only or hostile cata
 
 it('preserves configured historical providers separately from realtime readiness', async () => {
   const fetcher = vi.fn(async () => new Response(JSON.stringify({ items: [
-    { providerId: 'COINBASE', displayName: 'Coinbase', assetClasses: ['CRYPTO'], configured: true, displayAllowed: true, licenseStatus: 'ACCEPTED', realtime: true },
-    { providerId: 'BINANCE', displayName: 'Binance archive', assetClasses: ['CRYPTO'], configured: true, displayAllowed: true, licenseStatus: 'ACCEPTED', realtime: false },
-    { providerId: 'FRANKFURTER', displayName: 'Frankfurter', assetClasses: ['FX_REFERENCE'], configured: true, displayAllowed: true, licenseStatus: 'ACCEPTED', realtime: false },
+    { providerId: 'COINBASE', displayName: 'Coinbase', assetClasses: ['CRYPTO'], configured: true, displayAllowed: true, licenseStatus: 'ACCEPTED', historical: true, realtime: true, delayed: false, eod: false },
+    { providerId: 'BINANCE', displayName: 'Binance archive', assetClasses: ['CRYPTO'], configured: true, displayAllowed: true, licenseStatus: 'ACCEPTED', historical: true, realtime: false, delayed: false, eod: false },
+    { providerId: 'FRANKFURTER', displayName: 'Frankfurter', assetClasses: ['FX_REFERENCE'], configured: true, displayAllowed: true, licenseStatus: 'ACCEPTED', historical: true, realtime: false, delayed: true, eod: true },
+    { providerId: 'CTRADER', displayName: 'cTrader', assetClasses: ['FOREX', 'COMMODITY'], configured: false, displayAllowed: true, licenseStatus: 'CONDITIONAL', historical: true, realtime: true, delayed: false, eod: false },
   ] })))
-  await expect(catalogAccess(fetcher).catalogProviders()).resolves.toEqual([expect.objectContaining({ providerId: 'COINBASE', realtime: true }), expect.objectContaining({ providerId: 'BINANCE', realtime: false }), expect.objectContaining({ providerId: 'FRANKFURTER', realtime: false })])
+  await expect(catalogAccess(fetcher).catalogProviders()).resolves.toEqual([expect.objectContaining({ providerId: 'COINBASE', realtime: true }), expect.objectContaining({ providerId: 'BINANCE', realtime: false }), expect.objectContaining({ providerId: 'FRANKFURTER', realtime: false }), expect.objectContaining({ providerId: 'CTRADER', configured: false })])
 })
 
 it('accepts account-discovered OANDA symbols without exposing route labels', async () => {

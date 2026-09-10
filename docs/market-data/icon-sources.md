@@ -4,7 +4,7 @@
 
 Crypto assets: spothq/cryptocurrency-icons, pinned commit `1a63530be6e374711a8554f31b17e4cb92c25fa5`, CC0-1.0; full license retained in `frontend/public/symbol-icons/LICENSE.md`.
 
-Local SVGs: BTC, ETH, SOL, XRP, ADA, DOGE, LINK, AVAX, LTC, BCH, USDT. Used only for actual provider-discovered instruments with matching base assets. Assets are served locally, not hotlinked. SVG references are fragment-only; script, event attributes, foreignObject and external entities are rejected. Trademark rights are not implied by the copyright license.
+Local SVGs: BTC, ETH, SOL, XRP, ADA, DOGE, LINK, AVAX, LTC, BCH, USDT, DOT, AAVE, UNI, XLM, SUI and HBAR. Used only for actual provider-discovered instruments with matching base assets. DOT/AAVE/UNI/XLM use the pinned spothq CC0 source; SUI/HBAR use the already-approved pinned Simple Icons CC0 source. Assets are served locally, not hotlinked. SVG references are fragment-only; script, event attributes, foreignObject and external entities are rejected. Trademark rights are not implied by the copyright license. Provider-confirmed assets without a safely sourced local logo remain visible through the deterministic accessible symbol fallback instead of being removed from the catalog.
 
 Forex: paired system Unicode currency flags for supported base/quote identities.
 

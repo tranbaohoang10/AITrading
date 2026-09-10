@@ -31,6 +31,19 @@ boundary; such a route must add targeted tests before acceptance.
 To be appended after implementation. `PASS` requires actual command/evidence;
 unavailable credentials or provider access remain `BLOCKED` with the exact reason.
 
+## Execution results — Multi-market catalog remediation — 10/09/2026
+
+| Case | Result | Evidence and limitation |
+| --- | --- | --- |
+| TC-01 | PASS | Coinbase official catalog returned 837 products; bounded pagination exposed 484 schema-valid USD products. Target set passed except truthful `TRX-USD = UNSUPPORTED_BY_COINBASE`. |
+| TC-03 | PASS | Alpaca capability remained configured without exposing credentials; catalog 13/13 PASS. |
+| TC-04 | PASS | Coinbase cursor-loop/20-page/abort/timeout/dedupe tests PASS. Alpaca 91-case QA respected 429 cooldown and completed 91/91 without bypassing rate limits. |
+| TC-09 | PASS | All/Crypto ordering, friendly names, icon/fallback behavior and hidden provider/feed row clutter passed focused tests and real browser QA. Forex/Commodities/Futures show truthful unavailable states. |
+| TC-11 | PASS | Backend canonical harness, lint, build, dependency audit, SVG safety scan and diff secret scan PASS. |
+| TC-12 | PARTIAL | Real Coinbase browser runtime PASS. Alpaca historical 91/91 PASS; actual IEX trade and CandleChart update remain `BLOCKED_MARKET_CLOSED`. |
+
+Detailed evidence: `test-evidence/multimarket-catalog-qa-2026-09-10.md`.
+
 ## Execution results — 04/09/2026 (Asia/Ho_Chi_Minh)
 
 | Case | Result | Evidence and limitation |

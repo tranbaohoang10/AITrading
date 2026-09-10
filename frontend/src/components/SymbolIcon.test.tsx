@@ -19,6 +19,13 @@ it('distinguishes gold, silver and oil with original local illustrations', () =>
   expect(screen.getByRole('img')).toHaveAttribute('src', '/symbol-icons/oil.svg')
 })
 
+it('uses expanded approved local icons and keeps a deterministic fallback for unavailable logos', () => {
+  const view = render(<SymbolIcon instrument={{ symbol: 'DOT-USD', base: 'DOT', name: 'Polkadot', assetClass: 'CRYPTO' }} />)
+  expect(screen.getByRole('img')).toHaveAttribute('src', '/symbol-icons/dot.svg')
+  view.rerender(<SymbolIcon instrument={{ symbol: 'SHIB-USD', base: 'SHIB', name: 'Shiba Inu', assetClass: 'CRYPTO' }} />)
+  expect(screen.getByRole('img')).toHaveTextContent('SHI')
+})
+
 it('uses approved local stock and ETF assets instead of monograms', () => {
   const view = render(<SymbolIcon instrument={{ symbol: 'AAPL', base: 'AAPL', name: 'Apple Inc.', assetClass: 'STOCK' }} />)
   expect(screen.getByRole('img')).toHaveAttribute('src', '/symbol-icons/apple.svg')

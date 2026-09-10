@@ -1,5 +1,20 @@
 # PB-038 — Revision history
 
+## 10/09/2026 — Multi-market catalog remediation
+
+- Restored bounded full Coinbase discovery instead of relying on its first page
+  or filtering real instruments solely by locally approved icon availability.
+- Added deterministic USD preference/featured ordering, friendly crypto names,
+  cursor-loop protection, request abort/timeout and instrument identity dedupe.
+- Preserved bounded exact-match Alpaca featured discovery and truthful capability
+  metadata for unconfigured/historical-only Forex and commodity providers.
+- Added local licensed DOT, AAVE, UNI, XLM, SUI and HBAR assets plus accessible
+  fallback behavior for provider-confirmed symbols without approved artwork.
+- Ranked featured instruments by asset class and base so Coinbase crypto symbols
+  that collide with META/DIA equity tickers do not displace the real stock/ETF.
+- Verified Coinbase targets and Alpaca 13 symbols × 7 timeframes = 91/91. Actual
+  Alpaca trade-to-candle remains `BLOCKED_MARKET_CLOSED`; Issue #39 stays open.
+
 Append-only, Asia/Ho_Chi_Minh.
 
 | Date | Revision | Author | Facts/change | Verification | Status |

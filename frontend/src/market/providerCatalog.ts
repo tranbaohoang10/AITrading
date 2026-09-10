@@ -2,7 +2,7 @@ import { validExchangeTimezone } from './chartTimezone'
 import { precisionFromIncrement, validMarketCandle, type Instrument, type MarketDataProvider } from './liveMarket'
 import { timeframeMilliseconds } from './chartMath'
 
-export type CatalogProvider = { providerId: string; displayName: string; assetClasses: string[]; realtime: boolean }
+export type CatalogProvider = { providerId: string; displayName: string; assetClasses: string[]; historical?: boolean; realtime: boolean; delayed?: boolean; eod?: boolean; configured?: boolean }
 export type CatalogRequest = { provider: string; query: string; assetClass?: string; cursor?: string; signal?: AbortSignal }
 export type CatalogPage = { items: Instrument[]; nextCursor: string | null }
 type CatalogCache = Map<string, { expires: number; value: unknown }>
@@ -35,10 +35,10 @@ export function catalogAccess(fetcher: typeof fetch, cacheScope?: string) {
   }
   return {
     catalogProviders: async (signal?: AbortSignal): Promise<CatalogProvider[]> => {
-      const raw = await json('/capabilities', signal) as { items: Array<CatalogProvider & { configured: boolean; displayAllowed: boolean; licenseStatus: string; realtime: boolean }> }
+      const raw = await json('/capabilities', signal) as { items: Array<CatalogProvider & { displayAllowed: boolean; licenseStatus: string }> }
       if (!Array.isArray(raw.items)) throw new Error('Invalid provider capabilities')
       remember('/capabilities', raw, signal)
-      return raw.items.filter(p => ['COINBASE', 'BINANCE', 'FRANKFURTER', 'ALPACA', 'OANDA', 'CTRADER'].includes(p.providerId) && p.configured && p.displayAllowed && ['ACCEPTED', 'CONDITIONAL'].includes(p.licenseStatus))
+      return raw.items.filter(p => ['COINBASE', 'BINANCE', 'FRANKFURTER', 'ALPACA', 'OANDA', 'CTRADER'].includes(p.providerId) && p.displayAllowed && ['ACCEPTED', 'CONDITIONAL'].includes(p.licenseStatus))
     },
     searchPage: async (request: CatalogRequest): Promise<CatalogPage> => {
       if (!['COINBASE', 'BINANCE', 'FRANKFURTER', 'ALPACA', 'OANDA', 'CTRADER'].includes(request.provider) || request.query.length > 64) throw new Error('Invalid catalog query')
