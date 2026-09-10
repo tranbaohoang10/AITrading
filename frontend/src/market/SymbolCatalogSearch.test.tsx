@@ -1,11 +1,11 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { COINBASE_CATALOG_MAX_PAGES, loadCatalogSource, SYMBOL_CATALOG_TIMEOUT_MS, SymbolCatalogSearch } from './SymbolCatalogSearch'
+import { COINBASE_CATALOG_MAX_PAGES, featuredCryptoBases, loadCatalogSource, SYMBOL_CATALOG_TIMEOUT_MS, SymbolCatalogSearch } from './SymbolCatalogSearch'
 import { DEFAULT_INSTRUMENTS, type Instrument } from './liveMarket'
 import type { CatalogProvider } from './providerCatalog'
 
 const coinbase: CatalogProvider = { providerId: 'COINBASE', displayName: 'Coinbase', assetClasses: ['CRYPTO'], configured: true, historical: true, realtime: true, delayed: false, eod: false }
 
-it('uses trader categories, hides providers and lists actual live symbols with icon fallbacks', async () => {
+it('uses trader categories, keeps the category bar visible and curates empty-query crypto', async () => {
   const historicalOnly = { ...DEFAULT_INSTRUMENTS[1], symbol: 'BTC-USDT', displaySymbol: 'BTC/USDT', provider: 'BINANCE', modes: ['HISTORICAL'] as Instrument['modes'] }
   const noApprovedIcon = { ...DEFAULT_INSTRUMENTS[4], base: 'UNKNOWN', symbol: 'UNKNOWN-USD', displaySymbol: 'UNKNOWN/USD' }
   const searchPage = vi.fn(async ({ query }: { query: string }) => ({ items: query === '' ? [...DEFAULT_INSTRUMENTS.filter(item => item.assetClass === 'CRYPTO'), historicalOnly, noApprovedIcon] : query.includes('ETH') ? [DEFAULT_INSTRUMENTS[1]] : query.includes('SOL') ? [DEFAULT_INSTRUMENTS[2]] : query.includes('XRP') ? [DEFAULT_INSTRUMENTS[3]] : [], nextCursor: null }))
@@ -15,9 +15,9 @@ it('uses trader categories, hides providers and lists actual live symbols with i
   for (const category of ['All', 'Stocks', 'ETFs', 'Crypto', 'Futures', 'Forex', 'Commodities']) expect(screen.getByRole('tab', { name: category })).toBeInTheDocument()
   expect(screen.queryByLabelText('Symbol provider')).not.toBeInTheDocument()
   expect(screen.queryByText(/Provider catalogs only|Coinbase|Binance|PUBLIC · HISTORICAL/i)).not.toBeInTheDocument()
+  expect(screen.getByRole('tablist', { name: 'Symbol categories' })).toHaveClass('min-h-10', 'shrink-0')
   expect(screen.queryByText('BTC/USDT')).not.toBeInTheDocument()
-  expect(screen.getByText('UNKNOWN/USD')).toBeVisible()
-  expect(screen.getByRole('img', { name: 'Cardano / US Dollar symbol fallback' })).toHaveTextContent('UNK')
+  expect(screen.queryByText('UNKNOWN/USD')).not.toBeInTheDocument()
   expect(screen.getByText('ADA/USD')).toBeVisible()
   expect(screen.getByText('DOGE/USD')).toBeVisible()
   fireEvent.change(screen.getByLabelText('Search symbols'), { target: { value: 'ETHUSD' } })
@@ -25,6 +25,44 @@ it('uses trader categories, hides providers and lists actual live symbols with i
   expect(searchPage).toHaveBeenCalledWith(expect.objectContaining({ query: 'ETH' }))
   fireEvent.click(screen.getByRole('tab', { name: 'Forex' }))
   expect(await screen.findByText(/Realtime Forex is NOT_READY.*cTrader is not configured/)).toBeVisible()
+})
+
+it('keeps popular crypto bounded for empty query but searches the full provider catalog when typed', async () => {
+  const obscure = { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'COINBASE:OBSCURE-USD', symbol: 'OBSCURE-USD', providerSymbol: 'OBSCURE-USD', displaySymbol: 'OBSCURE/USD', base: 'OBSCURE', name: 'Obscure token' }
+  const bonk = { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'COINBASE:BONK-USD', symbol: 'BONK-USD', providerSymbol: 'BONK-USD', displaySymbol: 'BONK/USD', base: 'BONK', name: 'BONK-USD' }
+  const searchPage = vi.fn(async ({ query }: { query: string }) => ({ items: query ? [obscure] : [DEFAULT_INSTRUMENTS[0], bonk, obscure], nextCursor: null }))
+  render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [coinbase], searchPage }} onSelect={() => {}} onClose={() => {}} />)
+  expect(await screen.findByText('BTC/USD')).toBeVisible()
+  expect(screen.getByText('BONK/USD')).toBeVisible()
+  expect(screen.queryByText('OBSCURE/USD')).not.toBeInTheDocument()
+  expect(featuredCryptoBases.length).toBeLessThanOrEqual(40)
+  fireEvent.change(screen.getByLabelText('Search symbols'), { target: { value: 'OBSCURE' } })
+  expect(await screen.findByText('OBSCURE/USD')).toBeVisible()
+  expect(searchPage).toHaveBeenCalledWith(expect.objectContaining({ query: 'OBSCURE' }))
+})
+
+it('shows real Frankfurter daily-reference Forex without labeling it realtime', async () => {
+  const reference: CatalogProvider = { providerId: 'FRANKFURTER', displayName: 'Frankfurter', assetClasses: ['FX_REFERENCE'], configured: true, historical: true, realtime: false, delayed: true, eod: true }
+  const euro = DEFAULT_INSTRUMENTS.find(item => item.symbol === 'EUR-USD')!
+  const searchPage = vi.fn(async ({ provider }: { provider: string }) => ({ items: provider === 'FRANKFURTER' ? [euro] : [], nextCursor: null }))
+  const select = vi.fn()
+  render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [reference], searchPage }} onSelect={select} onClose={() => {}} />)
+  fireEvent.click(screen.getByRole('tab', { name: 'Forex' }))
+  const row = await screen.findByRole('button', { name: /EUR\/USD.*Daily reference/ })
+  expect(row).toBeVisible()
+  expect(screen.queryByText(/Realtime Forex is NOT_READY/)).not.toBeInTheDocument()
+  fireEvent.click(row)
+  expect(select).toHaveBeenCalledWith(expect.objectContaining({ symbol: 'EUR-USD', modes: ['HISTORICAL', 'DELAYED'] }))
+})
+
+it('shows provider-backed precious metals as daily reference commodities', async () => {
+  const reference: CatalogProvider = { providerId: 'FRANKFURTER', displayName: 'Frankfurter', assetClasses: ['FX_REFERENCE', 'COMMODITY'], configured: true, historical: true, realtime: false, delayed: true, eod: true }
+  const gold: Instrument = { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'FRANKFURTER:XAU-USD', symbol: 'XAU-USD', providerSymbol: 'XAU-USD', displaySymbol: 'XAU/USD', base: 'XAU', quote: 'USD', name: 'Gold / U.S. Dollar · daily reference', assetClass: 'COMMODITY', provider: 'FRANKFURTER', feed: 'DAILY · REFERENCE', modes: ['HISTORICAL', 'DELAYED'] }
+  const searchPage = vi.fn(async ({ assetClass }: { assetClass?: string }) => ({ items: assetClass === 'COMMODITY' ? [gold] : [], nextCursor: null }))
+  render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [reference], searchPage }} onSelect={() => {}} onClose={() => {}} />)
+  fireEvent.click(screen.getByRole('tab', { name: 'Commodities' }))
+  expect(await screen.findByRole('button', { name: /Gold.*XAU\/USD.*Daily reference/ })).toBeVisible()
+  expect(screen.queryByText(/USOIL/)).not.toBeInTheDocument()
 })
 
 it('paginates Coinbase discovery, deduplicates identities and stops repeated cursors', async () => {
@@ -77,16 +115,15 @@ it('keeps All symbols from healthy providers when another live provider fails', 
   expect(screen.queryByRole('alert')).not.toBeInTheDocument()
 })
 
-it('does not promote crypto assets that merely collide with featured equity tickers', async () => {
+it('keeps featured equities while hiding non-curated crypto ticker collisions', async () => {
   const rows = [
     { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'COINBASE:META-USD', symbol: 'META-USD', providerSymbol: 'META-USD', displaySymbol: 'META/USD', base: 'META', name: 'META-USD' },
     { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'ALPACA:META', symbol: 'META', providerSymbol: 'META', displaySymbol: 'META', base: 'META', quote: 'USD', name: 'Meta Platforms, Inc.', assetClass: 'STOCK', provider: 'ALPACA', feed: 'IEX' },
   ] as Instrument[]
   const searchPage = vi.fn(async ({ provider }: { provider: string }) => ({ items: rows.filter(row => row.provider === provider), nextCursor: null }))
   render(<SymbolCatalogSearch provider={{ catalogProviders: async () => [coinbase, { providerId: 'ALPACA', displayName: 'Alpaca · IEX', assetClasses: ['STOCK'], realtime: true }], searchPage }} onSelect={() => {}} onClose={() => {}} />)
-  const equity = await screen.findByRole('button', { name: /Meta Platforms, Inc\./ })
-  const crypto = screen.getByRole('button', { name: /META-USD symbol fallback/ })
-  expect(equity.compareDocumentPosition(crypto) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(await screen.findByRole('button', { name: /Meta Platforms, Inc\./ })).toBeVisible()
+  expect(screen.queryByRole('button', { name: /META-USD symbol fallback/ })).not.toBeInTheDocument()
 })
 
 it('renders approved stock and ETF icons without exposing provider or feed text in normal rows', async () => {

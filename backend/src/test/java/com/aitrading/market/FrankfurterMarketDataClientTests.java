@@ -61,6 +61,14 @@ class FrankfurterMarketDataClientTests {
         });
     }
 
+    @Test void doesNotApplyTheEcbFilterToPreciousMetalReferenceRates() {
+        respond(200, "[{\"date\":\"2026-09-04\",\"base\":\"XAU\",\"quote\":\"USD\",\"rate\":4448.35}]");
+        var client = new FrankfurterMarketDataClient(base, HttpClient.newHttpClient());
+
+        assertThat(client.candles("XAU-USD", 20, Instant.parse("2026-09-05T00:00:00Z").toEpochMilli())).singleElement();
+        assertThat(requested.get().getQuery()).contains("base=XAU", "quotes=USD").doesNotContain("providers=ECB");
+    }
+
     private void respond(int status, String body) {
         server.createContext("/", exchange -> {
             requested.set(exchange.getRequestURI());

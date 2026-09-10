@@ -15,6 +15,9 @@ class ProviderHistoryTests {
         assertFalse(provider.capabilities().realtime());
         assertEquals("NOT_TRADABLE",provider.instrument("EUR-USD").sizeUnit());
         assertNull(provider.instrument("EUR-USD").lotSize());
+        assertEquals("COMMODITY",provider.instrument("XAU-USD").assetClass());
+        assertEquals(new java.math.BigDecimal("0.01"),provider.instrument("XAU-USD").priceIncrement());
+        assertEquals(java.util.List.of("HISTORICAL","DELAYED"),provider.instrument("XAU-USD").supportedModes());
         assertThrows(IllegalArgumentException.class,()->provider.history("EUR-USD","1h",Instant.parse("2025-01-01T00:00:00Z"),Instant.parse("2025-01-02T00:00:00Z")));
         var registry=new MarketHistoryService(java.util.List.of(provider),new MarketCache(mock(org.springframework.data.redis.core.StringRedisTemplate.class),false));
         assertFalse(registry.replaySupported("FRANKFURTER"));

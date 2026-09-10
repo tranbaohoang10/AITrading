@@ -126,3 +126,21 @@ CFD to commodity, and cTrader does not infer every six-character symbol is Forex
 Real display entitlement and authenticated event evidence are still external
 requirements, so implementation completion does not change their
 `BLOCKED_EXTERNAL` QA status.
+
+## 10/09/2026 — Curated discovery and daily metal references
+
+- Empty-query Coinbase discovery is intentionally presentation-curated to 31
+  popular/liquid USD assets across majors, established altcoins and commonly
+  traded meme coins. A typed query still searches the bounded real Coinbase
+  catalog, so curation does not fabricate symbols or replace provider discovery.
+- Frankfurter remains a no-key daily reference source. Seven major FX references
+  stay pinned to ECB observations; XAU/USD, XAG/USD, XPT/USD and XPD/USD use the
+  Frankfurter provider set because the ECB filter has no precious-metal records.
+- Every Frankfurter row and chart is marked `Daily reference` / `Delayed`, with
+  equal OHLC and zero volume preserved as reference observations rather than
+  claimed traded candles. It is not an execution, intraday or realtime feed.
+- No oil symbol is invented. `USOIL` remains absent unless an authenticated OANDA
+  or cTrader account catalog returns an approved actual instrument route.
+- Direct 10/09/2026 checks returned EUR/USD and XAU/USD from the official API;
+  the same-origin backend returned three validated candles for each, and the
+  latest XAU/USD close matched the upstream value `4398.63`.

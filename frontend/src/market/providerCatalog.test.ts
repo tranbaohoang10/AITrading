@@ -32,6 +32,19 @@ it('accepts account-discovered OANDA symbols without exposing route labels', asy
   await expect(catalogAccess(fetcher).searchPage({ provider: 'OANDA', query: '' })).resolves.toMatchObject({ items: [expect.objectContaining({ symbol: 'EUR_USD', displaySymbol: 'EUR/USD', modes: ['HISTORICAL', 'REALTIME'] })] })
 })
 
+it('maps Frankfurter Forex and metal references without labeling either realtime', async () => {
+  const rows = [
+    { ...instrument, instrumentId: 'FRANKFURTER:EUR-USD', provider: 'FRANKFURTER', providerSymbol: 'EUR-USD', displaySymbol: 'EUR/USD', name: 'Euro / U.S. Dollar · ECB reference', exchange: 'ECB reference', assetClass: 'FX_REFERENCE', base: 'EUR', quote: 'USD', priceIncrement: .0001, supportedModes: ['HISTORICAL', 'DELAYED'] },
+    { ...instrument, instrumentId: 'FRANKFURTER:XAU-USD', provider: 'FRANKFURTER', providerSymbol: 'XAU-USD', displaySymbol: 'XAU/USD', name: 'Gold / U.S. Dollar · daily reference', exchange: 'Frankfurter metals reference', assetClass: 'COMMODITY', base: 'XAU', quote: 'USD', priceIncrement: .01, supportedModes: ['HISTORICAL', 'DELAYED'] },
+  ]
+  const fetcher = vi.fn(async () => new Response(JSON.stringify({ items: rows, nextCursor: null })))
+  const items = (await catalogAccess(fetcher).searchPage({ provider: 'FRANKFURTER', query: '' })).items
+  expect(items).toEqual([
+    expect.objectContaining({ symbol: 'EUR-USD', assetClass: 'FOREX', feed: 'ECB · EOD', modes: ['HISTORICAL', 'DELAYED'] }),
+    expect.objectContaining({ symbol: 'XAU-USD', assetClass: 'COMMODITY', feed: 'DAILY · REFERENCE', modes: ['HISTORICAL', 'DELAYED'] }),
+  ])
+})
+
 it('reuses bounded catalog responses only within one account provider and TTL', async () => {
   const fetcher = vi.fn(async () => new Response(JSON.stringify({ items: [instrument], nextCursor: null })))
   const first = catalogAccess(fetcher), second = catalogAccess(fetcher)

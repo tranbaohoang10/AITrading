@@ -210,3 +210,20 @@ evidence in `owner-refinement-tests.md`.
 | Full backend | PASS | 342 discovered; 339 passed; 3 Redis skipped; 0 failure/error |
 | Redis integration | PASS | 3/3 against owned disposable Redis 8.4.2, then shutdown verified |
 | Dependency/security | PASS | npm production audit 0; OSV 144/0; readiness PASS |
+
+## 10/09/2026 — Symbol Search clipping, curation and market diversity
+
+| Scope | Result | Evidence |
+| --- | --- | --- |
+| Category visibility | PASS | Symbol Search reserves a non-shrinking 40px tab row and a separate flexing result viewport. Browser QA after reload showed all seven category tabs without the former clipped white strip. |
+| Crypto curation | PASS | Empty query returned 31 provider-confirmed USD symbols limited to popular majors, established altcoins and liquid meme coins. Typed search retains bounded full Coinbase catalog discovery. |
+| Stocks and ETFs | PASS | Authenticated browser catalog showed nine approved featured stocks and four ETFs with local icons; normal rows did not expose Alpaca/IEX labels. |
+| Forex | PASS | Seven real Frankfurter/ECB daily references appeared with currency icons and explicit `Daily reference` labels. |
+| Commodities | PASS | XAU/USD, XAG/USD, XPT/USD and XPD/USD appeared as real Frankfurter daily references. USOIL remained absent because no authenticated account catalog confirmed it. |
+| Historical data | PASS | Backend `UP`; same-origin public endpoint returned three valid EUR/USD candles ending `1.1652` and three XAU/USD candles ending `4398.63`. Official Frankfurter XAU/USD returned the same 10/09/2026 value. |
+| Reload resilience | PASS | Frankfurter default instruments now include all four metals, so provider validation survives page reload instead of depending on a prior Symbol Search registration. |
+| Browser console | PASS | In-app browser console log inspection returned an empty list after Symbol Search and chart QA. |
+| Frontend focused | PASS | 4 files / 37 tests. |
+| Frontend full | PASS | 57 files / 331 tests; lint, production build and npm audit passed. Build emitted only the existing chunk-size warning. |
+| Backend full | PASS | `python scripts/test_backend.py` completed `BUILD SUCCESSFUL`, shut down its owned PostgreSQL instance and retained no credentials file. |
+| Remaining issue blocker | BLOCKED_MARKET_CLOSED | This refinement does not change the earlier Alpaca requirement: Issue #39 remains open until an actual IEX provider event updates an Alpaca CandleChart while market conditions allow. |

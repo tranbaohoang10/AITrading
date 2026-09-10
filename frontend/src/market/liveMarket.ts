@@ -2,7 +2,7 @@ import type { CatalogPage, CatalogProvider, CatalogRequest } from './providerCat
 import { TIMEFRAMES, type Timeframe } from './chartMath'
 
 export const COINBASE_DEFAULT_SYMBOLS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'ADA-USD', 'DOGE-USD', 'LTC-USD', 'BCH-USD', 'LINK-USD', 'AVAX-USD', 'POL-USD'] as const
-export const FRANKFURTER_DEFAULT_SYMBOLS = ['EUR-USD', 'GBP-USD', 'USD-JPY', 'USD-CHF', 'AUD-USD', 'USD-CAD', 'NZD-USD'] as const
+export const FRANKFURTER_DEFAULT_SYMBOLS = ['EUR-USD', 'GBP-USD', 'USD-JPY', 'USD-CHF', 'AUD-USD', 'USD-CAD', 'NZD-USD', 'XAU-USD', 'XAG-USD', 'XPT-USD', 'XPD-USD'] as const
 export type LiveSymbol = string
 export type LiveConnectionStatus = 'CONNECTING' | 'LIVE' | 'DELAYED' | 'RECONNECTING' | 'DISCONNECTED'
 export type AssetClass = 'CRYPTO' | 'STOCK' | 'ETF' | 'FOREX' | 'FUTURES' | 'COMMODITY'
@@ -59,6 +59,10 @@ export const DEFAULT_INSTRUMENTS: Instrument[] = [
   { symbol: 'AUD-USD', displaySymbol: 'AUD/USD', name: 'Australian Dollar / U.S. Dollar', assetClass: 'FOREX', base: 'AUD', quote: 'USD', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'DELAYED'] },
   { symbol: 'USD-CAD', displaySymbol: 'USD/CAD', name: 'U.S. Dollar / Canadian Dollar', assetClass: 'FOREX', base: 'USD', quote: 'CAD', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'DELAYED'] },
   { symbol: 'NZD-USD', displaySymbol: 'NZD/USD', name: 'New Zealand Dollar / U.S. Dollar', assetClass: 'FOREX', base: 'NZD', quote: 'USD', exchange: 'ECB', provider: 'FRANKFURTER', feed: 'ECB · EOD', priceIncrement: 0.0001, pricePrecision: 4, modes: ['HISTORICAL', 'DELAYED'] },
+  { symbol: 'XAU-USD', displaySymbol: 'XAU/USD', name: 'Gold / U.S. Dollar · daily reference', assetClass: 'COMMODITY', base: 'XAU', quote: 'USD', exchange: 'Frankfurter metals reference', provider: 'FRANKFURTER', feed: 'DAILY · REFERENCE', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'DELAYED'] },
+  { symbol: 'XAG-USD', displaySymbol: 'XAG/USD', name: 'Silver / U.S. Dollar · daily reference', assetClass: 'COMMODITY', base: 'XAG', quote: 'USD', exchange: 'Frankfurter metals reference', provider: 'FRANKFURTER', feed: 'DAILY · REFERENCE', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'DELAYED'] },
+  { symbol: 'XPT-USD', displaySymbol: 'XPT/USD', name: 'Platinum / U.S. Dollar · daily reference', assetClass: 'COMMODITY', base: 'XPT', quote: 'USD', exchange: 'Frankfurter metals reference', provider: 'FRANKFURTER', feed: 'DAILY · REFERENCE', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'DELAYED'] },
+  { symbol: 'XPD-USD', displaySymbol: 'XPD/USD', name: 'Palladium / U.S. Dollar · daily reference', assetClass: 'COMMODITY', base: 'XPD', quote: 'USD', exchange: 'Frankfurter metals reference', provider: 'FRANKFURTER', feed: 'DAILY · REFERENCE', priceIncrement: 0.01, pricePrecision: 2, modes: ['HISTORICAL', 'DELAYED'] },
 ]
 
 export function displayMarketSymbol(symbol: LiveSymbol): string {

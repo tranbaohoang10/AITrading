@@ -25,41 +25,35 @@ import tools.jackson.databind.json.JsonMapper;
 public class FrankfurterMarketDataClient {
     private static final URI BASE = URI.create("https://api.frankfurter.dev");
     private static final int MAX_RESPONSE_BYTES = 1_000_000, MAX_CANDLES = 600;
-    private static final Map<String, Pair> PAIRS = Map.of(
-            "EUR-USD", new Pair("EUR", "USD"), "GBP-USD", new Pair("GBP", "USD"),
-            "USD-JPY", new Pair("USD", "JPY"), "USD-CHF", new Pair("USD", "CHF"),
-            "AUD-USD", new Pair("AUD", "USD"), "USD-CAD", new Pair("USD", "CAD"),
-            "NZD-USD", new Pair("NZD", "USD"));
+    private static final Map<String, Pair> PAIRS = Map.ofEntries(
+            Map.entry("EUR-USD", new Pair("EUR", "USD", "ECB")),
+            Map.entry("GBP-USD", new Pair("GBP", "USD", "ECB")),
+            Map.entry("USD-JPY", new Pair("USD", "JPY", "ECB")),
+            Map.entry("USD-CHF", new Pair("USD", "CHF", "ECB")),
+            Map.entry("AUD-USD", new Pair("AUD", "USD", "ECB")),
+            Map.entry("USD-CAD", new Pair("USD", "CAD", "ECB")),
+            Map.entry("NZD-USD", new Pair("NZD", "USD", "ECB")),
+            Map.entry("XAU-USD", new Pair("XAU", "USD", null)),
+            Map.entry("XAG-USD", new Pair("XAG", "USD", null)),
+            Map.entry("XPT-USD", new Pair("XPT", "USD", null)),
+            Map.entry("XPD-USD", new Pair("XPD", "USD", null)));
     private final URI base;
     private final HttpClient http;
 
     public record Candle(long openTime, long closeTime, String open, String high, String low, String close, String volume, boolean closed) { }
-    private record Pair(String base, String quote) { }
+    private record Pair(String base, String quote, String provider) { }
 
     public FrankfurterMarketDataClient() { this(BASE, HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NEVER).build()); }
     FrankfurterMarketDataClient(URI base, HttpClient http) { this.base = base; this.http = http; }
 
-    private List<String> catalog=List.of(); private long catalogExpires, catalogRetry;
-    public synchronized List<String> symbols() {
-        if(System.nanoTime()<catalogExpires)return catalog;
-        if(System.nanoTime()<catalogRetry)throw new FrankfurterDataFailure("FRANKFURTER_PROVIDER_UNAVAILABLE",503);
-        try {
-            byte[] bytes=BinanceArchiveProvider.fetch(http,base.resolve("/v2/rates?providers=ECB"),MAX_RESPONSE_BYTES,System.nanoTime()+Duration.ofSeconds(10).toNanos());
-            var rows=JsonMapper.builder().build().readTree(new String(bytes,StandardCharsets.UTF_8));
-            if(!rows.isArray()||rows.size()>500)throw invalid();
-            var symbols=new java.util.TreeSet<String>();
-            for(var row:rows) { String b=text(row,"base"),q=text(row,"quote"); decimal(row.get("rate"));
-                if(!b.matches("[A-Z]{3}")||!q.matches("[A-Z]{3}")||b.equals(q)||!symbols.add(b+"-"+q))throw invalid(); }
-            catalog=List.copyOf(symbols); catalogExpires=System.nanoTime()+Duration.ofHours(1).toNanos(); return catalog;
-        } catch(Exception failure) { if(failure instanceof InterruptedException)Thread.currentThread().interrupt();catalogRetry=System.nanoTime()+Duration.ofSeconds(30).toNanos();throw new FrankfurterDataFailure("FRANKFURTER_PROVIDER_UNAVAILABLE",502); }
-    }
+    public List<String> symbols() { return PAIRS.keySet().stream().sorted().toList(); }
     public List<Candle> candles(String symbol, int limit, Long before) {
         Pair pair = PAIRS.get(symbol);
-        if(pair==null&&symbol!=null&&symbol.matches("[A-Z]{3}-[A-Z]{3}")&&catalog.contains(symbol))pair=new Pair(symbol.substring(0,3),symbol.substring(4));
-        if (pair == null || limit < 1 || limit > MAX_CANDLES || before != null && (before < 0 || before > 4_102_444_800_000L)) throw new IllegalArgumentException("Invalid Forex reference request");
+        if (pair == null || limit < 1 || limit > MAX_CANDLES || before != null && (before < 0 || before > 4_102_444_800_000L)) throw new IllegalArgumentException("Invalid reference market request");
         LocalDate end = (before == null ? Instant.now() : Instant.ofEpochMilli(before)).atZone(ZoneOffset.UTC).toLocalDate();
         LocalDate start = end.minusDays(Math.max(14, Math.min(1_800, limit * 4)));
-        String query = "from=" + start + "&to=" + end + "&base=" + pair.base + "&quotes=" + pair.quote + "&providers=ECB";
+        String query = "from=" + start + "&to=" + end + "&base=" + pair.base + "&quotes=" + pair.quote
+                + (pair.provider == null ? "" : "&providers=" + pair.provider);
         URI request = base.resolve("/v2/rates?" + query);
         try {
             HttpResponse<String> response = http.send(HttpRequest.newBuilder(request).timeout(Duration.ofSeconds(8)).header("Accept", "application/json").GET().build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));

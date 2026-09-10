@@ -27,3 +27,24 @@ the server remained fail-closed without `ALPACA_API_KEY_ID` and
 - After signing in on the permitted local origin, the same workspace loaded BTC/USD 1m through the authenticated same-origin proxy and showed 301 loaded candles, a live price, and `COINBASE · PUBLIC · LIVE`.
 - The toolbar screenshot showed `Indicators ^` on one horizontal row. The picker stayed multi-select capable: SMA was added, then RSI was added, and both remained visible in the chart's active indicators.
 - WebSocket fallback behavior is covered by the provider test; when no open event arrives within five seconds, the provider polls the same-origin series endpoint and reports `DELAYED`.
+
+## Follow-up evidence — 10/09/2026 (Asia/Ho_Chi_Minh)
+
+- Reproduced the supplied screenshot's defect: the category row had collapsed to
+  a narrow white strip above the symbols. The corrected dialog keeps the category
+  tablist at a non-shrinking minimum height and gives remaining height only to the
+  independently scrolling result list.
+- After a hard page reload, Symbol Search showed `All`, `Stocks`, `ETFs`, `Crypto`,
+  `Futures`, `Forex` and `Commodities` as readable tabs. The default All view held
+  31 curated Crypto rows, nine featured stocks, four ETFs, seven FX references and
+  four precious-metal references; no low-quality bulk crypto dump was presented.
+- Forex and precious metals were explicitly marked `Daily reference`. Selecting
+  EUR/USD and XAU/USD loaded real daily candles and showed `Delayed`, never `Live`.
+  XAU/USD displayed `4,398.63`, matching the official Frankfurter response checked
+  on 10/09/2026.
+- Stock and ETF rows retained approved icons and did not display Alpaca/IEX in the
+  normal row. XAU and XAG used approved local icons; unsupported artwork used the
+  existing neutral fallback rather than copied proprietary assets.
+- Browser console inspection after the QA sequence returned no messages. Futures
+  and unavailable realtime commodity routes remain truthful NOT_READY states;
+  no USOIL symbol or realtime event was fabricated.

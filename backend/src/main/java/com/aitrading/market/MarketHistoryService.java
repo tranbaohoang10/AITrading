@@ -48,7 +48,7 @@ public class MarketHistoryService {
     public record CatalogPage(List<MarketDataProvider.Instrument> items,String nextCursor) {}
     public CatalogPage catalog(String id,String query,String assetClass,String cursor) {
         var p=provider(id);
-        if(query==null||query.length()>64||assetClass==null||!Set.of("","CRYPTO","FOREX","STOCK","ETF","FUTURES","CFD").contains(assetClass))throw new IllegalArgumentException("Invalid catalog query");
+        if(query==null||query.length()>64||assetClass==null||!Set.of("","CRYPTO","FOREX","STOCK","ETF","FUTURES","COMMODITY","CFD").contains(assetClass))throw new IllegalArgumentException("Invalid catalog query");
         String binding=MarketCache.key("catalog",id,query.toUpperCase(Locale.ROOT)+"|"+assetClass).substring("aitrading:v1:market:catalog:".length()+id.length()+1);
         int offset=0;
         if(cursor!=null&&!cursor.isEmpty()) {
