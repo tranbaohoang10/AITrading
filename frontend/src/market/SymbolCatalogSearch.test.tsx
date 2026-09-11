@@ -176,21 +176,32 @@ it('reports unavailable only when every active provider request fails', async ()
   expect(searchPage).toHaveBeenCalledTimes(1)
 })
 
-it('uses one unified catalog request and disables reference-only instruments', async () => {
-  const routed: Instrument = { ...DEFAULT_INSTRUMENTS[0], instrumentId: '123e4567-e89b-12d3-a456-426614174000', symbol: 'AAPL', providerSymbol: 'AAPL', displaySymbol: 'AAPL', name: 'Apple Inc.', assetClass: 'STOCK', provider: 'ALPACA', exchange: 'NASDAQ', modes: ['HISTORICAL', 'REALTIME'] }
+it('uses one unified catalog request and excludes reference-only instruments', async () => {
+  const routed: Instrument = { ...DEFAULT_INSTRUMENTS[0], instrumentId: '123e4567-e89b-12d3-a456-426614174000', symbol: 'AAPL', providerSymbol: 'AAPL', displaySymbol: 'AAPL', base: 'AAPL', name: 'Apple Inc.', assetClass: 'STOCK', provider: 'ALPACA', exchange: 'NASDAQ', modes: ['HISTORICAL', 'REALTIME'] }
   const reference: Instrument = { ...routed, instrumentId: '223e4567-e89b-12d3-a456-426614174000', symbol: '7203', providerSymbol: '7203', displaySymbol: '7203', name: 'Toyota Motor Corp', provider: 'REFERENCE', exchange: 'TSE', modes: [] }
   const searchCatalogPage = vi.fn(async () => ({ items: [routed, reference], nextCursor: null }))
   const searchPage = vi.fn()
   render(<SymbolCatalogSearch provider={{ searchCatalogPage, searchPage }} onSelect={() => {}} onClose={() => {}} />)
   expect(await screen.findByRole('button', { name: /Apple Inc\./ })).toBeEnabled()
-  expect(screen.getByRole('button', { name: /Toyota Motor Corp/ })).toBeDisabled()
-  expect(screen.getByText('Reference only')).toBeVisible()
+  expect(screen.queryByRole('button', { name: /Toyota Motor Corp/ })).not.toBeInTheDocument()
+  expect(screen.queryByText('Reference only')).not.toBeInTheDocument()
   expect(searchCatalogPage).toHaveBeenCalledTimes(1)
   expect(searchPage).not.toHaveBeenCalled()
 })
 
-it('deduplicates the All preview by display symbol and prefers a routable row', async () => {
-  const reference: Instrument = { ...DEFAULT_INSTRUMENTS[0], instrumentId: '123e4567-e89b-12d3-a456-426614174010', symbol: 'SPY', providerSymbol: 'SPY', displaySymbol: 'SPY', name: 'SPDR reference', assetClass: 'ETF', provider: 'REFERENCE', exchange: 'BATS', modes: [] }
+it('curates every empty category while typed search keeps supported non-featured symbols', async () => {
+  const apple: Instrument = { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'ALPACA:AAPL', symbol: 'AAPL', providerSymbol: 'AAPL', displaySymbol: 'AAPL', base: 'AAPL', name: 'Apple Inc.', assetClass: 'STOCK', provider: 'ALPACA', modes: ['HISTORICAL', 'REALTIME'] }
+  const obscureStock: Instrument = { ...apple, instrumentId: 'ALPACA:ZZZZ', symbol: 'ZZZZ', providerSymbol: 'ZZZZ', displaySymbol: 'ZZZZ', base: 'ZZZZ', name: 'Obscure but supported stock' }
+  const searchCatalogPage = vi.fn(async ({ query }: { query: string }) => ({ items: query ? [obscureStock] : [apple, obscureStock], nextCursor: null }))
+  render(<SymbolCatalogSearch provider={{ searchCatalogPage }} onSelect={() => {}} onClose={() => {}} />)
+  expect(await screen.findByText('Apple Inc.')).toBeVisible()
+  expect(screen.queryByText('Obscure but supported stock')).not.toBeInTheDocument()
+  fireEvent.change(screen.getByLabelText('Search symbols'), { target: { value: 'ZZZZ' } })
+  expect(await screen.findByText('Obscure but supported stock')).toBeVisible()
+})
+
+it('deduplicates the All preview and keeps only the supported curated route', async () => {
+  const reference: Instrument = { ...DEFAULT_INSTRUMENTS[0], instrumentId: '123e4567-e89b-12d3-a456-426614174010', symbol: 'SPY', providerSymbol: 'SPY', displaySymbol: 'SPY', base: 'SPY', name: 'SPDR reference', assetClass: 'ETF', provider: 'REFERENCE', exchange: 'BATS', modes: [] }
   const routed: Instrument = { ...reference, instrumentId: '123e4567-e89b-12d3-a456-426614174011', name: 'SPDR routable', provider: 'ALPACA', exchange: 'NYSE ARCA', modes: ['HISTORICAL', 'REALTIME'] }
   const commodityReference: Instrument = { ...reference, instrumentId: '123e4567-e89b-12d3-a456-426614174012', symbol: 'XAU-EUR', providerSymbol: 'XAU-EUR', displaySymbol: 'XAU/EUR', name: 'Gold / Euro', assetClass: 'COMMODITY', base: 'XAU', quote: 'EUR' }
   const commodityUsd: Instrument = { ...commodityReference, instrumentId: '123e4567-e89b-12d3-a456-426614174013', symbol: 'XAU-USD', providerSymbol: 'XAU-USD', displaySymbol: 'XAU/USD', name: 'Gold / U.S. Dollar', provider: 'FRANKFURTER', quote: 'USD', modes: ['HISTORICAL', 'DELAYED'] }
@@ -198,6 +209,6 @@ it('deduplicates the All preview by display symbol and prefers a routable row', 
   render(<SymbolCatalogSearch provider={{ searchCatalogPage }} onSelect={() => {}} onClose={() => {}} />)
   expect(await screen.findByRole('button', { name: /SPDR routable/ })).toBeEnabled()
   expect(screen.queryByText('SPDR reference')).not.toBeInTheDocument()
-  const rows = screen.getAllByRole('button').map(button => button.textContent ?? '')
-  expect(rows.findIndex(text => text.includes('XAU/USD'))).toBeLessThan(rows.findIndex(text => text.includes('XAU/EUR')))
+  expect(screen.getByText('XAU/USD')).toBeVisible()
+  expect(screen.queryByText('XAU/EUR')).not.toBeInTheDocument()
 })

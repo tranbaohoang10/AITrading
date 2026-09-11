@@ -20,6 +20,10 @@ export const COINBASE_CATALOG_MAX_PAGES = 20
 export const SYMBOL_CATALOG_TIMEOUT_MS = 20_000
 export const featuredCryptoBases = approvedCryptoIconBases.filter(base => base !== 'USDT')
 const featuredCryptoSet = new Set<string>(featuredCryptoBases)
+const featuredStockSet = new Set(['AAPL', 'NVDA', 'MSFT', 'TSLA', 'AMZN', 'META', 'GOOGL', 'GOOG', 'AMD'])
+const featuredEtfSet = new Set(['SPY', 'QQQ', 'IWM', 'DIA'])
+const featuredForexSet = new Set(['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'USDCAD', 'NZDUSD', 'EURGBP', 'EURJPY', 'GBPJPY', 'AUDJPY'])
+const featuredCommoditySet = new Set(['XAU', 'XAG', 'XPT', 'XPD', 'USOIL', 'WTICO', 'BCO', 'NATGAS'])
 const cryptoNames: Record<string, string> = { BTC: 'Bitcoin', ETH: 'Ethereum', SOL: 'Solana', XRP: 'XRP', DOGE: 'Dogecoin', ADA: 'Cardano', AVAX: 'Avalanche', LINK: 'Chainlink', LTC: 'Litecoin', BCH: 'Bitcoin Cash', DOT: 'Polkadot', SUI: 'Sui', UNI: 'Uniswap', AAVE: 'Aave', XLM: 'Stellar', HBAR: 'Hedera', ATOM: 'Cosmos', NEAR: 'NEAR Protocol', ICP: 'Internet Computer', FIL: 'Filecoin', APT: 'Aptos', ARB: 'Arbitrum', OP: 'Optimism', INJ: 'Injective', POL: 'Polygon Ecosystem Token', TON: 'Toncoin', SHIB: 'Shiba Inu', PEPE: 'Pepe', BONK: 'Bonk', WIF: 'dogwifhat', FLOKI: 'FLOKI' }
 const featuredRank = new Map<string, number>([
   ...featuredCryptoBases.map((base, index) => [`CRYPTO:${base}`, index] as const),
@@ -74,8 +78,17 @@ function routeForCategory(routes: Instrument[], category: Category): Instrument 
 }
 
 function curatedEmptyQuery(instruments: Instrument[], query: string): Instrument[] {
-  if (query.trim()) return instruments
-  return instruments.filter(instrument => instrument.assetClass !== 'CRYPTO' || featuredCryptoSet.has(instrumentBase(instrument)) && hasApprovedSymbolIcon(instrument))
+  const routable = instruments.filter(instrument => instrument.modes.length > 0)
+  if (query.trim()) return routable
+  return routable.filter(instrument => {
+    const base = instrumentBase(instrument)
+    if (instrument.assetClass === 'CRYPTO') return featuredCryptoSet.has(base) && hasApprovedSymbolIcon(instrument)
+    if (instrument.assetClass === 'STOCK') return featuredStockSet.has(base) && hasApprovedSymbolIcon(instrument)
+    if (instrument.assetClass === 'ETF') return featuredEtfSet.has(base) && hasApprovedSymbolIcon(instrument)
+    if (instrument.assetClass === 'FOREX') return featuredForexSet.has(`${base}${instrument.quote ?? ''}`) && hasApprovedSymbolIcon(instrument)
+    if (instrument.assetClass === 'COMMODITY') return featuredCommoditySet.has(base)
+    return false
+  })
 }
 
 function balancedAllPreview(instruments: Instrument[], category: Category, query: string): Instrument[] {
@@ -163,6 +176,6 @@ export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider:
     <input autoFocus aria-label="Search symbols" maxLength={64} placeholder="Search symbol..." value={query} onChange={event => setQuery(event.target.value)} className={`${field} mt-3`} />
     <div role="tablist" aria-label="Symbol categories" className="my-2 flex min-h-10 shrink-0 gap-1 overflow-x-auto border-b border-slate-800 pb-2">{categories.map(item => <button key={item.value} type="button" role="tab" aria-selected={category === item.value} onClick={() => setCategory(item.value)} className={`shrink-0 rounded-md px-3 py-1.5 text-xs font-semibold ${category === item.value ? 'bg-slate-100 text-slate-950' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}>{item.label}</button>)}</div>
     {error ? <div role="alert" className="shrink-0 p-3 text-xs text-amber-300">{error}<button className={`${field} ml-2`} onClick={() => setRetry(value => value + 1)}>Retry</button></div> : busy ? <p role="status" className="shrink-0 p-3 text-xs">Loading market symbols…</p> : !visibleItems.length ? <p role="status" className="shrink-0 p-3 text-xs">{emptyState(category, sources)}</p> : null}
-    <div className="min-h-0 flex-1 overflow-auto">{visibleItems.map(instrument => <button key={instrument.instrumentId ?? `${instrument.provider}:${instrument.symbol}`} disabled={!instrument.modes.length} title={!instrument.modes.length ? 'Reference catalog only; no compatible chart route is configured.' : undefined} onClick={() => onSelect(instrument)} className="flex min-h-14 w-full items-center gap-3 rounded px-2 text-left hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent"><SymbolIcon instrument={instrument}/><span className="min-w-0 flex-1"><span className="block truncate text-sm">{instrument.displaySymbol ?? instrument.symbol}</span><span className="block truncate text-xs text-slate-400">{instrument.name}</span></span>{!instrument.modes.length ? <span className="shrink-0 rounded-full border border-slate-600 px-2 py-1 text-[10px] font-semibold text-slate-400">Reference only</span> : !instrument.modes.includes('REALTIME') && instrument.modes.includes('DELAYED') ? <span className="shrink-0 rounded-full border border-amber-700/70 bg-amber-950/40 px-2 py-1 text-[10px] font-semibold text-amber-300">Daily reference</span> : null}</button>)}</div>
+    <div className="min-h-0 flex-1 overflow-auto">{visibleItems.map(instrument => <button key={instrument.instrumentId ?? `${instrument.provider}:${instrument.symbol}`} onClick={() => onSelect(instrument)} className="flex min-h-14 w-full items-center gap-3 rounded px-2 text-left hover:bg-slate-800"><SymbolIcon instrument={instrument}/><span className="min-w-0 flex-1"><span className="block truncate text-sm">{instrument.displaySymbol ?? instrument.symbol}</span><span className="block truncate text-xs text-slate-400">{instrument.name}</span></span>{!instrument.modes.includes('REALTIME') && instrument.modes.includes('DELAYED') ? <span className="shrink-0 rounded-full border border-amber-700/70 bg-amber-950/40 px-2 py-1 text-[10px] font-semibold text-amber-300">Daily reference</span> : null}</button>)}</div>
   </div></div>, document.body)
 }

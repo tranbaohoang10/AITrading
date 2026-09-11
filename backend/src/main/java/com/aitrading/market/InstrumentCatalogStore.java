@@ -19,13 +19,26 @@ public class InstrumentCatalogStore {
     public void replaceSnapshot(InstrumentCatalogProvider.Descriptor descriptor,List<InstrumentCatalogProvider.Candidate> rows) {
         if(rows==null||rows.isEmpty()||rows.size()>100000||rows.stream().anyMatch(row->!descriptor.providerId().equals(row.provider())))
             throw new IllegalArgumentException("Invalid provider snapshot");
+        List<InstrumentCatalogProvider.Candidate> accepted=acceptedRows(descriptor.providerId(),rows);
         jdbc.update("UPDATE trading.instrument_provider_mapping SET active=FALSE WHERE provider=?",descriptor.providerId());
         jdbc.update("DELETE FROM trading.instrument_alias WHERE source_provider=?",descriptor.providerId());
-        for(int start=0;start<rows.size();start+=1000)upsertChunk(rows.subList(start,Math.min(rows.size(),start+1000)));
+        for(int start=0;start<accepted.size();start+=1000)upsertChunk(accepted.subList(start,Math.min(accepted.size(),start+1000)));
         reconcileReferenceMappings();
         jdbc.update("UPDATE trading.market_instrument i SET active=EXISTS(SELECT 1 FROM trading.instrument_provider_mapping m WHERE m.instrument_id=i.id AND m.active),updated_at=CURRENT_TIMESTAMP WHERE i.active IS DISTINCT FROM EXISTS(SELECT 1 FROM trading.instrument_provider_mapping m WHERE m.instrument_id=i.id AND m.active)");
-        jdbc.update("INSERT INTO trading.instrument_catalog_sync(provider,status,last_attempt_at,last_success_at,row_count,consecutive_failures,failure_code,updated_at) VALUES(?,'SUCCESS',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?,0,NULL,CURRENT_TIMESTAMP) ON CONFLICT(provider) DO UPDATE SET status='SUCCESS',last_attempt_at=CURRENT_TIMESTAMP,last_success_at=CURRENT_TIMESTAMP,row_count=EXCLUDED.row_count,consecutive_failures=0,failure_code=NULL,updated_at=CURRENT_TIMESTAMP",descriptor.providerId(),rows.size());
+        jdbc.update("DELETE FROM trading.market_instrument i WHERE NOT EXISTS(SELECT 1 FROM trading.instrument_provider_mapping m WHERE m.instrument_id=i.id AND m.active)");
+        jdbc.update("INSERT INTO trading.instrument_catalog_sync(provider,status,last_attempt_at,last_success_at,row_count,consecutive_failures,failure_code,updated_at) VALUES(?,'SUCCESS',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?,0,NULL,CURRENT_TIMESTAMP) ON CONFLICT(provider) DO UPDATE SET status='SUCCESS',last_attempt_at=CURRENT_TIMESTAMP,last_success_at=CURRENT_TIMESTAMP,row_count=EXCLUDED.row_count,consecutive_failures=0,failure_code=NULL,updated_at=CURRENT_TIMESTAMP",descriptor.providerId(),accepted.size());
     }
+
+    private List<InstrumentCatalogProvider.Candidate> acceptedRows(String provider,List<InstrumentCatalogProvider.Candidate> rows) {
+        if(rows.stream().allMatch(row->!row.supportedModes().isEmpty()))return rows;
+        var routes=jdbc.query("SELECT DISTINCT i.canonical_key,i.asset_class,i.canonical_symbol,i.exchange FROM trading.market_instrument i JOIN trading.instrument_provider_mapping m ON m.instrument_id=i.id WHERE m.active AND m.supported_modes<>'' AND m.provider<>?",(result,index)->new Route(result.getString(1),result.getString(2),result.getString(3),result.getString(4)),provider);
+        var exact=routes.stream().map(Route::canonicalKey).collect(java.util.stream.Collectors.toSet());
+        var listings=routes.stream().map(Route::listing).collect(java.util.stream.Collectors.toSet());
+        return rows.stream().filter(row->!row.supportedModes().isEmpty()||exact.contains(row.canonicalKey())||listings.contains(listing(row.assetClass(),row.canonicalSymbol(),row.exchange()))||row.assetClass().equals("ETF")&&listings.contains(listing("STOCK",row.canonicalSymbol(),row.exchange()))).toList();
+    }
+
+    private record Route(String canonicalKey,String assetClass,String symbol,String exchange){String listing(){return InstrumentCatalogStore.listing(assetClass,symbol,exchange);}}
+    private static String listing(String assetClass,String symbol,String exchange){return assetClass+":"+symbol.toUpperCase(Locale.ROOT)+":"+InstrumentCatalogProvider.normalizeExchange(exchange);}
 
     private void upsertChunk(List<InstrumentCatalogProvider.Candidate> rows) {
         jdbc.batchUpdate("INSERT INTO trading.market_instrument(id,canonical_key,asset_class,canonical_symbol,display_symbol,name,exchange,mic_code,country,country_code,currency,base_currency,quote_currency,instrument_type,isin,figi,metadata_priority,active,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,TRUE,CURRENT_TIMESTAMP) ON CONFLICT(id) DO UPDATE SET display_symbol=CASE WHEN EXCLUDED.metadata_priority<=trading.market_instrument.metadata_priority THEN EXCLUDED.display_symbol ELSE trading.market_instrument.display_symbol END,name=CASE WHEN EXCLUDED.metadata_priority<=trading.market_instrument.metadata_priority THEN EXCLUDED.name ELSE trading.market_instrument.name END,exchange=CASE WHEN EXCLUDED.metadata_priority<=trading.market_instrument.metadata_priority THEN EXCLUDED.exchange ELSE trading.market_instrument.exchange END,mic_code=COALESCE(trading.market_instrument.mic_code,EXCLUDED.mic_code),country=COALESCE(trading.market_instrument.country,EXCLUDED.country),country_code=COALESCE(trading.market_instrument.country_code,EXCLUDED.country_code),currency=COALESCE(trading.market_instrument.currency,EXCLUDED.currency),base_currency=COALESCE(trading.market_instrument.base_currency,EXCLUDED.base_currency),quote_currency=COALESCE(trading.market_instrument.quote_currency,EXCLUDED.quote_currency),instrument_type=COALESCE(trading.market_instrument.instrument_type,EXCLUDED.instrument_type),isin=COALESCE(trading.market_instrument.isin,EXCLUDED.isin),figi=COALESCE(trading.market_instrument.figi,EXCLUDED.figi),metadata_priority=LEAST(trading.market_instrument.metadata_priority,EXCLUDED.metadata_priority),active=TRUE,updated_at=CURRENT_TIMESTAMP",rows,1000,InstrumentCatalogStore::bindInstrument);
@@ -97,6 +110,8 @@ public class InstrumentCatalogStore {
               WHERE (?='' OR i.asset_class=?) AND (?='' OR UPPER(i.exchange)=UPPER(?))
                 AND (?='' OR UPPER(COALESCE(i.country_code,''))=UPPER(?) OR UPPER(COALESCE(i.country,''))=UPPER(?))
                 AND (?=FALSE OR i.active=TRUE)
+                AND EXISTS(SELECT 1 FROM trading.instrument_provider_mapping route
+                  WHERE route.instrument_id=i.id AND route.active AND route.supported_modes<>'')
                 AND (?='' OR UPPER(i.canonical_symbol) LIKE UPPER(?) OR UPPER(i.name) LIKE UPPER(?)
                   OR EXISTS(SELECT 1 FROM trading.instrument_alias a WHERE a.instrument_id=i.id AND a.normalized_alias LIKE ?))
             ), page AS (

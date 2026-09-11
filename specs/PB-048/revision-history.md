@@ -16,3 +16,12 @@
 - Treated Frankfurter `end_date` as source freshness with a seven-day weekend-safe window instead of currency expiry.
 - Added exact-match and featured cross-asset ranking, USD preference and routed-row priority for Symbol Search.
 - Verified real ingest, authenticated API searches and Chromium browser behavior without exposing credentials.
+## 11/09/2026 — Product Owner catalog curation refinement
+
+- Reopened Issue #48 after the completed ingestion exposed too many bulk and
+  reference-only rows in Symbol Search.
+- Preserve the normalized PostgreSQL catalog for metadata enrichment and
+  last-known-good operation, but require a compatible chart route in selector
+  API results.
+- Curate empty-query Crypto, Stocks, ETFs, Forex and Commodities independently;
+  typed search remains available for supported non-featured instruments.

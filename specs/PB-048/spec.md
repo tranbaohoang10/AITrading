@@ -24,6 +24,9 @@ normalized PostgreSQL catalog instead of making the browser fan out to providers
 - AC6: Optional credentials remain backend-only and a missing key disables that provider cleanly.
 - AC7: The frontend uses the unified endpoint with debounce and truthful loading/error/empty states.
 - AC8: Existing provider catalog/history/realtime endpoints remain compatible.
+- AC9: Empty-query browsing is curated and balanced; reference-only and low-value
+  bulk rows never crowd the chart selector. Typed search may expose non-featured
+  symbols only when a compatible historical/realtime route exists.
 
 ## Security
 

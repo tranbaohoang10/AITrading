@@ -67,6 +67,15 @@ class InstrumentCatalogPersistenceTests {
         assertThat(store.search("","","","",true,null).items()).extracting(MarketDataProvider.Instrument::displaySymbol).startsWith("BTC/USD","AAPL","SPY","EUR/USD","XAU/USD");
     }
 
+    @Test void ignoresReferenceRowsThatCannotEnrichAnExistingChartRoute() {
+        var reference=new InstrumentCatalogProvider.Descriptor("FREE_TICKER_DB",List.of("STOCK"),30,true,false,"24h");
+        var unsupported=new InstrumentCatalogProvider.Candidate(InstrumentCatalogProvider.listingKey("STOCK","OTC","JUNK"),"STOCK","JUNK","JUNK","JUNK","Unsupported reference listing","OTC",null,"United States","US","USD",null,null,"Stock",null,null,"FREE_TICKER_DB",30,List.of(),List.of(),null,null,List.of());
+        store.replaceSnapshot(reference,List.of(unsupported));
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM trading.market_instrument WHERE canonical_symbol='JUNK'",Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT row_count FROM trading.instrument_catalog_sync WHERE provider='FREE_TICKER_DB'",Integer.class)).isZero();
+        assertThat(store.search("JUNK","STOCK","","",true,null).items()).isEmpty();
+    }
+
     @Test void prefersUsdQuoteForFeaturedCrypto() {
         var crypto=new InstrumentCatalogProvider.Descriptor("TEST_CATALOG",List.of("CRYPTO"),20,true,false,"test");
         store.replaceSnapshot(crypto,List.of(candidate("CRYPTO","SPOT","SOL-BNB","Solana / BNB","SOL","BNB"),candidate("CRYPTO","SPOT","SOL-USD","Solana / US Dollar","SOL","USD")));

@@ -36,8 +36,10 @@ asset class + normalized exchange/MIC + symbol. Provider symbols remain mappings
 3. Free Ticker Database for global STOCK/ETF reference fallback.
 4. Frankfurter official daily reference catalog for FOREX/metals.
 
-Rows with executable chart modes are preferred over reference-only mappings. A
-reference-only row is visible but not selectable until a compatible route exists.
+Reference providers enrich only instruments that already have a compatible
+historical/realtime route. Unmatched bulk/reference rows are not persisted or
+returned to Symbol Search. Empty-query browsing is curated per asset class;
+typed search can still find supported non-featured instruments.
 
 ## Recovery
 

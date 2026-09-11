@@ -9,3 +9,5 @@
 - [x] T7 Add backend/frontend tests and failure/security coverage.
 - [x] T8 Run real ingestion, browser QA, full verification and evidence.
 - [x] T9 Commit, push and close Issue #48 only after DoD.
+- [x] T10 Reopen for Product Owner refinement: remove reference-only/noise rows
+  from Symbol Search and curate every empty-query market category.

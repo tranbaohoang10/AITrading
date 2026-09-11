@@ -61,3 +61,33 @@ Chromium headless against `http://127.0.0.1:5173/` and the real local backend:
 | `git diff --check` | PASS — line-ending notices only |
 
 No secret value, generated QA password or provider credential is present in this evidence.
+
+## Product Owner curation refinement — 11/09/2026
+
+This section supersedes the earlier reference-only display behavior and raw
+provider row counts for the current implementation.
+
+- Existing Coinbase/Binance route ingestion now retains only 16 popular crypto
+  bases that have approved local icons; arbitrary provider products no longer
+  populate the unified active catalog.
+- Free/reference provider rows are accepted only when they enrich an existing
+  historical/realtime route. Unmatched bulk rows are not persisted, and stale
+  orphan rows are removed after a successful provider snapshot.
+- The selector API requires an active non-empty supported mode, so unsupported
+  reference-only rows cannot reach the browser.
+- Empty-query browser QA returned exactly 16 Crypto, 9 Stocks, 4 ETFs, 7 Forex
+  pairs and 4 Commodities. The All tab interleaved BTC/USD, AAPL, SPY, EUR/USD,
+  XAU/USD and the next popular rows instead of grouping or flooding one market.
+- Typed browser search for `7203` returned `No live instruments available`;
+  typed search for non-featured but routed `ADBE` returned its Alpaca symbol.
+- Backend and frontend remained READY on `127.0.0.1:8080` and
+  `127.0.0.1:5173` after restart; live BTC candles continued updating.
+
+| Command | Result |
+| --- | --- |
+| `python scripts/test_backend.py` | PASS — 369 tests, 0 failures/errors, 3 conditional skips; `bootJar` and dependency inventory passed |
+| `npx vitest run --maxWorkers=1` | PASS — 57 files, 340 tests |
+| `npm run lint` | PASS |
+| `npm run build` | PASS — existing bundle-size advisory only |
+| Focused catalog/backend/frontend tests | PASS |
+| Browser QA in Codex Desktop | PASS |

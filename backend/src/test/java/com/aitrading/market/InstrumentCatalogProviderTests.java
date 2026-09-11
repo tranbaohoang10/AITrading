@@ -46,5 +46,11 @@ class InstrumentCatalogProviderTests {
         assertThat(row.name()).hasSize(200).doesNotContain("\n");
         assertThat(row.canonicalKey()).isEqualTo("LISTING:STOCK:NYSE ARCA:SPY");
     }
+    @Test void ingestsOnlyPopularCryptoWithApprovedIconCoverage() {
+        var bitcoin=new MarketDataProvider.Instrument("COINBASE:BTC-USD","BTC/USD","BTC-USD","COINBASE","CRYPTO","BTC","USD","Coinbase","USD","PUBLIC","UTC",null,null,null,null,null,"BASE_QUANTITY",null,null,null,"QUANTITY_ONLY",List.of("HISTORICAL","REALTIME"),List.of("1m"),"UNKNOWN","Bitcoin");
+        var obscure=new MarketDataProvider.Instrument("COINBASE:JUNK-USD","JUNK/USD","JUNK-USD","COINBASE","CRYPTO","JUNK","USD","Coinbase","USD","PUBLIC","UTC",null,null,null,null,null,"BASE_QUANTITY",null,null,null,"QUANTITY_ONLY",List.of("HISTORICAL","REALTIME"),List.of("1m"),"UNKNOWN","Junk token");
+        assertThat(ExistingMarketCatalogProvider.included(bitcoin)).isTrue();
+        assertThat(ExistingMarketCatalogProvider.included(obscure)).isFalse();
+    }
     private static String currency(String code,String name){return "{\"iso_code\":\""+code+"\",\"name\":\""+name+"\",\"end_date\":\"2026-09-10\"}";}
 }
