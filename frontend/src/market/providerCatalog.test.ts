@@ -74,3 +74,11 @@ it('shares catalog responses across remounted providers only for the same accoun
   await otherAccount.searchPage({ provider: 'COINBASE', query: '' })
   expect(secondFetch).toHaveBeenCalledTimes(1)
 })
+
+it('maps the unified persisted catalog without requiring a provider fan-out', async () => {
+  const row = { instrumentId: '123e4567-e89b-12d3-a456-426614174000', provider: 'ALPACA', providerSymbol: 'AAPL', displaySymbol: 'AAPL', name: 'Apple Inc.', exchange: 'NASDAQ', assetClass: 'STOCK', base: 'AAPL', quote: 'USD', priceIncrement: .01, supportedModes: ['HISTORICAL', 'REALTIME'], supportedTimeframes: ['1m'], timezone: 'America/New_York' }
+  const fetcher = vi.fn(async () => new Response(JSON.stringify({ items: [row], nextCursor: null })))
+  const page = await catalogAccess(fetcher).searchCatalogPage({ query: 'Apple', assetClass: 'STOCK' })
+  expect(fetcher).toHaveBeenCalledWith(expect.stringContaining('/api/market/providers/catalog?'), expect.objectContaining({ credentials: 'same-origin' }))
+  expect(page.items).toEqual([expect.objectContaining({ instrumentId: row.instrumentId, symbol: 'AAPL', provider: 'ALPACA', modes: ['HISTORICAL', 'REALTIME'] })])
+})

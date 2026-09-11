@@ -24,6 +24,8 @@ const cryptoNames: Record<string, string> = { BTC: 'Bitcoin', ETH: 'Ethereum', S
 const featuredRank = new Map<string, number>([
   ...featuredCryptoBases.map((base, index) => [`CRYPTO:${base}`, index] as const),
   ...approvedEquityIconBases.flatMap((base, index) => ([`STOCK:${base}`, `ETF:${base}`] as const).map(key => [key, featuredCryptoBases.length + index] as const)),
+  ...['EUR', 'GBP', 'USD', 'AUD', 'NZD', 'CAD', 'CHF', 'JPY'].map((base, index) => [`FOREX:${base}`, index] as const),
+  ...['XAU', 'XAG', 'XPT', 'XPD', 'USOIL'].map((base, index) => [`COMMODITY:${base}`, index] as const),
 ])
 const assetRank = new Map<Category, number>((['CRYPTO', 'STOCK', 'ETF', 'FOREX', 'COMMODITY', 'FUTURES'] as Category[]).map((assetClass, index) => [assetClass, index]))
 const allPreviewOrder: Instrument['assetClass'][] = ['CRYPTO', 'STOCK', 'ETF', 'FOREX', 'COMMODITY']
@@ -59,7 +61,9 @@ function preferUsdAndSort(instruments: Instrument[]): Instrument[] {
   return unique.filter(instrument => instrument.assetClass !== 'CRYPTO' || instrument.quote === 'USD' || !usdCryptoBases.has(instrumentBase(instrument))).sort((left, right) => {
     const leftRank = featuredRank.get(`${left.assetClass}:${instrumentBase(left)}`) ?? Number.MAX_SAFE_INTEGER
     const rightRank = featuredRank.get(`${right.assetClass}:${instrumentBase(right)}`) ?? Number.MAX_SAFE_INTEGER
-    return leftRank - rightRank || (assetRank.get(left.assetClass) ?? 99) - (assetRank.get(right.assetClass) ?? 99) || (left.displaySymbol ?? left.symbol).localeCompare(right.displaySymbol ?? right.symbol)
+    const quoteRank = (instrument: Instrument) => instrument.quote === 'USD' ? 0 : instrument.quote === 'USDT' ? 1 : 2
+    const routeRank = (instrument: Instrument) => instrument.modes.length ? 0 : 1
+    return leftRank - rightRank || quoteRank(left) - quoteRank(right) || routeRank(left) - routeRank(right) || (assetRank.get(left.assetClass) ?? 99) - (assetRank.get(right.assetClass) ?? 99) || (left.displaySymbol ?? left.symbol).localeCompare(right.displaySymbol ?? right.symbol)
   })
 }
 
@@ -76,7 +80,14 @@ function curatedEmptyQuery(instruments: Instrument[], query: string): Instrument
 
 function balancedAllPreview(instruments: Instrument[], category: Category, query: string): Instrument[] {
   if (category !== 'ALL' || query.trim()) return instruments
-  const groups = allPreviewOrder.map(assetClass => instruments.filter(instrument => instrument.assetClass === assetClass).slice(0, ALL_PREVIEW_PER_CLASS))
+  const groups = allPreviewOrder.map(assetClass => {
+    const unique = new Map<string, Instrument>()
+    for (const instrument of instruments.filter(candidate => candidate.assetClass === assetClass)) {
+      const key = instrument.displaySymbol ?? instrument.symbol
+      if (!unique.has(key)) unique.set(key, instrument)
+    }
+    return [...unique.values()].slice(0, ALL_PREVIEW_PER_CLASS)
+  })
   const result: Instrument[] = []
   for (let index = 0; index < ALL_PREVIEW_PER_CLASS; index += 1) for (const group of groups) if (group[index]) result.push(group[index])
   return result
@@ -93,7 +104,7 @@ function emptyState(category: Category, sources: CatalogProvider[]): string {
   return 'No live instruments available.'
 }
 
-export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider: Pick<MarketDataProvider, 'searchPage' | 'catalogProviders'>; onSelect: (instrument: Instrument) => void; onClose: () => void }) {
+export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider: Pick<MarketDataProvider, 'searchPage' | 'searchCatalogPage' | 'catalogProviders'>; onSelect: (instrument: Instrument) => void; onClose: () => void }) {
   const [sources, setSources] = useState<CatalogProvider[]>([]), [query, setQuery] = useState(''), [category, setCategory] = useState<Category>('ALL')
   const [page, setPage] = useState<CatalogPage>({ items: [], nextCursor: null }), [busy, setBusy] = useState(true), [error, setError] = useState(''), [retry, setRetry] = useState(0)
   const [sourceState, setSourceState] = useState<'LOADING' | 'READY' | 'ERROR'>('LOADING')
@@ -111,14 +122,21 @@ export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider:
   useEffect(() => () => { (previousFocus.current as HTMLElement | null)?.focus() }, [])
 
   useEffect(() => {
-    if (sourceState === 'LOADING') return
-    if (sourceState === 'ERROR') { setPage({ items: [], nextCursor: null }); setBusy(false); return }
-    if (!searchableSources.length) { setPage({ items: [], nextCursor: null }); setBusy(false); setError(''); return }
+    const unified = provider.searchCatalogPage
+    if (sourceState === 'LOADING' && !unified) return
+    if (sourceState === 'ERROR' && !unified) { setPage({ items: [], nextCursor: null }); setBusy(false); return }
+    if (!searchableSources.length && !unified) { setPage({ items: [], nextCursor: null }); setBusy(false); setError(''); return }
     const controller = new AbortController(); let disposed = false; setBusy(true); setError(''); setPage({ items: [], nextCursor: null })
     const requestTimeout = setTimeout(() => controller.abort('timeout'), SYMBOL_CATALOG_TIMEOUT_MS)
     const timer = setTimeout(() => {
       const compactQuery = query.trim().toLowerCase().replace(/[-/\s_]/g, '')
       const serverQuery = (compactQuery.endsWith('usd') && compactQuery.length > 3 ? compactQuery.slice(0, -3).toUpperCase() : query.trim()).slice(0, 64)
+      if (unified) {
+        void unified({ query: query.trim().slice(0, 64), assetClass: category === 'ALL' ? '' : category, signal: controller.signal }).then(result => {
+          if (!disposed) setPage({ items: balancedAllPreview(curatedEmptyQuery(preferUsdAndSort(result.items), query), category, query), nextCursor: result.nextCursor })
+        }).catch(() => { if (!disposed) setError(controller.signal.aborted ? 'Symbol catalog request timed out. Retry.' : 'Market symbols are temporarily unavailable. Retry.') }).finally(() => { if (!disposed) { clearTimeout(requestTimeout); setBusy(false) } })
+        return
+      }
       const requests = searchableSources.map(source => loadCatalogSource(provider, source, serverQuery, category === 'ALL' ? '' : category, controller.signal))
       void Promise.allSettled(requests).then(results => {
         if (disposed) return
@@ -145,6 +163,6 @@ export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider:
     <input autoFocus aria-label="Search symbols" maxLength={64} placeholder="Search symbol..." value={query} onChange={event => setQuery(event.target.value)} className={`${field} mt-3`} />
     <div role="tablist" aria-label="Symbol categories" className="my-2 flex min-h-10 shrink-0 gap-1 overflow-x-auto border-b border-slate-800 pb-2">{categories.map(item => <button key={item.value} type="button" role="tab" aria-selected={category === item.value} onClick={() => setCategory(item.value)} className={`shrink-0 rounded-md px-3 py-1.5 text-xs font-semibold ${category === item.value ? 'bg-slate-100 text-slate-950' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}>{item.label}</button>)}</div>
     {error ? <div role="alert" className="shrink-0 p-3 text-xs text-amber-300">{error}<button className={`${field} ml-2`} onClick={() => setRetry(value => value + 1)}>Retry</button></div> : busy ? <p role="status" className="shrink-0 p-3 text-xs">Loading market symbols…</p> : !visibleItems.length ? <p role="status" className="shrink-0 p-3 text-xs">{emptyState(category, sources)}</p> : null}
-    <div className="min-h-0 flex-1 overflow-auto">{visibleItems.map(instrument => <button key={instrument.instrumentId ?? `${instrument.provider}:${instrument.symbol}`} onClick={() => onSelect(instrument)} className="flex min-h-14 w-full items-center gap-3 rounded px-2 text-left hover:bg-slate-800"><SymbolIcon instrument={instrument}/><span className="min-w-0 flex-1"><span className="block truncate text-sm">{instrument.displaySymbol ?? instrument.symbol}</span><span className="block truncate text-xs text-slate-400">{instrument.name}</span></span>{!instrument.modes.includes('REALTIME') && instrument.modes.includes('DELAYED') ? <span className="shrink-0 rounded-full border border-amber-700/70 bg-amber-950/40 px-2 py-1 text-[10px] font-semibold text-amber-300">Daily reference</span> : null}</button>)}</div>
+    <div className="min-h-0 flex-1 overflow-auto">{visibleItems.map(instrument => <button key={instrument.instrumentId ?? `${instrument.provider}:${instrument.symbol}`} disabled={!instrument.modes.length} title={!instrument.modes.length ? 'Reference catalog only; no compatible chart route is configured.' : undefined} onClick={() => onSelect(instrument)} className="flex min-h-14 w-full items-center gap-3 rounded px-2 text-left hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:bg-transparent"><SymbolIcon instrument={instrument}/><span className="min-w-0 flex-1"><span className="block truncate text-sm">{instrument.displaySymbol ?? instrument.symbol}</span><span className="block truncate text-xs text-slate-400">{instrument.name}</span></span>{!instrument.modes.length ? <span className="shrink-0 rounded-full border border-slate-600 px-2 py-1 text-[10px] font-semibold text-slate-400">Reference only</span> : !instrument.modes.includes('REALTIME') && instrument.modes.includes('DELAYED') ? <span className="shrink-0 rounded-full border border-amber-700/70 bg-amber-950/40 px-2 py-1 text-[10px] font-semibold text-amber-300">Daily reference</span> : null}</button>)}</div>
   </div></div>, document.body)
 }

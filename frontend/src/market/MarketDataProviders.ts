@@ -24,6 +24,7 @@ export function createMarketDataProvider(accountId?: string, onUnauthorized?: ()
   const forexSymbol = (symbol: string) => identities.get(symbol)?.provider === 'FRANKFURTER' || isForex(symbol)
   const provider: MarketDataProvider = {
     searchPage: async request => { const page = await catalog.searchPage(request); page.items.forEach(i => { identities.set(i.symbol, i); if (i.provider === 'FRANKFURTER') forex.registerCatalogSymbol(i.symbol) }); return page }, catalogProviders: catalog.catalogProviders,
+    searchCatalogPage: async request => { const page = await catalog.searchCatalogPage(request); page.items.forEach(i => { if (i.modes.length) identities.set(i.symbol, i); if (i.provider === 'FRANKFURTER') forex.registerCatalogSymbol(i.symbol) }); return page },
     capabilities: { provider: 'MULTI', assetClasses: ['CRYPTO', 'STOCK', 'ETF', 'FOREX'], modes: ['HISTORICAL', 'REALTIME', 'DELAYED'], configured: true, status: 'ACCEPTED' },
     getHistoricalCandles: request => {
       const route = identities.get(request.symbol)

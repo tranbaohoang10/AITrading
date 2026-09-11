@@ -9,8 +9,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/market/providers")
 public class MarketHistoryController {
     private final MarketHistoryService service;
-    public MarketHistoryController(MarketHistoryService service){this.service=service;}
+    private final InstrumentCatalogStore catalog;
+    public MarketHistoryController(MarketHistoryService service,InstrumentCatalogStore catalog){this.service=service;this.catalog=catalog;}
     @GetMapping("/capabilities") public Map<String,Object> capabilities(){return Map.of("items",service.capabilities(),"cacheStatus",service.cacheStatus());}
+    @GetMapping("/catalog") public Object unifiedCatalog(@RequestParam(defaultValue="")String query,
+            @RequestParam(defaultValue="")String assetClass,@RequestParam(defaultValue="")String exchange,
+            @RequestParam(defaultValue="")String country,@RequestParam(defaultValue="true")boolean active,
+            @RequestParam(required=false)String cursor){return catalog.search(query,assetClass,exchange,country,active,cursor);}
+    @GetMapping("/catalog/status") public Object catalogStatus(){return Map.of("counts",catalog.counts(),"providers",catalog.syncStatus());}
     @GetMapping("/{provider}/instruments") public Object search(@PathVariable String provider,@RequestParam(defaultValue="")String query){return service.search(provider,query);}
     @GetMapping("/{provider}/catalog") public Object catalog(@PathVariable String provider,@RequestParam(defaultValue="")String query,
             @RequestParam(defaultValue="")String assetClass,@RequestParam(required=false)String cursor){return service.catalog(provider,query,assetClass,cursor);}

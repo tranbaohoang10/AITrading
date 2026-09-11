@@ -53,6 +53,7 @@ tasks.withType<Test> {
     // has been cached.
     systemProperty("aitrading.backtest.scheduler", "false")
     systemProperty("aitrading.retention.scheduler", "false")
+    systemProperty("aitrading.market.catalog.scheduler", "false")
 }
 
 tasks.register("dependencyInventory") {

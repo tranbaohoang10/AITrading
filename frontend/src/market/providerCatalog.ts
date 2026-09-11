@@ -4,6 +4,7 @@ import { timeframeMilliseconds } from './chartMath'
 
 export type CatalogProvider = { providerId: string; displayName: string; assetClasses: string[]; historical?: boolean; realtime: boolean; delayed?: boolean; eod?: boolean; configured?: boolean }
 export type CatalogRequest = { provider: string; query: string; assetClass?: string; cursor?: string; signal?: AbortSignal }
+export type UnifiedCatalogRequest = { query: string; assetClass?: string; exchange?: string; country?: string; active?: boolean; cursor?: string; signal?: AbortSignal }
 export type CatalogPage = { items: Instrument[]; nextCursor: string | null }
 type CatalogCache = Map<string, { expires: number; value: unknown }>
 const sharedCatalogCaches = new Map<string, CatalogCache>()
@@ -56,6 +57,27 @@ export function catalogAccess(fetcher: typeof fetch, cacheScope?: string) {
         return { instrumentId: String(i.instrumentId), symbol: request.provider === 'BINANCE' ? `BINANCE:${i.providerSymbol}` : i.providerSymbol, providerSymbol: i.providerSymbol, displaySymbol: i.displaySymbol, name: typeof i.name === 'string' && i.name.length <= 160 ? i.name : i.displaySymbol, assetClass: assetClass as Instrument['assetClass'], provider: request.provider, exchange: i.exchange, exchangeTimezone: validExchangeTimezone(i.timezone), base: typeof i.base === 'string' ? i.base : undefined, quote: typeof i.quote === 'string' ? i.quote : undefined, feed: request.provider === 'ALPACA' ? 'IEX' : request.provider === 'FRANKFURTER' ? assetClass === 'COMMODITY' ? 'DAILY · REFERENCE' : 'ECB · EOD' : request.provider === 'BINANCE' ? 'PUBLIC · HISTORICAL' : 'PUBLIC', priceIncrement: increment, pricePrecision: precisionFromIncrement(increment), modes }
       })
       if (new Set(items.map(i => i.instrumentId)).size !== items.length) throw new Error('Duplicate catalog identity')
+      remember(path, raw, request.signal)
+      return { items, nextCursor: raw.nextCursor }
+    },
+    searchCatalogPage: async (request: UnifiedCatalogRequest): Promise<CatalogPage> => {
+      if (request.query.length > 64) throw new Error('Invalid catalog query')
+      const query = new URLSearchParams({ query: request.query, assetClass: request.assetClass ?? '', exchange: request.exchange ?? '', country: request.country ?? '', active: String(request.active ?? true) })
+      if (request.cursor) query.set('cursor', request.cursor)
+      const path = `/catalog?${query}`
+      const raw = await json(path, request.signal) as { items: Record<string, unknown>[]; nextCursor: string | null }
+      if (!Array.isArray(raw.items) || raw.items.length > 50 || raw.nextCursor !== null && (typeof raw.nextCursor !== 'string' || raw.nextCursor.length > 80)) throw new Error('Invalid catalog page')
+      const items = raw.items.map((item): Instrument => {
+        const assetClass = item.assetClass
+        const provider = item.provider
+        const providerSymbol = item.providerSymbol
+        if (typeof item.instrumentId !== 'string' || !/^[0-9a-f-]{36}$/i.test(item.instrumentId) || !['CRYPTO', 'FOREX', 'STOCK', 'ETF', 'COMMODITY', 'FUTURES'].includes(String(assetClass)) || typeof provider !== 'string' || !/^[A-Z][A-Z0-9_]{1,31}$/.test(provider) || typeof providerSymbol !== 'string' || providerSymbol.length > 64 || typeof item.displaySymbol !== 'string' || item.displaySymbol.length > 80 || typeof item.exchange !== 'string' || item.exchange.length > 80 || !Array.isArray(item.supportedModes) || !Array.isArray(item.supportedTimeframes)) throw new Error('Invalid unified catalog instrument')
+        const modes = item.supportedModes.filter((mode): mode is Instrument['modes'][number] => ['HISTORICAL', 'REALTIME', 'DELAYED', 'SNAPSHOT'].includes(String(mode)))
+        const increment = typeof item.priceIncrement === 'number' && item.priceIncrement > 0 ? item.priceIncrement : .01
+        const symbol = provider === 'BINANCE' ? `BINANCE:${providerSymbol}` : providerSymbol
+        return { instrumentId: item.instrumentId, symbol, providerSymbol, displaySymbol: item.displaySymbol, name: typeof item.name === 'string' && item.name.length <= 200 ? item.name : item.displaySymbol, assetClass: assetClass as Instrument['assetClass'], provider, exchange: item.exchange, exchangeTimezone: validExchangeTimezone(item.timezone), base: typeof item.base === 'string' ? item.base : undefined, quote: typeof item.quote === 'string' ? item.quote : undefined, feed: provider === 'ALPACA' ? 'IEX' : provider === 'FRANKFURTER' ? assetClass === 'COMMODITY' ? 'DAILY · REFERENCE' : 'ECB · EOD' : modes.length ? 'PUBLIC' : 'REFERENCE', priceIncrement: increment, pricePrecision: precisionFromIncrement(increment), modes }
+      })
+      if (new Set(items.map(item => item.instrumentId)).size !== items.length) throw new Error('Duplicate catalog identity')
       remember(path, raw, request.signal)
       return { items, nextCursor: raw.nextCursor }
     },

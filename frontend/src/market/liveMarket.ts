@@ -1,4 +1,4 @@
-import type { CatalogPage, CatalogProvider, CatalogRequest } from './providerCatalog'
+import type { CatalogPage, CatalogProvider, CatalogRequest, UnifiedCatalogRequest } from './providerCatalog'
 import { TIMEFRAMES, type Timeframe } from './chartMath'
 
 export const COINBASE_DEFAULT_SYMBOLS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'ADA-USD', 'DOGE-USD', 'LTC-USD', 'BCH-USD', 'LINK-USD', 'AVAX-USD', 'POL-USD'] as const
@@ -90,6 +90,7 @@ export type CandleSubscription = {
 
 export interface MarketDataProvider {
   searchPage?: (request: CatalogRequest) => Promise<CatalogPage>
+  searchCatalogPage?: (request: UnifiedCatalogRequest) => Promise<CatalogPage>
   catalogProviders?: (signal?: AbortSignal) => Promise<CatalogProvider[]>
   getHistoricalCandles(request: { symbol: LiveSymbol; interval: Timeframe; limit: number; before?: number; signal?: AbortSignal }): Promise<MarketCandle[]>
   listProducts?: (signal?: AbortSignal) => Promise<LiveSymbol[]>
