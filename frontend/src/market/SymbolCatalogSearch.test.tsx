@@ -35,7 +35,7 @@ it('uses trader categories, keeps the category bar visible and curates empty-que
   expect(await screen.findByText('Ethereum / US Dollar')).toBeVisible()
   expect(searchPage).toHaveBeenCalledWith(expect.objectContaining({ query: 'ETH' }))
   fireEvent.click(screen.getByRole('tab', { name: 'Forex' }))
-  expect(await screen.findByText(/Realtime Forex is NOT_READY.*cTrader is not configured/)).toBeVisible()
+  expect(await screen.findByText(/Realtime Forex is NOT_READY.*Capital\.com and cTrader are not configured/)).toBeVisible()
 })
 
 it('keeps only approved-icon crypto for empty query but searches the full provider catalog when typed', async () => {

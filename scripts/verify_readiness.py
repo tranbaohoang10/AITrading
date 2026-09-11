@@ -127,8 +127,8 @@ def validate_migrations(root: Path) -> tuple[int, str]:
     if ledger.get("schemaVersion") != 1 or ledger.get("algorithm") != "SHA-256":
         raise ReadinessFailure("unsupported migration ledger")
     expected = ledger.get("migrations")
-    if not isinstance(expected, dict) or len(expected) != 21:
-        raise ReadinessFailure("migration ledger must bind V1-V21")
+    if not isinstance(expected, dict) or len(expected) != 22:
+        raise ReadinessFailure("migration ledger must bind V1-V22")
     directory = root / "backend/src/main/resources/db/migration"
     actual: dict[str, str] = {}
     for path in directory.glob("V*.sql"):

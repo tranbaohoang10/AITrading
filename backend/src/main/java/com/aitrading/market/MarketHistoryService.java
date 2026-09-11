@@ -76,8 +76,12 @@ public class MarketHistoryService {
         var p=provider(provider);
         String key=MarketCache.key("history",provider,symbol+"|"+timeframe+"|"+from+"|"+to);
         String value=cache.load(key,Duration.ofMinutes(30),raw->valid(raw,from,to),()->{
-            var rows=p.capabilities().supportedTimeframes().contains(timeframe)?p.history(symbol,timeframe,from,to):
-                    p.capabilities().supportedTimeframes().contains("1m")?MarketTimeframeAggregator.aggregate(p.history(symbol,"1m",from,to),timeframe):null;
+            HistoricalSourceTimeframeProvider sourceProvider=p instanceof HistoricalSourceTimeframeProvider historicalProvider?historicalProvider:null;
+            String source=sourceProvider==null?timeframe:sourceProvider.historicalSourceTimeframe();
+            MarketDataProvider.seconds(source);
+            Instant sourceFrom=sourceProvider==null?from:max(from,to.minusSeconds((long)MarketDataProvider.seconds(source)*sourceProvider.maximumHistoricalSourceCandles()));
+            var rows=source.equals(timeframe)?p.history(symbol,timeframe,sourceFrom,to):
+                    source.equals("1m")?MarketTimeframeAggregator.aggregate(p.history(symbol,source,sourceFrom,to),timeframe):null;
             if(rows==null)throw new IllegalArgumentException("Unsupported timeframe");return JSON.writeValueAsString(rows);
         });
         return List.of(JSON.readValue(value,MarketDataProvider.Candle[].class));
@@ -121,6 +125,7 @@ public class MarketHistoryService {
     private static Map<String,Integer> featuredRank(List<String> symbols) {
         var ranks=new HashMap<String,Integer>();for(int index=0;index<symbols.size();index++)ranks.put(symbols.get(index),index);return Map.copyOf(ranks);
     }
+    private static Instant max(Instant left,Instant right){return left.isAfter(right)?left:right;}
     private static Comparator<MarketDataProvider.Instrument> catalogOrder(String provider) {
         return Comparator.comparingInt((MarketDataProvider.Instrument item)->"ALPACA".equals(provider)?ALPACA_FEATURED_RANK.getOrDefault(item.providerSymbol(),Integer.MAX_VALUE):0)
                 .thenComparing(MarketDataProvider.Instrument::instrumentId);

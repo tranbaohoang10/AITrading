@@ -13,6 +13,11 @@ it('validates an Alpaca candle only for its exact internal route', () => {
   expect(streamCandle(equity, 'AAPL', '1m', 'ALPACA')).not.toBeNull()
   expect(streamCandle(equity, 'AAPL', '1m', 'COINBASE')).toBeNull()
 })
+it('accepts Capital candles only for the exact provider route', () => {
+  const capital = { ...data, provider: 'CAPITAL', symbol: 'EURUSD', timeframe: '5m' }
+  expect(streamCandle(capital, 'EURUSD', '5m', 'CAPITAL')).not.toBeNull()
+  expect(streamCandle(capital, 'EURUSD', '5m', 'OANDA')).toBeNull()
+})
 it('maps authenticated subscriptions and the official market clock to clear UX states', async () => {
   vi.useFakeTimers()
   let output!: ReadableStreamDefaultController<Uint8Array>

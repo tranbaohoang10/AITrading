@@ -56,8 +56,8 @@ class AiTradingApplicationTests {
     void databaseMigrationAndRepeatValidationAreRealAndIdempotent() {
         assertThat(jdbc.queryForObject("SELECT version()", String.class)).startsWith("PostgreSQL");
         assertThat(jdbc.queryForObject("SHOW timezone", String.class)).isEqualTo("UTC");
-        // Provider M1 persistence adds V21; all applied historical migrations still validate.
-        assertThat(flyway.info().current().getVersion().toString()).isEqualTo("21");
+        // Larger immutable provider-backed datasets add V22; all applied historical migrations still validate.
+        assertThat(flyway.info().current().getVersion().toString()).isEqualTo("22");
         assertThat(jdbc.queryForObject("SELECT to_regclass('trading.replay_session') IS NOT NULL",Boolean.class)).isTrue();
         assertThat(jdbc.queryForObject("SELECT to_regclass('trading.chart_image_analysis') IS NOT NULL",Boolean.class)).isTrue();
         assertThat(jdbc.queryForObject("SELECT to_regclass('trading.market_instrument') IS NOT NULL",Boolean.class)).isTrue();

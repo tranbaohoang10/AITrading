@@ -55,3 +55,16 @@ it('seeds live OHLC and ignores cancelled interval history and callbacks during 
   expect(screen.queryByText('Disconnected')).toBeNull()
   view.unmount(); expect(subscriptions.at(-1)?.stop).toHaveBeenCalledTimes(1)
 })
+
+it('still fetches closed history when a live candle arrives before the historical request starts', async () => {
+  const now = Date.now(), live: MarketCandle = { symbol: 'BTC-USD', interval: '1m', openTime: now - 30_000, closeTime: now + 30_000, open: '101', high: '102', low: '100', close: '101.5', volume: '0', closed: false, partial: true }
+  const closed: MarketCandle = { ...live, openTime: now - 90_000, closeTime: now - 30_001, close: '101', closed: true, partial: false }
+  const provider: MarketDataProvider = {
+    getHistoricalCandles: vi.fn(async () => [closed]),
+    subscribeCandles: vi.fn((_request, callback) => { callback.onCandle(live); callback.onStatus('LIVE'); return vi.fn() }),
+  }
+  const view = render(<LiveChart provider={provider} />)
+  await waitFor(() => expect(provider.getHistoricalCandles).toHaveBeenCalledTimes(1))
+  expect(vi.mocked(provider.subscribeCandles).mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(provider.getHistoricalCandles).mock.invocationCallOrder[0])
+  view.unmount()
+})

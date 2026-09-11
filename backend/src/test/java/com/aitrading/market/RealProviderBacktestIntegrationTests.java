@@ -39,10 +39,10 @@ class RealProviderBacktestIntegrationTests {
         String email="real-provider-backtest@example.test";
         auth.register(email,"Provider Backtest","Synthetic integration password! 2026");
         var user=(UserPrincipal)users.loadUserByUsername(email);
-        Instant from=Instant.parse("2026-09-07T00:00:00Z"),to=Instant.parse("2026-09-09T00:00:00Z");
+        Instant from=Instant.parse("2026-09-01T00:00:00Z"),to=Instant.parse("2026-09-08T00:00:00Z");
         assertThat(sync.sync("BTC/USDT",from,to).status()).isEqualTo("READY");
         var hashes=new LinkedHashMap<String,String>();
-        for(var entry:Map.of("1m",2880,"5m",576,"15m",192,"30m",96,"1h",48,"4h",12,"1d",2).entrySet()) {
+        for(var entry:Map.of("1m",10080,"5m",2016,"15m",672,"30m",336,"1h",168,"4h",42,"1d",7).entrySet()) {
             var dataset=materializer.materialize(user,UUID.randomUUID().toString(),"BTC/USDT",entry.getKey(),from,to);
             assertThat(dataset.candleCount()).isEqualTo(entry.getValue());
             String hash=run(user,dataset,entry.getKey());

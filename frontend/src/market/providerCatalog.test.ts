@@ -22,8 +22,15 @@ it('preserves configured historical providers separately from realtime readiness
     { providerId: 'BINANCE', displayName: 'Binance archive', assetClasses: ['CRYPTO'], configured: true, displayAllowed: true, licenseStatus: 'ACCEPTED', historical: true, realtime: false, delayed: false, eod: false },
     { providerId: 'FRANKFURTER', displayName: 'Frankfurter', assetClasses: ['FX_REFERENCE'], configured: true, displayAllowed: true, licenseStatus: 'ACCEPTED', historical: true, realtime: false, delayed: true, eod: true },
     { providerId: 'CTRADER', displayName: 'cTrader', assetClasses: ['FOREX', 'COMMODITY'], configured: false, displayAllowed: true, licenseStatus: 'CONDITIONAL', historical: true, realtime: true, delayed: false, eod: false },
+    { providerId: 'CAPITAL', displayName: 'Capital.com Demo', assetClasses: ['FOREX', 'COMMODITY'], configured: true, displayAllowed: true, licenseStatus: 'CONDITIONAL', historical: true, realtime: true, delayed: false, eod: false },
   ] })))
-  await expect(catalogAccess(fetcher).catalogProviders()).resolves.toEqual([expect.objectContaining({ providerId: 'COINBASE', realtime: true }), expect.objectContaining({ providerId: 'BINANCE', realtime: false }), expect.objectContaining({ providerId: 'FRANKFURTER', realtime: false }), expect.objectContaining({ providerId: 'CTRADER', configured: false })])
+  await expect(catalogAccess(fetcher).catalogProviders()).resolves.toEqual([expect.objectContaining({ providerId: 'COINBASE', realtime: true }), expect.objectContaining({ providerId: 'BINANCE', realtime: false }), expect.objectContaining({ providerId: 'FRANKFURTER', realtime: false }), expect.objectContaining({ providerId: 'CTRADER', configured: false }), expect.objectContaining({ providerId: 'CAPITAL', configured: true, realtime: true })])
+})
+
+it('maps Capital CFD Forex instruments with MID feed semantics', async () => {
+  const row = { ...instrument, instrumentId: 'CAPITAL:EURUSD', provider: 'CAPITAL', providerSymbol: 'EURUSD', displaySymbol: 'EUR/USD', name: 'Euro / US Dollar CFD', exchange: 'Capital.com', assetClass: 'FOREX', base: 'EUR', quote: 'USD', priceIncrement: .00001, supportedModes: ['HISTORICAL', 'REALTIME'] }
+  const fetcher = vi.fn(async () => new Response(JSON.stringify({ items: [row], nextCursor: null })))
+  await expect(catalogAccess(fetcher).searchPage({ provider: 'CAPITAL', query: '' })).resolves.toMatchObject({ items: [expect.objectContaining({ symbol: 'EURUSD', feed: 'CFD · MID', modes: ['HISTORICAL', 'REALTIME'] })] })
 })
 
 it('accepts account-discovered OANDA symbols without exposing route labels', async () => {

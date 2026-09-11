@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest'
-import { createMarketDataProvider } from './MarketDataProviders'
+import { capitalHistoricalLimit, createMarketDataProvider } from './MarketDataProviders'
 
 afterEach(() => vi.unstubAllGlobals())
 it('binds Forex and equity requests to the account that created the provider', async () => {
@@ -18,4 +18,10 @@ it('notifies the authenticated shell when a market request finds an expired sess
   const expired = vi.fn(), provider = createMarketDataProvider('00000000-0000-4000-8000-000000000001', expired)
   await expect(provider.catalogProviders?.()).rejects.toThrow('Provider catalog unavailable')
   expect(expired).toHaveBeenCalledTimes(1)
+})
+
+it('caps Capital history by its 20000 M1 source while retaining multiple higher-timeframe candles', () => {
+  expect(capitalHistoricalLimit('1m', 300)).toBe(300)
+  expect(capitalHistoricalLimit('4h', 300)).toBe(83)
+  expect(capitalHistoricalLimit('1d', 300)).toBe(13)
 })

@@ -32,3 +32,13 @@ it('uses approved local stock and ETF assets instead of monograms', () => {
   view.rerender(<SymbolIcon instrument={{ symbol: 'SPY', base: 'SPY', name: 'SPDR S&P 500 ETF Trust', assetClass: 'ETF' }} />)
   expect(screen.getByRole('img')).toHaveAttribute('src', '/symbol-icons/spy.svg')
 })
+
+it('uses overlapping local currency flags for every supported Capital Forex symbol', () => {
+  const pairs = [['EUR', 'USD'], ['GBP', 'USD'], ['USD', 'JPY'], ['AUD', 'USD'], ['USD', 'CAD'], ['USD', 'CHF'], ['NZD', 'USD']] as const
+  const view = render(<SymbolIcon instrument={{ symbol: 'EURUSD', base: 'EUR', quote: 'USD', name: 'EUR/USD', assetClass: 'FOREX' }} />)
+  for (const [base, quote] of pairs) {
+    view.rerender(<SymbolIcon instrument={{ symbol: `${base}${quote}`, base, quote, name: `${base}/${quote}`, assetClass: 'FOREX' }} />)
+    const images = [...screen.getByRole('img').querySelectorAll('img')]
+    expect(images.map(image => image.getAttribute('src'))).toEqual([`/symbol-icons/flag-${base.toLowerCase()}.svg`, `/symbol-icons/flag-${quote.toLowerCase()}.svg`])
+  }
+})

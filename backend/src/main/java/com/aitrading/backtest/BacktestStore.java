@@ -75,10 +75,10 @@ public class BacktestStore {
         if(!validated.valid()||!validated.document().hash().equals(revision.hash()))throw new BacktestFailure(BacktestFailure.Code.SNAPSHOT_INVALID);
         Instant cutoff=data.lastTime().plusSeconds(MarketCsvParser.timeframeSeconds(data.timeframe()));
         if(cutoff.isAfter(admissionTime))throw new BacktestFailure(BacktestFailure.Code.SNAPSHOT_INVALID);
-        var candles=market.candles(user,dataset,"0",5000);
+        var candles=snapshot(user,dataset,data.candleCount());
         var input=Map.of("protocolVersion","1.0.0","dsl",BacktestJson.parse(revision.canonicalJson().getBytes(StandardCharsets.UTF_8),65536),"dataset",
                 Map.of("symbol",data.symbol(),"timeframe",data.timeframe(),"timezone","UTC","sourceType",data.sourceKind(),"closedThrough",cutoff.toString(),
-                        "candles",candles.items().stream().map(c->Map.of("timestamp",c.time().toString(),"open",c.open(),"high",c.high(),"low",c.low(),"close",c.close(),"volume",c.volume())).toList()));
+                        "candles",candles.stream().map(c->Map.of("timestamp",c.time().toString(),"open",c.open(),"high",c.high(),"low",c.low(),"close",c.close(),"volume",c.volume())).toList()));
         String frozen=BacktestJson.canonical(BacktestJson.JSON.valueToTree(input));
         if(frozen.getBytes(StandardCharsets.UTF_8).length>BacktestJson.MAX_INPUT)throw new BacktestFailure(BacktestFailure.Code.SNAPSHOT_INVALID);
         UUID id=UUID.randomUUID();
@@ -89,6 +89,7 @@ public class BacktestStore {
                 BacktestJson.hash(frozen),revision.hash(),data.dataHash(),data.candleCount(),com.aitrading.api.RequestIdFilter.currentId());
         return owned(user,id,false);
     }
+    private List<MarketService.Candle> snapshot(UserPrincipal user,UUID dataset,int count){if(count<1||count>20_000)throw new BacktestFailure(BacktestFailure.Code.SNAPSHOT_INVALID);var rows=new ArrayList<MarketService.Candle>(count);for(int start=0;start<count;start+=1000){var page=market.candles(user,dataset,Integer.toString(start),Math.min(1000,count-start));if(page.start()!=start||page.total()!=count||page.items().size()!=Math.min(1000,count-start))throw new BacktestFailure(BacktestFailure.Code.SNAPSHOT_INVALID);rows.addAll(page.items());}return List.copyOf(rows);}
     @Transactional
     public Job retry(UserPrincipal user,UUID original,UUID key,boolean configured) {
         String fingerprint=fingerprint("retry",original);lockUser(user);admissionLock();Job replay=replay(user,key,fingerprint);if(replay!=null)return replay;

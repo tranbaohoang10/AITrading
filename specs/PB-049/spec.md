@@ -1,55 +1,68 @@
-# PB-049 — Durable multi-asset M1 market data
+# PB-049 — Durable multi-asset market data
 
 Issue: #49
 
 ## Goal
 
 Use the existing Spring Boot market abstractions to ingest real STOCK, ETF,
-CRYPTO, FOREX and COMMODITY data into one canonical M1 store, derive larger UTC
-timeframes locally, feed the existing deterministic backtest engine from
-PostgreSQL and publish real provider events through Redis and application SSE.
+CRYPTO, FOREX and COMMODITY data, retain provider historical M1 in PostgreSQL,
+derive deterministic higher historical timeframes, and publish live provider
+quotes through Redis and same-origin SSE without exposing provider credentials.
+
+## Historical and realtime invariants
+
+Historical and realtime aggregation are separate pipelines:
+
+- Historical: Capital REST M1 -> PostgreSQL -> deterministic M1/M5/M15/M30/H1/H4/D1 aggregation.
+- Realtime: Capital WebSocket quote -> `RealtimeTimeframeAggregator` -> current M1/M5/M15/M30/H1/H4/D1 in Redis -> SSE -> React.
+- A realtime quote must update all seven current candles immediately. It must not wait for M1 close before changing a larger timeframe.
+- Only finalized M1 is written durably by the realtime stream. Historical higher timeframes remain deterministic projections of stored M1.
+- A chart combines closed historical candles with the current live candle by bucket time, replacing an equal bucket and appending the next bucket without duplicate or gap.
 
 ## Use case
 
 An authenticated trader selects a supported instrument. The backend resolves the
-canonical instrument and provider mapping, serves locally persisted history,
-syncs missing bounded ranges from the provider, and subscribes to a server-side
-live stream where supported. The browser never receives provider credentials and
-never calls Alpaca, Binance or Dukascopy directly.
+canonical provider route, synchronizes a bounded historical M1 range when needed,
+serves locally aggregated history, and subscribes to a server-side live stream.
+The browser never receives Capital, Alpaca or other provider credentials and never
+calls those providers directly.
 
 ## Acceptance criteria
 
-- AC1: The required 19-symbol universe resolves through the V20 canonical catalog.
-- AC2: PostgreSQL stores only provider M1 candles with idempotent instrument/time upsert and durable coverage state.
-- AC3: M5, M15, M30, H1, H4 and D1 are derived deterministically from local M1 at UTC boundaries.
-- AC4: Historical availability is provider-derived when possible; effective start is `max(2017-01-01, availableFrom)`.
-- AC5: Alpaca IEX, Binance public REST and Dukascopy BID BI5 requests are bounded, fixed-host and truthfully classified.
-- AC6: Closed provider candles can be materialized into the existing dataset contract with canonical OHLCV hashes.
-- AC7: The existing Python worker accepts `PROVIDER` datasets, performs no network access in its inner loop and remains deterministic.
-- AC8: Binance `aggTrade` events build the current M1, update real Redis, publish SSE and persist only finalized M1 candles.
-- AC9: Missing optional credentials or Twelve Data configuration does not prevent startup or leak secrets.
-- AC10: Frontend history and streaming use same-origin backend APIs and validate every returned frame.
-- AC11: Real PostgreSQL, Redis, provider, backtest and stream evidence is recorded per symbol without fake PASS claims.
+- AC1: Canonical mappings resolve the required symbol universe without provider symbols leaking into business logic.
+- AC2: PostgreSQL provider M1 upsert is idempotent and coverage remains durable.
+- AC3: Capital historical requests use M1 only; M5/M15/M30/H1/H4/D1 are aggregated locally at UTC boundaries.
+- AC4: Historical synchronization runs before a history read even when a live-only M1 candle already exists.
+- AC5: A valid Capital quote immediately updates current M1/M5/M15/M30/H1/H4/D1 from the same MID price.
+- AC6: Larger realtime candles are not finalized before their own boundary and do not depend on M1 finalization.
+- AC7: Redis stores separate current keys for all seven timeframes and SSE publishes the requested current candle.
+- AC8: Finalized realtime M1 persists to PostgreSQL; gaps are not fabricated.
+- AC9: History plus the current live candle merges by bucket with no duplicate or discontinuity at the join.
+- AC10: Real GOLD history returns multiple closed candles at all seven timeframes, not one live-only candle.
+- AC11: Forex symbols use locally authored overlapping country flags and commodities retain asset icons.
+- AC12: The immutable provider dataset and Python worker accept at least 10,000 candles while retaining a hard 20,000-candle limit.
+- AC13: Missing credentials, provider errors, weekend empty windows and Redis failures degrade truthfully without secret leakage.
+- AC14: Backend, frontend, Python, readiness, dependency and security gates pass.
 
 ## Security requirements
 
-- Provider hosts and WebSocket endpoints are constants; user input cannot select an arbitrary URL.
-- Symbols, timeframes, ranges, page counts, body sizes, BI5 expansion and Redis key tokens are bounded.
-- SQL is parameterized; M1 uniqueness prevents duplicate persistence and replay inflation.
-- Credentials remain environment-backed and are never written to URLs, Redis, PostgreSQL, logs or evidence.
-- Malformed provider payloads fail closed; Alpaca's documented `bars:null` is represented as an empty range.
-- No live orders, broker mutations, arbitrary scripts or untrusted generated code are executed.
+- Provider REST and WebSocket hosts are fixed; user input cannot select an arbitrary URL.
+- Symbols, timeframes, ranges, page counts, payload sizes and Redis tokens are bounded.
+- SQL remains parameterized and unique instrument/timeframe/open-time keys prevent replay inflation.
+- Credentials stay environment-backed and never enter URLs, Redis, PostgreSQL, logs, evidence or frontend code.
+- Malformed provider payloads, invalid OHLC, duplicate IDs and out-of-order quotes fail closed.
+- No live order, broker mutation, arbitrary script or untrusted generated code is executed.
 
-## Exclusions and truthful limitations
+## Truthful limitations
 
-- No public Dukascopy realtime implementation is claimed.
-- No full 2017-to-present M1 backfill is claimed; the existing immutable backtest snapshot contract is capped at 5,000 candles.
-- No synthetic gap filling, fake ticks, cross-provider candle merging or silent provider substitution.
-- No guarantee of redistribution/display rights beyond configured account entitlement and existing provider audit.
+- Capital instruments are CFDs with provider MID prices; they are not claimed as spot, futures or centralized-volume feeds.
+- Historical availability is asserted from the verified Capital baseline `2024-01-03T00:00:00Z`, not from 2017.
+- No synthetic gap filling, fake tick, cross-provider candle merge or silent provider substitution is allowed.
+- The overall Issue remains partial while original non-Capital full-range and independently requested provider-live evidence is incomplete.
 
 ## Definition of done
 
-Implementation, migration, test Markdown, real provider probes and regression
-gates are committed and pushed on `main` with `Refs #49`. Issue #49 remains open
-while required Dukascopy access, non-BTC live verification and full-range backtest
-requirements remain incomplete.
+The Capital historical/realtime correction is complete only when real M1 history,
+all seven historical projections, immediate seven-timeframe quote aggregation,
+Redis, SSE, finalized M1 persistence and browser history/live joining are evidenced.
+Issue #49 remains open unless every original Issue blocker is also resolved.

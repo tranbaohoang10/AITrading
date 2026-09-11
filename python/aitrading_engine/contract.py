@@ -13,7 +13,7 @@ import re
 from .common import EngineError, canonical, decimal_text, digest
 
 D = Decimal
-MAX_INPUT = 2 * 1024 * 1024
+MAX_INPUT = 8 * 1024 * 1024
 TF = {"1m": 60, "5m": 300, "15m": 900, "30m": 1800, "1h": 3600, "4h": 14400, "1d": 86400}
 FIELDS = ("open", "high", "low", "close", "volume")
 SCHEMA_PATH = Path(__file__).resolve().parents[2] / "backend/src/main/resources/dsl/strategy-1.0.0.schema.json"
@@ -85,7 +85,7 @@ def parse(raw, budget):
                            parse_constant=bad_constant, object_pairs_hook=pairs)
     except (ValueError, UnicodeError, RecursionError, InvalidOperation):
         raise EngineError("MALFORMED_JSON") from None
-    bounded(value, budget, 50_000, 26)
+    bounded(value, budget, 200_000, 26)
     return value
 
 
@@ -265,7 +265,7 @@ def dataset(value, market, budget):
     interval = TF[market["timeframe"]]
     cutoff = timestamp(value["closedThrough"])
     rows = value["candles"]
-    require(isinstance(rows, list) and 1 <= len(rows) <= 5000, "CANDLE_COUNT")
+    require(isinstance(rows, list) and 1 <= len(rows) <= 20000, "CANDLE_COUNT")
     candles, lines, previous = [], [], None
     for row in rows:
         budget.spend()

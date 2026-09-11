@@ -62,6 +62,13 @@ class CrossTargetConsistencyTests(unittest.TestCase):
         self.assertEqual(first_json, json.dumps(verify_manifest(), sort_keys=True))
         self.assertEqual(markdown_report(report), markdown_report(verify_manifest()))
 
+    def test_pine_hash_is_stable_across_git_line_endings(self):
+        with self.evidence_copy() as (root, path):
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            pine = root / manifest["fixtures"][0]["pineFixture"]
+            pine.write_bytes(pine.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))
+            self.assertEqual(verify_manifest(path, root)["status"], "PASS")
+
     def test_path_name_duplicate_json_and_size_boundaries_fail_closed(self):
         with self.evidence_copy() as (root, path):
             self.mutate_manifest(path, lambda m: m["fixtures"][0].__setitem__("python", "../causal-all-indicators.json"))

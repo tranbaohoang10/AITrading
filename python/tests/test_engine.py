@@ -235,7 +235,7 @@ class ContractTests(unittest.TestCase):
             value = request()
             value["dataset"]["candles"][0][field] = number
             self.invalid(value)
-        for count in (0, 5001):
+        for count in (0, 20001):
             value = request()
             value["dataset"]["candles"] = [candle(i, 100) for i in range(count)]
             self.invalid(value, "CANDLE_COUNT")
@@ -504,10 +504,10 @@ class WorkerTests(unittest.TestCase):
             self.assertTrue(all(result == expected for result in pool.map(run, [payload] * 12)))
 
     def test_maximum_candles_indicators_and_lag_are_bounded(self):
-        value = request((100,) * 5000)
+        value = request((100,) * 10000)
         value["dsl"]["indicators"] = [{"id": "s" + str(i), "type": "SMA", "source": series(lag=2000), "period": 2000} for i in range(32)]
         result = execute(value)
-        self.assertEqual(len(result["bars"]), 5000)
+        self.assertEqual(len(result["bars"]), 10000)
         self.assertEqual(result["runCard"]["minimumBars"], 4000)
         self.assertIsNone(result["bars"][3998]["indicators"]["s31"])
         self.assertEqual(result["bars"][3999]["indicators"]["s31"], "100")

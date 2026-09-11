@@ -4,10 +4,12 @@ import { AlpacaMarketDataProvider, alpacaMarketData } from './AlpacaMarketDataPr
 import { coinbaseMarketData, coinbaseMarketDataFor } from './CoinbaseMarketDataProvider'
 import { FrankfurterMarketDataProvider, frankfurterMarketData } from './FrankfurterMarketDataProvider'
 import { backendProviderStream } from './backendCoinbaseStream'
+import { timeframeMilliseconds, type Timeframe } from './chartMath'
 import { DEFAULT_INSTRUMENTS, FRANKFURTER_DEFAULT_SYMBOLS, type Instrument, type LiveSymbol, type MarketDataProvider } from './liveMarket'
 
 const isForex = (symbol: LiveSymbol) => (FRANKFURTER_DEFAULT_SYMBOLS as readonly string[]).includes(symbol)
 const isCrypto = (symbol: LiveSymbol) => !isForex(symbol) && symbol.includes('-')
+export function capitalHistoricalLimit(interval: Timeframe, requested: number) { return Math.max(1, Math.min(requested, Math.floor(20_000 * 60_000 / timeframeMilliseconds(interval)))) }
 export function createMarketDataProvider(accountId?: string, onUnauthorized?: () => void): MarketDataProvider {
   const coinbase = accountId ? coinbaseMarketDataFor(accountId) : coinbaseMarketData
   const ownerFetch: typeof fetch = async (input, options = {}) => {
@@ -29,7 +31,8 @@ export function createMarketDataProvider(accountId?: string, onUnauthorized?: ()
     getHistoricalCandles: request => {
       const route = identities.get(request.symbol)
       if (request.symbol.startsWith('BINANCE:')) return catalog.binanceHistory(request)
-      if (route && ['OANDA', 'CTRADER', 'DUKASCOPY'].includes(route.provider)) return catalog.providerHistory(route.provider, { ...request, symbol: route.providerSymbol ?? request.symbol })
+      if (route?.provider === 'CAPITAL') return catalog.capitalHistory({ ...request, symbol: route.providerSymbol ?? request.symbol, limit: capitalHistoricalLimit(request.interval, request.limit) })
+      if (route && ['OANDA', 'CTRADER', 'DUKASCOPY', 'CAPITAL'].includes(route.provider)) return catalog.providerHistory(route.provider, { ...request, symbol: route.providerSymbol ?? request.symbol })
       return (forexSymbol(request.symbol) ? forex : isCrypto(request.symbol) ? coinbase : stocks).getHistoricalCandles(request)
     },
     listInstruments: async signal => { const crypto = await coinbase.listInstruments?.(signal).catch(() => []) ?? coinbaseSymbols; const equities = await stocks.listInstruments(signal).catch(() => []); return [...crypto, ...forexSymbols, ...equities] },
@@ -38,7 +41,7 @@ export function createMarketDataProvider(accountId?: string, onUnauthorized?: ()
     subscribeCandles: (request, subscription) => {
       const route = identities.get(request.symbol)
       if (accountId && request.symbol.startsWith('BINANCE:')) return backendProviderStream(accountId, 'BINANCE', route?.providerSymbol ?? request.symbol.replace(/^BINANCE:/, ''), request.interval, subscription, ownerFetch)
-      if (accountId && route && ['OANDA', 'CTRADER'].includes(route.provider)) return backendProviderStream(accountId, route.provider, request.symbol, request.interval, subscription, ownerFetch)
+      if (accountId && route && ['OANDA', 'CTRADER', 'CAPITAL'].includes(route.provider)) return backendProviderStream(accountId, route.provider, request.symbol, request.interval, subscription, ownerFetch)
       return (forexSymbol(request.symbol) ? forex : isCrypto(request.symbol) ? coinbase : stocks).subscribeCandles(request, subscription)
     },
   }

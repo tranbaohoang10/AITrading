@@ -162,7 +162,7 @@ describe('PB-034 Coinbase market-data contract', () => {
       render(createElement(LiveChartFixture, { provider }))
       fireEvent.click(screen.getByLabelText('Timeframe'))
       fireEvent.click(screen.getByRole('menuitemradio', { name: '4h' }))
-      await act(async () => { await vi.advanceTimersByTimeAsync(12_001) })
+      await act(async () => { await vi.advanceTimersByTimeAsync(60_001) })
       expect(screen.getByRole('alert')).toHaveTextContent('Market data request timed out. Retry the chart.')
       expect(screen.getByRole('button', { name: 'Retry market data' })).toBeEnabled()
     } finally {
@@ -273,5 +273,19 @@ describe('PB-034 Coinbase market-data contract', () => {
     const first = candle(), updated = candle(first.openTime, 'BTC-USD', '102'), next = candle(first.openTime + 60_000, 'BTC-USD', '103')
     expect(mergeCandles([first], updated)).toEqual([updated])
     expect(mergeCandles([first], next)).toEqual([first, next])
+  })
+
+  it('joins multiple closed Capital history candles to one current live candle for all seven timeframes', () => {
+    const widths = { '1m': 60_000, '5m': 300_000, '15m': 900_000, '30m': 1_800_000, '1h': 3_600_000, '4h': 14_400_000, '1d': 86_400_000 } as const
+    for (const [interval, width] of Object.entries(widths)) {
+      const start = Math.floor(baseTime / width) * width - width * 3
+      const history = Array.from({ length: 3 }, (_, index): MarketCandle => ({ symbol: 'GOLD', interval: interval as keyof typeof widths, openTime: start + index * width, closeTime: start + (index + 1) * width - 1, open: '100', high: '102', low: '99', close: '101', volume: '5', closed: true }))
+      const current: MarketCandle = { ...history[2], openTime: start + width * 3, closeTime: start + width * 4 - 1, close: '103', closed: false, partial: true }
+      const joined = mergeCandles(history, current)
+      expect(joined).toHaveLength(4)
+      expect(joined.slice(0, -1).every(item => item.closed)).toBe(true)
+      expect(joined.at(-1)).toEqual(current)
+      expect(joined.at(-1)!.openTime - joined.at(-2)!.openTime).toBe(width)
+    }
   })
 })

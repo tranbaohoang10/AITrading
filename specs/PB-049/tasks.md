@@ -1,16 +1,16 @@
 # PB-049 — Tasks
 
-- [x] T1 Inspect current provider, catalog, cache, stream and backtest contracts.
-- [x] T2 Create Issue #49 and preserve unrelated PB-048 working-tree changes.
-- [x] T3 Add Flyway V21 durable provider M1 and sync coverage schema.
-- [x] T4 Add canonical routes and real Alpaca/Binance/Dukascopy historical sync.
-- [x] T5 Add idempotent PostgreSQL M1 store and deterministic timeframe aggregation.
-- [x] T6 Add current-M1 builder, Binance WebSocket, Redis state and SSE publication.
-- [x] T7 Materialize provider datasets and extend the existing Python contract.
-- [x] T8 Connect frontend same-origin local history and Binance application stream.
-- [x] T9 Run real PostgreSQL, Redis, historical, backtest and realtime tests.
-- [x] T10 Generate the required 19-symbol matrix and failing-symbol report.
-- [ ] T11 Verify realtime independently for ETH, Alpaca symbols and a suitable FX/metals provider.
-- [ ] T12 Complete resumable full-range 2017/effective-start backfill and backtest architecture beyond the 5,000-candle snapshot cap.
-- [ ] T13 Restore Dukascopy endpoint access and rerun all 11 FX/metals historical probes.
-- [ ] T14 Close Issue #49 after every required integration condition is evidenced.
+- [x] T1 Preserve canonical provider abstractions and existing Binance/Alpaca behavior.
+- [x] T2 Add explicit Capital mappings for seven Forex and four metals/commodities symbols.
+- [x] T3 Use Capital REST M1 as the only Capital historical source timeframe.
+- [x] T4 Persist Capital M1 idempotently and aggregate all historical timeframes locally.
+- [x] T5 Add direct quote-to-seven-timeframe `RealtimeTimeframeAggregator` behavior.
+- [x] T6 Write seven Redis current candles and publish requested candles through SSE.
+- [x] T7 Persist only finalized realtime M1 and preserve real provider gaps.
+- [x] T8 Prevent live-only cache entries from suppressing historical chart loads.
+- [x] T9 Merge closed history with the current live candle without duplicate/gap.
+- [x] T10 Add overlapping Forex country flags and retain commodity icons.
+- [x] T11 Raise the immutable dataset limit to 20,000 and add Flyway V22.
+- [x] T12 Verify real Capital historical, realtime, Redis, SSE and browser behavior.
+- [x] T13 Run regression, readiness, dependency and security gates.
+- [ ] T14 Resolve any remaining original Issue #49 blockers before closing the Issue.

@@ -5,118 +5,108 @@
 ```mermaid
 sequenceDiagram
   participant UI as React chart
-  participant API as Spring market API
-  participant R as Symbol registry
-  participant P as Alpaca/Binance/Dukascopy
+  participant API as MarketProviderRuntimeController
+  participant S as MarketHistoricalSyncService
+  participant C as Capital REST
   participant DB as PostgreSQL M1 store
-  participant B as Existing backtest engine
-  UI->>API: local history(symbol, timeframe, range)
-  API->>R: resolve canonical route
-  API->>DB: read persisted M1 range
-  alt range missing
-    API->>P: bounded provider M1 sync
-    P-->>API: validated real candles or typed failure
-    API->>DB: idempotent M1 upsert + coverage state
-  end
-  DB-->>API: M1 rows
-  API->>API: aggregate requested UTC timeframe
-  API-->>UI: normalized candles
-  API->>DB: materialize immutable PROVIDER dataset
-  DB-->>B: local snapshot only
-  B-->>API: deterministic result + provenance hash
+  participant A as MarketTimeframeAggregator
+  UI->>API: history(symbol, timeframe, from, to)
+  API->>S: bounded idempotent sync
+  S->>C: GET prices resolution=MINUTE
+  C-->>S: validated real M1 or typed empty gap/failure
+  S->>DB: upsert closed M1 + coverage
+  API->>DB: read stored M1 range
+  API->>A: aggregate requested UTC timeframe
+  A-->>API: closed M1/M5/M15/M30/H1/H4/D1 candles
+  API-->>UI: normalized closed history
 ```
+
+Historical code never requests Capital M5/H1/H4 data. M1 is the canonical
+historical source and every larger closed candle is derived deterministically.
 
 ## Realtime sequence
 
 ```mermaid
 sequenceDiagram
-  participant BN as Binance aggTrade WS
-  participant S as BinanceStreamProvider
-  participant C as CurrentM1CandleBuilder
+  participant C as Capital WebSocket
+  participant S as CapitalStreamProvider
+  participant A as RealtimeTimeframeAggregator
   participant R as Redis
-  participant DB as PostgreSQL
+  participant DB as PostgreSQL M1 store
   participant SSE as Same-origin SSE
   participant UI as React chart
-  BN-->>S: real aggregate trade
-  S->>C: id, event time, price, quantity
-  C-->>S: accepted current M1 + optional finalized M1
-  S->>R: latest quote + current M1 + LIVE status
-  opt minute rollover
-    S->>DB: upsert finalized M1
+  C-->>S: quote(eventId, time, bid, offer)
+  S->>A: accept quote immediately
+  A-->>S: current map for seven frames + optional finalized M1
+  par hot state
+    S->>R: current M1/M5/M15/M30/H1/H4/D1
+  and client update
+    S-->>SSE: requested current candle
+    SSE-->>UI: validated live candle
   end
-  S-->>SSE: normalized candle/status event
-  SSE-->>UI: validated partial candle
+  opt M1 boundary crossed
+    S->>DB: upsert finalized M1 only
+  end
 ```
+
+The realtime path does not call the historical aggregator and does not wait for
+M1 close. Every accepted quote independently selects all seven UTC buckets and
+updates their open/high/low/close values in the same synchronized operation.
+
+## Chart join
+
+```mermaid
+flowchart LR
+  H[Closed historical candles] --> M[Merge by openTime]
+  L[Current live candle] --> M
+  M -->|same bucket| R[Replace final displayed bucket]
+  M -->|next bucket| A[Append one current bucket]
+  R --> C[Chart]
+  A --> C
+```
+
+Live-only `closed=false` candles do not satisfy historical cache coverage. The
+chart therefore loads closed history first and then replaces/appends the current
+live bucket, preventing the former commodity one-candle failure.
 
 ## Main classes
 
 ```mermaid
 classDiagram
-  class MarketSymbolRegistry
+  class CapitalMarketDataClient
   class MarketHistoricalSyncService
   class MarketProviderCandleStore
   class MarketTimeframeAggregator
-  class ProviderDatasetMaterializer
-  class AlpacaHistoryProvider
-  class BinanceArchiveProvider
-  class DukascopyHistoryProvider
-  class BinanceStreamProvider
-  class CurrentM1CandleBuilder
+  class CapitalStreamProvider
+  class RealtimeTimeframeAggregator
   class MarketLiveStateStore
-  MarketHistoricalSyncService --> MarketSymbolRegistry
+  class MarketProviderRuntimeController
+  CapitalMarketDataClient ..|> HistoricalSourceTimeframeProvider
+  MarketHistoricalSyncService --> CapitalMarketDataClient
   MarketHistoricalSyncService --> MarketProviderCandleStore
-  MarketHistoricalSyncService --> AlpacaHistoryProvider
-  MarketHistoricalSyncService --> BinanceArchiveProvider
-  MarketHistoricalSyncService --> DukascopyHistoryProvider
   MarketProviderCandleStore --> MarketTimeframeAggregator
-  ProviderDatasetMaterializer --> MarketProviderCandleStore
-  BinanceStreamProvider --> CurrentM1CandleBuilder
-  BinanceStreamProvider --> MarketLiveStateStore
-  BinanceStreamProvider --> MarketProviderCandleStore
+  MarketProviderRuntimeController --> MarketHistoricalSyncService
+  CapitalStreamProvider --> RealtimeTimeframeAggregator
+  CapitalStreamProvider --> MarketLiveStateStore
+  CapitalStreamProvider --> MarketProviderCandleStore
 ```
 
-## Data / ERD impact
+## Data impact
 
-```mermaid
-erDiagram
-  MARKET_INSTRUMENT ||--o{ PROVIDER_MARKET_CANDLE : owns
-  MARKET_INSTRUMENT ||--o{ PROVIDER_MARKET_SYNC_STATE : tracks
-  MARKET_DATASET ||--o{ MARKET_CANDLE : snapshots
-  PROVIDER_MARKET_CANDLE {
-    uuid instrument_id PK
-    varchar timeframe PK
-    timestamptz open_time PK
-    numeric open
-    numeric high
-    numeric low
-    numeric close
-    numeric volume
-    varchar provider
-  }
-  PROVIDER_MARKET_SYNC_STATE {
-    uuid instrument_id PK
-    varchar provider PK
-    varchar timeframe PK
-    timestamptz historical_available_from
-    timestamptz synced_through
-    varchar status
-    varchar error_code
-  }
-```
-
-Flyway V21 reuses V20 `market_instrument` and permits `PROVIDER` in the existing
-immutable backtest dataset table. Redis remains an expiring hot-state projection,
-not the durable history source.
+- V21 stores durable provider M1 and sync coverage.
+- V22 raises the immutable backtest dataset candle constraint to 20,000.
+- Redis keys use `aitrading:v2:market:CAPITAL:<SYMBOL>:<FRAME>:current` for all seven frames.
+- Redis is an expiring hot projection; PostgreSQL remains the durable historical source.
 
 ## UI impact
 
-- Binance and Dukascopy history use `/api/market/local/history`.
-- Binance live uses the existing authenticated `/api/market/stream` SSE contract.
-- Provider frames are validated for provider, symbol, timeframe, UTC bucket and OHLC fields before chart mutation.
-- Unsupported/unverified realtime remains non-LIVE; no browser-side provider key or direct provider request is added.
+- Capital history uses `/api/market/local/history`; Capital live uses `/api/market/stream`.
+- Historical timeout is bounded at 120 seconds in the provider and 60 seconds in the chart load guard.
+- Forex pairs render two overlapping locally authored country flags.
+- Commodity symbols retain local asset icons.
+- No frontend code contains or transmits Capital credentials.
 
 ## Dependency decision
 
-`org.tukaani:xz:1.10` is required to decode Dukascopy BI5 LZMA payloads. It is a
-small maintained Java library under the public-domain-compatible XZ for Java
-licensing model, locked in `gradle.lockfile`; no new service or framework is added.
+No new dependency is required for the Capital extension. Existing provider and
+serialization libraries are reused; the dependency inventory remains locked.

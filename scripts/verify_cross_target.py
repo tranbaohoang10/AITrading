@@ -190,9 +190,10 @@ def pine_expected_for_array(name: str, fixture: dict[str, Any], rows: list[Any])
 
 
 def verify_pine_fixture(source: bytes, expected_sha: str, fixture: dict[str, Any], rows: list[Any]) -> dict[str, Any]:
-    if not HEX64_RE.fullmatch(expected_sha) or sha256(source) != expected_sha:
+    canonical_source = source.replace(b"\r\n", b"\n")
+    if not HEX64_RE.fullmatch(expected_sha) or sha256(canonical_source) != expected_sha:
         raise EvidenceError("Pinned Pine fixture SHA-256 mismatch")
-    text = source.decode("utf-8")
+    text = canonical_source.decode("utf-8")
     dsl_hash = fixture["reference"]["runCard"]["dslHash"]
     if text.count(f"DSL SHA256 {dsl_hash}") != 1:
         raise EvidenceError("Pinned Pine fixture DSL provenance mismatch")

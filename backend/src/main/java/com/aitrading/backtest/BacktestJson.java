@@ -11,7 +11,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 /** Closed worker envelope and independently recomputed immutable provenance. */
 public final class BacktestJson {
-    public static final int MAX_INPUT=2*1024*1024,MAX_OUTPUT=32*1024*1024;
+    public static final int MAX_INPUT=8*1024*1024,MAX_OUTPUT=32*1024*1024;
     static final JsonMapper JSON=JsonMapper.builder(JsonFactory.builder().enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
             .streamReadConstraints(StreamReadConstraints.builder().maxNestingDepth(32).maxStringLength(65536).maxNumberLength(64).build()).build())
             .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS,DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS).build();

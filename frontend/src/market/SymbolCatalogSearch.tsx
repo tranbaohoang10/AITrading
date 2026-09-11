@@ -110,10 +110,10 @@ function emptyState(category: Category, sources: CatalogProvider[]): string {
   if (category === 'FUTURES') return 'Futures market data is NOT_READY. No approved realtime futures catalog is configured.'
   if (category === 'FOREX') {
     const reference = sources.some(source => source.providerId === 'FRANKFURTER' && source.configured !== false && (source.historical || source.delayed || source.eod))
-    const ctraderReady = sources.some(source => source.providerId === 'CTRADER' && source.configured !== false && source.realtime)
-    if (!ctraderReady) return `Realtime Forex is NOT_READY. cTrader is not configured${reference ? '; Frankfurter is historical/delayed reference data only.' : '.'}`
+    const realtimeReady = sources.some(source => ['CAPITAL', 'CTRADER'].includes(source.providerId) && source.configured !== false && source.realtime)
+    if (!realtimeReady) return `Realtime Forex is NOT_READY. Capital.com and cTrader are not configured${reference ? '; Frankfurter is historical/delayed reference data only.' : '.'}`
   }
-  if (category === 'COMMODITY' && !sources.some(source => ['CTRADER', 'OANDA'].includes(source.providerId) && source.configured !== false && source.realtime)) return 'Realtime commodities are NOT_READY. Daily precious-metal reference data appears only when Frankfurter is available; USOIL is not fabricated.'
+  if (category === 'COMMODITY' && !sources.some(source => ['CAPITAL', 'CTRADER', 'OANDA'].includes(source.providerId) && source.configured !== false && source.realtime)) return 'Realtime commodities are NOT_READY. Daily precious-metal reference data appears only when Frankfurter is available; USOIL is not fabricated.'
   return 'No live instruments available.'
 }
 
