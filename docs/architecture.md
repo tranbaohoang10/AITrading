@@ -12,7 +12,7 @@ production readiness, live trading or guaranteed results.
 flowchart LR
   Browser[React + TypeScript + Vite]
   API[Spring Boot Java 21]
-  DB[(PostgreSQL + Flyway V1-V18)]
+  DB[(PostgreSQL + Flyway V1-V20)]
   Python[Bounded Python backtest worker]
   AI[AiProvider: Gemini or optional OpenAI]
   Pine[Pine v6 research artifact]
@@ -137,13 +137,17 @@ erDiagram
   private_document_rag_attempt ||--o{ private_document_rag_citation : cites
   app_user ||--o{ chart_image_analysis : owns
   app_user ||--o{ audit_event : owns
+  market_instrument ||--o{ instrument_provider_mapping : routes
+  market_instrument ||--o{ instrument_alias : searched_by
+  instrument_catalog_sync ||--o{ instrument_provider_mapping : refreshes
 ```
 
 Flyway is append-only. V1 creates schema/history context; V2 adds identity,
 sessions and auth rates; V3 conversations; V4 market data; V5 strategies; V6 AI
 turns; V7 jobs; V8 journal; V9 Pine; V10 MQL5; V11 audit; V12 notifications; V13
 provider-neutral constraint; V14 generation; V15 journal evaluation; V16 private
-documents/RAG; V17 chart image analysis; V18 conversation chart attachments. Exact names and SHA-256 are pinned in
+  documents/RAG; V17 chart image analysis; V18 conversation chart attachments;
+  V19 Replay/Journal execution; V20 normalized instrument catalog. Exact names and SHA-256 are pinned in
 `docs/readiness-migrations.json` and checked by the offline readiness verifier.
 
 Complete SQL table inventory: `app_user`, `spring_session`,
@@ -154,7 +158,10 @@ Complete SQL table inventory: `app_user`, `spring_session`,
 `strategy_generation`, `journal_evaluation`, `private_document`,
 `private_document_version`, `private_document_chunk`,
 `private_document_rag_attempt`, `private_document_rag_citation`, and
-`chart_image_analysis`.
+  `chart_image_analysis`, `conversation_chart_attachment`, `replay_session`,
+  `replay_trade`, `replay_command`, `journal_day_note`, `market_instrument`,
+  `instrument_provider_mapping`, `instrument_alias`, and
+  `instrument_catalog_sync`.
 
 Owner roots generally reference `app_user` with delete cascade. Child records
 cascade from their aggregate root. Backtest source identifiers are retained as
