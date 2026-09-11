@@ -21,6 +21,7 @@
     "V17__chart_image_analysis.sql": "6f94617b271f55633f435fc63bcfe9e04e80248ca035edc7866f40400300c4fe",
     "V18__conversation_chart_attachments.sql": "a503a0f4174bd4c1b9f65dab997f35ff6751695ddab14561d9a553c33c0aae22",
     "V19__historical_replay.sql": "b90b532fdb7c11528c2dab6eaaced811e7d734f2a9cd2cbd3c45d126fb4738f2",
-    "V20__instrument_catalog.sql": "da7780a2d5bc247d5282930693a1f5fac66c4c5d83a4c6f53605a0b1fd3208b0"
+    "V20__instrument_catalog.sql": "da7780a2d5bc247d5282930693a1f5fac66c4c5d83a4c6f53605a0b1fd3208b0",
+    "V21__provider_market_candles.sql": "15860511e2199c47e3e338bfabfac319975eb31bb8e69f647158034d9ee01af4"
   }
 }

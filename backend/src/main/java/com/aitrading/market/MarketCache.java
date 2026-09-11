@@ -27,7 +27,7 @@ public class MarketCache {
     }
     public String status(){return status;}
     private static void validateRequest(String key,Duration ttl) {
-        if(key==null||!key.matches("aitrading:v1:market:(catalog|history|coverage|bar|latest|health):(COINBASE|BINANCE|ALPACA|OANDA|CTRADER|FRANKFURTER|FRED):[a-f0-9]{64}")
+        if(key==null||!key.matches("aitrading:v1:market:(catalog|history|coverage|bar|latest|health):(COINBASE|BINANCE|ALPACA|DUKASCOPY|OANDA|CTRADER|FRANKFURTER|FRED):[a-f0-9]{64}")
                 ||ttl==null||ttl.isNegative()||ttl.isZero()||ttl.compareTo(Duration.ofDays(1))>0)
             throw new IllegalArgumentException("Invalid cache request");
     }
@@ -38,7 +38,7 @@ public class MarketCache {
     }
     public static String key(String purpose,String provider,String identity) {
         if(purpose==null||!purpose.matches("catalog|history|coverage|bar|latest|health")
-                ||provider==null||!provider.matches("COINBASE|BINANCE|ALPACA|OANDA|CTRADER|FRANKFURTER|FRED")
+                ||provider==null||!provider.matches("COINBASE|BINANCE|ALPACA|DUKASCOPY|OANDA|CTRADER|FRANKFURTER|FRED")
                 ||identity==null||identity.length()>512)throw new IllegalArgumentException("Invalid market cache key");
         try {
             String hash=HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(identity.getBytes(StandardCharsets.UTF_8)));

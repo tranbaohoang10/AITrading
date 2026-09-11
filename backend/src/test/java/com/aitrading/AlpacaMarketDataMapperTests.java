@@ -21,9 +21,9 @@ class AlpacaMarketDataMapperTests {
         assertThat(bars).allMatch(AlpacaMarketDataMapper.Bar::closed);
     }
 
-    @Test void rejectsInvalidOhlcAndNonObjectProviderPayloads() {
+    @Test void rejectsInvalidOhlcAndAcceptsDocumentedNullBarsAsEmpty() {
         assertThatThrownBy(() -> AlpacaMarketDataMapper.bars("{\"bars\":[{\"t\":\"2026-01-01T00:00:00Z\",\"o\":10,\"h\":8,\"l\":9,\"c\":10,\"v\":1}]}","1m",Instant.now()))
                 .isInstanceOfSatisfying(AlpacaDataFailure.class, failure -> assertThat(failure.code()).isEqualTo("ALPACA_INVALID_RESPONSE"));
-        assertThatThrownBy(() -> AlpacaMarketDataMapper.bars("{\"bars\":null}","1m",Instant.now())).isInstanceOf(AlpacaDataFailure.class);
+        assertThat(AlpacaMarketDataMapper.bars("{\"bars\":null}","1m",Instant.now())).isEmpty();
     }
 }

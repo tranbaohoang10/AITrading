@@ -14,7 +14,7 @@ summary. The offline readiness verifier checks every local link and feature root
 | 6 | Sequence Diagrams | Feature `design.md` files; [PB-026 readiness sequence](../specs/PB-026/design.md#readiness-sequence) |
 | 7 | GUI/UI | Real responsive screenshots under PB-001/003/004/006/007/008/012/013/015/016/022/024/027 evidence; [UI evidence inventory](prototype-readiness.md#guiui-evidence) |
 | 8 | Overall Class Diagram | [Aggregate class view](architecture.md#overall-class--component-view) plus feature class diagrams |
-| 9 | ERD | [Aggregate ERD](architecture.md#aggregate-erd-and-migration-ledger), exact [V1–V20 SHA ledger](readiness-migrations.json), feature migration diagrams |
+| 9 | ERD | [Aggregate ERD](architecture.md#aggregate-erd-and-migration-ledger), exact [V1–V21 SHA ledger](readiness-migrations.json), feature migration diagrams |
 
 ## Feature artifact roots
 
@@ -52,3 +52,6 @@ Chỉ đóng các Issue trên sau khi hoàn thành kiểm tra, commit/push và C
 
 V20 bổ sung catalog instrument/provider/alias/sync và đã được bind bằng SHA-256;
 hash V1–V19 được giữ nguyên.
+
+V21 bổ sung kho nến provider M1 và trạng thái coverage/sync; hash V1–V20 được giữ
+nguyên và ma trận kiểm thử thật nằm trong `specs/PB-049/evidence.md`.

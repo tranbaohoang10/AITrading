@@ -261,7 +261,7 @@ class Dataset:
 def dataset(value, market, budget):
     object_fields(value, ("symbol", "timeframe", "timezone", "sourceType", "closedThrough", "candles"), "DATASET_FIELDS")
     require(all(value[k] == market[k] for k in ("symbol", "timeframe", "timezone")), "MARKET_MISMATCH")
-    require(value["sourceType"] in ("USER_UPLOAD", "SYNTHETIC"), "SOURCE_TYPE")
+    require(value["sourceType"] in ("USER_UPLOAD", "SYNTHETIC", "PROVIDER"), "SOURCE_TYPE")
     interval = TF[market["timeframe"]]
     cutoff = timestamp(value["closedThrough"])
     rows = value["candles"]

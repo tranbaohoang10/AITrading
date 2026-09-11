@@ -19,6 +19,7 @@ public class AlpacaMarketDataClient {
     private final String keyId,secretKey;
     private volatile AssetSnapshot assets;
     private volatile ClockSnapshot clock;
+    private final Map<String,Instant> earliestM1=new java.util.concurrent.ConcurrentHashMap<>();
     private record AssetSnapshot(String body, Instant expiresAt) {}
     private record ClockSnapshot(MarketClock value, Instant expiresAt) {}
     public record MarketClock(boolean open,Instant timestamp,Instant nextOpen,Instant nextClose) {}
@@ -51,6 +52,10 @@ public class AlpacaMarketDataClient {
             token=node.asString();
         }
         throw new AlpacaDataFailure("ALPACA_HISTORY_LIMIT",502);
+    }
+    public Instant historicalAvailableFrom(String symbol) {
+        requireConfigured();validSymbol(symbol);
+        return earliestM1.computeIfAbsent(symbol,key->{String query="timeframe=1Min&limit=1&feed=iex&adjustment=raw&sort=asc&start=2017-01-01T00%3A00%3A00Z&end="+URLEncoder.encode(Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MINUTES).toString(),StandardCharsets.UTF_8);var rows=AlpacaMarketDataMapper.bars(request(DATA.resolve("/v2/stocks/"+key+"/bars?"+query)),"1m",Instant.now());if(rows.isEmpty())throw new AlpacaDataFailure("ALPACA_HISTORY_UNAVAILABLE",502);return rows.getFirst().openTime();});
     }
     public List<Map<String,String>> searchAssets(String query) {
         requireConfigured(); if(query==null||query.strip().length()>64)throw new IllegalArgumentException("Invalid search");

@@ -19,7 +19,8 @@ public final class AlpacaMarketDataMapper {
         final JsonNode root;
         try { root=JSON.readTree(raw); } catch(Exception invalid) { throw new AlpacaDataFailure("ALPACA_INVALID_RESPONSE",502); }
         JsonNode values=root==null?null:root.get("bars");
-        if(values==null||!values.isArray()||values.size()>MAX_BARS)throw new AlpacaDataFailure("ALPACA_INVALID_RESPONSE",502);
+        if(values==null||values.isNull())return List.of();
+        if(!values.isArray()||values.size()>MAX_BARS)throw new AlpacaDataFailure("ALPACA_INVALID_RESPONSE",502);
         Map<Instant,Bar> unique=new TreeMap<>();
         for(JsonNode value:values) {
             if(!value.isObject())throw new AlpacaDataFailure("ALPACA_INVALID_RESPONSE",502);

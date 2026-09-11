@@ -31,7 +31,7 @@ final class BinanceSpotCatalog {
             BigDecimal tick=null;
             for(var filter:row.path("filters"))if(filter.path("filterType").asString().equals("PRICE_FILTER"))tick=new BigDecimal(filter.path("tickSize").asString()).stripTrailingZeros();
             if(tick==null||tick.signum()<=0||tick.scale()>12)continue;
-            var instrument=new MarketDataProvider.Instrument("BINANCE:"+symbol,base+"/"+quote,symbol,"BINANCE","CRYPTO",base,quote,"Binance",quote,"SPOT","UTC",tick,null,null,null,null,"BASE_QUANTITY",null,BigDecimal.ONE,null,"QUANTITY_ONLY",List.of("HISTORICAL"),List.of("1m","5m","15m","30m","1h","4h","1d"),"UNKNOWN",base+"/"+quote);
+            var instrument=new MarketDataProvider.Instrument("BINANCE:"+symbol,base+"/"+quote,symbol,"BINANCE","CRYPTO",base,quote,"Binance",quote,"SPOT","UTC",tick,null,null,null,null,"BASE_QUANTITY",null,BigDecimal.ONE,null,"QUANTITY_ONLY",List.of("HISTORICAL","REALTIME"),List.of("1m","5m","15m","30m","1h","4h","1d"),"UNKNOWN",base+"/"+quote);
             if(result.putIfAbsent(symbol,instrument)!=null)throw new IllegalArgumentException("Duplicate catalog identity");
         }
         return List.copyOf(result.values());

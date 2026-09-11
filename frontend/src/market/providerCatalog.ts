@@ -29,6 +29,13 @@ export function catalogAccess(fetcher: typeof fetch, cacheScope?: string) {
     const value: unknown = await response.json()
     return value
   }
+  async function localHistory(request: Parameters<MarketDataProvider['getHistoricalCandles']>[0], symbol: string): Promise<unknown> {
+    const step = timeframeMilliseconds(request.interval), to = request.before ?? Date.now(), from = to - Math.min(1000, Math.max(1, request.limit)) * step
+    const query = new URLSearchParams({ symbol, timeframe: request.interval, from: new Date(from).toISOString(), to: new Date(to).toISOString(), limit: String(Math.min(1000, Math.max(1, request.limit))) })
+    const response = await fetcher(`/api/market/local/history?${query}`, { credentials: 'same-origin', signal: request.signal ? AbortSignal.any([request.signal, AbortSignal.timeout(120000)]) : AbortSignal.timeout(120000) })
+    if (!response.ok) throw new Error('Local market history unavailable. Retry later.')
+    return response.json()
+  }
   function remember(path: string, value: unknown, signal?: AbortSignal) {
     if (signal?.aborted) return
     if (catalogCache.size >= 400) catalogCache.delete(catalogCache.keys().next().value!)
@@ -39,10 +46,10 @@ export function catalogAccess(fetcher: typeof fetch, cacheScope?: string) {
       const raw = await json('/capabilities', signal) as { items: Array<CatalogProvider & { displayAllowed: boolean; licenseStatus: string }> }
       if (!Array.isArray(raw.items)) throw new Error('Invalid provider capabilities')
       remember('/capabilities', raw, signal)
-      return raw.items.filter(p => ['COINBASE', 'BINANCE', 'FRANKFURTER', 'ALPACA', 'OANDA', 'CTRADER'].includes(p.providerId) && p.displayAllowed && ['ACCEPTED', 'CONDITIONAL'].includes(p.licenseStatus))
+      return raw.items.filter(p => ['COINBASE', 'BINANCE', 'FRANKFURTER', 'ALPACA', 'DUKASCOPY', 'OANDA', 'CTRADER'].includes(p.providerId) && p.displayAllowed && ['ACCEPTED', 'CONDITIONAL'].includes(p.licenseStatus))
     },
     searchPage: async (request: CatalogRequest): Promise<CatalogPage> => {
-      if (!['COINBASE', 'BINANCE', 'FRANKFURTER', 'ALPACA', 'OANDA', 'CTRADER'].includes(request.provider) || request.query.length > 64) throw new Error('Invalid catalog query')
+      if (!['COINBASE', 'BINANCE', 'FRANKFURTER', 'ALPACA', 'DUKASCOPY', 'OANDA', 'CTRADER'].includes(request.provider) || request.query.length > 64) throw new Error('Invalid catalog query')
       const query = new URLSearchParams({ query: request.query, assetClass: request.assetClass ?? '' })
       if (request.cursor) query.set('cursor', request.cursor)
       const path = `/${request.provider}/catalog?${query}`
@@ -82,17 +89,15 @@ export function catalogAccess(fetcher: typeof fetch, cacheScope?: string) {
       return { items, nextCursor: raw.nextCursor }
     },
     binanceHistory: async (request: Parameters<MarketDataProvider['getHistoricalCandles']>[0]) => {
-      const symbol = request.symbol.replace(/^BINANCE:/, ''), step = timeframeMilliseconds(request.interval)
-      const to = Math.floor((request.before ?? Date.now()) / 86400000) * 86400000 - (request.before ? 0 : 86400000)
-      const from = to - Math.min(300, request.limit, Math.floor(7 * 86400000 / step)) * step
-      const raw = await json(`/BINANCE/history?${new URLSearchParams({ symbol, timeframe: request.interval, from: new Date(from).toISOString(), to: new Date(to).toISOString() })}`, request.signal)
+      const step = timeframeMilliseconds(request.interval)
+      const raw = await localHistory(request, request.symbol)
       if (!Array.isArray(raw) || raw.length > 20000) throw new Error('Invalid history')
       return raw.map(c => validMarketCandle({ openTime: Date.parse(c.time), closeTime: Date.parse(c.time) + step - 1, open: String(c.open), high: String(c.high), low: String(c.low), close: String(c.close), volume: String(c.volume), closed: true }, request.symbol, request.interval)).filter(c => c !== null)
     },
     providerHistory: async (provider: string, request: Parameters<MarketDataProvider['getHistoricalCandles']>[0]) => {
-      if (!['ALPACA', 'OANDA', 'CTRADER'].includes(provider)) throw new Error('Unsupported history provider')
+      if (!['ALPACA', 'OANDA', 'CTRADER', 'DUKASCOPY'].includes(provider)) throw new Error('Unsupported history provider')
       const step = timeframeMilliseconds(request.interval), to = request.before ?? Date.now(), from = to - Math.min(1000, Math.max(1, request.limit)) * step
-      const raw = await json(`/${provider}/history?${new URLSearchParams({ symbol: request.symbol, timeframe: request.interval, from: new Date(from).toISOString(), to: new Date(to).toISOString() })}`, request.signal)
+      const raw = provider === 'DUKASCOPY' ? await localHistory(request, request.symbol) : await json(`/${provider}/history?${new URLSearchParams({ symbol: request.symbol, timeframe: request.interval, from: new Date(from).toISOString(), to: new Date(to).toISOString() })}`, request.signal)
       if (!Array.isArray(raw) || raw.length > 20000) throw new Error('Invalid history')
       return raw.map(c => validMarketCandle({ openTime: Date.parse(c.time), closeTime: Date.parse(c.time) + step - 1, open: String(c.open), high: String(c.high), low: String(c.low), close: String(c.close), volume: String(c.volume), closed: true }, request.symbol, request.interval)).filter(c => c !== null)
     },

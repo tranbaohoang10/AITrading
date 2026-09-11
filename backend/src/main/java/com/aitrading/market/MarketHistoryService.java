@@ -75,8 +75,11 @@ public class MarketHistoryService {
         MarketDataProvider.range(timeframe,from,to);
         var p=provider(provider);
         String key=MarketCache.key("history",provider,symbol+"|"+timeframe+"|"+from+"|"+to);
-        String value=cache.load(key,Duration.ofMinutes(30),raw->valid(raw,from,to),
-                ()->JSON.writeValueAsString(p.history(symbol,timeframe,from,to)));
+        String value=cache.load(key,Duration.ofMinutes(30),raw->valid(raw,from,to),()->{
+            var rows=p.capabilities().supportedTimeframes().contains(timeframe)?p.history(symbol,timeframe,from,to):
+                    p.capabilities().supportedTimeframes().contains("1m")?MarketTimeframeAggregator.aggregate(p.history(symbol,"1m",from,to),timeframe):null;
+            if(rows==null)throw new IllegalArgumentException("Unsupported timeframe");return JSON.writeValueAsString(rows);
+        });
         return List.of(JSON.readValue(value,MarketDataProvider.Candle[].class));
     }
     private boolean valid(String raw,Instant from,Instant to) {

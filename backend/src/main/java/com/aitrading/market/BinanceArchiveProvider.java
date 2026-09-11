@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 /** Official daily archives only. No broker API, scraping or cross-source fallback. */
 @Service
-public class BinanceArchiveProvider implements MarketDataProvider {
+public class BinanceArchiveProvider implements MarketDataProvider,HistoricalAvailabilityProvider {
     private final BinanceSpotCatalog catalog = new BinanceSpotCatalog();
     private static final List<String> TF=List.of("1m","5m","15m","30m","1h","4h","1d");
     private static final Set<String> SYMBOLS=Set.of("BTCUSDT","ETHUSDT","SOLUSDT");
@@ -23,8 +23,8 @@ public class BinanceArchiveProvider implements MarketDataProvider {
             .followRedirects(HttpClient.Redirect.NEVER).build();
     public Capabilities capabilities() {
         return new Capabilities("BINANCE","Binance Public Data",List.of("CRYPTO"),TF,
-                true,false,false,false,false,true,true,true,false,false,true,"ACCEPTED",
-                "BULK_ARCHIVE",1440,"UTC",true,List.of("Public Spot catalog and daily archives; no realtime feed",
+                true,true,false,false,false,true,true,true,false,false,true,"ACCEPTED",
+                "REST_PAGED_AND_ARCHIVE",1000,"UTC",true,List.of("Public Spot REST klines and daily archives",
                 "Futures archives not enabled without verified contract sizing", "Historical quantity only; exchange increments not asserted"));
     }
     public List<Instrument> search(String query) {
@@ -37,40 +37,34 @@ public class BinanceArchiveProvider implements MarketDataProvider {
         return new Instrument("BINANCE:"+symbol,symbol.replace("USDT","/USDT"),symbol,"BINANCE","CRYPTO",
                 symbol.substring(0,symbol.length()-4),"USDT","Binance","USDT","SPOT","UTC",null,null,null,
                 null,null,"BASE_QUANTITY",null,BigDecimal.ONE,null,"QUANTITY_ONLY",
-                List.of("HISTORICAL"),TF,"UNKNOWN",symbol.replace("USDT","/USDT"));
+                List.of("HISTORICAL","REALTIME"),TF,"UNKNOWN",symbol.replace("USDT","/USDT"));
+    }
+    public Instant historicalAvailableFrom(String symbol) {
+        instrument(symbol);
+        try {
+            URI uri=URI.create("https://data-api.binance.vision/api/v3/klines?symbol="+symbol+"&interval=1m&startTime=0&limit=1");
+            byte[] raw=fetch(http,uri,64_000,System.nanoTime()+Duration.ofSeconds(15).toNanos());
+            var rows=tools.jackson.databind.json.JsonMapper.builder().build().readTree(new String(raw,StandardCharsets.UTF_8));
+            if(!rows.isArray()||rows.size()!=1||!rows.get(0).isArray()||!rows.get(0).get(0).isIntegralNumber())throw new IOException("Invalid earliest kline");
+            return Instant.ofEpochMilli(rows.get(0).get(0).asLong());
+        }catch(Exception failure){if(failure instanceof InterruptedException)Thread.currentThread().interrupt();throw new CoinbaseDataFailure("BINANCE_HISTORY_UNAVAILABLE",502);}
     }
     public List<Candle> history(String symbol,String timeframe,Instant from,Instant to) {
         instrument(symbol); MarketDataProvider.range(timeframe,from,to);
-        int step=MarketDataProvider.seconds(timeframe);
+        int step=MarketDataProvider.seconds(timeframe);if(step!=60)throw new IllegalArgumentException("Binance source timeframe is M1");
         TreeMap<Instant,Candle> result=new TreeMap<>();
-        LocalDate day=from.atZone(ZoneOffset.UTC).toLocalDate();
-        LocalDate last=to.minusNanos(1).atZone(ZoneOffset.UTC).toLocalDate();
-        if(java.time.temporal.ChronoUnit.DAYS.between(day,last)>31)
-            throw new IllegalArgumentException("Archive request exceeds 32 days; request another window");
-        long deadline=System.nanoTime()+Duration.ofSeconds(40).toNanos();
-        for(;!day.isAfter(last);day=day.plusDays(1)) {
-            String file=symbol+"-"+timeframe+"-"+day+".zip";
-            URI uri=URI.create("https://data.binance.vision/data/spot/daily/klines/"+symbol+"/"+timeframe+"/"+file);
-            try {
-                byte[] check=fetch(http,URI.create(uri+".CHECKSUM"),1024,deadline);
-                String checksum=new String(check,StandardCharsets.US_ASCII).strip();
-                if(!checksum.matches("[a-fA-F0-9]{64}\\s+\\*?"+java.util.regex.Pattern.quote(file)))
-                    throw new IOException("Invalid checksum");
-                byte[] archive=fetch(http,uri,MAX_ZIP,deadline);
-                byte[] digest=MessageDigest.getInstance("SHA-256").digest(archive);
-                if(!HexFormat.of().formatHex(digest).equalsIgnoreCase(checksum.substring(0,64)))
-                    throw new IOException("Checksum mismatch");
-                try(var input=new ByteArrayInputStream(archive)) {
-                    for(Candle candle:parse(input,step)) {
-                        if(candle.time().isBefore(from)||!candle.time().isBefore(to))continue;
-                        if(result.putIfAbsent(candle.time(),candle)!=null)throw new IOException("Duplicate candle");
-                    }
-                }
-            } catch(InterruptedException interrupted) {
-                Thread.currentThread().interrupt();
-                throw new CoinbaseDataFailure("BINANCE_HISTORY_UNAVAILABLE",502);
-            } catch(Exception failure) { throw new CoinbaseDataFailure("BINANCE_HISTORY_UNAVAILABLE",502); }
-        }
+        long cursor=from.toEpochMilli(),end=to.toEpochMilli();
+        try {for(int page=0;page<20&&cursor<end;page++) {
+            URI uri=URI.create("https://data-api.binance.vision/api/v3/klines?symbol="+symbol+"&interval=1m&startTime="+cursor+"&endTime="+(end-1)+"&limit=1000");
+            byte[] raw=fetch(http,uri,1_000_000,System.nanoTime()+Duration.ofSeconds(20).toNanos());
+            var rows=tools.jackson.databind.json.JsonMapper.builder().build().readTree(new String(raw,StandardCharsets.UTF_8));
+            if(!rows.isArray()||rows.size()>1000)throw new IOException("Invalid klines");
+            if(rows.isEmpty())break;
+            long previous=cursor-1;
+            for(var row:rows){if(!row.isArray()||row.size()<6||!row.get(0).isIntegralNumber())throw new IOException("Invalid kline");long opened=row.get(0).asLong();if(opened<=previous||opened%60000!=0)throw new IOException("Unordered kline");previous=opened;var candle=new Candle(Instant.ofEpochMilli(opened),new BigDecimal(row.get(1).asString()),new BigDecimal(row.get(2).asString()),new BigDecimal(row.get(3).asString()),new BigDecimal(row.get(4).asString()),new BigDecimal(row.get(5).asString()));if(result.putIfAbsent(candle.time(),candle)!=null)throw new IOException("Duplicate candle");}
+            cursor=previous+60000;if(rows.size()<1000)break;
+        }}catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new CoinbaseDataFailure("BINANCE_HISTORY_UNAVAILABLE",502);}catch(Exception failure){throw new CoinbaseDataFailure("BINANCE_HISTORY_UNAVAILABLE",502);}
+        if(cursor<end&&result.size()>=20_000)throw new CoinbaseDataFailure("BINANCE_HISTORY_LIMIT",502);
         return List.copyOf(result.values());
     }
     static byte[] fetch(HttpClient http,URI uri,int maximum,long deadline)throws Exception {

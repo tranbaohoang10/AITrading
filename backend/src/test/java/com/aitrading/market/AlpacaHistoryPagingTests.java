@@ -43,6 +43,14 @@ class AlpacaHistoryPagingTests {
         var now=Instant.parse("2025-01-08T00:00:00Z");var result=client.candles("AAPL","1m",300,null,now);
         assertEquals(1,result.size());var query=requests.getFirst().uri().getRawQuery();assertTrue(query.contains("feed=iex&adjustment=raw&sort=desc"));assertTrue(query.contains("start=2025-01-01T00%3A00%3A00Z"));assertTrue(query.contains("end=2025-01-08T00%3A00%3A00Z"));
     }
+    @Test void discoversAndCachesTheFirstAccessibleIexMinute() throws Exception {
+        var requests=new ArrayList<HttpRequest>();var client=client(List.of("{\"bars\":["+bar(0,101)+"],\"next_page_token\":\"unused\"}"),requests);
+        assertEquals(from,client.historicalAvailableFrom("AAPL"));assertEquals(from,client.historicalAvailableFrom("AAPL"));assertEquals(1,requests.size());var query=requests.getFirst().uri().getRawQuery();assertTrue(query.contains("limit=1"));assertTrue(query.contains("sort=asc"));assertTrue(query.contains("start=2017-01-01T00%3A00%3A00Z"));
+    }
+    @Test void treatsDocumentedNullBarsAsAnEmptyHistoricalRange() throws Exception {
+        var client=client(List.of("{\"bars\":null,\"next_page_token\":null}"),new ArrayList<>());
+        assertTrue(client.history("AAPL","1m",from,to).isEmpty());
+    }
     @Test void rejectsTokenCyclesAndConflictingHistoricalBoundaries() throws Exception {
         for(var pages:List.of(
                 List.of("{\"bars\":[],\"next_page_token\":\"cycle\"}","{\"bars\":[],\"next_page_token\":\"cycle\"}"),

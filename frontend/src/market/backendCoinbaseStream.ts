@@ -17,7 +17,7 @@ export function backendCoinbaseStream(account: string, symbol: string, interval:
 }
 
 export function backendProviderStream(account: string, provider: string, symbol: string, interval: Timeframe, subscription: CandleSubscription, fetcher: typeof fetch = globalThis.fetch.bind(globalThis)): () => void {
-  if (!['COINBASE', 'ALPACA', 'OANDA', 'CTRADER'].includes(provider)) throw new Error('Unsupported stream provider')
+  if (!['COINBASE', 'BINANCE', 'ALPACA', 'OANDA', 'CTRADER'].includes(provider)) throw new Error('Unsupported stream provider')
   let disposed = false, opened = false, delay = 1000, controller: AbortController | undefined
   let retry: ReturnType<typeof setTimeout> | undefined, flush: ReturnType<typeof setTimeout> | undefined
   let pending: MarketCandle | undefined, status: LiveConnectionStatus | undefined, lastFrame = Date.now()

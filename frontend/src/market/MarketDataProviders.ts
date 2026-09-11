@@ -25,11 +25,11 @@ export function createMarketDataProvider(accountId?: string, onUnauthorized?: ()
   const provider: MarketDataProvider = {
     searchPage: async request => { const page = await catalog.searchPage(request); page.items.forEach(i => { identities.set(i.symbol, i); if (i.provider === 'FRANKFURTER') forex.registerCatalogSymbol(i.symbol) }); return page }, catalogProviders: catalog.catalogProviders,
     searchCatalogPage: async request => { const page = await catalog.searchCatalogPage(request); page.items.forEach(i => { if (i.modes.length) identities.set(i.symbol, i); if (i.provider === 'FRANKFURTER') forex.registerCatalogSymbol(i.symbol) }); return page },
-    capabilities: { provider: 'MULTI', assetClasses: ['CRYPTO', 'STOCK', 'ETF', 'FOREX'], modes: ['HISTORICAL', 'REALTIME', 'DELAYED'], configured: true, status: 'ACCEPTED' },
+    capabilities: { provider: 'MULTI', assetClasses: ['CRYPTO', 'STOCK', 'ETF', 'FOREX', 'COMMODITY'], modes: ['HISTORICAL', 'REALTIME', 'DELAYED'], configured: true, status: 'ACCEPTED' },
     getHistoricalCandles: request => {
       const route = identities.get(request.symbol)
       if (request.symbol.startsWith('BINANCE:')) return catalog.binanceHistory(request)
-      if (route && ['OANDA', 'CTRADER'].includes(route.provider)) return catalog.providerHistory(route.provider, request)
+      if (route && ['OANDA', 'CTRADER', 'DUKASCOPY'].includes(route.provider)) return catalog.providerHistory(route.provider, { ...request, symbol: route.providerSymbol ?? request.symbol })
       return (forexSymbol(request.symbol) ? forex : isCrypto(request.symbol) ? coinbase : stocks).getHistoricalCandles(request)
     },
     listInstruments: async signal => { const crypto = await coinbase.listInstruments?.(signal).catch(() => []) ?? coinbaseSymbols; const equities = await stocks.listInstruments(signal).catch(() => []); return [...crypto, ...forexSymbols, ...equities] },
@@ -37,7 +37,7 @@ export function createMarketDataProvider(accountId?: string, onUnauthorized?: ()
     listProducts: async signal => (await (provider.listInstruments?.(signal) ?? Promise.resolve(coinbaseSymbols))).map(item => item.symbol),
     subscribeCandles: (request, subscription) => {
       const route = identities.get(request.symbol)
-      if (request.symbol.startsWith('BINANCE:')) { subscription.onStatus('DELAYED'); return () => {} }
+      if (accountId && request.symbol.startsWith('BINANCE:')) return backendProviderStream(accountId, 'BINANCE', route?.providerSymbol ?? request.symbol.replace(/^BINANCE:/, ''), request.interval, subscription, ownerFetch)
       if (accountId && route && ['OANDA', 'CTRADER'].includes(route.provider)) return backendProviderStream(accountId, route.provider, request.symbol, request.interval, subscription, ownerFetch)
       return (forexSymbol(request.symbol) ? forex : isCrypto(request.symbol) ? coinbase : stocks).subscribeCandles(request, subscription)
     },

@@ -179,6 +179,13 @@ class ContractTests(unittest.TestCase):
         other["dataset"]["candles"][0]["open"] = "100"
         self.assertEqual(execute(other)["runCard"]["dataset"]["dataHash"], result["runCard"]["dataset"]["dataHash"])
 
+    def test_provider_dataset_is_accepted_without_claiming_independent_verification(self):
+        value = request((100,))
+        value["dataset"]["sourceType"] = "PROVIDER"
+        result = execute(value)
+        self.assertEqual(result["runCard"]["dataset"]["sourceType"], "PROVIDER")
+        self.assertFalse(result["runCard"]["dataset"]["sourceVerified"])
+
     def test_existing_java_ohlcv_golden_and_all_timeframes(self):
         value = request((100,))
         value["dsl"]["market"]["symbol"] = value["dataset"]["symbol"] = "TEST_USD"

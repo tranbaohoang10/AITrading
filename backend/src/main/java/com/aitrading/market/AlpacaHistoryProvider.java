@@ -6,7 +6,7 @@ import java.util.*;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AlpacaHistoryProvider implements MarketDataProvider {
+public class AlpacaHistoryProvider implements MarketDataProvider,HistoricalAvailabilityProvider {
     private static final List<String> TF=List.of("1m","5m","15m","30m","1h","4h","1d");
     private final AlpacaMarketDataClient client;
     public AlpacaHistoryProvider(AlpacaMarketDataClient client){this.client=client;}
@@ -28,4 +28,5 @@ public class AlpacaHistoryProvider implements MarketDataProvider {
     public List<Candle> history(String symbol,String timeframe,Instant from,Instant to) {
         return client.history(symbol,timeframe,from,to).stream().map(c->new Candle(c.openTime(),new BigDecimal(c.open()),new BigDecimal(c.high()),new BigDecimal(c.low()),new BigDecimal(c.close()),new BigDecimal(c.volume()))).toList();
     }
+    public Instant historicalAvailableFrom(String symbol){return client.historicalAvailableFrom(symbol);}
 }

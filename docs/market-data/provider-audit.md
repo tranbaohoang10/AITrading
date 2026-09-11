@@ -27,6 +27,19 @@ commercial redistribution rights. Secrets and entitlement checks remain backend.
 Implementation and real integration status are tracked separately in
 specs/REPLAY/test-cases.md. ACCEPTED does not mean browser QA passed.
 
+## 11/09/2026 — PB-049 durable M1 runtime verification
+
+- Binance public REST returned and persisted BTC/USDT and ETH/USDT M1; the first
+  accessible bar was `2017-08-17T04:00:00Z`. Real BTC/USDT aggregate trades also
+  updated Redis current M1/status, application SSE and finalized PostgreSQL M1.
+- The configured Alpaca IEX entitlement returned current M1 for AAPL, MSFT, NVDA,
+  SPY, QQQ and DIA. A real ascending one-bar query found the first accessible M1
+  for this account on `2020-07-27`; the runtime no longer claims 2017 coverage.
+- The fixed Dukascopy public BI5 host was implemented and retried, but refused
+  connections from this machine for all required FX/metals probes. Historical
+  and realtime status remains failed/unverified rather than falling back silently.
+- Full per-symbol results, hashes and limitations are in `specs/PB-049/evidence.md`.
+
 ## Technical facts affecting implementation
 
 Binance Spot timestamps from 01/01/2025 are microseconds; older timestamps use

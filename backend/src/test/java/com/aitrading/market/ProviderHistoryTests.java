@@ -36,7 +36,7 @@ class ProviderHistoryTests {
         assertEquals("BINANCE:BTCUSDT",provider.instrument("BTCUSDT").instrumentId());
         assertEquals("USDT",provider.instrument("BTCUSDT").currency());
         assertNull(provider.instrument("BTCUSDT").lotSize());
-        assertFalse(provider.capabilities().realtime());
+        assertTrue(provider.capabilities().realtime());
         assertThrows(IllegalArgumentException.class,()->provider.instrument("BTC-USD"));
     }
     @Test void rejectsMalformedUnboundedAndDuplicateArchive()throws Exception {
