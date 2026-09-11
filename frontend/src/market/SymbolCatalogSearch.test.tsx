@@ -189,6 +189,18 @@ it('uses one unified catalog request and excludes reference-only instruments', a
   expect(searchPage).not.toHaveBeenCalled()
 })
 
+it('deduplicates unified Forex routes and selects Capital realtime over historical Dukascopy', async () => {
+  const historical: Instrument = { ...DEFAULT_INSTRUMENTS[0], instrumentId: '123e4567-e89b-12d3-a456-426614174020', symbol: 'EURUSD', providerSymbol: 'EURUSD', displaySymbol: 'EUR/USD', base: 'EUR', quote: 'USD', name: 'EUR/USD historical', assetClass: 'FOREX', provider: 'DUKASCOPY', exchange: 'Dukascopy', modes: ['HISTORICAL'] }
+  const realtime: Instrument = { ...historical, instrumentId: '123e4567-e89b-12d3-a456-426614174021', name: 'EUR/USD Capital', provider: 'CAPITAL', exchange: 'Capital.com', modes: ['HISTORICAL', 'REALTIME'] }
+  const select = vi.fn()
+  render(<SymbolCatalogSearch provider={{ searchCatalogPage: async () => ({ items: [historical, realtime], nextCursor: null }) }} onSelect={select} onClose={() => {}} />)
+  fireEvent.change(screen.getByLabelText('Search symbols'), { target: { value: 'EUR/USD' } })
+  const result = await screen.findByRole('button', { name: /EUR\/USD Capital/ })
+  expect(screen.queryByRole('button', { name: /EUR\/USD historical/ })).not.toBeInTheDocument()
+  fireEvent.click(result)
+  expect(select).toHaveBeenCalledWith(expect.objectContaining({ provider: 'CAPITAL', providerSymbol: 'EURUSD', modes: expect.arrayContaining(['REALTIME']) }))
+})
+
 it('curates every empty category while typed search keeps supported non-featured symbols', async () => {
   const apple: Instrument = { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'ALPACA:AAPL', symbol: 'AAPL', providerSymbol: 'AAPL', displaySymbol: 'AAPL', base: 'AAPL', name: 'Apple Inc.', assetClass: 'STOCK', provider: 'ALPACA', modes: ['HISTORICAL', 'REALTIME'] }
   const obscureStock: Instrument = { ...apple, instrumentId: 'ALPACA:ZZZZ', symbol: 'ZZZZ', providerSymbol: 'ZZZZ', displaySymbol: 'ZZZZ', base: 'ZZZZ', name: 'Obscure but supported stock' }

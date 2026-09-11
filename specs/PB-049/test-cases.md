@@ -22,10 +22,12 @@
 | MD-18 | Forex flags | Local EUR/USD flag assets render and return HTTP 200 | PASS |
 | MD-19 | Dataset bound | 10,000 candles are accepted and 20,001 are rejected | PASS |
 | MD-20 | Backend regression | Full isolated backend suite passes | PASS — 398 tests, 12 conditional skips |
-| MD-21 | Frontend regression | Lint, build, 346 tests and audit pass | PASS |
+| MD-21 | Frontend regression | Lint, build, 347 tests and audit pass | PASS |
 | MD-22 | Python regression | Engine, cross-target and readiness tests pass | PASS |
 | MD-23 | Migration ledger | Flyway V1–V22 names and canonical SHA-256 hashes are bound | PASS |
 | MD-24 | Dependency audit | Locked backend inventory contains no reported finding | PASS — 145 components |
+| MD-25 | Unified Forex dedupe | Capital realtime and Dukascopy historical collapse to one EUR/USD route | PASS |
+| MD-26 | Repeated real Forex live | Five independent Forex symbols receive actual SSE candle events | PASS — 5/5 |
 
 ## Mandatory scenario mapping
 

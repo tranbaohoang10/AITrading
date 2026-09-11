@@ -16,3 +16,11 @@
 - Added V22 and raised the immutable dataset ceiling from 5,000 to 20,000 candles.
 - Verified real GOLD multi-timeframe history, real EUR/USD realtime, browser H1 joining and regression gates.
 - Kept the overall Issue status partial until every original non-Capital blocker is resolved.
+
+## 11/09/2026 — Connected-without-candle correction
+
+- Identified duplicate unified-catalog Forex routes as the user-facing ambiguity.
+- Applied canonical deduplication to the unified catalog and preferred realtime Capital over historical Dukascopy.
+- Added a click-level picker regression test for duplicated EUR/USD providers.
+- Verified real candle events for EUR/USD, GBP/USD, USD/JPY, AUD/USD and USD/CAD in five consecutive checks.
+- Re-ran lint, build, 57 frontend files / 347 tests and npm audit with PASS.

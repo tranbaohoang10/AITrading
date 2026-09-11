@@ -77,6 +77,13 @@ function routeForCategory(routes: Instrument[], category: Category): Instrument 
     ?? matching.find(route => ['FOREX', 'COMMODITY'].includes(route.assetClass) && route.modes.includes('HISTORICAL') && route.modes.includes('DELAYED'))
 }
 
+function preferredCanonicalRoutes(instruments: Instrument[], category: Category): Instrument[] {
+  return canonicalCatalog(instruments).flatMap(instrument => {
+    const route = routeForCategory(instrument.routes, category)
+    return route ? [route] : []
+  })
+}
+
 function curatedEmptyQuery(instruments: Instrument[], query: string): Instrument[] {
   const routable = instruments.filter(instrument => instrument.modes.length > 0)
   if (query.trim()) return routable
@@ -146,7 +153,7 @@ export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider:
       const serverQuery = (compactQuery.endsWith('usd') && compactQuery.length > 3 ? compactQuery.slice(0, -3).toUpperCase() : query.trim()).slice(0, 64)
       if (unified) {
         void unified({ query: query.trim().slice(0, 64), assetClass: category === 'ALL' ? '' : category, signal: controller.signal }).then(result => {
-          if (!disposed) setPage({ items: balancedAllPreview(curatedEmptyQuery(preferUsdAndSort(result.items), query), category, query), nextCursor: result.nextCursor })
+          if (!disposed) setPage({ items: balancedAllPreview(curatedEmptyQuery(preferUsdAndSort(preferredCanonicalRoutes(result.items, category)), query), category, query), nextCursor: result.nextCursor })
         }).catch(() => { if (!disposed) setError(controller.signal.aborted ? 'Symbol catalog request timed out. Retry.' : 'Market symbols are temporarily unavailable. Retry.') }).finally(() => { if (!disposed) { clearTimeout(requestTimeout); setBusy(false) } })
         return
       }
@@ -155,11 +162,7 @@ export function SymbolCatalogSearch({ provider, onSelect, onClose }: { provider:
         if (disposed) return
         const providerItems = results.flatMap(result => result.status === 'fulfilled' ? result.value : [])
         if (!providerItems.length && results.every(result => result.status === 'rejected')) throw new Error('All provider catalogs failed')
-        const catalog = canonicalCatalog(providerItems)
-        const items = balancedAllPreview(curatedEmptyQuery(preferUsdAndSort(catalog.flatMap(instrument => {
-          const route = routeForCategory(instrument.routes, category)
-          return route ? [route] : []
-        })), query), category, query)
+        const items = balancedAllPreview(curatedEmptyQuery(preferUsdAndSort(preferredCanonicalRoutes(providerItems, category)), query), category, query)
         setPage({ items, nextCursor: null })
       }).catch(() => { if (!disposed) setError(controller.signal.aborted ? 'Symbol catalog request timed out. Retry.' : 'Live symbols are temporarily unavailable. Retry.') }).finally(() => { if (!disposed) { clearTimeout(requestTimeout); setBusy(false) } })
     }, 250)

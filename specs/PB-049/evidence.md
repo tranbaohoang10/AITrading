@@ -71,7 +71,7 @@ Real browser smoke at `http://127.0.0.1:5173/`:
 | Focused backend Capital/aggregation tests | PASS |
 | `python scripts/test_backend.py` | PASS — 398 tests, 0 failures/errors, 12 conditional skips; boot JAR and inventory PASS |
 | Frontend focused market/icon tests | PASS — 29/29 |
-| Frontend full tests | PASS — 57 files, 346 tests |
+| Frontend full tests | PASS — 57 files, 347 tests |
 | Frontend lint and build | PASS; only the existing Vite chunk warning |
 | `npm audit --audit-level=high` | PASS — 0 vulnerabilities |
 | `python -m unittest discover -s python/tests -v` | PASS after V22 expectation update |
@@ -93,3 +93,23 @@ Issue #49 remains open because the original Issue also records broader full-rang
 and independently requested non-Capital live evidence that has not all been
 re-executed in this correction. No `FULL_PASS` is claimed for those unrelated
 remaining conditions.
+
+## Connected-without-candle investigation
+
+The Capital backend was not stuck at transport status. Five independent real SSE
+subscriptions each received a provider `candle` event, not only `CONNECTED` or
+`SUBSCRIBED`:
+
+| Check | Symbol | Candle latency | Result |
+| --- | --- | ---: | --- |
+| 1 | EUR/USD | 2.34 s | PASS |
+| 2 | GBP/USD | 1.39 s | PASS |
+| 3 | USD/JPY | 2.55 s | PASS |
+| 4 | AUD/USD | 1.19 s | PASS |
+| 5 | USD/CAD | 1.11 s | PASS |
+
+The UI root cause was duplicate canonical Forex rows in the unified catalog path:
+Capital realtime and Dukascopy historical could both appear as EUR/USD. The unified
+path now applies the same canonical deduplication and route preference as the
+fallback path, selecting the realtime Capital route and rendering one EUR/USD row.
+The focused picker suite passes 18/18 and the full frontend suite passes 347 tests.

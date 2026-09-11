@@ -13,4 +13,6 @@
 - [x] T11 Raise the immutable dataset limit to 20,000 and add Flyway V22.
 - [x] T12 Verify real Capital historical, realtime, Redis, SSE and browser behavior.
 - [x] T13 Run regression, readiness, dependency and security gates.
-- [ ] T14 Resolve any remaining original Issue #49 blockers before closing the Issue.
+- [x] T14 Deduplicate unified Forex catalog routes and prefer Capital realtime.
+- [x] T15 Receive real live candles in five independent Forex checks.
+- [ ] T16 Resolve any remaining original Issue #49 blockers before closing the Issue.
