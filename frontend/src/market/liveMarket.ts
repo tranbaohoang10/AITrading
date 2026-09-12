@@ -134,5 +134,23 @@ export function mergeCandles(current: MarketCandle[], incoming: MarketCandle): M
   return merged
 }
 
+export function mergeRealtimeCandle(current: MarketCandle[], incoming: MarketCandle[], maxBars = Number.POSITIVE_INFINITY): MarketCandle[] {
+  if (!incoming.length) return current
+  const last = current.at(-1)
+  const next = incoming[incoming.length - 1]
+  if (!last || (last.symbol === next.symbol && last.interval === next.interval && next.openTime >= last.openTime)) {
+    let result = current
+    for (const candle of incoming) {
+      const tail = result.at(-1)
+      if (!tail) result = [candle]
+      else if (tail.symbol === candle.symbol && tail.interval === candle.interval && tail.openTime === candle.openTime) result = [...result.slice(0, -1), candle]
+      else if (tail.symbol === candle.symbol && tail.interval === candle.interval && candle.openTime > tail.openTime) result = [...result, candle]
+      else result = mergeCandles(result, candle)
+    }
+    return result.length > maxBars ? result.slice(-maxBars) : result
+  }
+  return incoming.reduce(mergeCandles, current).slice(-maxBars)
+}
+
 export function isLiveSymbol(value: string): value is LiveSymbol { return /^[A-Z0-9]{2,20}-[A-Z0-9]{2,20}$/.test(value) }
 export function isTimeframe(value: string): value is Timeframe { return (TIMEFRAMES as readonly string[]).includes(value) }

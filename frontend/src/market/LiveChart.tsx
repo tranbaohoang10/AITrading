@@ -11,7 +11,7 @@ import { CandleChart } from './CandleChart'
 import { TimeframePopover } from './TimeframePopover'
 import { timeframeMilliseconds, timeframeLabel, type Timeframe } from './chartMath'
 import { defaultChartSettings, type ChartSettings, type ChartType, type Drawing, type DrawingTool, type IndicatorConfig, type MagnetMode } from './chartTypes'
-import { DEFAULT_INSTRUMENTS, displayMarketSymbol, formatMarketPrice, mergeCandles, type Instrument, type LiveConnectionStatus, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
+import { DEFAULT_INSTRUMENTS, displayMarketSymbol, formatMarketPrice, mergeCandles, mergeRealtimeCandle, type Instrument, type LiveConnectionStatus, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
 import { marketDataProvider } from './MarketDataProviders'
 import { sendChartCaptureToAssistant } from './chartCapture'
 import { PositionSetupPopover } from './PositionSetupPopover'
@@ -226,7 +226,7 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
           }, HISTORY_REQUEST_TIMEOUT_MS)
           const cachedSeed = historyCache.get(cacheKey(cellSymbol, cellTimeframe))?.at(-1)
           run.unsubscribe = provider.subscribeCandles({ symbol: cellSymbol, interval: cellTimeframe, seed: cachedSeed }, {
-            onCandle: candle => setCell(current => { if (candle.symbol !== cellSymbol || candle.interval !== cellTimeframe) return current; const next = mergeCandles(current.candles, candle).slice(-MAX_CACHED_BARS), receivedAt = Date.now(); historyCache.set(cacheKey(cellSymbol, cellTimeframe), next); return { ...current, candles: next, firstEventAt: current.firstEventAt ?? receivedAt, lastUpdate: receivedAt, status: 'LIVE' } }),
+            onCandle: candle => setCell(current => { if (candle.symbol !== cellSymbol || candle.interval !== cellTimeframe) return current; const next = mergeRealtimeCandle(current.candles, [candle], MAX_CACHED_BARS), receivedAt = Date.now(); historyCache.set(cacheKey(cellSymbol, cellTimeframe), next); return { ...current, candles: next, firstEventAt: current.firstEventAt ?? receivedAt, lastUpdate: receivedAt, status: 'LIVE' } }),
             onStatus: next => setCell(current => ({ ...current, status: next === 'LIVE' && !current.lastUpdate ? current.status === 'RECONNECTING' ? 'RECONNECTING' : 'CONNECTING' : next })),
             onReconnect: () => { void mergeHistory(true).catch(() => setCell(current => ({ ...current, error: 'Live stream reconnected, but latest history could not be refreshed.', status: 'DISCONNECTED' }))) },
           })

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { CoinbaseMarketDataProvider } from './CoinbaseMarketDataProvider'
 import { CandleChart, zoomViewport } from './CandleChart'
 import { LiveChart } from './LiveChart'
-import { displayMarketSymbol, mergeCandles, type CandleSubscription, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
+import { displayMarketSymbol, mergeCandles, mergeRealtimeCandle, type CandleSubscription, type LiveSymbol, type MarketCandle, type MarketDataProvider } from './liveMarket'
 
 const baseTime = 1_700_000_040_000
 const accountId = '11111111-1111-4111-8111-111111111111'
@@ -273,5 +273,30 @@ describe('PB-034 Coinbase market-data contract', () => {
     const first = candle(), updated = candle(first.openTime, 'BTC-USD', '102'), next = candle(first.openTime + 60_000, 'BTC-USD', '103')
     expect(mergeCandles([first], updated)).toEqual([updated])
     expect(mergeCandles([first], next)).toEqual([first, next])
+  })
+
+  it('updates the realtime tail without losing history and falls back for late events', () => {
+    const first = candle(), second = candle(first.openTime + 60_000, 'BTC-USD', '103'), revised = candle(second.openTime, 'BTC-USD', '104')
+    expect(mergeRealtimeCandle([first, second], [revised])).toEqual([first, revised])
+    expect(mergeRealtimeCandle([first], [second])).toEqual([first, second])
+    expect(mergeRealtimeCandle([first, second], [first])).toEqual([first, second])
+  })
+
+  it('benchmarks the realtime tail path against the old full merge path', () => {
+    const history = Array.from({ length: 2_000 }, (_, index) => candle(baseTime + index * 60_000, 'BTC-USD', String(100 + index), String(99 + index)))
+    const updates = Array.from({ length: 2_000 }, (_, index) => candle(baseTime + 1_999 * 60_000, 'BTC-USD', String(200 + index), '199'))
+    const before = performance.now()
+    let oldPath = history
+    for (const update of updates) oldPath = mergeCandles(oldPath, update).slice(-2_000)
+    const beforeMs = performance.now() - before
+
+    const after = performance.now()
+    let optimizedPath = history
+    for (const update of updates) optimizedPath = mergeRealtimeCandle(optimizedPath, [update], 2_000)
+    const afterMs = performance.now() - after
+
+    expect(optimizedPath).toEqual(oldPath)
+    expect(optimizedPath).toHaveLength(2_000)
+    console.info(`[realtime-benchmark] full-merge=${beforeMs.toFixed(2)}ms tail-upsert=${afterMs.toFixed(2)}ms speedup=${(beforeMs / Math.max(afterMs, 0.01)).toFixed(2)}x`)
   })
 })
