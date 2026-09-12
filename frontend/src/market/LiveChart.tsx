@@ -37,7 +37,7 @@ function RealtimeStatus({ status, firstEventAt, lastUpdate, activeCandleTime, pa
   return <div data-testid="realtime-status" role="status" aria-label={detail} title={detail} className="flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-slate-800 bg-slate-950/60 px-2 text-[10px] leading-none text-slate-300"><span className={`h-1.5 w-1.5 shrink-0 rounded-full ${liveClass[effectiveStatus]}`}/><span className="font-semibold">{visibleLabel}</span></div>
 }
 
-const INITIAL_HISTORY_BARS = 300, HISTORY_PAGE_SIZE = 300, MAX_CACHED_BARS = 20_000, HISTORY_REQUEST_TIMEOUT_MS = 12_000
+const INITIAL_HISTORY_BARS = 300, HISTORY_PAGE_SIZE = 300, MAX_CACHED_BARS = 20_000, HISTORY_REQUEST_TIMEOUT_MS = 12_000, BACKGROUND_WARMUP_LIMIT = 24, BACKGROUND_WARMUP_GAP_MS = 50
 const historyCache = new Map<string, MarketCandle[]>()
 const cacheKey = (symbol: LiveSymbol, timeframe: Timeframe, before?: number) => `${symbol}|${timeframe}|${before ?? 'latest'}`
 type HistoryRequest = { symbol: LiveSymbol; interval: Timeframe; limit: number; before?: number; signal?: AbortSignal }
@@ -242,6 +242,29 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
       void start()
     })
   }, [activeCell, attempt, cells, layout, provider, unitTestDefaultProvider])
+
+  useEffect(() => {
+    if (provider !== marketDataProvider || unitTestDefaultProvider || !activeState.candles.length || activeState.loading) return
+    const controller = new AbortController()
+    const candidates = instruments.filter(item => item.symbol !== symbol && item.modes.includes('HISTORICAL')).slice(0, BACKGROUND_WARMUP_LIMIT)
+    const warm = async () => {
+      for (const instrument of candidates) {
+        if (controller.signal.aborted) return
+        const interval = instrument.provider === 'FRANKFURTER' ? '1d' : timeframe
+        const key = cacheKey(instrument.symbol, interval)
+        if (!historyCache.has(key)) {
+          try {
+            const history = await loadHistorical(provider, { symbol: instrument.symbol, interval, limit: INITIAL_HISTORY_BARS, signal: controller.signal }, key)
+            historyCache.set(key, history.slice(-MAX_CACHED_BARS))
+          }
+          catch { if (controller.signal.aborted) return }
+        }
+        await new Promise<void>(resolve => setTimeout(resolve, BACKGROUND_WARMUP_GAP_MS))
+      }
+    }
+    void warm()
+    return () => controller.abort()
+  }, [activeState.candles.length, activeState.loading, instruments, provider, symbol, timeframe, unitTestDefaultProvider])
 
   useEffect(() => () => { Object.values(cellRuns.current).forEach(run => { run.controller.abort(); run.unsubscribe() }) }, [])
 
