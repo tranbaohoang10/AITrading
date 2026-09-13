@@ -16,5 +16,7 @@
 | CAT-12 | Regression | Existing market tests/build pass | PASS |
 | CAT-13 | Empty-query curation | Only popular balanced symbols with chart routes appear | PASS |
 | CAT-14 | Reference-only isolation | Matched metadata enriches routes; unsupported bulk rows are not persisted or returned | PASS |
+| CAT-15 | Typed-search curation | Provider-supported but unapproved symbols remain hidden | PASS |
+| CAT-16 | Stale-reference cleanup | Failed reference refresh cannot retain symbols whose approved route was removed | PASS |
 
 Detailed executable and browser evidence is recorded in `evidence.md`.

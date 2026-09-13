@@ -11,3 +11,7 @@
 - [x] T9 Commit, push and close Issue #48 only after DoD.
 - [x] T10 Reopen for Product Owner refinement: remove reference-only/noise rows
   from Symbol Search and curate every empty-query market category.
+- [x] T11 Apply the approved universe to ingestion and typed search so provider
+  catalogs enrich existing product symbols without expanding the selector.
+- [x] T12 Remove stale reference mappings when an approved chart route disappears,
+  including while the reference provider is temporarily unavailable.

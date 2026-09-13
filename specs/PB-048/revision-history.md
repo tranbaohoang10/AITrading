@@ -24,4 +24,13 @@
   last-known-good operation, but require a compatible chart route in selector
   API results.
 - Curate empty-query Crypto, Stocks, ETFs, Forex and Commodities independently;
-  typed search remains available for supported non-featured instruments.
+  typed search initially remained available for supported non-featured instruments.
+
+## 11/09/2026 — Product Owner strict approved-universe refinement
+
+- Constrained both ingestion and typed search to the approved cross-asset product
+  universe rather than treating every provider-supported symbol as user-visible.
+- Kept reference repositories as metadata enrichment only; they cannot create a
+  new selector symbol unless that symbol is explicitly approved and routed.
+- Added route-driven cleanup for stale reference mappings so last-known-good
+  metadata survives only while its approved chart route remains active.

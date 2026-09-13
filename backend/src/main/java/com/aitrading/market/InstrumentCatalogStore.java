@@ -24,9 +24,20 @@ public class InstrumentCatalogStore {
         jdbc.update("DELETE FROM trading.instrument_alias WHERE source_provider=?",descriptor.providerId());
         for(int start=0;start<accepted.size();start+=1000)upsertChunk(accepted.subList(start,Math.min(accepted.size(),start+1000)));
         reconcileReferenceMappings();
+        deactivateUnroutableReferences();
         jdbc.update("UPDATE trading.market_instrument i SET active=EXISTS(SELECT 1 FROM trading.instrument_provider_mapping m WHERE m.instrument_id=i.id AND m.active),updated_at=CURRENT_TIMESTAMP WHERE i.active IS DISTINCT FROM EXISTS(SELECT 1 FROM trading.instrument_provider_mapping m WHERE m.instrument_id=i.id AND m.active)");
         jdbc.update("DELETE FROM trading.market_instrument i WHERE NOT EXISTS(SELECT 1 FROM trading.instrument_provider_mapping m WHERE m.instrument_id=i.id AND m.active)");
         jdbc.update("INSERT INTO trading.instrument_catalog_sync(provider,status,last_attempt_at,last_success_at,row_count,consecutive_failures,failure_code,updated_at) VALUES(?,'SUCCESS',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,?,0,NULL,CURRENT_TIMESTAMP) ON CONFLICT(provider) DO UPDATE SET status='SUCCESS',last_attempt_at=CURRENT_TIMESTAMP,last_success_at=CURRENT_TIMESTAMP,row_count=EXCLUDED.row_count,consecutive_failures=0,failure_code=NULL,updated_at=CURRENT_TIMESTAMP",descriptor.providerId(),accepted.size());
+    }
+
+    private void deactivateUnroutableReferences() {
+        jdbc.update("""
+            UPDATE trading.instrument_provider_mapping ref
+            SET active=FALSE
+            WHERE ref.active AND ref.supported_modes=''
+              AND NOT EXISTS(SELECT 1 FROM trading.instrument_provider_mapping route
+                WHERE route.instrument_id=ref.instrument_id AND route.active AND route.supported_modes<>'')
+            """);
     }
 
     private List<InstrumentCatalogProvider.Candidate> acceptedRows(String provider,List<InstrumentCatalogProvider.Candidate> rows) {

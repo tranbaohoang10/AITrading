@@ -46,11 +46,26 @@ class InstrumentCatalogProviderTests {
         assertThat(row.name()).hasSize(200).doesNotContain("\n");
         assertThat(row.canonicalKey()).isEqualTo("LISTING:STOCK:NYSE ARCA:SPY");
     }
-    @Test void ingestsOnlyPopularCryptoWithApprovedIconCoverage() {
+    @Test void ingestsOnlyTheApprovedCrossAssetTradingUniverse() {
         var bitcoin=new MarketDataProvider.Instrument("COINBASE:BTC-USD","BTC/USD","BTC-USD","COINBASE","CRYPTO","BTC","USD","Coinbase","USD","PUBLIC","UTC",null,null,null,null,null,"BASE_QUANTITY",null,null,null,"QUANTITY_ONLY",List.of("HISTORICAL","REALTIME"),List.of("1m"),"UNKNOWN","Bitcoin");
         var obscure=new MarketDataProvider.Instrument("COINBASE:JUNK-USD","JUNK/USD","JUNK-USD","COINBASE","CRYPTO","JUNK","USD","Coinbase","USD","PUBLIC","UTC",null,null,null,null,null,"BASE_QUANTITY",null,null,null,"QUANTITY_ONLY",List.of("HISTORICAL","REALTIME"),List.of("1m"),"UNKNOWN","Junk token");
-        assertThat(ExistingMarketCatalogProvider.included(bitcoin)).isTrue();
-        assertThat(ExistingMarketCatalogProvider.included(obscure)).isFalse();
+        var apple=instrument("AAPL","US_EQUITY","AAPL","USD");
+        var adobe=instrument("ADBE","US_EQUITY","ADBE","USD");
+        var spy=instrument("SPY","ETF","SPY","USD");
+        var euro=instrument("EUR_USD","FOREX","EUR","USD");
+        var exotic=instrument("USD_TRY","FOREX","USD","TRY");
+        var gold=instrument("XAU_USD","COMMODITY","XAU","USD");
+        var obscureCommodity=instrument("CORN_USD","COMMODITY","CORN","USD");
+        assertThat(CuratedMarketUniverse.includes(bitcoin)).isTrue();
+        assertThat(CuratedMarketUniverse.includes(obscure)).isFalse();
+        assertThat(CuratedMarketUniverse.includes(apple)).isTrue();
+        assertThat(CuratedMarketUniverse.includes(adobe)).isFalse();
+        assertThat(CuratedMarketUniverse.includes(spy)).isTrue();
+        assertThat(CuratedMarketUniverse.includes(euro)).isTrue();
+        assertThat(CuratedMarketUniverse.includes(exotic)).isFalse();
+        assertThat(CuratedMarketUniverse.includes(gold)).isTrue();
+        assertThat(CuratedMarketUniverse.includes(obscureCommodity)).isFalse();
     }
+    private static MarketDataProvider.Instrument instrument(String symbol,String assetClass,String base,String quote){return new MarketDataProvider.Instrument("TEST:"+symbol,symbol,symbol,"TEST",assetClass,base,quote,"TEST",quote,"TEST","UTC",null,null,null,null,null,"UNITS",null,null,null,"QUANTITY_ONLY",List.of("HISTORICAL","REALTIME"),List.of("1m"),"UNKNOWN",symbol);}
     private static String currency(String code,String name){return "{\"iso_code\":\""+code+"\",\"name\":\""+name+"\",\"end_date\":\"2026-09-10\"}";}
 }

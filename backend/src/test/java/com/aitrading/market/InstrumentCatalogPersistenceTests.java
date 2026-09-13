@@ -76,6 +76,19 @@ class InstrumentCatalogPersistenceTests {
         assertThat(store.search("JUNK","STOCK","","",true,null).items()).isEmpty();
     }
 
+    @Test void removesLegacyReferenceRowsWhenTheirChartRouteLeavesTheApprovedUniverse() {
+        var route=new InstrumentCatalogProvider.Descriptor("ROUTE",List.of("STOCK"),20,true,false,"test");
+        var reference=new InstrumentCatalogProvider.Descriptor("REFERENCE",List.of("STOCK"),30,true,false,"test");
+        var junk=routed("ROUTE","JUNK","Unsupported legacy route");
+        var apple=routed("ROUTE","AAPL","Apple");
+        store.replaceSnapshot(route,List.of(junk,apple));
+        store.replaceSnapshot(reference,List.of(referenced("REFERENCE","JUNK","Legacy metadata")));
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM trading.market_instrument WHERE canonical_symbol='JUNK'",Integer.class)).isOne();
+        store.replaceSnapshot(route,List.of(apple));
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM trading.market_instrument WHERE canonical_symbol='JUNK'",Integer.class)).isZero();
+        assertThat(store.search("JUNK","STOCK","","",true,null).items()).isEmpty();
+    }
+
     @Test void prefersUsdQuoteForFeaturedCrypto() {
         var crypto=new InstrumentCatalogProvider.Descriptor("TEST_CATALOG",List.of("CRYPTO"),20,true,false,"test");
         store.replaceSnapshot(crypto,List.of(candidate("CRYPTO","SPOT","SOL-BNB","Solana / BNB","SOL","BNB"),candidate("CRYPTO","SPOT","SOL-USD","Solana / US Dollar","SOL","USD")));
@@ -83,4 +96,6 @@ class InstrumentCatalogPersistenceTests {
     }
 
     private static InstrumentCatalogProvider.Candidate candidate(String asset,String exchange,String symbol,String name,String base,String quote){String key=base==null?InstrumentCatalogProvider.listingKey(asset,exchange,symbol):InstrumentCatalogProvider.pairKey(asset,base,quote,"SPOT");return new InstrumentCatalogProvider.Candidate(key,asset,symbol,symbol.replace('-','/'),symbol,name,exchange,null,null,null,quote,base,quote,asset,null,null,"TEST_CATALOG",20,List.of("HISTORICAL"),List.of("1d"),"UTC",null,List.of(name));}
+    private static InstrumentCatalogProvider.Candidate routed(String provider,String symbol,String name){return new InstrumentCatalogProvider.Candidate(InstrumentCatalogProvider.listingKey("STOCK","NASDAQ",symbol),"STOCK",symbol,symbol,symbol,name,"NASDAQ",null,null,"US","USD",symbol,"USD","STOCK",null,null,provider,20,List.of("HISTORICAL","REALTIME"),List.of("1m","1d"),"America/New_York",null,List.of());}
+    private static InstrumentCatalogProvider.Candidate referenced(String provider,String symbol,String name){return new InstrumentCatalogProvider.Candidate(InstrumentCatalogProvider.listingKey("STOCK","NASDAQ",symbol),"STOCK",symbol,symbol,symbol,name,"NASDAQ",null,"United States","US","USD",null,null,"STOCK",null,null,provider,30,List.of(),List.of(),null,null,List.of());}
 }

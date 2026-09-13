@@ -1,9 +1,12 @@
 package com.aitrading.market;
 
 import java.time.Duration;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class InstrumentCatalogSyncService {
+    private static final Logger LOG=LoggerFactory.getLogger(InstrumentCatalogSyncService.class);
     private final Map<String,Source> sources;private final InstrumentCatalogStore store;private final boolean schedulerEnabled;private final Consumer<Duration> wait;private final AtomicBoolean syncing=new AtomicBoolean();
     private record Source(InstrumentCatalogProvider owner,InstrumentCatalogProvider.Descriptor descriptor){}
     @Autowired
@@ -19,6 +23,7 @@ public class InstrumentCatalogSyncService {
     @Scheduled(initialDelayString="${aitrading.market.catalog.initial-delay-ms:2000}",fixedDelayString="${aitrading.market.catalog.refresh-ms:21600000}")
     public void scheduledRefresh(){if(schedulerEnabled)refreshAll();}
     public void refreshAll(){if(!syncing.compareAndSet(false,true))return;try{for(var source:sources.values())refresh(source);}finally{syncing.set(false);}}
-    private void refresh(Source source){String provider=source.descriptor().providerId();if(!source.descriptor().available()){store.disabled(provider);return;}store.running(provider);for(int attempt=0;attempt<3;attempt++)try{store.replaceSnapshot(source.descriptor(),source.owner().fetch(provider));return;}catch(CatalogProviderFailure failure){if(!failure.transientFailure()||attempt==2){store.failed(provider,failure.code());return;}wait.accept(Duration.ofSeconds(1L<<attempt));}catch(RuntimeException failure){store.failed(provider,"CATALOG_SYNC_FAILED");return;}}
+    private void refresh(Source source){String provider=source.descriptor().providerId();if(!source.descriptor().available()){store.disabled(provider);return;}store.running(provider);for(int attempt=0;attempt<3;attempt++)try{store.replaceSnapshot(source.descriptor(),source.owner().fetch(provider));return;}catch(CatalogProviderFailure failure){if(!failure.transientFailure()||attempt==2){store.failed(provider,failure.code());return;}wait.accept(Duration.ofSeconds(1L<<attempt));}catch(RuntimeException failure){LOG.warn("Catalog sync failed for provider {} ({})",provider,diagnostic(failure));store.failed(provider,"CATALOG_SYNC_FAILED");return;}}
+    private static String diagnostic(Throwable failure){Throwable root=failure;for(int depth=0;depth<8&&root.getCause()!=null;depth++)root=root.getCause();return root instanceof SQLException sql?failure.getClass().getSimpleName()+":"+sql.getSQLState()+":"+sql.getErrorCode():failure.getClass().getSimpleName()+":"+root.getClass().getSimpleName();}
     private static void sleep(Duration duration){try{Thread.sleep(duration);}catch(InterruptedException interrupted){Thread.currentThread().interrupt();}}
 }

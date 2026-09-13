@@ -162,9 +162,9 @@ requirements, so implementation completion does not change their
 
 - Empty Symbol Search no longer lets the largest provider dominate the first
   viewport. It interleaves up to eight rows per available class in the order
-  Crypto, Stock, ETF, Forex and Commodity. The empty Crypto subset is limited to
-  16 popular/liquid USD assets with approved local icons; typed search still uses
-  the bounded real Coinbase catalog.
+  Crypto, Stock, ETF, Forex and Commodity. The Crypto subset is limited to 16
+  popular/liquid USD assets with approved local icons, and typed search uses the
+  same approved cross-asset universe instead of exposing arbitrary provider rows.
 - Alpaca popular Stock/ETF instruments are ranked onto the first bounded catalog
   page, allowing the frontend to obtain the approved set with one account-bound
   request instead of one request per symbol.
@@ -177,3 +177,6 @@ requirements, so implementation completion does not change their
   candle to a provider trade. Official WebSocket authentication/subscription maps
   to `Connected`; the official Alpaca clock maps a closed session to
   `Market closed`; only an actual provider trade maps the chart to `Live`.
+- Reference metadata remains last-known-good only while the instrument has an
+  active approved chart route. A route refresh deactivates orphan reference
+  mappings, so a temporary repository failure cannot preserve bulk selector noise.

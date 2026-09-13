@@ -38,11 +38,15 @@ asset class + normalized exchange/MIC + symbol. Provider symbols remain mappings
 
 Reference providers enrich only instruments that already have a compatible
 historical/realtime route. Unmatched bulk/reference rows are not persisted or
-returned to Symbol Search. Empty-query browsing is curated per asset class;
-typed search can still find supported non-featured instruments.
+returned to Symbol Search. Browsing and typed search share one curated universe
+per asset class; adding a provider or reference repository cannot implicitly add
+new user-visible symbols.
 
 ## Recovery
 
 Each provider snapshot is committed independently. Empty/invalid snapshots and
 network failures never deactivate the previous successful snapshot. Subsequent
-successful snapshots replace only that provider's active mappings.
+successful snapshots replace only that provider's active mappings. A successful
+route snapshot also deactivates stale reference mappings that no longer share an
+active historical/realtime route, preventing failed reference refreshes from
+keeping obsolete bulk symbols alive.

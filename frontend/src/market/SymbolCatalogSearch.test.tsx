@@ -38,7 +38,7 @@ it('uses trader categories, keeps the category bar visible and curates empty-que
   expect(await screen.findByText(/Realtime Forex is NOT_READY.*cTrader is not configured/)).toBeVisible()
 })
 
-it('keeps only approved-icon crypto for empty query but searches the full provider catalog when typed', async () => {
+it('keeps only approved-icon crypto even when a typed provider search returns noise', async () => {
   const obscure = { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'COINBASE:OBSCURE-USD', symbol: 'OBSCURE-USD', providerSymbol: 'OBSCURE-USD', displaySymbol: 'OBSCURE/USD', base: 'OBSCURE', name: 'Obscure token' }
   const bonk = { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'COINBASE:BONK-USD', symbol: 'BONK-USD', providerSymbol: 'BONK-USD', displaySymbol: 'BONK/USD', base: 'BONK', name: 'BONK-USD' }
   const searchPage = vi.fn(async ({ query }: { query: string }) => ({ items: query ? [obscure] : [DEFAULT_INSTRUMENTS[0], bonk, obscure], nextCursor: null }))
@@ -48,7 +48,8 @@ it('keeps only approved-icon crypto for empty query but searches the full provid
   expect(screen.queryByText('OBSCURE/USD')).not.toBeInTheDocument()
   expect(featuredCryptoBases.length).toBeLessThanOrEqual(20)
   fireEvent.change(screen.getByLabelText('Search symbols'), { target: { value: 'OBSCURE' } })
-  expect(await screen.findByText('OBSCURE/USD')).toBeVisible()
+  expect(await screen.findByText('No live instruments available.')).toBeVisible()
+  expect(screen.queryByText('OBSCURE/USD')).not.toBeInTheDocument()
   expect(searchPage).toHaveBeenCalledWith(expect.objectContaining({ query: 'OBSCURE' }))
 })
 
@@ -189,7 +190,7 @@ it('uses one unified catalog request and excludes reference-only instruments', a
   expect(searchPage).not.toHaveBeenCalled()
 })
 
-it('curates every empty category while typed search keeps supported non-featured symbols', async () => {
+it('curates every category and suppresses supported but unapproved typed symbols', async () => {
   const apple: Instrument = { ...DEFAULT_INSTRUMENTS[0], instrumentId: 'ALPACA:AAPL', symbol: 'AAPL', providerSymbol: 'AAPL', displaySymbol: 'AAPL', base: 'AAPL', name: 'Apple Inc.', assetClass: 'STOCK', provider: 'ALPACA', modes: ['HISTORICAL', 'REALTIME'] }
   const obscureStock: Instrument = { ...apple, instrumentId: 'ALPACA:ZZZZ', symbol: 'ZZZZ', providerSymbol: 'ZZZZ', displaySymbol: 'ZZZZ', base: 'ZZZZ', name: 'Obscure but supported stock' }
   const searchCatalogPage = vi.fn(async ({ query }: { query: string }) => ({ items: query ? [obscureStock] : [apple, obscureStock], nextCursor: null }))
@@ -197,7 +198,8 @@ it('curates every empty category while typed search keeps supported non-featured
   expect(await screen.findByText('Apple Inc.')).toBeVisible()
   expect(screen.queryByText('Obscure but supported stock')).not.toBeInTheDocument()
   fireEvent.change(screen.getByLabelText('Search symbols'), { target: { value: 'ZZZZ' } })
-  expect(await screen.findByText('Obscure but supported stock')).toBeVisible()
+  expect(await screen.findByText('No live instruments available.')).toBeVisible()
+  expect(screen.queryByText('Obscure but supported stock')).not.toBeInTheDocument()
 })
 
 it('deduplicates the All preview and keeps only the supported curated route', async () => {

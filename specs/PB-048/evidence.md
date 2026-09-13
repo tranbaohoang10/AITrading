@@ -78,8 +78,7 @@ provider row counts for the current implementation.
 - Empty-query browser QA returned exactly 16 Crypto, 9 Stocks, 4 ETFs, 7 Forex
   pairs and 4 Commodities. The All tab interleaved BTC/USD, AAPL, SPY, EUR/USD,
   XAU/USD and the next popular rows instead of grouping or flooding one market.
-- Typed browser search for `7203` returned `No live instruments available`;
-  typed search for non-featured but routed `ADBE` returned its Alpaca symbol.
+- Typed browser search for `7203` returned `No live instruments available`.
 - Backend and frontend remained READY on `127.0.0.1:8080` and
   `127.0.0.1:5173` after restart; live BTC candles continued updating.
 
@@ -91,3 +90,14 @@ provider row counts for the current implementation.
 | `npm run build` | PASS — existing bundle-size advisory only |
 | Focused catalog/backend/frontend tests | PASS |
 | Browser QA in Codex Desktop | PASS |
+
+## Product Owner strict approved-universe refinement — 11/09/2026
+
+- Existing market-route ingestion now applies the same curated allowlist to
+  Crypto, Stocks, ETFs, Forex and Commodities.
+- Typed search no longer exposes arbitrary provider-supported symbols such as
+  `ADBE`, `ZZZZ` or obscure crypto products.
+- Reference repositories remain metadata-only and can enrich an approved routed
+  symbol, but cannot expand the selector universe by themselves.
+- Route refresh now removes stale reference mappings even when a reference
+  provider refresh fails, so previous bulk snapshots cannot retain orphan rows.

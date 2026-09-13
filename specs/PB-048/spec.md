@@ -25,8 +25,9 @@ normalized PostgreSQL catalog instead of making the browser fan out to providers
 - AC7: The frontend uses the unified endpoint with debounce and truthful loading/error/empty states.
 - AC8: Existing provider catalog/history/realtime endpoints remain compatible.
 - AC9: Empty-query browsing is curated and balanced; reference-only and low-value
-  bulk rows never crowd the chart selector. Typed search may expose non-featured
-  symbols only when a compatible historical/realtime route exists.
+  bulk rows never crowd the chart selector. Typed search is constrained to the
+  same approved product universe; provider/repository catalogs only enrich those
+  symbols and never expand the selector implicitly.
 
 ## Security
 
