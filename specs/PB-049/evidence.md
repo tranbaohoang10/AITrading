@@ -179,3 +179,66 @@ application credentials and confirm the app is enabled for Open API in the
 cTrader portal, then rerun the bounded app-auth, account, catalog, history and
 realtime matrix. Credentials must continue to be supplied only through secure
 Windows User Environment storage.
+
+## cTrader verification rerun — 13/09/2026 (Sunday)
+
+### Credential loading
+
+Each real cTrader invocation read all six names from Windows User Environment
+with `[Environment]::GetEnvironmentVariable(name, "User")` and immediately set
+the corresponding process variable with `Set-Item Env:name`. Only masked lengths
+were emitted: client ID 56, client secret 50, access token 43, refresh token 43,
+account ID 8, environment `demo`. No credential value was printed, logged or
+persisted.
+
+### Auth and catalog
+
+| Category | Test type | Result | Reason |
+| --- | --- | --- | --- |
+| TCP/TLS `demo.ctraderapi.com:5035` | Real | PASS | TLS connection established |
+| Protobuf framing | Real | PASS | cTrader response decoded successfully |
+| Application Auth | Real | PASS | `ProtoOAApplicationAuthRes` received |
+| Account Auth | Real | PASS | `ProtoOAAccountAuthRes` received for configured account |
+| Forex catalog | Real | PASS | EURUSD `1`, GBPUSD `2`, USDJPY `4`, AUDUSD `5`, USDCAD `8`, USDCHF `6`, NZDUSD `12` |
+| Metals catalog | Real | PARTIAL | XAUUSD `41`, XAGUSD `42`, XPDUSD `22346` enabled; XPTUSD `22348` present but `ENABLED=FALSE`, therefore unavailable to production catalog |
+
+### Historical M1
+
+The production test used real six-hour UTC windows on representative trading
+dates: 2020-09-14, 2022-09-12, 2024-09-09, 2025-09-08 and Friday 2026-09-11.
+Returned bars passed timestamp/order and OHLC validation after filtering provider
+bars outside the requested window. Forex symbols returned 359–360 rows per
+verified window; XAU/XAG returned real rows in all tested windows; XPDUSD had
+real rows in the later tested windows but `2020` was recorded as
+`NOT_AVAILABLE_WINDOW`. No candle was invented or filled.
+
+The parser fix is limited to honoring the requested `[from,to)` window when the
+provider returns up to `count=1000` bars, which can include older bars. Regression
+coverage is in `CtraderProtoCodecTests.filtersProviderBarsOutsideRequestedWindow`.
+
+### Realtime and downstream contracts
+
+| Category | Test type | Result | Reason |
+| --- | --- | --- | --- |
+| Realtime connection | Real | CONNECTED | Real EURUSD stream authenticated |
+| Realtime subscription | Real | SUBSCRIBED | Provider accepted spot subscription |
+| Live quote | Real | NOT_VERIFIED_MARKET_CLOSED | Sunday 35-second bounded observation had no new tick |
+| Seven-timeframe aggregator | Unit | PASS | M1/M5/M15/M30/H1/H4/D1 update semantics and bucket rules pass |
+| Redis integration | Real local integration | PASS | Redis QA WSL instance on `127.0.0.1:6387`; read/write/provenance/degradation tests pass |
+| cTrader → Redis pipeline | Real cTrader | NOT_VERIFIED_MARKET_CLOSED | No real Sunday quote to drive the pipeline |
+| SSE contract | Integration/unit | PASS | Existing stream publication/subscriber/disconnect tests pass |
+| cTrader → SSE pipeline | Real cTrader | NOT_VERIFIED_MARKET_CLOSED | No real Sunday quote to drive the pipeline |
+| PostgreSQL persistence | Real local integration | PASS | Historical M1 upsert/read/aggregation/provenance tests pass |
+
+### Regression and final status
+
+Deterministic routing and provider isolation remain PASS: Alpaca stock/ETF,
+Binance crypto, cTrader-primary supported Forex with Capital/Dukascopy fallback,
+and Capital-primary metals with catalog-gated cTrader fallback. Backend full
+harness, frontend tests/lint/build, Python tests and security checks remain
+green. The token lifecycle remains `TOKEN_LIFECYCLE=PASS` with
+`PERSISTENCE_AFTER_RESTART=NOT_IMPLEMENTED`.
+
+Because this verification occurred on Sunday, live cTrader quotes and the
+real-quote-driven Redis/SSE/finalized-M1 path are not claimed PASS. Final status:
+`IMPLEMENTATION_COMPLETE_INTEGRATION_PARTIAL`.

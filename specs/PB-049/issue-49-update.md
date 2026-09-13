@@ -18,3 +18,14 @@ Chi tiết đã append vào specs/PB-049/evidence.md và
 docs/market-data/provider-routing.md. Next external action: verify/regenerate
 demo application credentials and confirm Open API app entitlement in cTrader
 portal, then rerun app/account/catalog/history/realtime matrix.
+
+## Kết quả rerun ngày 13/09/2026 (Chủ nhật)
+
+- Credentials mới đã được đọc trực tiếp từ Windows User Environment trong cùng invocation; chỉ masked lengths được in.
+- Application Auth: PASS. Account Auth: PASS.
+- Catalog thật: EURUSD `1`, GBPUSD `2`, USDJPY `4`, AUDUSD `5`, USDCAD `8`, USDCHF `6`, NZDUSD `12`; XAUUSD `41`, XAGUSD `42`, XPDUSD `22346` enabled; XPTUSD `22348` present nhưng `ENABLED=FALSE` nên không available trong production catalog.
+- Historical M1 thật: PASS cho các cửa sổ verified năm 2020/2022/2024/2025 và thứ Sáu 11/09/2026; XPDUSD năm 2020 ghi `NOT_AVAILABLE_WINDOW`, không fake candle.
+- Realtime thật: `CONNECTED` + `SUBSCRIBED`; không có tick mới trong 35 giây Chủ nhật nên `NOT_VERIFIED_MARKET_CLOSED`, không phải FAIL.
+- Aggregator 7 timeframe, Redis, SSE, PostgreSQL và regression tests PASS ở các contract/integration path đã chạy; cTrader quote-driven Redis/SSE/finalized-M1 path không claim PASS vì market đóng.
+- Parser fix: lọc các trendbar provider trả ngoài cửa sổ `[from,to)` khi response `count=1000` chứa thêm bar cũ; thêm regression test.
+- Final status: `IMPLEMENTATION_COMPLETE_INTEGRATION_PARTIAL`; Issue remains OPEN.

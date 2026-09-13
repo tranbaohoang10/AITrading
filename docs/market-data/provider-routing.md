@@ -65,3 +65,11 @@ The cTrader token lifecycle remains implemented in-memory with atomic access /
 refresh-token rotation and secret-safe failure handling. Persistent secure
 storage is not implemented, so rotated credentials do not survive an application
 restart automatically.
+
+### Sunday realtime semantics — 13/09/2026
+
+The real demo stream for `EURUSD` completed TCP/TLS, application auth, account
+auth and spot subscription. The bounded 35-second observation on Sunday,
+13/09/2026, received no new quote, so the truthful state is
+`CONNECTED` + `SUBSCRIBED` + `NOT_VERIFIED_MARKET_CLOSED`; it is not a connect or
+subscription failure and no historical or synthetic tick was used.

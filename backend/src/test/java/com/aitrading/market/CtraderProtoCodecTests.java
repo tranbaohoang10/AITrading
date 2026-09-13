@@ -19,6 +19,11 @@ class CtraderProtoCodecTests {
         long minute=Instant.parse("2026-09-09T12:00:00Z").getEpochSecond()/60;byte[] bar=CtraderProtoCodec.message(CtraderProtoCodec.field(3,9),CtraderProtoCodec.field(5,100000),CtraderProtoCodec.field(6,10),CtraderProtoCodec.field(7,20),CtraderProtoCodec.field(8,30),CtraderProtoCodec.field(9,minute));
         var mapped=CtraderProtoCodec.trendbars(CtraderProtoCodec.message(CtraderProtoCodec.field(5,bar)),Instant.parse("2026-09-09T12:00:00Z"),Instant.parse("2026-09-09T12:01:00Z")).getFirst();assertEquals("1.0001",mapped.open().toPlainString());assertEquals("1.0003",mapped.high().toPlainString());
     }
+    @Test void filtersProviderBarsOutsideRequestedWindow(){
+        byte[] earlier=CtraderProtoCodec.message(CtraderProtoCodec.field(3,9),CtraderProtoCodec.field(5,100000),CtraderProtoCodec.field(6,10),CtraderProtoCodec.field(7,20),CtraderProtoCodec.field(8,30),CtraderProtoCodec.field(9,Instant.parse("2026-09-09T11:59:00Z").getEpochSecond()/60));
+        byte[] requested=CtraderProtoCodec.message(CtraderProtoCodec.field(3,9),CtraderProtoCodec.field(5,100000),CtraderProtoCodec.field(6,10),CtraderProtoCodec.field(7,20),CtraderProtoCodec.field(8,30),CtraderProtoCodec.field(9,Instant.parse("2026-09-09T12:00:00Z").getEpochSecond()/60));
+        var mapped=CtraderProtoCodec.trendbars(CtraderProtoCodec.message(CtraderProtoCodec.field(5,earlier),CtraderProtoCodec.field(5,requested)),Instant.parse("2026-09-09T12:00:00Z"),Instant.parse("2026-09-09T12:01:00Z"));assertEquals(1,mapped.size());assertEquals(Instant.parse("2026-09-09T12:00:00Z"),mapped.getFirst().time());
+    }
     @Test void rejectsTruncatedOrInvalidProviderFrames(){assertThrows(CtraderDataFailure.class,()->CtraderProtoCodec.envelope(new byte[]{10,5,1}));assertThrows(CtraderDataFailure.class,()->CtraderProtoCodec.spot(CtraderProtoCodec.message(CtraderProtoCodec.field(3,42)),42,Instant.now()));}
     @Test void classifiesOnlySupportedForexAndCommoditySymbols(){assertEquals("FOREX",CtraderMarketDataClient.assetClass("EURUSD"));assertEquals("COMMODITY",CtraderMarketDataClient.assetClass("XAUUSD"));assertEquals("COMMODITY",CtraderMarketDataClient.assetClass("USOIL"));assertEquals("",CtraderMarketDataClient.assetClass("BTCUSD"));assertEquals("",CtraderMarketDataClient.assetClass("US500"));}
 }
