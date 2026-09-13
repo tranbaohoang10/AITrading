@@ -41,6 +41,27 @@ finalized M1 candles.
 
 Local routing, aggregation and provider-isolation tests pass. The real cTrader
 smoke test reached the demo Open API but was rejected with
-`CH_CLIENT_AUTH_FAILURE` during application authentication on 13/09/2026. No
-real cTrader catalog, history or realtime capability is claimed until the
-configured app/account entitlement is corrected and the smoke matrix passes.
+`CH_CLIENT_AUTH_FAILURE` during application authentication on 13/09/2026. A
+bounded cross-check using Spotware's `ctrader-open-api` 0.9.2 SDK, with the same
+official demo endpoint and only the application-auth request, returned the same
+error. TCP/TLS and protobuf framing therefore pass; the failure is classified as
+an external cTrader application-credential rejection, not an access-token,
+refresh-token or account-catalog failure. The exact portal-side reason is not
+visible to this application. No real cTrader catalog, history or realtime
+capability is claimed until the app credentials/entitlement are corrected and
+the smoke matrix passes.
+
+### Sanitized diagnostic stages
+
+| Stage | Result | Evidence |
+| --- | --- | --- |
+| TCP/TLS | PASS | `demo.ctraderapi.com:5035` reachable; TLS established |
+| Protobuf framing | PASS | Production client and official SDK both received a decoded `ProtoOAErrorRes` |
+| Application auth | FAIL | `CH_CLIENT_AUTH_FAILURE` from both implementations |
+| Account auth | NOT RUN | Correctly blocked until application auth passes |
+| Catalog/history/realtime | NOT RUN | Correctly blocked until account auth passes |
+
+The cTrader token lifecycle remains implemented in-memory with atomic access /
+refresh-token rotation and secret-safe failure handling. Persistent secure
+storage is not implemented, so rotated credentials do not survive an application
+restart automatically.

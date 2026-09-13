@@ -114,3 +114,68 @@ Provider test XML is generated under
 `HISTORICAL_2017_MATRIX`, `BACKTEST_MATRIX`, `BACKTEST_DETERMINISM` and
 `REALTIME_MATRIX` evidence lines. Real-provider tests are intentionally separate
 from the ordinary credential-stripped regression gate.
+
+## Provider routing + cTrader verification — 13/09/2026
+
+Overall result remains `IMPLEMENTATION_COMPLETE_INTEGRATION_PARTIAL`.
+
+### cTrader application-auth diagnosis
+
+The required loader read the six `CTRADER_*` values from Windows User
+Environment inside the same PowerShell invocation as each real cTrader command;
+no credential value was printed or persisted. The configured environment was
+`demo`.
+
+| Stage | Result | Sanitized evidence |
+| --- | --- | --- |
+| TCP/TLS | PASS | `demo.ctraderapi.com:5035` reachable and TLS handshake completed |
+| Production protobuf framing | PASS to decoded response | 4-byte length framing produced a valid decoded response |
+| Production application auth | FAIL | `CH_CLIENT_AUTH_FAILURE` |
+| Official-compatible SDK application auth | FAIL | Spotware `ctrader-open-api` 0.9.2, same demo endpoint, same `CH_CLIENT_AUTH_FAILURE` |
+| Account auth | NOT RUN | Application auth is a prerequisite |
+| Account catalog | NOT RUN | Application auth is a prerequisite |
+| Historical M1 | NOT RUN | Catalog/account auth is a prerequisite |
+| Realtime quote | NOT RUN | Account auth is a prerequisite |
+
+Root-cause classification: `CREDENTIAL_REJECTED` at the cTrader application-auth
+boundary. The independent official-compatible result rules out the current
+production codec, TLS endpoint selection and protobuf framing as the cause. The
+precise portal-side reason is not exposed by the returned error and cannot be
+inferred without changing credentials in the cTrader portal. Access token,
+refresh token and account ID were not blamed or rotated for this application-auth
+failure.
+
+### Required real cTrader capability matrix
+
+Because application auth failed, no account-specific symbol, history or realtime
+result is claimed:
+
+| Capability | Result | Reason |
+| --- | --- | --- |
+| Required Forex catalog | NOT VERIFIED | Account auth blocked by application auth |
+| Real historical M1 for 2020/2022/2024/2025/current windows | NOT VERIFIED | Catalog/account auth blocked |
+| Real realtime quote | NOT VERIFIED | Account auth blocked; no market-open claim |
+| Quote → aggregator → Redis → SSE → finalized PostgreSQL M1 | NOT VERIFIED for cTrader | No real cTrader quote was available; synthetic/provider-local pipeline tests remain separate |
+
+### Regression and lifecycle status
+
+The deterministic routing policy remains: Alpaca for stock/ETF, Binance for
+crypto, cTrader primary for supported Forex with Capital then Dukascopy fallback,
+and Capital primary for metals with catalog-gated cTrader fallback. Existing
+local routing, aggregation, Redis/SSE, PostgreSQL finalization, Alpaca, Binance
+and Capital regression evidence remains unchanged from the preceding sections.
+
+The token manager refreshes before the configured/estimated 30-day access-token
+expiry and after an auth-expired response, validates that both rotated tokens
+are present, and swaps the immutable pair atomically. It never logs either token
+and never persists refreshed credentials. Persistent secure credential storage is
+not implemented; after restart the process reloads the operator-supplied pair,
+so automatic refresh across restart is explicitly **not claimed**.
+
+### Limitation / next external action
+
+Issue #49 stays open. An operator must verify or regenerate the cTrader demo
+application credentials and confirm the app is enabled for Open API in the
+cTrader portal, then rerun the bounded app-auth, account, catalog, history and
+realtime matrix. Credentials must continue to be supplied only through secure
+Windows User Environment storage.
