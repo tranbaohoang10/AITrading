@@ -43,6 +43,8 @@ public final class MarketSymbolRegistry {
 
     public Route resolve(String value) {
         if (value == null || value.length() > 80) throw new IllegalArgumentException("Invalid market symbol");
+        if (value.regionMatches(true, 0, "BINANCE:", 0, 8))
+            return resolveProviderSymbol("BINANCE", value.substring(8));
         var canonical = canonical(value);
         var seed = select(canonical).orElseThrow(() -> new IllegalArgumentException("Unsupported market symbol"));
         return persisted(seed);

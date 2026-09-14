@@ -1,14 +1,31 @@
 package com.aitrading.market;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import java.io.*;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 import java.util.zip.*;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 class ProviderHistoryTests {
+    @Test void resolvesAnyCatalogedBinanceSymbolForLocalHistoryAndRealtime() {
+        var provider=mock(MarketDataProvider.class);
+        when(provider.capabilities()).thenReturn(new MarketDataProvider.Capabilities("BINANCE","Binance",List.of("CRYPTO"),List.of("1m"),true,true,false,false,false,false,true,true,false,false,true,"ACCEPTED","CATALOG",1000,"UTC",true,List.of()));
+        when(provider.instrument("SOLUSDT")).thenReturn(new MarketDataProvider.Instrument("BINANCE:SOLUSDT","SOL/USDT","SOLUSDT","BINANCE","CRYPTO","SOL","USDT","Binance","USDT","SPOT","UTC",new BigDecimal("0.01"),null,null,null,null,"BASE_QUANTITY",null,null,null,"QUANTITY_ONLY",List.of("HISTORICAL","REALTIME"),List.of("1m"),"UNKNOWN","SOL/USDT"));
+        var jdbc=mock(JdbcTemplate.class);var instrumentId=UUID.randomUUID();
+        when(jdbc.queryForList(anyString(),eq(UUID.class),eq("BINANCE"),eq("SOLUSDT"))).thenReturn(List.of(instrumentId));
+        var registry=new MarketSymbolRegistry(jdbc,List.of(provider),mock(CtraderMarketDataClient.class));
+        var route=registry.resolve("BINANCE:SOLUSDT");
+        assertEquals(instrumentId,route.instrumentId());assertEquals("BINANCE",route.provider());assertEquals("SOLUSDT",route.providerSymbol());
+    }
+
     @Test void frankfurterIsDailyReferenceAndCannotAdvertiseTradingReplay() {
         var provider=new FrankfurterHistoryProvider(mock(FrankfurterMarketDataClient.class));
         assertFalse(provider.capabilities().historicalReplaySupported());
