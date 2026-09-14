@@ -29,3 +29,11 @@ portal, then rerun app/account/catalog/history/realtime matrix.
 - Aggregator 7 timeframe, Redis, SSE, PostgreSQL và regression tests PASS ở các contract/integration path đã chạy; cTrader quote-driven Redis/SSE/finalized-M1 path không claim PASS vì market đóng.
 - Parser fix: lọc các trendbar provider trả ngoài cửa sổ `[from,to)` khi response `count=1000` chứa thêm bar cũ; thêm regression test.
 - Final status: `IMPLEMENTATION_COMPLETE_INTEGRATION_PARTIAL`; Issue remains OPEN.
+
+## Kết quả rerun ngày 14/09/2026 (thứ Hai)
+
+- Full real cTrader integration `2/2 PASS`: Application/Account Auth, catalog, historical M1 và stream EURUSD đều PASS; stream nhận 43 quote events thật trong 35 giây.
+- Rerun đầu tiên phát hiện spot event thật có `bid`/`ask` partial và timestamp lệch tương lai; đã sửa decoder stateful giữ cặp bid/ask cuối, dùng receive-time khi timestamp vượt clock cục bộ, không làm chết stream.
+- Unit codec/token/router/aggregator/stream tests và PostgreSQL persistence integration PASS.
+- Redis-backed cTrader → Redis/SSE chưa chạy vì Redis disposable/Docker không khả dụng trong môi trường; không dùng quote giả để claim PASS.
+- Final status: `IMPLEMENTATION_COMPLETE_INTEGRATION_PARTIAL`; Issue remains OPEN.

@@ -57,6 +57,7 @@ class RealCtraderCapabilityIntegrationTests {
         try (var session = client.openStream(item.id())) {
             System.out.println("CTRADER_REALTIME|Connection=CONNECTED|ProviderSymbol=" + item.name());
             System.out.println("CTRADER_REALTIME|Subscription=SUBSCRIBED");
+            var spotState = new CtraderProtoCodec.SpotState(item.id());
             var events = 0;
             var deadline = Instant.now().plus(Duration.ofSeconds(35));
             while (Instant.now().isBefore(deadline)) {
@@ -65,7 +66,7 @@ class RealCtraderCapabilityIntegrationTests {
                     if (message.type() == CtraderProtoCodec.HEARTBEAT) {
                         session.send(CtraderProtoCodec.heartbeat());
                     } else if (message.type() == CtraderProtoCodec.SPOT_EVENT
-                            && CtraderProtoCodec.spot(message.payload(), item.id(), Instant.now()).isPresent()) {
+                            && spotState.accept(message.payload(), Instant.now()).isPresent()) {
                         events++;
                     }
                 } catch (SocketTimeoutException closedMarketWindow) {

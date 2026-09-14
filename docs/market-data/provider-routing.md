@@ -73,3 +73,8 @@ auth and spot subscription. The bounded 35-second observation on Sunday,
 13/09/2026, received no new quote, so the truthful state is
 `CONNECTED` + `SUBSCRIBED` + `NOT_VERIFIED_MARKET_CLOSED`; it is not a connect or
 subscription failure and no historical or synthetic tick was used.
+
+On 14/09/2026, an open-market real stream produced `CONNECTED` + `SUBSCRIBED`+
+`LiveQuote=PASS` with 43 EURUSD events in the bounded observation. cTrader spot
+events may carry only one of the optional bid/ask fields; the decoder therefore
+retains the latest pair and emits a midpoint only after both sides are known.

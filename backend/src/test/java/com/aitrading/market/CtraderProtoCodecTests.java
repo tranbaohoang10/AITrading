@@ -11,6 +11,18 @@ class CtraderProtoCodecTests {
         long at=Instant.parse("2026-09-09T12:00:00Z").toEpochMilli();byte[] payload=CtraderProtoCodec.message(CtraderProtoCodec.field(2,7),CtraderProtoCodec.field(3,42),CtraderProtoCodec.field(4,110000),CtraderProtoCodec.field(5,110020),CtraderProtoCodec.field(8,at));
         var spot=CtraderProtoCodec.spot(payload,42,Instant.parse("2026-09-09T12:00:01Z")).orElseThrow();assertEquals("1.1001",spot.price().toPlainString());assertTrue(CtraderProtoCodec.spot(payload,43,Instant.parse("2026-09-09T12:00:01Z")).isEmpty());
     }
+    @Test void mergesPartialSpotUpdatesWithoutInventingAQuote(){
+        long at=Instant.parse("2026-09-09T12:00:00Z").toEpochMilli();var state=new CtraderProtoCodec.SpotState(42);
+        byte[] bidOnly=CtraderProtoCodec.message(CtraderProtoCodec.field(3,42),CtraderProtoCodec.field(4,110000),CtraderProtoCodec.field(8,at));
+        byte[] askOnly=CtraderProtoCodec.message(CtraderProtoCodec.field(3,42),CtraderProtoCodec.field(5,110020),CtraderProtoCodec.field(8,at+1000));
+        assertTrue(state.accept(bidOnly,Instant.parse("2026-09-09T12:00:01Z")).isEmpty());
+        assertEquals("1.1001",state.accept(askOnly,Instant.parse("2026-09-09T12:00:02Z")).orElseThrow().price().toPlainString());
+    }
+    @Test void usesReceiveTimeWhenProviderTimestampIsAheadOfLocalClock(){
+        Instant received=Instant.parse("2026-09-09T12:00:00Z");
+        byte[] payload=CtraderProtoCodec.message(CtraderProtoCodec.field(3,42),CtraderProtoCodec.field(4,110000),CtraderProtoCodec.field(5,110020),CtraderProtoCodec.field(8,received.plusSeconds(30).toEpochMilli()));
+        assertEquals(received,CtraderProtoCodec.spot(payload,42,received).orElseThrow().time());
+    }
     @Test void mapsLightSymbolsDetailsAndDeltaTrendbars(){
         byte[] light=CtraderProtoCodec.message(CtraderProtoCodec.field(1,42),CtraderProtoCodec.field(2,"EUR/USD"),CtraderProtoCodec.field(3,1),CtraderProtoCodec.field(7,"Euro vs Dollar"));
         byte[] list=CtraderProtoCodec.message(CtraderProtoCodec.field(2,7),CtraderProtoCodec.field(3,light));assertEquals(List.of(42L),CtraderProtoCodec.lightSymbolIds(list));
@@ -24,6 +36,6 @@ class CtraderProtoCodecTests {
         byte[] requested=CtraderProtoCodec.message(CtraderProtoCodec.field(3,9),CtraderProtoCodec.field(5,100000),CtraderProtoCodec.field(6,10),CtraderProtoCodec.field(7,20),CtraderProtoCodec.field(8,30),CtraderProtoCodec.field(9,Instant.parse("2026-09-09T12:00:00Z").getEpochSecond()/60));
         var mapped=CtraderProtoCodec.trendbars(CtraderProtoCodec.message(CtraderProtoCodec.field(5,earlier),CtraderProtoCodec.field(5,requested)),Instant.parse("2026-09-09T12:00:00Z"),Instant.parse("2026-09-09T12:01:00Z"));assertEquals(1,mapped.size());assertEquals(Instant.parse("2026-09-09T12:00:00Z"),mapped.getFirst().time());
     }
-    @Test void rejectsTruncatedOrInvalidProviderFrames(){assertThrows(CtraderDataFailure.class,()->CtraderProtoCodec.envelope(new byte[]{10,5,1}));assertThrows(CtraderDataFailure.class,()->CtraderProtoCodec.spot(CtraderProtoCodec.message(CtraderProtoCodec.field(3,42)),42,Instant.now()));}
+    @Test void rejectsTruncatedOrInvalidProviderFrames(){assertThrows(CtraderDataFailure.class,()->CtraderProtoCodec.envelope(new byte[]{10,5,1}));assertTrue(CtraderProtoCodec.spot(CtraderProtoCodec.message(CtraderProtoCodec.field(3,42)),42,Instant.now()).isEmpty());}
     @Test void classifiesOnlySupportedForexAndCommoditySymbols(){assertEquals("FOREX",CtraderMarketDataClient.assetClass("EURUSD"));assertEquals("COMMODITY",CtraderMarketDataClient.assetClass("XAUUSD"));assertEquals("COMMODITY",CtraderMarketDataClient.assetClass("USOIL"));assertEquals("",CtraderMarketDataClient.assetClass("BTCUSD"));assertEquals("",CtraderMarketDataClient.assetClass("US500"));}
 }

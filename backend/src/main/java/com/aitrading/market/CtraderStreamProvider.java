@@ -92,6 +92,7 @@ public class CtraderStreamProvider implements MarketStreamProvider {
                         status = lastEvent == null ? "CONNECTING" : "RECONNECTING";
                         publish("status", Map.of("status", status, "provider", "CTRADER"));
                         session = client.openStream(Long.parseLong(route.providerSymbol()));
+                        var spotState = new CtraderProtoCodec.SpotState(Long.parseLong(route.providerSymbol()));
                         while (!stopped) {
                             var message = session.read();
                             if (message.type() == CtraderProtoCodec.HEARTBEAT) {
@@ -99,7 +100,7 @@ public class CtraderStreamProvider implements MarketStreamProvider {
                                 continue;
                             }
                             if (message.type() != CtraderProtoCodec.SPOT_EVENT) continue;
-                            var spot = CtraderProtoCodec.spot(message.payload(), Long.parseLong(route.providerSymbol()), Instant.now());
+                            var spot = spotState.accept(message.payload(), Instant.now());
                             if (spot.isEmpty()) continue;
                             var value = spot.get();
                             var eventId = key + ":" + value.time().toEpochMilli() + ":" + value.price().toPlainString();

@@ -242,3 +242,27 @@ green. The token lifecycle remains `TOKEN_LIFECYCLE=PASS` with
 Because this verification occurred on Sunday, live cTrader quotes and the
 real-quote-driven Redis/SSE/finalized-M1 path are not claimed PASS. Final status:
 `IMPLEMENTATION_COMPLETE_INTEGRATION_PARTIAL`.
+
+## cTrader verification rerun — 14/09/2026 (Monday)
+
+The real command again read all six cTrader names directly from Windows User
+Environment in the same PowerShell invocation and loaded them with `Set-Item
+Env:name`; no credential value was printed or persisted. The cTrader integration
+test completed `2/2 PASS`: application/account auth, catalog, historical M1 and
+the bounded EURUSD stream all passed. The stream produced `43` real quote events
+in 35 seconds with `CONNECTED`, `SUBSCRIBED` and `LiveQuote=PASS`.
+
+The first open-market rerun exposed a real provider behavior: `bid` and `ask`
+are optional and may arrive as partial updates, and one provider timestamp was
+ahead of the local clock. `CtraderProtoCodec.SpotState` now retains the latest
+bid/ask pair, emits only after both sides exist, and uses receive-time for a
+future provider timestamp instead of terminating the stream. Unit regression
+coverage passes for partial updates and clock skew; production
+`CtraderStreamProvider` uses the same stateful decoder.
+
+The cTrader-to-Redis/SSE live-state path was not run in this rerun because
+neither the disposable Redis listener on `127.0.0.1:6387` nor Docker Redis was
+available in the environment. PostgreSQL historical persistence passed
+separately; no synthetic quote was used to claim Redis/SSE PASS. Final status
+remains `IMPLEMENTATION_COMPLETE_INTEGRATION_PARTIAL` until that local
+Redis-backed downstream path is exercised with a real cTrader quote.

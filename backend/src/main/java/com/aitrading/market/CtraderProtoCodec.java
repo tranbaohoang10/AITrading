@@ -12,6 +12,21 @@ final class CtraderProtoCodec {
     record Symbol(long id,String name,String description,int digits,String timezone){}
     record Spot(long symbolId,Instant time,BigDecimal price){}
     record Trendbar(Instant time,BigDecimal open,BigDecimal high,BigDecimal low,BigDecimal close,BigDecimal volume){}
+    static final class SpotState {
+        private final long expected;
+        private long bid;
+        private long ask;
+
+        SpotState(long expected) { this.expected = expected; }
+
+        Optional<Spot> accept(byte[] payload,Instant now) {
+            var item=parse(payload);long id=item.number(3);if(id!=expected)return Optional.empty();
+            long nextBid=item.number(4),nextAsk=item.number(5),timestamp=item.number(8);
+            if(nextBid>0)bid=nextBid;if(nextAsk>0)ask=nextAsk;if(bid<=0||ask<=0)return Optional.empty();
+            Instant time=timestamp>0?Instant.ofEpochMilli(timestamp):now;if(time.isAfter(now.plusSeconds(5)))time=now;
+            return Optional.of(new Spot(id,time,price(bid).add(price(ask)).divide(BigDecimal.valueOf(2),12,RoundingMode.HALF_UP).stripTrailingZeros()));
+        }
+    }
     static byte[] applicationAuth(String id,String secret){return envelope(APP_AUTH_REQ,message(field(1,APP_AUTH_REQ),field(2,id),field(3,secret)));}
     static byte[] accountAuth(long account,String token){return envelope(ACCOUNT_AUTH_REQ,message(field(1,ACCOUNT_AUTH_REQ),field(2,account),field(3,token)));}
     static byte[] symbols(long account){return envelope(SYMBOLS_REQ,message(field(1,SYMBOLS_REQ),field(2,account),field(3,0)));}
@@ -24,7 +39,7 @@ final class CtraderProtoCodec {
         var result=new ArrayList<Symbol>();for(byte[] raw:parse(detailsPayload).allBytes(3)){var item=parse(raw);long id=item.number(1);var name=names.get(id);if(name!=null&&!name[0].isBlank()){int digits=Math.toIntExact(item.number(2));if(digits>=0&&digits<=12)result.add(new Symbol(id,name[0],name[1],digits,item.textOr(26,"UTC")));}}return result;}
     static List<Long> lightSymbolIds(byte[] payload){var result=new ArrayList<Long>();for(byte[] raw:parse(payload).allBytes(3)){var item=parse(raw);if(item.number(3)!=0&&item.number(1)>0)result.add(item.number(1));}if(result.size()>20000||result.stream().distinct().count()!=result.size())throw invalid();return result;}
     static List<Trendbar> trendbars(byte[] payload,Instant from,Instant to){var result=new ArrayList<Trendbar>();Instant previous=null;for(byte[] raw:parse(payload).allBytes(5)){var item=parse(raw);Instant time=Instant.ofEpochSecond(item.number(9)*60);if(time.isBefore(from)||!time.isBefore(to))continue;long low=item.number(5),open=low+item.number(6),close=low+item.number(7),high=low+item.number(8);if(previous!=null&&!time.isAfter(previous)||low<=0||open<=0||close<=0||high<Math.max(open,close))throw invalid();result.add(new Trendbar(time,price(open),price(high),price(low),price(close),BigDecimal.valueOf(item.number(3))));if(result.size()>1000)throw invalid();previous=time;}return result;}
-    static Optional<Spot> spot(byte[] payload,long expected,Instant now){var item=parse(payload);long id=item.number(3);if(id!=expected)return Optional.empty();long bid=item.number(4),ask=item.number(5),timestamp=item.number(8);if(bid<=0||ask<=0||timestamp<=0)throw invalid();Instant time=Instant.ofEpochMilli(timestamp);if(time.isAfter(now.plusSeconds(5)))throw invalid();return Optional.of(new Spot(id,time,price(bid).add(price(ask)).divide(BigDecimal.valueOf(2),12,RoundingMode.HALF_UP).stripTrailingZeros()));}
+    static Optional<Spot> spot(byte[] payload,long expected,Instant now){return new SpotState(expected).accept(payload,now);}
     static String error(byte[] payload){var item=parse(payload);return item.textOr(3,item.textOr(2,"CTRADER_PROVIDER_ERROR"));}
     private static BigDecimal price(long value){return BigDecimal.valueOf(value,5).stripTrailingZeros();}
     private static byte[] envelope(int type,byte[] payload){return message(field(1,type),field(2,payload));}
