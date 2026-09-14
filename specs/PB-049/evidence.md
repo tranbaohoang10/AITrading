@@ -266,3 +266,33 @@ available in the environment. PostgreSQL historical persistence passed
 separately; no synthetic quote was used to claim Redis/SSE PASS. Final status
 remains `IMPLEMENTATION_COMPLETE_INTEGRATION_PARTIAL` until that local
 Redis-backed downstream path is exercised with a real cTrader quote.
+
+## Redis-backed downstream rerun — 14/09/2026
+
+The disposable Redis listener was available at `127.0.0.1:6387`. The following
+checks completed without printing or persisting any credential value:
+
+- `MarketRedisIntegrationTests`: PASS for real Redis hit/miss, malformed-value
+  fallback, provider isolation, TTL, shared lease ownership and degradation.
+- `MarketLiveStateRedisIntegrationTests`: PASS for latest/current/status writes,
+  including cTrader provider ID `1` as a valid live-state key.
+- `RealBinanceRealtimeIntegrationTests`: PASS with a real trade updating Redis,
+  publishing SSE and persisting a finalized M1 candle.
+- `RealCtraderCapabilityIntegrationTests`: `2/2 PASS` with the six cTrader names
+  loaded from Windows User Environment in the same PowerShell invocation; the
+  bounded EURUSD stream received 38 real quote events.
+
+A disposable authenticated Spring API on port `8082` then verified the complete
+cTrader downstream boundary: SSE returned HTTP `200` and a real candle event;
+`/api/market/local/live-state?symbol=EUR/USD` returned HTTP `200` with
+`redisHealth=HEALTHY`, live status `LIVE` and a latest state present. The
+one-character key rejection was the root cause of the previous `400` response;
+the validator now accepts one-to-64-character alphanumeric provider keys.
+
+The real provider matrix also completed `2/2` with all 19 required symbols
+`READY`: cTrader Forex, Capital.com metals, Binance crypto and Alpaca
+stocks/ETFs. XPTUSD remains unavailable in the cTrader account catalog but is
+served by the Capital.com route. Final status remains
+`IMPLEMENTATION_COMPLETE_INTEGRATION_PARTIAL` because secure credential
+persistence across application restart is not implemented and live availability
+still depends on each provider's market/account session.

@@ -37,3 +37,20 @@ portal, then rerun app/account/catalog/history/realtime matrix.
 - Unit codec/token/router/aggregator/stream tests và PostgreSQL persistence integration PASS.
 - Redis-backed cTrader → Redis/SSE chưa chạy vì Redis disposable/Docker không khả dụng trong môi trường; không dùng quote giả để claim PASS.
 - Final status: `IMPLEMENTATION_COMPLETE_INTEGRATION_PARTIAL`; Issue remains OPEN.
+
+## Kết quả xác minh bổ sung ngày 14/09/2026
+
+- Redis QA trên `127.0.0.1:6387` đã hoạt động; các test hit/miss, TTL, lease,
+  degradation và live-state đều PASS.
+- Root cause của `live-state=400` là cTrader provider ID một chữ số như `1` bị
+  validator Redis key từ chối. Đã sửa validator và thêm regression; không còn
+  bỏ qua live-state khi cTrader stream dùng ID này.
+- Real Binance realtime Redis/SSE/finalized-M1 test PASS.
+- Real cTrader capability `2/2 PASS`; disposable authenticated API nhận candle
+  cTrader qua SSE và live-state trả `200`, `LIVE`, Redis `HEALTHY`.
+- Real provider matrix `2/2 PASS`, đủ 19 symbol yêu cầu: Forex cTrader, metals
+  Capital.com, crypto Binance và stocks/ETF Alpaca. XPTUSD không enabled trong
+  cTrader catalog nhưng route Capital.com vẫn `READY`.
+- Final status tiếp tục `IMPLEMENTATION_COMPLETE_INTEGRATION_PARTIAL`; Issue
+  remains OPEN. Refreshed credentials vẫn chỉ sống trong process và chưa claim
+  automatic refresh survives restart vì secure persistence chưa implement.

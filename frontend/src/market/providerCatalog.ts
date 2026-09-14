@@ -46,10 +46,10 @@ export function catalogAccess(fetcher: typeof fetch, cacheScope?: string) {
       const raw = await json('/capabilities', signal) as { items: Array<CatalogProvider & { displayAllowed: boolean; licenseStatus: string }> }
       if (!Array.isArray(raw.items)) throw new Error('Invalid provider capabilities')
       remember('/capabilities', raw, signal)
-      return raw.items.filter(p => ['COINBASE', 'BINANCE', 'FRANKFURTER', 'ALPACA', 'DUKASCOPY', 'OANDA', 'CTRADER'].includes(p.providerId) && p.displayAllowed && ['ACCEPTED', 'CONDITIONAL'].includes(p.licenseStatus))
+      return raw.items.filter(p => ['COINBASE', 'BINANCE', 'FRANKFURTER', 'ALPACA', 'CAPITAL', 'DUKASCOPY', 'OANDA', 'CTRADER'].includes(p.providerId) && p.displayAllowed && ['ACCEPTED', 'CONDITIONAL'].includes(p.licenseStatus))
     },
     searchPage: async (request: CatalogRequest): Promise<CatalogPage> => {
-      if (!['COINBASE', 'BINANCE', 'FRANKFURTER', 'ALPACA', 'DUKASCOPY', 'OANDA', 'CTRADER'].includes(request.provider) || request.query.length > 64) throw new Error('Invalid catalog query')
+      if (!['COINBASE', 'BINANCE', 'FRANKFURTER', 'ALPACA', 'CAPITAL', 'DUKASCOPY', 'OANDA', 'CTRADER'].includes(request.provider) || request.query.length > 64) throw new Error('Invalid catalog query')
       const query = new URLSearchParams({ query: request.query, assetClass: request.assetClass ?? '' })
       if (request.cursor) query.set('cursor', request.cursor)
       const path = `/${request.provider}/catalog?${query}`
@@ -59,9 +59,9 @@ export function catalogAccess(fetcher: typeof fetch, cacheScope?: string) {
         if (i.provider !== request.provider || typeof i.providerSymbol !== 'string' || !/^[A-Z0-9][A-Z0-9._-]{0,31}$/.test(i.providerSymbol) || i.instrumentId !== `${request.provider}:${i.providerSymbol}` || typeof i.displaySymbol !== 'string' || i.displaySymbol.length > 80 || typeof i.exchange !== 'string' || i.exchange.length > 80) throw new Error('Invalid catalog instrument')
         const assetClass = i.assetClass === 'FX_REFERENCE' ? 'FOREX' : i.assetClass === 'US_EQUITY' ? 'STOCK' : i.assetClass
         if (!['CRYPTO', 'FOREX', 'STOCK', 'ETF', 'COMMODITY'].includes(String(assetClass)) || !Array.isArray(i.supportedModes) || !i.supportedModes.every(mode => typeof mode === 'string')) throw new Error('Unsupported catalog instrument')
-        const increment = typeof i.priceIncrement === 'number' && i.priceIncrement > 0 ? i.priceIncrement : .01
+        const increment = typeof i.priceIncrement === 'number' && i.priceIncrement > 0 ? i.priceIncrement : assetClass === 'FOREX' ? i.quote === 'JPY' ? .001 : .00001 : .01
         const modes = i.supportedModes.filter((mode): mode is Instrument['modes'][number] => ['HISTORICAL', 'REALTIME', 'DELAYED', 'SNAPSHOT'].includes(String(mode)))
-        return { instrumentId: String(i.instrumentId), symbol: request.provider === 'BINANCE' ? `BINANCE:${i.providerSymbol}` : i.providerSymbol, providerSymbol: i.providerSymbol, displaySymbol: i.displaySymbol, name: typeof i.name === 'string' && i.name.length <= 160 ? i.name : i.displaySymbol, assetClass: assetClass as Instrument['assetClass'], provider: request.provider, exchange: i.exchange, exchangeTimezone: validExchangeTimezone(i.timezone), base: typeof i.base === 'string' ? i.base : undefined, quote: typeof i.quote === 'string' ? i.quote : undefined, feed: request.provider === 'ALPACA' ? 'IEX' : request.provider === 'FRANKFURTER' ? assetClass === 'COMMODITY' ? 'DAILY · REFERENCE' : 'ECB · EOD' : request.provider === 'BINANCE' ? 'PUBLIC · HISTORICAL' : 'PUBLIC', priceIncrement: increment, pricePrecision: precisionFromIncrement(increment), modes }
+        return { instrumentId: String(i.instrumentId), symbol: request.provider === 'BINANCE' ? `BINANCE:${i.providerSymbol}` : i.providerSymbol, providerSymbol: i.providerSymbol, displaySymbol: i.displaySymbol, name: typeof i.name === 'string' && i.name.length <= 160 ? i.name : i.displaySymbol, assetClass: assetClass as Instrument['assetClass'], provider: request.provider, exchange: i.exchange, exchangeTimezone: validExchangeTimezone(i.timezone), base: typeof i.base === 'string' ? i.base : undefined, quote: typeof i.quote === 'string' ? i.quote : undefined, feed: request.provider === 'ALPACA' ? 'IEX' : request.provider === 'FRANKFURTER' ? assetClass === 'COMMODITY' ? 'DAILY · REFERENCE' : 'ECB · EOD' : request.provider === 'BINANCE' ? 'PUBLIC · REALTIME + HISTORICAL' : 'PUBLIC', priceIncrement: increment, pricePrecision: precisionFromIncrement(increment), modes }
       })
       if (new Set(items.map(i => i.instrumentId)).size !== items.length) throw new Error('Duplicate catalog identity')
       remember(path, raw, request.signal)
@@ -95,7 +95,7 @@ export function catalogAccess(fetcher: typeof fetch, cacheScope?: string) {
       return raw.map(c => validMarketCandle({ openTime: Date.parse(c.time), closeTime: Date.parse(c.time) + step - 1, open: String(c.open), high: String(c.high), low: String(c.low), close: String(c.close), volume: String(c.volume), closed: true }, request.symbol, request.interval)).filter(c => c !== null)
     },
     providerHistory: async (provider: string, request: Parameters<MarketDataProvider['getHistoricalCandles']>[0]) => {
-      if (!['ALPACA', 'OANDA', 'CTRADER', 'DUKASCOPY'].includes(provider)) throw new Error('Unsupported history provider')
+      if (!['ALPACA', 'CAPITAL', 'OANDA', 'CTRADER', 'DUKASCOPY'].includes(provider)) throw new Error('Unsupported history provider')
       const step = timeframeMilliseconds(request.interval), to = request.before ?? Date.now(), from = to - Math.min(1000, Math.max(1, request.limit)) * step
       const raw = provider === 'DUKASCOPY' ? await localHistory(request, request.symbol) : await json(`/${provider}/history?${new URLSearchParams({ symbol: request.symbol, timeframe: request.interval, from: new Date(from).toISOString(), to: new Date(to).toISOString() })}`, request.signal)
       if (!Array.isArray(raw) || raw.length > 20000) throw new Error('Invalid history')

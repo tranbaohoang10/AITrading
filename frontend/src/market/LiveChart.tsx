@@ -104,7 +104,7 @@ type ChartCellState = {
   settings: ChartSettings
 }
 
-const createChartCell = (seed?: ChartCellState): ChartCellState => ({ symbol: seed?.symbol ?? 'BTC-USD', timeframe: seed?.timeframe ?? '1m', candles: [], loading: false, error: '', status: 'CONNECTING', drawings: [], indicators: [], chartType: seed?.chartType ?? 'candles', settings: { ...(seed?.settings ?? defaultChartSettings) } })
+const createChartCell = (seed?: ChartCellState): ChartCellState => ({ symbol: seed?.symbol ?? 'BTC-USD', timeframe: seed?.timeframe ?? '1m', candles: [], loading: true, error: '', status: 'CONNECTING', drawings: [], indicators: [], chartType: seed?.chartType ?? 'candles', settings: { ...(seed?.settings ?? defaultChartSettings) } })
 const chartIdsForLayout = (layout: '1' | '2H' | '2V' | '4' | '8') => Array.from({ length: layout === '1' ? 1 : layout === '2H' || layout === '2V' ? 2 : layout === '4' ? 4 : 8 }, (_, index) => `c${index + 1}`)
 
 export function LiveChart({ workspaceNavigation, provider = marketDataProvider }: { workspaceNavigation?: ReactNode; provider?: MarketDataProvider } = {}) {

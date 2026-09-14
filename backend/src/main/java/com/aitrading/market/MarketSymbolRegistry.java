@@ -56,9 +56,10 @@ public final class MarketSymbolRegistry {
             throw new IllegalArgumentException("Provider unavailable");
         var item = market.instrument(providerSymbol);
         var canonical = canonical(item.displaySymbol());
+        var resolvedProviderSymbol = item.providerSymbol();
         var available = market instanceof HistoricalAvailabilityProvider source
-                ? source.historicalAvailableFrom(providerSymbol) : UNKNOWN_AVAILABLE_FROM;
-        var seed = new Seed(canonical, item.assetClass(), market.capabilities().providerId(), providerSymbol,
+                ? source.historicalAvailableFrom(resolvedProviderSymbol) : UNKNOWN_AVAILABLE_FROM;
+        var seed = new Seed(canonical, item.assetClass(), market.capabilities().providerId(), resolvedProviderSymbol,
                 item.base(), item.quote(), available, item.supportedModes().contains("REALTIME"));
         return persisted(seed);
     }

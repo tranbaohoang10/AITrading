@@ -24,7 +24,7 @@ public class BinanceArchiveProvider implements MarketDataProvider,HistoricalAvai
     public Capabilities capabilities() {
         return new Capabilities("BINANCE","Binance Public Data",List.of("CRYPTO"),TF,
                 true,true,false,false,false,true,true,true,false,false,true,"ACCEPTED",
-                "REST_PAGED_AND_ARCHIVE",1000,"UTC",true,List.of("Public Spot REST klines and daily archives",
+                "REST_PAGED_AND_ARCHIVE",1000,"UTC",true,List.of("Public Spot WebSocket trades and REST klines",
                 "Futures archives not enabled without verified contract sizing", "Historical quantity only; exchange increments not asserted"));
     }
     public List<Instrument> search(String query) {

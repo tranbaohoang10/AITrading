@@ -43,3 +43,17 @@ must securely replace both `CTRADER_ACCESS_TOKEN` and `CTRADER_REFRESH_TOKEN`
 with the latest rotated pair before restarting, or provide a future approved
 encrypted secret-store integration. Never put rotated credentials in this
 repository, `.env` files, logs or issue comments.
+
+## Verification status — 14/09/2026
+
+`CtraderTokenManagerTests` pass for refresh-before-expiry, auth-expired retry,
+response validation and atomic replacement of the access/refresh-token pair.
+The real cTrader capability test also completed `2/2` with application auth,
+account auth, catalog, historical M1 and bounded realtime verification passing.
+The process never logs token values and never commits refreshed credentials.
+
+Persistent secure credential storage remains **not implemented**. A rotated pair
+survives only in the running process; after restart the application reloads the
+operator-supplied Windows User Environment values. Automatic refresh across
+restart is therefore explicitly **not claimed** until an approved encrypted
+secret-store integration is implemented.

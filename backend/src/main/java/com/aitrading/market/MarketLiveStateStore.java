@@ -36,5 +36,5 @@ public final class MarketLiveStateStore {
     public String health(){return status;}
     private static Duration ttl(String timeframe){long seconds=MarketDataProvider.seconds(timeframe);return Duration.ofSeconds(Math.min(172800,Math.max(180,seconds*3L)));}
     private static String frame(String timeframe){MarketDataProvider.seconds(timeframe);return switch(timeframe){case "1m"->"M1";case "5m"->"M5";case "15m"->"M15";case "30m"->"M30";case "1h"->"H1";case "4h"->"H4";case "1d"->"D1";default->throw new IllegalArgumentException("Unsupported timeframe");};}
-    private static String token(String value){if(value==null)throw new IllegalArgumentException("Invalid live state key");String token=value.toUpperCase(Locale.ROOT).replace("/","").replace("-","").replace("_","").replace(":","");if(!token.matches("[A-Z0-9]{2,64}"))throw new IllegalArgumentException("Invalid live state key");return token;}
+    private static String token(String value){if(value==null)throw new IllegalArgumentException("Invalid live state key");String token=value.toUpperCase(Locale.ROOT).replace("/","").replace("-","").replace("_","").replace(":","");if(!token.matches("[A-Z0-9]{1,64}"))throw new IllegalArgumentException("Invalid live state key");return token;}
 }

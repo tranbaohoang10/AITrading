@@ -6,6 +6,8 @@ describe('PB-038 neutral market metadata', () => {
     expect(precisionFromIncrement(.01)).toBe(2)
     expect(precisionFromIncrement(.0001)).toBe(4)
     expect(formatMarketPrice(1.23456, .0001)).toBe('1.2346')
+    expect(formatMarketPrice(1.23456, .00001)).toBe('1.23456')
+    expect(formatMarketPrice(156.789, .001)).toBe('156.789')
   })
 
   it('rejects malformed or impossible provider candles before rendering', () => {

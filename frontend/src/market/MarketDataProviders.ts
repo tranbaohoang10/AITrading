@@ -8,6 +8,11 @@ import { DEFAULT_INSTRUMENTS, FRANKFURTER_DEFAULT_SYMBOLS, type Instrument, type
 
 const isForex = (symbol: LiveSymbol) => (FRANKFURTER_DEFAULT_SYMBOLS as readonly string[]).includes(symbol)
 const isCrypto = (symbol: LiveSymbol) => !isForex(symbol) && symbol.includes('-')
+const liveRouteProviders = ['CTRADER', 'CAPITAL'] as const
+const canonicalRouteSymbol = (item: Instrument): LiveSymbol => {
+  if (liveRouteProviders.includes(item.provider as typeof liveRouteProviders[number]) && item.base && item.quote) return `${item.base}-${item.quote}`
+  return item.symbol
+}
 export function createMarketDataProvider(accountId?: string, onUnauthorized?: () => void): MarketDataProvider {
   const coinbase = accountId ? coinbaseMarketDataFor(accountId) : coinbaseMarketData
   const ownerFetch: typeof fetch = async (input, options = {}) => {
@@ -21,24 +26,54 @@ export function createMarketDataProvider(accountId?: string, onUnauthorized?: ()
   const stocks = accountId ? new AlpacaMarketDataProvider(ownerFetch, accountId) : alpacaMarketData
   const identities = new Map<string, Instrument>()
   const catalog = catalogAccess(ownerFetch, accountId ? `account:${accountId}` : 'public')
+  const remember = (item: Instrument): Instrument => {
+    const symbol = canonicalRouteSymbol(item), normalized = symbol === item.symbol ? item : { ...item, symbol }
+    identities.set(symbol, normalized)
+    if (normalized.provider === 'FRANKFURTER') forex.registerCatalogSymbol(symbol)
+    return normalized
+  }
+  const rememberPage = (page: Awaited<ReturnType<NonNullable<MarketDataProvider['searchPage']>>>): Awaited<ReturnType<NonNullable<MarketDataProvider['searchPage']>>> => ({ ...page, items: page.items.map(remember) })
+  const liveCatalog = async (assetClass: 'FOREX' | 'COMMODITY', query = '', signal?: AbortSignal): Promise<Instrument[]> => {
+    if (!accountId) return []
+    const pages = await Promise.all(liveRouteProviders.map(async provider => {
+      try { return rememberPage(await catalog.searchPage({ provider, query, assetClass, signal })) .items } catch { return [] }
+    }))
+    const seen = new Set<string>()
+    return pages.flat().filter(item => !seen.has(item.symbol) && seen.add(item.symbol))
+  }
   const forexSymbol = (symbol: string) => identities.get(symbol)?.provider === 'FRANKFURTER' || isForex(symbol)
   const provider: MarketDataProvider = {
-    searchPage: async request => { const page = await catalog.searchPage(request); page.items.forEach(i => { identities.set(i.symbol, i); if (i.provider === 'FRANKFURTER') forex.registerCatalogSymbol(i.symbol) }); return page }, catalogProviders: catalog.catalogProviders,
-    searchCatalogPage: async request => { const page = await catalog.searchCatalogPage(request); page.items.forEach(i => { if (i.modes.length) identities.set(i.symbol, i); if (i.provider === 'FRANKFURTER') forex.registerCatalogSymbol(i.symbol) }); return page },
+    searchPage: async request => rememberPage(await catalog.searchPage(request)), catalogProviders: catalog.catalogProviders,
+    searchCatalogPage: async request => { const page = await catalog.searchCatalogPage(request); return { ...page, items: page.items.map(item => item.modes.length ? remember(item) : item) } },
     capabilities: { provider: 'MULTI', assetClasses: ['CRYPTO', 'STOCK', 'ETF', 'FOREX', 'COMMODITY'], modes: ['HISTORICAL', 'REALTIME', 'DELAYED'], configured: true, status: 'ACCEPTED' },
     getHistoricalCandles: request => {
       const route = identities.get(request.symbol)
       if (request.symbol.startsWith('BINANCE:')) return catalog.binanceHistory(request)
-      if (route && ['OANDA', 'CTRADER', 'DUKASCOPY'].includes(route.provider)) return catalog.providerHistory(route.provider, { ...request, symbol: route.providerSymbol ?? request.symbol })
+      if (route && ['ALPACA', 'CAPITAL', 'OANDA', 'CTRADER', 'DUKASCOPY'].includes(route.provider)) return catalog.providerHistory(route.provider, { ...request, symbol: route.providerSymbol ?? request.symbol })
       return (forexSymbol(request.symbol) ? forex : isCrypto(request.symbol) ? coinbase : stocks).getHistoricalCandles(request)
     },
-    listInstruments: async signal => { const crypto = await coinbase.listInstruments?.(signal).catch(() => []) ?? coinbaseSymbols; const equities = await stocks.listInstruments(signal).catch(() => []); return [...crypto, ...forexSymbols, ...equities] },
-    searchInstruments: async (query, signal) => { const normalized = query.trim().toLowerCase(); const local = (await coinbase.listInstruments?.(signal).catch(() => []) ?? coinbaseSymbols).filter(item => `${item.symbol} ${item.name} ${item.base ?? ''} ${item.quote ?? ''}`.toLowerCase().includes(normalized)); const references = forexSymbols.filter(item => `${item.symbol} ${item.name} ${item.base ?? ''} ${item.quote ?? ''} ${item.exchange ?? ''}`.toLowerCase().includes(normalized)); const equities = await stocks.searchInstruments(query, signal).catch(() => []); return [...local, ...references, ...equities] },
+    listInstruments: async signal => {
+      const crypto = await coinbase.listInstruments?.(signal).catch(() => []) ?? coinbaseSymbols
+      const live = [...await liveCatalog('FOREX', '', signal), ...await liveCatalog('COMMODITY', '', signal)]
+      const liveSymbols = new Set(live.map(item => item.symbol))
+      const references = forexSymbols.filter(item => !liveSymbols.has(item.symbol))
+      const equities = await stocks.listInstruments(signal).catch(() => [])
+      return [...crypto, ...live, ...references, ...equities]
+    },
+    searchInstruments: async (query, signal) => {
+      const normalized = query.trim().toLowerCase()
+      const local = (await coinbase.listInstruments?.(signal).catch(() => []) ?? coinbaseSymbols).filter(item => `${item.symbol} ${item.name} ${item.base ?? ''} ${item.quote ?? ''}`.toLowerCase().includes(normalized))
+      const live = [...await liveCatalog('FOREX', query, signal), ...await liveCatalog('COMMODITY', query, signal)]
+      const liveSymbols = new Set(live.map(item => item.symbol))
+      const references = forexSymbols.filter(item => !liveSymbols.has(item.symbol) && `${item.symbol} ${item.name} ${item.base ?? ''} ${item.quote ?? ''} ${item.exchange ?? ''}`.toLowerCase().includes(normalized))
+      const equities = await stocks.searchInstruments(query, signal).catch(() => [])
+      return [...local, ...live, ...references, ...equities]
+    },
     listProducts: async signal => (await (provider.listInstruments?.(signal) ?? Promise.resolve(coinbaseSymbols))).map(item => item.symbol),
     subscribeCandles: (request, subscription) => {
       const route = identities.get(request.symbol)
       if (accountId && request.symbol.startsWith('BINANCE:')) return backendProviderStream(accountId, 'BINANCE', route?.providerSymbol ?? request.symbol.replace(/^BINANCE:/, ''), request.interval, subscription, ownerFetch)
-      if (accountId && route && ['OANDA', 'CTRADER'].includes(route.provider)) return backendProviderStream(accountId, route.provider, request.symbol, request.interval, subscription, ownerFetch)
+      if (accountId && route && ['ALPACA', 'CAPITAL', 'OANDA', 'CTRADER'].includes(route.provider)) return backendProviderStream(accountId, route.provider, request.symbol, request.interval, subscription, ownerFetch)
       return (forexSymbol(request.symbol) ? forex : isCrypto(request.symbol) ? coinbase : stocks).subscribeCandles(request, subscription)
     },
   }

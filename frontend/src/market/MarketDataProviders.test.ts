@@ -19,3 +19,19 @@ it('notifies the authenticated shell when a market request finds an expired sess
   await expect(provider.catalogProviders?.()).rejects.toThrow('Provider catalog unavailable')
   expect(expired).toHaveBeenCalledTimes(1)
 })
+
+it('routes live Capital catalog symbols through the authenticated backend stream', async () => {
+  const accountId = '00000000-0000-4000-8000-000000000001'
+  const catalogRow = { instrumentId: 'CAPITAL:EURUSD', provider: 'CAPITAL', providerSymbol: 'EURUSD', displaySymbol: 'EUR/USD', name: 'Euro / US Dollar CFD', exchange: 'Capital.com', assetClass: 'FOREX', base: 'EUR', quote: 'USD', supportedModes: ['HISTORICAL', 'REALTIME'] }
+  const fetcher = vi.fn()
+    .mockResolvedValueOnce(new Response(JSON.stringify({ items: [catalogRow], nextCursor: null }), { headers: { 'Content-Type': 'application/json' } }))
+    .mockResolvedValueOnce(new Response('', { status: 503, headers: { 'Content-Type': 'application/json' } }))
+  vi.stubGlobal('fetch', fetcher)
+  const provider = createMarketDataProvider(accountId)
+  const selected = (await provider.searchPage!({ provider: 'CAPITAL', query: '', assetClass: 'FOREX' })).items[0]
+  expect(selected).toMatchObject({ symbol: 'EUR-USD', providerSymbol: 'EURUSD', provider: 'CAPITAL' })
+  provider.subscribeCandles({ symbol: selected.symbol, interval: '1m' }, { onCandle: vi.fn(), onStatus: vi.fn(), onReconnect: vi.fn() })
+  await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2))
+  expect(fetcher.mock.calls[1][0]).toContain('/api/market/stream?symbol=EUR-USD&timeframe=1m&provider=CAPITAL')
+  expect(new Headers(fetcher.mock.calls[1][1]?.headers).get('X-Workspace-User')).toBe(accountId)
+})

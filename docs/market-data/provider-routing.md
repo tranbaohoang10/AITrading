@@ -37,7 +37,7 @@ symbol. The cTrader stream publishes current M1, M5, M15, M30, H1, H4 and D1
 forming candles through the existing Redis/SSE contract while persisting only
 finalized M1 candles.
 
-## Verification status
+## Historical verification status — 13/09/2026
 
 Local routing, aggregation and provider-isolation tests pass. The real cTrader
 smoke test reached the demo Open API but was rejected with
@@ -78,3 +78,77 @@ On 14/09/2026, an open-market real stream produced `CONNECTED` + `SUBSCRIBED`+
 `LiveQuote=PASS` with 43 EURUSD events in the bounded observation. cTrader spot
 events may carry only one of the optional bid/ask fields; the decoder therefore
 retains the latest pair and emits a midpoint only after both sides are known.
+### Frontend live-route remediation — 14/09/2026
+
+The chart provider factory now normalizes live cTrader and Capital.com catalog
+instruments to the canonical chart symbol while retaining the broker symbol for
+history and SSE subscription requests. Capital.com is included in the frontend
+catalog and stream whitelist, and Alpaca/Capital/cTrader routes use the same
+authenticated backend stream contract. Configured live routes replace the static
+Frankfurter reference rows; reference rows remain only as a fail-safe when a live
+provider is unavailable. Forex display precision defaults to five decimals for
+non-JPY pairs and three decimals for JPY pairs, while provider increments remain
+authoritative when supplied.
+
+This change does not fabricate realtime data: an instrument is shown as live only
+when its provider catalog advertises `REALTIME` and the authenticated stream emits
+provider events. Full Spring real-provider verification still requires the
+disposable PostgreSQL/Redis test services.
+
+## Current verification status — 14/09/2026
+
+The 14/09/2026 rerun used the disposable PostgreSQL test database and the real
+provider endpoints. `RealMarketProviderIntegrationTests` completed `2/2` with
+all 19 required symbols in `READY` state: seven Forex routes through cTrader,
+four metals through Capital.com, two crypto symbols through Binance, and six
+stocks/ETFs through Alpaca. The test persisted real M1 data and derived M5, H1
+and D1 coverage for each ready route.
+
+### Sanitized cTrader diagnostic stages
+
+| Stage | Result | Evidence |
+| --- | --- | --- |
+| TCP/TLS | PASS | `demo.ctraderapi.com:5035` reachable; TLS established |
+| Protobuf framing | PASS | Production codec decoded bounded cTrader responses |
+| Application auth | PASS | `ProtoOAApplicationAuthRes` received |
+| Account auth | PASS | `ProtoOAAccountAuthRes` received for the configured account |
+| Forex catalog | PASS | EURUSD, GBPUSD, USDJPY, AUDUSD, USDCAD, USDCHF and NZDUSD discovered |
+| Historical M1 | PASS | Required cTrader windows returned real rows; parser honors `[from,to)` |
+| Realtime quote | PASS | Bounded EURUSD stream received 38 real quote events |
+
+The cTrader account catalog exposes XAUUSD, XAGUSD and XPDUSD as enabled; XPTUSD
+is not enabled in that account. The required XPT/USD route therefore remains
+available through Capital.com rather than being fabricated as a cTrader symbol.
+
+### Redis/SSE downstream
+
+`MarketRedisIntegrationTests` and `MarketLiveStateRedisIntegrationTests` pass
+against the owned Redis QA listener at `127.0.0.1:6387`, including TTL, lease,
+degradation and a one-character cTrader provider ID key. The real Binance test
+updated Redis, published SSE and persisted a finalized M1 candle. A disposable
+authenticated API test also received a real cTrader candle over SSE and then
+returned live-state HTTP `200` with Redis health `HEALTHY`, status `LIVE` and a
+latest state present.
+
+The one-character key fix is required because cTrader catalog IDs include `1`,
+`2`, `4`, `5`, `6` and `8`; rejecting those IDs silently dropped cTrader live
+state while the SSE candle still appeared. Redis writes now accept sanitized
+provider keys from one to 64 alphanumeric characters.
+
+### Frontend live-route remediation — 14/09/2026
+
+The chart provider factory normalizes live cTrader and Capital.com catalog
+instruments to canonical chart symbols while retaining broker symbols for
+history and SSE subscription requests. Capital.com is included in the frontend
+catalog and stream whitelist, and Alpaca/Capital/cTrader routes use the same
+authenticated backend stream contract. Configured live routes replace static
+Frankfurter reference rows; reference rows remain only as a fail-safe when a
+live provider is unavailable. Forex display precision defaults to five decimals
+for non-JPY pairs and three decimals for JPY pairs, while provider increments
+remain authoritative when supplied. Forex rows render currency flags/logos.
+
+This change does not fabricate realtime data: an instrument is shown as live only
+when its provider catalog advertises `REALTIME` and the authenticated stream emits
+provider events. cTrader token rotation remains atomic and secret-safe, but
+persistent secure credential storage is not implemented; automatic refresh across
+application restart is explicitly not claimed.

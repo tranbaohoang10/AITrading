@@ -35,7 +35,12 @@ public class CtraderStreamProvider implements MarketStreamProvider {
     public boolean configured() { return client.configured(); }
 
     public SseEmitter subscribe(String symbol, String timeframe) {
-        var route = registry.resolveProviderSymbol("CTRADER", symbol);
+        var providerSymbol = symbol == null ? "" : symbol.strip();
+        if (providerSymbol.regionMatches(true, 0, "CTRADER:", 0, 8)) providerSymbol = providerSymbol.substring(8);
+        var route = providerSymbol.matches("[1-9][0-9]{0,18}")
+                ? registry.resolveProviderSymbol("CTRADER", providerSymbol) : registry.resolve(symbol);
+        if (!route.provider().equals("CTRADER") || !route.realtimeSupported())
+            throw new IllegalArgumentException("Invalid cTrader stream symbol");
         MarketDataProvider.seconds(timeframe);
         var key = route.providerSymbol();
         synchronized (hubs) {
@@ -44,7 +49,7 @@ public class CtraderStreamProvider implements MarketStreamProvider {
             var hub = hubs.computeIfAbsent(key, unused -> new Hub(key, route));
             if (hub.subscriptions.size() >= 128) throw new CtraderDataFailure("CTRADER_STREAM_CAPACITY", 503);
             var emitter = new SseEmitter(30 * 60_000L);
-            var subscription = new Subscription(timeframe, emitter);
+            var subscription = new Subscription(symbol, timeframe, emitter);
             hub.subscriptions.add(subscription);
             Runnable remove = () -> {
                 hub.subscriptions.remove(subscription);
@@ -54,7 +59,7 @@ public class CtraderStreamProvider implements MarketStreamProvider {
             emitter.onTimeout(remove);
             emitter.onError(error -> remove.run());
             hub.send(subscription, "status", Map.of("status", hub.status, "provider", "CTRADER"));
-            var snapshot = hub.snapshot(timeframe);
+            var snapshot = hub.snapshot(symbol, timeframe);
             if (snapshot != null) hub.send(subscription, "snapshot", snapshot);
             if (!hub.started) { hub.started = true; hub.connect(); }
             return emitter;
@@ -78,9 +83,9 @@ public class CtraderStreamProvider implements MarketStreamProvider {
 
         Hub(String key, MarketSymbolRegistry.Route route) { this.key = key; this.route = route; }
 
-        synchronized Map<String, Object> snapshot(String timeframe) {
+        synchronized Map<String, Object> snapshot(String requested, String timeframe) {
             var candle = aggregator.snapshot().get(timeframe);
-            return candle == null ? null : state(timeframe, candle);
+            return candle == null ? null : state(requested, timeframe, candle);
         }
 
         void connect() {
@@ -113,7 +118,7 @@ public class CtraderStreamProvider implements MarketStreamProvider {
                             live.writeFrames("CTRADER", key, update.price(), value.time(), update.current(), status, eventCount, "MID");
                             for (var subscription : subscriptions) {
                                 var candle = update.current().get(subscription.timeframe());
-                                if (candle != null) send(subscription, "candle", state(subscription.timeframe(), candle));
+                                if (candle != null) send(subscription, "candle", state(subscription.requested(), subscription.timeframe(), candle));
                             }
                             cache();
                             publish("status", Map.of("status", status, "provider", "CTRADER", "eventCount", eventCount,
@@ -152,9 +157,9 @@ public class CtraderStreamProvider implements MarketStreamProvider {
             }
         }
 
-        Map<String, Object> state(String timeframe, MarketDataProvider.Candle candle) {
+        Map<String, Object> state(String requested, String timeframe, MarketDataProvider.Candle candle) {
             var value = new LinkedHashMap<String, Object>();
-            value.put("provider", "CTRADER"); value.put("symbol", key); value.put("timeframe", timeframe);
+            value.put("provider", "CTRADER"); value.put("symbol", requested); value.put("timeframe", timeframe);
             value.put("openTime", candle.time()); value.put("open", candle.open()); value.put("high", candle.high());
             value.put("low", candle.low()); value.put("close", candle.close()); value.put("volume", candle.volume());
             value.put("candle", candle); value.put("partial", true); value.put("final", false);
@@ -171,7 +176,7 @@ public class CtraderStreamProvider implements MarketStreamProvider {
         synchronized void stop() { if (stopped) return; stopped = true; closeSession(); if (worker != null) worker.interrupt(); if (heartbeat != null) heartbeat.cancel(false); hubs.remove(key, this); }
     }
 
-    record Subscription(String timeframe, SseEmitter emitter) {}
+    record Subscription(String requested, String timeframe, SseEmitter emitter) {}
 
     @PreDestroy void close() { for (var hub : hubs.values()) { hub.subscriptions.clear(); hub.stop(); } scheduler.shutdownNow(); }
 }
