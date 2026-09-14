@@ -26,6 +26,18 @@ it('maps authenticated subscriptions and the official market clock to clear UX s
   expect(onStatus).toHaveBeenLastCalledWith('MARKET_CLOSED')
   dispose();output.close()
 })
+it('maps the backend connected status to the connected UX state', async () => {
+  vi.useFakeTimers()
+  let output!: ReadableStreamDefaultController<Uint8Array>
+  const body = new ReadableStream<Uint8Array>({ start(controller) { output = controller } })
+  const fetcher = vi.fn().mockResolvedValue(new Response(body, { headers: { 'Content-Type': 'text/event-stream' } }))
+  const onStatus = vi.fn(), dispose = backendProviderStream(account, 'COINBASE', 'BTC-USD', '1m', { onCandle: vi.fn(), onStatus, onReconnect: vi.fn() }, fetcher)
+  await vi.advanceTimersByTimeAsync(0)
+  output.enqueue(new TextEncoder().encode('event:status\ndata:{"status":"CONNECTED"}\n\n'))
+  await vi.advanceTimersByTimeAsync(0)
+  expect(onStatus).toHaveBeenLastCalledWith('CONNECTED')
+  dispose();output.close()
+})
 it('uses an owner-bound same-origin stream, parses split frames and coalesces tick updates', async () => {
   vi.useFakeTimers()
   let output!: ReadableStreamDefaultController<Uint8Array>

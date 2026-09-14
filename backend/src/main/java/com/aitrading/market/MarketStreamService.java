@@ -60,6 +60,8 @@ public class MarketStreamService implements MarketStreamProvider {
         }
         public synchronized void onOpen(WebSocket ws) {
             if(stopped){ws.abort();return;}socket=ws;
+            status="CONNECTED";
+            publish("status",Map.of("status",status,"provider","COINBASE"));
             ws.sendText(JSON.writeValueAsString(Map.of("type","subscribe","product_ids",List.of(symbol),"channels",List.of("matches","heartbeat"))),true);
             ws.request(1);
         }

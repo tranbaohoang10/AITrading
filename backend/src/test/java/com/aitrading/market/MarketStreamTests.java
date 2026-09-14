@@ -16,6 +16,7 @@ class MarketStreamTests {
                 "{\"type\":\"match\",\"product_id\":\"BTC-USD\",\"trade_id\":"+id+",\"time\":\""+time+"\",\"price\":\"100\",\"size\":\"1\"}";
         try {
             hub.onOpen(old);
+            assertEquals("CONNECTED",hub.status);
             hub.onText(old,event.apply(1L,bucket.plusSeconds(30)),true);
             hub.onText(old,event.apply(2L,bucket.plusSeconds(60)),true);
             assertEquals("LIVE",hub.status);
