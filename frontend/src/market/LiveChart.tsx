@@ -123,6 +123,11 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
   const drawingHistory = useRef<Record<string, { past: Drawing[][]; future: Drawing[][] }>>({})
   const activeState = cells[activeCell] ?? createChartCell()
   const { symbol, timeframe, candles, drawings, indicators, chartType, settings, loading, status } = activeState
+  const chartIds = chartIdsForLayout(layout)
+  const chartRunSignature = chartIds.map(id => {
+    const cell = cells[id]
+    return `${id}:${cell?.symbol ?? ''}:${cell?.timeframe ?? ''}`
+  }).join('|')
   const updateCell = (id: string, update: (cell: ChartCellState) => ChartCellState) => setCells(current => ({ ...current, [id]: update(current[id] ?? createChartCell()) }))
   const updateActiveCell = (update: (cell: ChartCellState) => ChartCellState) => updateCell(activeCell, update)
   const setTimeframe = (next: Timeframe) => updateActiveCell(cell => ({ ...cell, timeframe: instruments.find(item => item.symbol === cell.symbol)?.provider === 'FRANKFURTER' ? '1d' : next }))
@@ -175,7 +180,7 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
   }, [])
 
   useEffect(() => {
-    const ids = chartIdsForLayout(layout)
+    const ids = chartIds
     setCells(current => {
       const seed = current.c1 ?? createChartCell()
       let changed = false
@@ -241,7 +246,7 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
       }
       void start()
     })
-  }, [activeCell, attempt, cells, layout, provider, unitTestDefaultProvider])
+  }, [attempt, chartRunSignature, layout, provider, unitTestDefaultProvider])
 
   useEffect(() => {
     if (provider !== marketDataProvider || unitTestDefaultProvider || !activeState.candles.length || activeState.loading) return
