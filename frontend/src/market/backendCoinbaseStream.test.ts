@@ -48,6 +48,25 @@ it('uses an owner-bound same-origin stream, parses split frames and coalesces ti
   dispose();output.close();await vi.advanceTimersByTimeAsync(60_000)
   expect(fetcher).toHaveBeenCalledTimes(1);expect(onReconnect).not.toHaveBeenCalled()
 })
+it('maps provider symbols back to the logical chart symbol', async () => {
+  vi.useFakeTimers()
+  let output!: ReadableStreamDefaultController<Uint8Array>
+  const body = new ReadableStream<Uint8Array>({ start(controller) { output = controller } })
+  const fetcher = vi.fn().mockResolvedValue(new Response(body, { headers: { 'Content-Type': 'text/event-stream' } }))
+  const onCandle = vi.fn(), dispose = backendProviderStream(account, 'BINANCE', 'BTCUSDT', '1m', { onCandle, onStatus: vi.fn(), onReconnect: vi.fn() }, fetcher, 'BINANCE:BTCUSDT')
+  await vi.advanceTimersByTimeAsync(0)
+  const payload = { ...data, provider: 'BINANCE', symbol: 'BTCUSDT' }
+  output.enqueue(new TextEncoder().encode(`event:candle\ndata:${JSON.stringify(payload)}\n\n`))
+  await vi.advanceTimersByTimeAsync(250)
+  expect(onCandle).toHaveBeenCalledWith(expect.objectContaining({ symbol: 'BINANCE:BTCUSDT' }))
+  dispose();output.close()
+})
+it('does not retry a terminal unsupported-symbol response', async () => {
+  vi.useFakeTimers();const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 400 }))
+  const dispose = backendProviderStream(account, 'CAPITAL', 'UNKNOWN', '1m', { onCandle: vi.fn(), onStatus: vi.fn(), onReconnect: vi.fn() }, fetcher)
+  await vi.advanceTimersByTimeAsync(60_000)
+  expect(fetcher).toHaveBeenCalledTimes(1);dispose()
+})
 it('stops retrying when the rendered account no longer owns the session', async () => {
   vi.useFakeTimers();const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 401 }));vi.stubGlobal('fetch', fetcher)
   const dispose = backendCoinbaseStream(account, 'BTC-USD', '1m', { onCandle: vi.fn(), onStatus: vi.fn(), onReconnect: vi.fn() })

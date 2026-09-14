@@ -72,8 +72,13 @@ export function createMarketDataProvider(accountId?: string, onUnauthorized?: ()
     listProducts: async signal => (await (provider.listInstruments?.(signal) ?? Promise.resolve(coinbaseSymbols))).map(item => item.symbol),
     subscribeCandles: (request, subscription) => {
       const route = identities.get(request.symbol)
-      if (accountId && request.symbol.startsWith('BINANCE:')) return backendProviderStream(accountId, 'BINANCE', route?.providerSymbol ?? request.symbol.replace(/^BINANCE:/, ''), request.interval, subscription, ownerFetch)
-      if (accountId && route && ['ALPACA', 'CAPITAL', 'OANDA', 'CTRADER'].includes(route.provider)) return backendProviderStream(accountId, route.provider, request.symbol, request.interval, subscription, ownerFetch)
+      if (accountId && request.symbol.startsWith('BINANCE:')) {
+        const streamSymbol = route?.providerSymbol ?? request.symbol.replace(/^BINANCE:/, '')
+        return backendProviderStream(accountId, 'BINANCE', streamSymbol, request.interval, subscription, ownerFetch, request.symbol)
+      }
+      if (accountId && route && ['ALPACA', 'CAPITAL', 'OANDA', 'CTRADER'].includes(route.provider)) {
+        return backendProviderStream(accountId, route.provider, route.providerSymbol ?? request.symbol, request.interval, subscription, ownerFetch, request.symbol)
+      }
       return (forexSymbol(request.symbol) ? forex : isCrypto(request.symbol) ? coinbase : stocks).subscribeCandles(request, subscription)
     },
   }

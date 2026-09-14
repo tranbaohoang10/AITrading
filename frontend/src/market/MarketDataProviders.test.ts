@@ -32,6 +32,6 @@ it('routes live Capital catalog symbols through the authenticated backend stream
   expect(selected).toMatchObject({ symbol: 'EUR-USD', providerSymbol: 'EURUSD', provider: 'CAPITAL' })
   provider.subscribeCandles({ symbol: selected.symbol, interval: '1m' }, { onCandle: vi.fn(), onStatus: vi.fn(), onReconnect: vi.fn() })
   await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2))
-  expect(fetcher.mock.calls[1][0]).toContain('/api/market/stream?symbol=EUR-USD&timeframe=1m&provider=CAPITAL')
+  expect(fetcher.mock.calls[1][0]).toContain('/api/market/stream?symbol=EURUSD&timeframe=1m&provider=CAPITAL')
   expect(new Headers(fetcher.mock.calls[1][1]?.headers).get('X-Workspace-User')).toBe(accountId)
 })

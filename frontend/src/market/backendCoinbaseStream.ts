@@ -16,7 +16,7 @@ export function backendCoinbaseStream(account: string, symbol: string, interval:
   return backendProviderStream(account, 'COINBASE', symbol, interval, subscription, fetcher)
 }
 
-export function backendProviderStream(account: string, provider: string, symbol: string, interval: Timeframe, subscription: CandleSubscription, fetcher: typeof fetch = globalThis.fetch.bind(globalThis)): () => void {
+export function backendProviderStream(account: string, provider: string, symbol: string, interval: Timeframe, subscription: CandleSubscription, fetcher: typeof fetch = globalThis.fetch.bind(globalThis), chartSymbol = symbol): () => void {
   if (!['COINBASE', 'BINANCE', 'ALPACA', 'CAPITAL', 'OANDA', 'CTRADER'].includes(provider)) throw new Error('Unsupported stream provider')
   let disposed = false, opened = false, delay = 1000, controller: AbortController | undefined
   let retry: ReturnType<typeof setTimeout> | undefined, flush: ReturnType<typeof setTimeout> | undefined
@@ -36,7 +36,7 @@ export function backendProviderStream(account: string, provider: string, symbol:
     if (event === 'candle' || event === 'snapshot') {
       const candle = streamCandle(data, symbol, interval, provider)
       if (!candle) throw new Error('Invalid stream candle')
-      emit(candle)
+      emit(chartSymbol === symbol ? candle : { ...candle, symbol: chartSymbol })
     } else if (event === 'status' && data && typeof data === 'object' && 'status' in data) {
       const next = data.status
       if (next === 'AUTHENTICATED' || next === 'SUBSCRIBED') setStatus('CONNECTED')
@@ -47,14 +47,15 @@ export function backendProviderStream(account: string, provider: string, symbol:
     if (disposed) return
     controller = new AbortController(); lastFrame = Date.now(); setStatus(opened ? 'RECONNECTING' : 'CONNECTING')
     const idle = setInterval(() => { if (Date.now() - lastFrame > 45_000) controller?.abort() }, 5000)
-    let denied = false
+    let denied = false, retryable = true
     try {
       const parameters: Record<string, string> = { symbol, timeframe: interval }
       if (provider !== 'COINBASE') parameters.provider = provider
       const response = await fetcher(`/api/market/stream?${new URLSearchParams(parameters)}`, { headers: workspaceHeaders(account), credentials: 'same-origin', cache: 'no-store', signal: controller.signal })
       if (disposed) return
       denied = response.status === 401 || response.status === 403
-      if (!response.ok || !response.body || !response.headers.get('Content-Type')?.startsWith('text/event-stream')) throw new Error('Stream unavailable')
+      if (!response.ok) { retryable = response.status >= 500 || response.status === 408 || response.status === 429; throw new Error('Stream unavailable') }
+      if (!response.body || !response.headers.get('Content-Type')?.startsWith('text/event-stream')) throw new Error('Stream unavailable')
       if (opened) subscription.onReconnect()
       opened = true; delay = 1000; lastFrame = Date.now()
       const reader = response.body.getReader(), decoder = new TextDecoder()
@@ -70,7 +71,7 @@ export function backendProviderStream(account: string, provider: string, symbol:
     } catch { if (!disposed) setStatus('DISCONNECTED') }
     finally {
       clearInterval(idle); controller.abort()
-      if (!disposed && !denied) { retry = setTimeout(() => { void connect() }, delay); delay = Math.min(delay * 2, 30_000) }
+      if (!disposed && !denied && retryable) { retry = setTimeout(() => { void connect() }, delay); delay = Math.min(delay * 2, 30_000) }
     }
   }
   void connect()

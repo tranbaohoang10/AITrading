@@ -14,6 +14,16 @@ class InstrumentCatalogPersistenceTests {
     private final InstrumentCatalogProvider.Descriptor descriptor=new InstrumentCatalogProvider.Descriptor("TEST_CATALOG",List.of("STOCK","FOREX"),20,true,false,"test");
     @BeforeEach void clear(){jdbc.update("DELETE FROM trading.instrument_alias");jdbc.update("DELETE FROM trading.instrument_provider_mapping");jdbc.update("DELETE FROM trading.market_instrument");jdbc.update("DELETE FROM trading.instrument_catalog_sync");}
 
+    @Test void reusesExistingRegistryIdentityWhenCatalogRefreshes() {
+        String key=InstrumentCatalogProvider.pairKey("FOREX","EUR","USD","SPOT");
+        UUID existing=UUID.randomUUID();
+        jdbc.update("INSERT INTO trading.market_instrument(id,canonical_key,asset_class,canonical_symbol,display_symbol,name,metadata_priority,active) VALUES(?,?,?,?,?,?,100,true)",existing,key,"FOREX","EUR-USD","EUR/USD","Euro / U.S. Dollar");
+        var row=candidate("FOREX","FX","EUR-USD","Euro / U.S. Dollar","EUR","USD");
+        store.replaceSnapshot(descriptor,List.of(row));
+        assertThat(jdbc.queryForObject("SELECT id FROM trading.market_instrument WHERE canonical_key=?",UUID.class,key)).isEqualTo(existing);
+        assertThat(jdbc.queryForObject("SELECT instrument_id FROM trading.instrument_provider_mapping WHERE provider=? AND provider_symbol=?",UUID.class,"TEST_CATALOG","EUR-USD")).isEqualTo(existing);
+    }
+
     @Test void persistsExchangeCollisionsAliasesPaginationAndLastKnownGood() {
         var rows=new ArrayList<InstrumentCatalogProvider.Candidate>();
         rows.add(candidate("STOCK","NASDAQ","AAPL","Apple Inc",null,null));
