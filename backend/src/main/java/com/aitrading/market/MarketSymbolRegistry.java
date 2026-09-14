@@ -99,6 +99,9 @@ public final class MarketSymbolRegistry {
         if (options == null) return Optional.empty();
         var asset = options.getFirst().asset();
         if (asset.equals("FOREX")) {
+            var capital = options.stream().filter(seed -> seed.provider().equals("CAPITAL")
+                    && providerConfigured(seed.provider())).findFirst();
+            if (capital.isPresent()) return capital;
             if (ctrader.configured()) {
                 var actual = ctraderSeed(canonical);
                 if (actual.isPresent()) return actual;
