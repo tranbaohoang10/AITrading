@@ -37,7 +37,7 @@ function RealtimeStatus({ status, firstEventAt, lastUpdate, activeCandleTime, pa
   return <div data-testid="realtime-status" role="status" aria-label={detail} title={detail} className="flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-slate-800 bg-slate-950/60 px-2 text-[10px] leading-none text-slate-300"><span className={`h-1.5 w-1.5 shrink-0 rounded-full ${liveClass[effectiveStatus]}`}/><span className="font-semibold">{visibleLabel}</span></div>
 }
 
-const INITIAL_HISTORY_BARS = 300, HISTORY_PAGE_SIZE = 300, MAX_CACHED_BARS = 20_000, HISTORY_REQUEST_TIMEOUT_MS = 12_000, BACKGROUND_WARMUP_LIMIT = 24, BACKGROUND_WARMUP_GAP_MS = 50
+const INITIAL_HISTORY_BARS = 1000, HISTORY_PAGE_SIZE = 1000, MAX_CACHED_BARS = 20_000, HISTORY_REQUEST_TIMEOUT_MS = 12_000, BACKGROUND_WARMUP_LIMIT = 24, BACKGROUND_WARMUP_GAP_MS = 50
 const historyCache = new Map<string, MarketCandle[]>()
 const cacheKey = (symbol: LiveSymbol, timeframe: Timeframe, before?: number) => `${symbol}|${timeframe}|${before ?? 'latest'}`
 type HistoryRequest = { symbol: LiveSymbol; interval: Timeframe; limit: number; before?: number; signal?: AbortSignal }
@@ -230,13 +230,14 @@ export function LiveChart({ workspaceNavigation, provider = marketDataProvider }
             if (!controller.signal.aborted) setCell(current => current.candles.length ? { ...current, loading: false } : { ...current, loading: false, error: 'Market data request timed out. Retry the chart.', status: 'DISCONNECTED' })
           }, HISTORY_REQUEST_TIMEOUT_MS)
           const cachedSeed = historyCache.get(cacheKey(cellSymbol, cellTimeframe))?.at(-1)
-          run.unsubscribe = provider.subscribeCandles({ symbol: cellSymbol, interval: cellTimeframe, seed: cachedSeed }, {
+          const history = await mergeHistory(false)
+          if (!history?.length || controller.signal.aborted) throw new Error('No historical candles returned for this symbol and timeframe.')
+          run.unsubscribe = provider.subscribeCandles({ symbol: cellSymbol, interval: cellTimeframe, seed: history.at(-1) ?? cachedSeed }, {
             onCandle: candle => setCell(current => { if (candle.symbol !== cellSymbol || candle.interval !== cellTimeframe) return current; const next = mergeRealtimeCandle(current.candles, [candle], MAX_CACHED_BARS), receivedAt = Date.now(); historyCache.set(cacheKey(cellSymbol, cellTimeframe), next); return { ...current, candles: next, firstEventAt: current.firstEventAt ?? receivedAt, lastUpdate: receivedAt, status: 'LIVE' } }),
             onStatus: next => setCell(current => ({ ...current, status: next === 'LIVE' && !current.lastUpdate ? current.status === 'RECONNECTING' ? 'RECONNECTING' : 'CONNECTING' : next })),
             onReconnect: () => { void mergeHistory(true).catch(() => setCell(current => ({ ...current, error: 'Live stream reconnected, but latest history could not be refreshed.', status: 'DISCONNECTED' }))) },
           })
-          const history = await mergeHistory(true)
-          if (!history || controller.signal.aborted) return
+          if (controller.signal.aborted) return
         } catch (cause) {
           if (!controller.signal.aborted) setCell(current => ({ ...current, error: cause instanceof Error ? cause.message : 'Failed to load market data.', status: 'DISCONNECTED' }))
         } finally {

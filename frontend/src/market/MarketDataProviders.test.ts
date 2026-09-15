@@ -2,6 +2,25 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { createMarketDataProvider } from './MarketDataProviders'
 
 afterEach(() => vi.unstubAllGlobals())
+it.each([['CAPITAL', 'GOLD'], ['CTRADER', '41']])('keeps %s gold history in the same identity as live candles', async (providerId, providerSymbol) => {
+  const row = { instrumentId: `${providerId}:${providerSymbol}`, provider: providerId, providerSymbol, displaySymbol: 'XAU/USD', name: 'Gold', exchange: providerId, assetClass: 'COMMODITY', base: 'XAU', quote: 'USD', supportedModes: ['HISTORICAL', 'REALTIME'] }
+  const history = Array.from({ length: 300 }, (_, index) => ({ time: new Date(Date.UTC(2026, 8, 14) + index * 60000).toISOString(), open: 4200, high: 4202, low: 4199, close: 4201, volume: 0 }))
+  const fetcher = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({ items: [row], nextCursor: null }))).mockResolvedValueOnce(new Response(JSON.stringify(history)))
+  vi.stubGlobal('fetch', fetcher)
+  const provider = createMarketDataProvider(`gold-${providerId}`)
+  const selected = (await provider.searchPage!({ provider: providerId, query: 'gold' })).items[0]
+  const candles = await provider.getHistoricalCandles({ symbol: selected.symbol, interval: '1m', limit: 300 })
+  expect(candles).toHaveLength(300)
+  expect(candles.every(candle => candle.symbol === 'XAU-USD')).toBe(true)
+})
+
+it('does not dispatch retired Binance symbols to Alpaca', async () => {
+  const fetcher = vi.fn()
+  vi.stubGlobal('fetch', fetcher)
+  const provider = createMarketDataProvider('retired-provider')
+  await expect(provider.getHistoricalCandles({ symbol: 'BINANCE:BTCUSDT', interval: '1m', limit: 300 })).rejects.toThrow('Select a crypto pair from Coinbase')
+  expect(fetcher).not.toHaveBeenCalled()
+})
 it('binds Forex and equity requests to the account that created the provider', async () => {
   const fetcher = vi.fn().mockImplementation(async () => new Response('[]', { headers: { 'Content-Type': 'application/json' } }))
   vi.stubGlobal('fetch', fetcher)

@@ -1,5 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { SymbolIcon } from './SymbolIcon'
+it.each(['EUR', 'USD', 'GBP', 'JPY', 'CAD', 'CHF', 'AUD', 'NZD'])('renders %s as vector flags, not font-dependent emoji', base => {
+  render(<SymbolIcon instrument={{ symbol: `${base}-USD`, base, quote: 'USD', name: base, assetClass: 'FOREX' }} />)
+  const icon = screen.getByRole('img')
+  expect(icon.querySelectorAll('svg')).toHaveLength(2)
+  expect(icon).toHaveTextContent('')
+})
 it('uses pinned local licensed icons, fails to a deterministic symbol and never fetches arbitrary URLs', () => {
   const view = render(<SymbolIcon instrument={{ symbol: 'BTC-USD', base: 'BTC', name: 'Bitcoin', assetClass: 'CRYPTO' }} />)
   const img = screen.getByRole('img')

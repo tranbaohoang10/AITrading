@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { CurrencyFlag } from './CurrencyFlag'
 import type { Instrument } from '../market/liveMarket'
 
 export const approvedCryptoIconBases = ['BTC', 'ETH', 'SOL', 'XRP', 'ADA', 'DOGE', 'LINK', 'AVAX', 'LTC', 'BCH', 'USDT', 'DOT', 'SUI', 'UNI', 'AAVE', 'XLM', 'HBAR'] as const
@@ -15,6 +16,7 @@ export function hasApprovedSymbolIcon(instrument: Pick<Instrument, 'symbol' | 'b
 export function SymbolIcon({ instrument }: { instrument: Pick<Instrument, 'symbol' | 'base' | 'quote' | 'assetClass' | 'name'> }) {
   const base = instrumentBase(instrument)
   const [failed, setFailed] = useState('')
+  if (instrument.assetClass === 'FOREX' && flags[base] && flags[instrument.quote ?? '']) return <span role="img" aria-label={`${base} and ${instrument.quote} currency flags`} className="relative h-8 w-9 shrink-0"><span className="absolute left-0 top-0 rounded border border-slate-600"><CurrencyFlag currency={base} /></span><span className="absolute bottom-0 right-0 rounded border border-slate-600"><CurrencyFlag currency={instrument.quote!} /></span></span>
   if (instrument.assetClass === 'COMMODITY' && commodityIcons[base] && failed !== base) return <img alt={`${instrument.name} icon`} src={`/symbol-icons/${commodityIcons[base]}.svg`} onError={() => setFailed(base)} className="h-7 w-7 shrink-0" width="28" height="28" />
   if (instrument.assetClass === 'CRYPTO' && localIcons.has(base) && failed !== base) return <img alt={`${instrument.name} icon`} title="CC0-1.0 · spothq/cryptocurrency-icons" src={`/symbol-icons/${base.toLowerCase()}.svg`} onError={() => setFailed(base)} className="h-7 w-7 shrink-0" width="28" height="28" />
   if (['STOCK', 'ETF'].includes(instrument.assetClass) && equityIcons[base] && failed !== base) return <img alt={`${instrument.name} icon`} title="Local approved instrument icon" src={`/symbol-icons/${equityIcons[base]}.svg`} onError={() => setFailed(base)} className="h-7 w-7 shrink-0 rounded-md" width="28" height="28" />
